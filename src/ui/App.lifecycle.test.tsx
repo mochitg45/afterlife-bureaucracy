@@ -17,6 +17,16 @@ function setVisibility(state: DocumentVisibilityState) {
   Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
 }
 
+/** Stub the lifecycle half of the store and hand back the spies. */
+function stubStore() {
+  const boot = vi.fn().mockResolvedValue(undefined);
+  const pause = vi.fn().mockResolvedValue(undefined);
+  const resume = vi.fn().mockResolvedValue(undefined);
+  const stopLoop = vi.fn();
+  useGame.setState({ boot, pause, resume, stopLoop, ready: true });
+  return { boot, pause, resume, stopLoop };
+}
+
 describe('App lifecycle', () => {
   let originalDescriptor: PropertyDescriptor | undefined;
 
@@ -30,54 +40,66 @@ describe('App lifecycle', () => {
     else delete (document as unknown as Record<string, unknown>).visibilityState;
   });
 
-  it('saves on hidden, boots on visible via visibilitychange', async () => {
+  it('pauses on hidden and resumes on visible via visibilitychange', async () => {
     let resolveHandle: (h: { remove(): void }) => void = () => {};
     addListenerMock.mockReturnValue(new Promise<{ remove(): void }>((resolve) => { resolveHandle = resolve; }));
-    const save = vi.fn().mockResolvedValue(undefined);
-    const boot = vi.fn().mockResolvedValue(undefined);
-    useGame.setState({ save, boot, ready: true });
+    const { boot, pause, resume } = stubStore();
 
     render(<App />);
     await act(async () => { resolveHandle({ remove: vi.fn() }); });
-    boot.mockClear();
+    expect(boot).toHaveBeenCalledTimes(1);
 
     setVisibility('hidden');
     await act(async () => { document.dispatchEvent(new Event('visibilitychange')); });
-    expect(save).toHaveBeenCalled();
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(resume).not.toHaveBeenCalled();
 
     setVisibility('visible');
     await act(async () => { document.dispatchEvent(new Event('visibilitychange')); });
-    expect(boot).toHaveBeenCalled();
+    expect(resume).toHaveBeenCalledTimes(1);
   });
 
-  it('stops reacting to visibilitychange after unmount', async () => {
+  it('pauses and resumes on the native appStateChange event', async () => {
     let resolveHandle: (h: { remove(): void }) => void = () => {};
     addListenerMock.mockReturnValue(new Promise<{ remove(): void }>((resolve) => { resolveHandle = resolve; }));
-    const save = vi.fn().mockResolvedValue(undefined);
-    const boot = vi.fn().mockResolvedValue(undefined);
-    useGame.setState({ save, boot, ready: true });
+    const { pause, resume } = stubStore();
+
+    render(<App />);
+    await act(async () => { resolveHandle({ remove: vi.fn() }); });
+
+    const onAppState = addListenerMock.mock.calls[0][1] as (e: { isActive: boolean }) => void;
+    await act(async () => { onAppState({ isActive: false }); });
+    expect(pause).toHaveBeenCalledTimes(1);
+
+    await act(async () => { onAppState({ isActive: true }); });
+    expect(resume).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops the loop and ignores visibilitychange after unmount', async () => {
+    let resolveHandle: (h: { remove(): void }) => void = () => {};
+    addListenerMock.mockReturnValue(new Promise<{ remove(): void }>((resolve) => { resolveHandle = resolve; }));
+    const { pause, resume, stopLoop } = stubStore();
 
     const { unmount } = render(<App />);
     await act(async () => { resolveHandle({ remove: vi.fn() }); });
     unmount();
-    save.mockClear();
-    boot.mockClear();
+    expect(stopLoop).toHaveBeenCalledTimes(1);
+    pause.mockClear();
+    resume.mockClear();
 
     setVisibility('hidden');
     document.dispatchEvent(new Event('visibilitychange'));
-    expect(save).not.toHaveBeenCalled();
+    expect(pause).not.toHaveBeenCalled();
 
     setVisibility('visible');
     document.dispatchEvent(new Event('visibilitychange'));
-    expect(boot).not.toHaveBeenCalled();
+    expect(resume).not.toHaveBeenCalled();
   });
 
   it('removes the native listener handle even when unmounted before registration resolves', async () => {
     let resolveHandle: (h: { remove(): void }) => void = () => {};
     addListenerMock.mockReturnValue(new Promise<{ remove(): void }>((resolve) => { resolveHandle = resolve; }));
-    const save = vi.fn().mockResolvedValue(undefined);
-    const boot = vi.fn().mockResolvedValue(undefined);
-    useGame.setState({ save, boot, ready: true });
+    stubStore();
 
     const { unmount } = render(<App />);
     unmount();

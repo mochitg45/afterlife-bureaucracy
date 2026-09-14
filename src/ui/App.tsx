@@ -10,21 +10,23 @@ import { BacklogReport } from './overlays/BacklogReport';
 export function App() {
   const [tab, setTab] = useState<TabId>('office');
   const boot = useGame((s) => s.boot);
-  const save = useGame((s) => s.save);
+  const pause = useGame((s) => s.pause);
+  const resume = useGame((s) => s.resume);
+  const stopLoop = useGame((s) => s.stopLoop);
   const ready = useGame((s) => s.ready);
 
   useEffect(() => { void boot(); }, [boot]);
 
   useEffect(() => {
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') void save();
-      else void boot();
+      if (document.visibilityState === 'hidden') void pause();
+      else void resume();
     };
     document.addEventListener('visibilitychange', onVisibility);
     let handle: { remove(): Promise<void> } | null = null;
     let cancelled = false;
     if (Capacitor.isNativePlatform()) {
-      void CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) void boot(); else void save(); }).then((h) => {
+      void CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) void resume(); else void pause(); }).then((h) => {
         if (cancelled) void h.remove();
         else handle = h;
       });
@@ -33,8 +35,9 @@ export function App() {
       document.removeEventListener('visibilitychange', onVisibility);
       cancelled = true;
       void handle?.remove();
+      stopLoop();
     };
-  }, [boot, save]);
+  }, [pause, resume, stopLoop]);
 
   return (
     <div className="app">
