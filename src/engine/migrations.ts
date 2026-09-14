@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 type Raw = Record<string, unknown>;
 
@@ -15,6 +15,32 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
   },
   // 2 -> 3: Perk Ledger purchases.
   (raw) => ({ ...raw, perks: [] }),
+  // 3 -> 4: gacha cards, pity, daily tasks, achievements, story beats, notification
+  // settings. firstSeenWallClock backfills from the last-seen timestamp we do have,
+  // rather than "now", so a returning player's cohort isn't misdated.
+  (raw) => ({
+    ...raw,
+    cards: {},
+    equipped: [],
+    pity: { senior: 0, executive: 0 },
+    rngSeed: 0x9e3779b9,
+    dailies: {
+      date: '',
+      tasks: [],
+      skipped: [],
+      streak: 0,
+      bestStreak: 0,
+      skipTokens: 0,
+      lastTokenDate: '',
+      baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
+      completedToday: false,
+    },
+    achievements: [],
+    storySeen: [],
+    settings: { notifOptIn: 'unasked' },
+    firstSeenWallClock: typeof raw.lastSeenWallClock === 'number' ? raw.lastSeenWallClock : 0,
+    stats: { ...((raw.stats as object) ?? {}), pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0 },
+  }),
 ];
 
 /**

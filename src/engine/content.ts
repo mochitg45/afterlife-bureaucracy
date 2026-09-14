@@ -61,6 +61,77 @@ const perkSchema = z.object({
   effect: perkEffectSchema,
 });
 
+const cardEffectSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('deptMult'), dept: z.string().min(1), value: z.number().positive() }),
+  z.object({ type: z.literal('globalMult'), value: z.number().positive() }),
+  z.object({ type: z.literal('clickMult'), value: z.number().positive() }),
+  z.object({ type: z.literal('offlineCapHours'), value: z.number().positive() }),
+  z.object({ type: z.literal('voucherMult'), value: z.number().positive() }),
+]);
+
+const cardSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  title: z.string().min(1),
+  rarity: z.enum(['temp', 'fulltime', 'senior', 'executive']),
+  dept: z.string().min(1),
+  character: z.string().min(1),
+  effect: cardEffectSchema,
+  flavor: z.string(),
+});
+
+const dailySchema = z
+  .object({
+    id: z.string().min(1),
+    kind: z.enum(['clicks', 'hire', 'upgrades', 'equip', 'audit', 'perk', 'pulls']),
+    target: z.number().int().positive(),
+    text: z.string().min(1),
+  })
+  .refine((d) => d.text.includes('{n}'), { message: '{n} placeholder required' });
+
+const achievementConditionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('soulsLifetime'), target: z.number().positive() }),
+  z.object({ type: z.literal('clicks'), target: z.number().positive() }),
+  z.object({ type: z.literal('staffHired'), target: z.number().positive() }),
+  z.object({ type: z.literal('upgradesBought'), target: z.number().positive() }),
+  z.object({ type: z.literal('audits'), target: z.number().positive() }),
+  z.object({ type: z.literal('pulls'), target: z.number().positive() }),
+  z.object({ type: z.literal('dailiesClaimed'), target: z.number().positive() }),
+  z.object({ type: z.literal('adsWatched'), target: z.number().positive() }),
+  z.object({ type: z.literal('bestStreak'), target: z.number().positive() }),
+  z.object({ type: z.literal('seals'), target: z.number().positive() }),
+  z.object({ type: z.literal('fiscalYear'), target: z.number().positive() }),
+  z.object({ type: z.literal('cardsOwned'), target: z.number().positive() }),
+  z.object({ type: z.literal('executivesOwned'), target: z.number().positive() }),
+  z.object({ type: z.literal('fiveStarCards'), target: z.number().positive() }),
+  z.object({ type: z.literal('perksOwned'), target: z.number().positive() }),
+  z.object({ type: z.literal('departmentsUnlocked'), target: z.number().positive() }),
+  z.object({ type: z.literal('equipped'), target: z.number().positive() }),
+  z.object({ type: z.literal('staffOwned'), staff: z.string().min(1), target: z.number().positive() }),
+]);
+
+const achievementSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  desc: z.string(),
+  badge: z.enum(['stamp', 'trophy', 'star', 'scroll', 'flame', 'gear']),
+  tier: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  condition: achievementConditionSchema,
+  vouchers: z.number().int().nonnegative().optional(),
+});
+
+const storyTriggerSchema = z.object({
+  type: z.enum(['soulsLifetime', 'audits', 'departmentsUnlocked', 'cardsOwned', 'fiscalYear', 'bestStreak']),
+  target: z.number().positive(),
+});
+
+const storySchema = z.object({
+  id: z.string().min(1),
+  trigger: storyTriggerSchema,
+  title: z.string().min(1),
+  text: z.string().min(1),
+});
+
 export type UpgradeEffect = z.infer<typeof upgradeEffectSchema>;
 export type StaffDef = z.infer<typeof staffSchema>;
 export type UpgradeDef = z.infer<typeof upgradeSchema>;
@@ -68,7 +139,29 @@ export type DepartmentDef = z.infer<typeof departmentSchema>;
 export type PerkEffect = z.infer<typeof perkEffectSchema>;
 export type PerkDef = z.infer<typeof perkSchema>;
 export type PerkBranch = PerkDef['branch'];
-export interface Content { departments: DepartmentDef[]; perks: PerkDef[] }
+export type CardEffect = z.infer<typeof cardEffectSchema>;
+export type CardDef = z.infer<typeof cardSchema>;
+export type Rarity = CardDef['rarity'];
+export type DailyDef = z.infer<typeof dailySchema>;
+export type DailyKind = DailyDef['kind'];
+export type AchievementCondition = z.infer<typeof achievementConditionSchema>;
+export type AchievementDef = z.infer<typeof achievementSchema>;
+export type StoryTrigger = z.infer<typeof storyTriggerSchema>;
+export type StoryDef = z.infer<typeof storySchema>;
+export interface Content {
+  departments: DepartmentDef[];
+  perks: PerkDef[];
+  cards: CardDef[];
+  dailies: DailyDef[];
+  achievements: AchievementDef[];
+  story: StoryDef[];
+}
+export interface ContentExtras {
+  cards?: unknown[];
+  dailies?: unknown[];
+  achievements?: unknown[];
+  story?: unknown[];
+}
 
 function assertUnique(ids: string[], label: string) {
   const seen = new Set<string>();
@@ -78,7 +171,7 @@ function assertUnique(ids: string[], label: string) {
   }
 }
 
-export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = []): Content {
+export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [], extras: ContentExtras = {}): Content {
   const departments = rawDepartments.map((r) => departmentSchema.parse(r));
   assertUnique(departments.map((d) => d.id), 'department');
   assertUnique(departments.flatMap((d) => d.staff.map((s) => s.id)), 'staff');
@@ -99,7 +192,34 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [])
     if ((e.type === 'deptMult' || e.type === 'headStartDept') && !deptIds.has(e.dept)) throw new Error(`Unknown department ${e.dept} on perk ${p.id}`);
     if (e.type === 'headStartStaff' && !staffIds.has(e.staff)) throw new Error(`Unknown staff ${e.staff} on perk ${p.id}`);
   }
-  return { departments, perks };
+
+  const cards = (extras.cards ?? []).map((r) => cardSchema.parse(r));
+  assertUnique(cards.map((c) => c.id), 'card');
+  for (const c of cards) {
+    if (!deptIds.has(c.dept)) throw new Error(`Unknown department ${c.dept} on card ${c.id}`);
+  }
+
+  const dailies = (extras.dailies ?? []).map((r) => dailySchema.parse(r));
+  assertUnique(dailies.map((d) => d.id), 'daily');
+
+  const achievements = (extras.achievements ?? []).map((r) => achievementSchema.parse(r));
+  assertUnique(achievements.map((a) => a.id), 'achievement');
+  for (const a of achievements) {
+    if (a.condition.type === 'staffOwned' && !staffIds.has(a.condition.staff)) {
+      throw new Error(`Unknown staff ${a.condition.staff} on achievement ${a.id}`);
+    }
+  }
+
+  const story = (extras.story ?? []).map((r) => storySchema.parse(r));
+  assertUnique(story.map((s) => s.id), 'story');
+
+  return { departments, perks, cards, dailies, achievements, story };
+}
+
+export function findCard(content: Content, cardId: string): CardDef {
+  const card = content.cards.find((c) => c.id === cardId);
+  if (!card) throw new Error(`Unknown card: ${cardId}`);
+  return card;
 }
 
 export function findPerk(content: Content, perkId: string): PerkDef {

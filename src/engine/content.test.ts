@@ -1,6 +1,9 @@
-import { loadContent, findStaff, findUpgrade, findPerk } from './content';
+import { loadContent, findStaff, findUpgrade, findPerk, findCard } from './content';
 import { content } from '../data';
 import intake from '../data/departments/intake.json';
+import cards from '../data/cards.json';
+import dailies from '../data/dailies.json';
+import achievements from '../data/achievements.json';
 
 describe('content', () => {
   it('loads the intake department', () => {
@@ -92,5 +95,39 @@ describe('shipped departments', () => {
         expect(d.staff[i].baseRate, `${d.id} rate`).toBeGreaterThan(d.staff[i - 1].baseRate);
       }
     }
+  });
+});
+
+describe('retention content', () => {
+  it('ships cards across all rarities with valid departments', () => {
+    const byRarity = (r: string) => content.cards.filter((c) => c.rarity === r).length;
+    expect(content.cards.length).toBeGreaterThanOrEqual(28);
+    for (const r of ['temp', 'fulltime', 'senior', 'executive']) expect(byRarity(r), r).toBeGreaterThanOrEqual(3);
+    const depts = new Set(content.departments.map((d) => d.id));
+    for (const c of content.cards) expect(depts.has(c.dept), c.id).toBe(true);
+  });
+  it('rejects a card with an unknown department', () => {
+    const bad = [{ ...cards[0], id: 'x', dept: 'nowhere' }];
+    expect(() => loadContent([intake], [], { cards: bad })).toThrow(/unknown department/i);
+  });
+  it('ships at least 8 daily task definitions with {n} placeholders', () => {
+    expect(content.dailies.length).toBeGreaterThanOrEqual(8);
+    for (const d of content.dailies) expect(d.text).toContain('{n}');
+  });
+  it('rejects a daily without a placeholder', () => {
+    expect(() => loadContent([intake], [], { dailies: [{ ...dailies[0], text: 'no placeholder' }] })).toThrow(/\{n\}/);
+  });
+  it('ships about 80 achievements with unique ids', () => {
+    expect(content.achievements.length).toBeGreaterThanOrEqual(76);
+    expect(new Set(content.achievements.map((a) => a.id)).size).toBe(content.achievements.length);
+  });
+  it('rejects an achievement referencing unknown staff', () => {
+    const bad = [{ ...achievements[0], id: 'x', condition: { type: 'staffOwned', staff: 'nobody', target: 1 } }];
+    expect(() => loadContent([intake], [], { achievements: bad })).toThrow(/unknown staff/i);
+  });
+  it('ships at least 24 story memos and finds cards by id', () => {
+    expect(content.story.length).toBeGreaterThanOrEqual(24);
+    expect(() => findCard(content, content.cards[0].id)).not.toThrow();
+    expect(() => findCard(content, 'nope')).toThrow(/unknown card/i);
   });
 });

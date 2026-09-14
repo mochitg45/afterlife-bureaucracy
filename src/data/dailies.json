@@ -1,0 +1,12 @@
+[
+  { "id": "d-clicks-1", "kind": "clicks", "target": 150, "text": "Stamp {n} souls by hand" },
+  { "id": "d-clicks-2", "kind": "clicks", "target": 400, "text": "Stamp {n} souls by hand" },
+  { "id": "d-hire-1", "kind": "hire", "target": 10, "text": "Hire {n} staff" },
+  { "id": "d-hire-2", "kind": "hire", "target": 40, "text": "Hire {n} staff" },
+  { "id": "d-upgrades-1", "kind": "upgrades", "target": 2, "text": "Buy {n} upgrades" },
+  { "id": "d-upgrades-2", "kind": "upgrades", "target": 5, "text": "Buy {n} upgrades" },
+  { "id": "d-equip-1", "kind": "equip", "target": 1, "text": "Equip {n} personnel card" },
+  { "id": "d-pulls-1", "kind": "pulls", "target": 1, "text": "Draw {n} requisition" },
+  { "id": "d-audit-1", "kind": "audit", "target": 1, "text": "File {n} annual audit" },
+  { "id": "d-perk-1", "kind": "perk", "target": 1, "text": "Buy {n} perk in the Ledger" }
+]

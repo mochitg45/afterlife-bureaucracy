@@ -6,6 +6,7 @@ import intake from '../data/departments/intake.json';
 import saveV1 from './fixtures/save-v1.json';
 import saveV2 from './fixtures/save-v2.json';
 import saveV3 from './fixtures/save-v3.json';
+import saveV4 from './fixtures/save-v4.json';
 
 const now = { wall: 1_700_000_000_000, mono: 5_000 };
 
@@ -111,7 +112,7 @@ describe('save v3', () => {
   });
   it('migrates v2 saves by adding an empty perk list', () => {
     const s = deserialize(JSON.stringify(saveV2), content);
-    expect(s.saveVersion).toBe(3);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.perks).toEqual([]);
   });
   it('loads the v3 fixture with perks', () => {
@@ -121,6 +122,44 @@ describe('save v3', () => {
   it('drops non-string perk entries', () => {
     const raw = { ...saveV3, perks: ['throughput-1', 7, null] };
     expect(deserialize(JSON.stringify(raw), content).perks).toEqual(['throughput-1']);
+  });
+});
+
+describe('save v4', () => {
+  it('initial state has empty retention fields', () => {
+    const s = createInitialState(now, content);
+    expect(s.cards).toEqual({});
+    expect(s.equipped).toEqual([]);
+    expect(s.pity).toEqual({ senior: 0, executive: 0 });
+    expect(s.rngSeed).toBeGreaterThan(0);
+    expect(s.dailies.tasks).toEqual([]);
+    expect(s.dailies.streak).toBe(0);
+    expect(s.achievements).toEqual([]);
+    expect(s.storySeen).toEqual([]);
+    expect(s.settings.notifOptIn).toBe('unasked');
+    expect(s.firstSeenWallClock).toBe(now.wall);
+    expect(s.stats.pulls).toBe(0);
+  });
+  it('migrates a v3 save to v4 with defaults', () => {
+    const s = deserialize(JSON.stringify(saveV3), content);
+    expect(s.saveVersion).toBe(4);
+    expect(s.cards).toEqual({});
+    expect(s.dailies.date).toBe('');
+    expect(s.firstSeenWallClock).toBe(saveV3.lastSeenWallClock);
+  });
+  it('loads the v4 fixture', () => {
+    const s = deserialize(JSON.stringify(saveV4), content);
+    expect(s.cards).toEqual({ 'c-dave-overtime': 2 });
+    expect(s.equipped).toEqual(['c-dave-overtime']);
+    expect(s.pity).toEqual({ senior: 4, executive: 12 });
+    expect(s.dailies.streak).toBe(3);
+  });
+  it('sanitises retention fields', () => {
+    const raw = { ...saveV4, cards: { 'c-dave-overtime': 9, junk: 'x' }, equipped: ['c-dave-overtime', 5, 'c-dave-overtime'], pity: { senior: -1 } };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.cards).toEqual({ 'c-dave-overtime': 5 });
+    expect(s.equipped).toEqual(['c-dave-overtime']);
+    expect(s.pity).toEqual({ senior: 0, executive: 0 });
   });
 });
 
@@ -142,7 +181,26 @@ describe('exhaustive save round-trip', () => {
       boostUntilWall: 1_700_000_123_456,
       lastSeenWallClock: 1_700_000_000_000,
       uptimeAtSave: 98_765,
-      stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5 },
+      stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5, pulls: 9, equips: 2, dailiesClaimed: 4, adsWatched: 1, perksBought: 3 },
+      cards: { 'c-dave-overtime': 3, 'c-seraphine-chipper': 1 },
+      equipped: ['c-dave-overtime'],
+      pity: { senior: 4, executive: 12 },
+      rngSeed: 987654321,
+      dailies: {
+        date: '2026-09-14',
+        tasks: [{ id: 'd-clicks-1', claimed: true }, { id: 'd-hire-1', claimed: false }],
+        skipped: ['d-upgrades-1'],
+        streak: 5,
+        bestStreak: 9,
+        skipTokens: 2,
+        lastTokenDate: '2026-09-08',
+        baseline: { clicks: 240, staffHired: 15, upgradesBought: 2, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
+        completedToday: true,
+      },
+      achievements: ['a-souls-1', 'a-clicks-1'],
+      storySeen: ['s-first-stamp', 's-deja-vu'],
+      settings: { notifOptIn: 'yes' },
+      firstSeenWallClock: 1_699_000_000_000,
     };
     const back = deserialize(serialize(s), content);
     expect(Object.keys(back).sort()).toEqual(Object.keys(s).sort());
