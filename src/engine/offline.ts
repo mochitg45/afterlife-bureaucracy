@@ -4,6 +4,7 @@ import type { Content } from './content';
 import { computeRates, upgradeLevel, PASSIVE_KC_FRACTION } from './economy';
 import { addSouls } from './actions';
 import { perkSum } from './perks';
+import { cardOfflineCapHours } from './gacha';
 
 export const BASE_OFFLINE_CAP_HOURS = 4;
 export const BASE_OFFLINE_RATE = 0.5;
@@ -17,6 +18,7 @@ export function offlineCapSeconds(state: GameState, content: Content): number {
     }
   }
   hours += perkSum(state, content, 'offlineCapHours');
+  hours += cardOfflineCapHours(state, content);
   return hours * 3600;
 }
 

@@ -124,3 +124,14 @@ describe('perks in multipliers', () => {
     expect(staplerLevel(s, content)).toBe(2);
   });
 });
+
+describe('cards in multipliers', () => {
+  it('click power includes equipped card click bonuses', () => {
+    const s = { ...createInitialState(now, content), cards: { 'c-temp-stapler': 5 }, equipped: ['c-temp-stapler'] };
+    expect(computeRates(s, content, 0).clickPower.toNumber()).toBeCloseTo(1.1);
+  });
+  it('global multiplier includes equipped card global bonuses', () => {
+    const s = { ...createInitialState(now, content), cards: { 'c-seraph-board': 1 }, equipped: ['c-seraph-board'] };
+    expect(globalMult(s, content, 0).toNumber()).toBeCloseTo(1.08);
+  });
+});

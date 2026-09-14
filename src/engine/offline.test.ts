@@ -48,6 +48,11 @@ it('perks extend the offline cap and rate', () => {
   expect(offlineRateFraction(s, content)).toBeCloseTo(0.6);
 });
 
+it('equipped cards extend the offline cap', () => {
+  const s = { ...createInitialState(now, content), cards: { 'c-gary-break': 2 }, equipped: ['c-gary-break'] };
+  expect(offlineCapSeconds(s, content)).toBe(4 * 3600 + 3600);
+});
+
 describe('fakeClock', () => {
   it('advances both clocks and allows wall-only changes', () => {
     const c = fakeClock({ wall: 1000, mono: 0 });

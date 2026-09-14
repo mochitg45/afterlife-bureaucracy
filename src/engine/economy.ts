@@ -2,6 +2,7 @@ import Decimal from 'break_infinity.js';
 import type { GameState } from './state';
 import type { Content, DepartmentDef, StaffDef, UpgradeDef } from './content';
 import { perkGlobalMult, perkDeptMult, perkSum } from './perks';
+import { cardGlobalMult, cardDeptMult, cardClickMult } from './gacha';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -78,13 +79,13 @@ export function deptMult(state: GameState, content: Content, dept: DepartmentDef
       mult = mult.mul(Decimal.pow(1 + u.effect.value, upgradeLevel(state, u.id)));
     }
   }
-  return mult.mul(perkDeptMult(state, content, dept.id));
+  return mult.mul(perkDeptMult(state, content, dept.id)).mul(cardDeptMult(state, content, dept.id));
 }
 
 export function globalMult(state: GameState, content: Content, nowWall: number): Decimal {
   const sealBonus = 1 + 0.02 * state.seals;
   const boost = state.boostUntilWall > nowWall ? 2 : 1;
-  return new Decimal(sealBonus).mul(boost).mul(perkGlobalMult(state, content));
+  return new Decimal(sealBonus).mul(boost).mul(perkGlobalMult(state, content)).mul(cardGlobalMult(state, content));
 }
 
 export interface Rates {
@@ -111,6 +112,6 @@ export function computeRates(state: GameState, content: Content, nowWall: number
       souls = souls.add(out);
     }
   }
-  const clickPower = new Decimal(1 + staplerLevel(state, content)).add(souls.mul(CLICK_PASSIVE_FRACTION));
+  const clickPower = new Decimal(1 + staplerLevel(state, content)).add(souls.mul(CLICK_PASSIVE_FRACTION)).mul(1 + cardClickMult(state, content));
   return { soulsPerSec: souls, kcPerSec: souls.mul(PASSIVE_KC_FRACTION), clickPower, byStaff };
 }
