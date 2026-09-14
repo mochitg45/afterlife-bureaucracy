@@ -63,13 +63,13 @@ export function createGameStore(deps: StoreDeps) {
 
   return create<GameStore>((set, get) => {
     const apply = (next: GameState) => {
-      set({ state: next, rates: computeRates(next, content, clock.mono()) });
+      set({ state: next, rates: computeRates(next, content, clock.wall()) });
     };
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
     return {
-      state: createInitialState({ wall: clock.wall(), mono: clock.mono() }),
-      rates: computeRates(createInitialState({ wall: 0, mono: 0 }), content, 0),
+      state: createInitialState({ wall: clock.wall(), mono: clock.mono() }, content),
+      rates: computeRates(createInitialState({ wall: 0, mono: 0 }, content), content, 0),
       ready: false,
       pendingOffline: null,
       queueLine: '',
@@ -81,25 +81,25 @@ export function createGameStore(deps: StoreDeps) {
         let pendingOffline: PendingOffline | null = null;
         if (saved) {
           try {
-            state = deserialize(saved);
+            state = deserialize(saved, content);
           } catch {
-            state = createInitialState({ wall: clock.wall(), mono: clock.mono() });
+            state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
           }
           const elapsedSec = (clock.wall() - state.lastSeenWallClock) / 1000;
           if (elapsedSec >= MIN_OFFLINE_SECONDS) {
-            const r = applyOffline(state, content, elapsedSec, clock.mono());
+            const r = applyOffline(state, content, elapsedSec, clock.wall());
             state = r.state;
             if (r.creditedSec > 0) {
               pendingOffline = { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped };
             }
           }
         } else {
-          state = createInitialState({ wall: clock.wall(), mono: clock.mono() });
+          state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
         }
         const dept = findDepartment(content, state.activeDept);
         set({
           state,
-          rates: computeRates(state, content, clock.mono()),
+          rates: computeRates(state, content, clock.wall()),
           ready: true,
           pendingOffline,
           queueLine: pick(dept.queue, ''),
@@ -111,12 +111,12 @@ export function createGameStore(deps: StoreDeps) {
           const now = clock.mono();
           const dt = (now - lastMono) / 1000;
           lastMono = now;
-          apply(tick(get().state, content, dt, now));
+          apply(tick(get().state, content, dt, clock.wall()));
         }, tickMs);
         saveTimer = setInterval(() => { void get().save(); }, autosaveMs);
       },
 
-      stamp() { apply(click(get().state, content, clock.mono())); },
+      stamp() { apply(click(get().state, content, clock.wall())); },
       hire(staffId, mode) { apply(buyStaff(get().state, content, staffId, mode)); },
       upgrade(upgradeId) { apply(buyUpgrade(get().state, content, upgradeId)); },
       setActiveDept(deptId) {

@@ -59,13 +59,13 @@ describe('upgrades and multipliers', () => {
     expect(upgradeCost(u, 2).toNumber()).toBe(50 * 16);
   });
   it('stapler level sums click upgrades', () => {
-    const s = createInitialState(now);
+    const s = createInitialState(now, content);
     expect(staplerLevel(s, content)).toBe(0);
     s.upgrades['faster-stapler'] = 3;
     expect(staplerLevel(s, content)).toBe(3);
   });
   it('department multiplier compounds deptMult upgrades', () => {
-    const s = createInitialState(now);
+    const s = createInitialState(now, content);
     const intake = content.departments[0];
     expect(deptMult(s, intake).toNumber()).toBe(1);
     s.upgrades['ergonomic-chairs'] = 2;
@@ -73,25 +73,25 @@ describe('upgrades and multipliers', () => {
     expect(deptMult(s, intake).toNumber()).toBeCloseTo(1.25 * 1.25 * 2);
   });
   it('global multiplier uses seals and boost', () => {
-    const s = createInitialState(now);
-    expect(globalMult(s, 0).toNumber()).toBe(1);
+    const s = createInitialState(now, content);
+    expect(globalMult(s, content, 0).toNumber()).toBe(1);
     s.seals = 10;
-    expect(globalMult(s, 0).toNumber()).toBeCloseTo(1.2);
-    s.boostUntil = 10_000;
-    expect(globalMult(s, 5_000).toNumber()).toBeCloseTo(2.4);
-    expect(globalMult(s, 10_000).toNumber()).toBeCloseTo(1.2);
+    expect(globalMult(s, content, 0).toNumber()).toBeCloseTo(1.2);
+    s.boostUntilWall = 10_000;
+    expect(globalMult(s, content, 5_000).toNumber()).toBeCloseTo(2.4);
+    expect(globalMult(s, content, 10_000).toNumber()).toBeCloseTo(1.2);
   });
 });
 
 describe('computeRates', () => {
   it('is zero with no staff and click power 1', () => {
-    const r = computeRates(createInitialState(now), content, 0);
+    const r = computeRates(createInitialState(now, content), content, 0);
     expect(r.soulsPerSec.toNumber()).toBe(0);
     expect(r.kcPerSec.toNumber()).toBe(0);
     expect(r.clickPower.toNumber()).toBe(1);
   });
   it('sums staff output with milestones, dept and global multipliers', () => {
-    const s = createInitialState(now);
+    const s = createInitialState(now, content);
     s.staff.dave = 10;      // 0.5 × 10 × 2 (milestone) = 10
     s.staff.seraphine = 1;  // 2
     s.upgrades['ergonomic-chairs'] = 1; // ×1.25
@@ -102,7 +102,7 @@ describe('computeRates', () => {
     expect(r.byStaff.dave.toNumber()).toBeCloseTo(10 * 1.25 * 2);
   });
   it('click power adds stapler level and 1% of passive', () => {
-    const s = createInitialState(now);
+    const s = createInitialState(now, content);
     s.staff.dave = 200; // 0.5 × 200 × 32 = 3200/s
     s.upgrades['faster-stapler'] = 4;
     const r = computeRates(s, content, 0);

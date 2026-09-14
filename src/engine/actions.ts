@@ -23,16 +23,16 @@ export function unlockDepartments(state: GameState, content: Content): GameState
   return { ...state, deptsUnlocked: [...state.deptsUnlocked, ...missing] };
 }
 
-export function tick(state: GameState, content: Content, dtSec: number, nowMono: number): GameState {
+export function tick(state: GameState, content: Content, dtSec: number, nowWall: number): GameState {
   if (!(dtSec > 0)) return state;
-  const rates = computeRates(state, content, nowMono);
+  const rates = computeRates(state, content, nowWall);
   if (rates.soulsPerSec.eq(0)) return unlockDepartments(state, content);
   const next = addSouls(state, rates.soulsPerSec.mul(dtSec), rates.kcPerSec.mul(dtSec));
   return unlockDepartments(next, content);
 }
 
-export function click(state: GameState, content: Content, nowMono: number): GameState {
-  const { clickPower } = computeRates(state, content, nowMono);
+export function click(state: GameState, content: Content, nowWall: number): GameState {
+  const { clickPower } = computeRates(state, content, nowWall);
   const next = addSouls(state, clickPower, clickPower);
   return unlockDepartments({ ...next, stats: { ...next.stats, clicks: next.stats.clicks + 1 } }, content);
 }

@@ -7,13 +7,13 @@ const now = { wall: 0, mono: 0 };
 
 describe('offline caps', () => {
   it('base cap is 4 hours and grows with night-shift upgrades', () => {
-    const s = createInitialState(now);
+    const s = createInitialState(now, content);
     expect(offlineCapSeconds(s, content)).toBe(4 * 3600);
     s.upgrades['night-shift'] = 2;
     expect(offlineCapSeconds(s, content)).toBe(12 * 3600);
   });
   it('base rate is 50%, capped at 100%', () => {
-    const s = createInitialState(now);
+    const s = createInitialState(now, content);
     expect(offlineRateFraction(s, content)).toBe(0.5);
     s.upgrades['overtime-pay'] = 2;
     expect(offlineRateFraction(s, content)).toBe(1);
@@ -21,7 +21,7 @@ describe('offline caps', () => {
 });
 
 describe('applyOffline', () => {
-  const base = () => ({ ...createInitialState(now), staff: { dave: 1 } }); // 0.5 souls/s
+  const base = () => ({ ...createInitialState(now, content), staff: { dave: 1 } }); // 0.5 souls/s
   it('credits half rate for elapsed time under the cap', () => {
     const r = applyOffline(base(), content, 600, 0);
     expect(r.creditedSec).toBe(600);

@@ -13,7 +13,7 @@ describe('BacklogReport', () => {
     expect(container).toBeEmptyDOMElement();
   });
   it('shows earnings and doubles them', () => {
-    const state = createInitialState({ wall: 0, mono: 0 });
+    const state = createInitialState({ wall: 0, mono: 0 }, content);
     useGame.setState({
       state, rates: computeRates(state, content, 0),
       pendingOffline: { elapsedSec: 7200, creditedSec: 7200, souls: new Decimal(900), kc: new Decimal(360), capped: false },
@@ -26,7 +26,7 @@ describe('BacklogReport', () => {
     expect(useGame.getState().pendingOffline).toBeNull();
   });
   it('mentions the cap when capped', () => {
-    const state = createInitialState({ wall: 0, mono: 0 });
+    const state = createInitialState({ wall: 0, mono: 0 }, content);
     useGame.setState({
       state, rates: computeRates(state, content, 0),
       pendingOffline: { elapsedSec: 40000, creditedSec: 14400, souls: new Decimal(1), kc: new Decimal(1), capped: true },

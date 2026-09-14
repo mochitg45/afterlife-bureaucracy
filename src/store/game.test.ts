@@ -43,7 +43,7 @@ describe('game store', () => {
   });
 
   it('applies offline earnings on boot when away long enough', async () => {
-    const s = createInitialState({ wall: 1_000_000 - 3600_000, mono: 0 });
+    const s = createInitialState({ wall: 1_000_000 - 3600_000, mono: 0 }, content);
     s.staff = { dave: 1 };
     const { store } = await make({ saved: serialize(s) });
     await store.getState().boot();
@@ -59,7 +59,7 @@ describe('game store', () => {
   });
 
   it('does not apply offline for short absences', async () => {
-    const s = createInitialState({ wall: 1_000_000 - 30_000, mono: 0 });
+    const s = createInitialState({ wall: 1_000_000 - 30_000, mono: 0 }, content);
     s.staff = { dave: 1 };
     const { store } = await make({ saved: serialize(s) });
     await store.getState().boot();

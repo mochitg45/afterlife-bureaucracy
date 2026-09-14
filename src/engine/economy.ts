@@ -3,7 +3,7 @@ import type { GameState } from './state';
 import type { Content, DepartmentDef, StaffDef, UpgradeDef } from './content';
 
 export const COST_GROWTH = 1.15;
-const PASSIVE_KC_FRACTION = 0.4;
+export const PASSIVE_KC_FRACTION = 0.4;
 const CLICK_PASSIVE_FRACTION = 0.01;
 const FIXED_MILESTONES = [10, 25, 50, 100, 200, 300, 400, 500];
 
@@ -80,9 +80,9 @@ export function deptMult(state: GameState, dept: DepartmentDef): Decimal {
   return mult;
 }
 
-export function globalMult(state: GameState, nowMono: number): Decimal {
+export function globalMult(state: GameState, content: Content, nowWall: number): Decimal {
   const sealBonus = 1 + 0.02 * state.seals;
-  const boost = state.boostUntil > nowMono ? 2 : 1;
+  const boost = state.boostUntilWall > nowWall ? 2 : 1;
   return new Decimal(sealBonus).mul(boost);
 }
 
@@ -93,8 +93,8 @@ export interface Rates {
   byStaff: Record<string, Decimal>;
 }
 
-export function computeRates(state: GameState, content: Content, nowMono: number): Rates {
-  const g = globalMult(state, nowMono);
+export function computeRates(state: GameState, content: Content, nowWall: number): Rates {
+  const g = globalMult(state, content, nowWall);
   let souls = new Decimal(0);
   const byStaff: Record<string, Decimal> = {};
   for (const dept of content.departments) {

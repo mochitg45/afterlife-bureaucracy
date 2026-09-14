@@ -180,7 +180,7 @@ src/
 - Save format: versioned JSON (`saveVersion` integer) with a migration chain in `engine/migrations.ts`. Every version bump adds a migration and a test fixture.
 - Autosave every 10 seconds and on `appStateChange` to background. Stored with Capacitor Preferences (web: localStorage).
 - Cloud save through Play Games Saved Games. On sign-in or manual sync, if local and cloud differ, keep the one with higher lifetime Souls Processed and inform the player.
-- Clock integrity: saves carry `lastSeenWallClock` and a monotonic `uptimeAtSave`. On load, if wall clock moved backwards, or the offline gap is implausible relative to uptime, offline earnings for that gap are zero. Overtime Boost timers use monotonic time. Without a server, some cheating is accepted.
+- Clock integrity: saves carry `lastSeenWallClock` and a monotonic `uptimeAtSave`. On load, if wall clock moved backwards, or the offline gap is implausible relative to uptime, offline earnings for that gap are zero. Overtime Boost deadlines are stored as wall-clock timestamps; the clock-integrity check in this section polices clock rollback. Without a server, some cheating is accepted.
 
 ## 13. Testing and balance
 

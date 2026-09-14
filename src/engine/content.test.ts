@@ -1,4 +1,5 @@
 import { loadContent, findStaff, findUpgrade } from './content';
+import { content } from '../data';
 import intake from '../data/departments/intake.json';
 
 describe('content', () => {
@@ -23,5 +24,13 @@ describe('content', () => {
     expect(findStaff(c, 'gary').staff.name).toBe('Gary');
     expect(findUpgrade(c, 'faster-stapler').upgrade.effect.type).toBe('click');
     expect(() => findStaff(c, 'nobody')).toThrow(/unknown staff/i);
+  });
+  it('gives every department at least two distinct queue and memo lines', () => {
+    // pick() rotates by re-drawing until it differs from the current line; a
+    // department with only one distinct line would make that a pointless spin.
+    for (const dept of content.departments) {
+      expect(new Set(dept.queue).size).toBeGreaterThanOrEqual(2);
+      expect(new Set(dept.memos).size).toBeGreaterThanOrEqual(2);
+    }
   });
 });

@@ -7,7 +7,7 @@ import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
 
 function seed(kc: number) {
-  const state = { ...createInitialState({ wall: 0, mono: 0 }), kc: new Decimal(kc) };
+  const state = { ...createInitialState({ wall: 0, mono: 0 }, content), kc: new Decimal(kc) };
   useGame.setState({ state, rates: computeRates(state, content, 0), ready: true, queueLine: content.departments[0].queue[0], memoLine: content.departments[0].memos[0] });
 }
 
