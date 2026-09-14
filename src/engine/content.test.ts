@@ -110,6 +110,10 @@ describe('retention content', () => {
     const bad = [{ ...cards[0], id: 'x', dept: 'nowhere' }];
     expect(() => loadContent([intake], [], { cards: bad })).toThrow(/unknown department/i);
   });
+  it('rejects a card set missing an entire rarity', () => {
+    const onlyTemp = cards.filter((c) => c.rarity === 'temp' && c.dept === 'intake');
+    expect(() => loadContent([intake], [], { cards: onlyTemp })).toThrow(/no fulltime cards/i);
+  });
   it('ships at least 8 daily task definitions with {n} placeholders', () => {
     expect(content.dailies.length).toBeGreaterThanOrEqual(8);
     for (const d of content.dailies) expect(d.text).toContain('{n}');

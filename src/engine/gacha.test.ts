@@ -35,6 +35,14 @@ describe('rollRarity', () => {
     expect(['senior', 'executive']).toContain(rollRarity(1, { senior: PITY_SENIOR - 1, executive: 0 }).rarity);
     expect(rollRarity(1, { senior: 0, executive: PITY_EXECUTIVE - 1 }).rarity).toBe('executive');
   });
+  it('never reports a pity trigger when no pity threshold is met', () => {
+    let seed = 123;
+    for (let i = 0; i < 1000; i++) {
+      const r = rollRarity(seed, { senior: 0, executive: 0 });
+      seed = r.seed;
+      expect(r.pityTriggered).toBeNull();
+    }
+  });
 });
 
 describe('pull', () => {
@@ -124,5 +132,10 @@ describe('equip', () => {
     expect(cardDeptMult(s, content, 'heaven').toNumber()).toBe(1);
     expect(cardClickMult(s, content)).toBeCloseTo(0.02 * 5);
     expect(cardOfflineCapHours(s, content)).toBe(0);
+  });
+  it('ignores a stale equipped card id instead of throwing', () => {
+    const s = { ...base(), cards: { ghost: 3 }, equipped: ['ghost'] };
+    expect(() => cardGlobalMult(s, content)).not.toThrow();
+    expect(cardGlobalMult(s, content).toNumber()).toBe(1);
   });
 });

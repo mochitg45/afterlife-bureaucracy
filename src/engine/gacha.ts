@@ -1,7 +1,6 @@
 import Decimal from 'break_infinity.js';
 import type { GameState } from './state';
 import type { Content, CardDef, Rarity } from './content';
-import { findCard } from './content';
 import { nextFloat } from './rng';
 import { perkSum } from './perks';
 
@@ -40,7 +39,9 @@ export function rollRarity(
       break;
     }
   }
-  if (pity.executive >= PITY_EXECUTIVE - 1) return { seed: r.seed, rarity: 'executive', pityTriggered: 'executive' };
+  if (pity.executive >= PITY_EXECUTIVE - 1) {
+    return { seed: r.seed, rarity: 'executive', pityTriggered: natural === 'executive' ? null : 'executive' };
+  }
   if (pity.senior >= PITY_SENIOR - 1 && natural !== 'executive' && natural !== 'senior') {
     return { seed: r.seed, rarity: 'senior', pityTriggered: 'senior' };
   }
@@ -102,8 +103,9 @@ export function unequipCard(state: GameState, cardId: string): GameState {
   return { ...state, equipped: state.equipped.filter((id) => id !== cardId) };
 }
 
+/** Non-throwing lookup (mirrors perks.ts's `owned()`): a stale/unknown equipped id is silently skipped rather than crashing computeRates. */
 function equippedDefs(state: GameState, content: Content): Array<{ def: CardDef; stars: number }> {
-  return state.equipped.map((id) => ({ def: findCard(content, id), stars: state.cards[id] ?? 1 }));
+  return content.cards.filter((def) => state.equipped.includes(def.id)).map((def) => ({ def, stars: state.cards[def.id] ?? 1 }));
 }
 
 export function cardGlobalMult(state: GameState, content: Content): Decimal {

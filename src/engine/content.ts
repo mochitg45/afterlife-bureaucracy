@@ -198,6 +198,14 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   for (const c of cards) {
     if (!deptIds.has(c.dept)) throw new Error(`Unknown department ${c.dept} on card ${c.id}`);
   }
+  // The gacha's rollRarity picks a rarity first, then a card from that rarity's pool; a rarity
+  // with zero cards would leave that pool empty for every pull that rolls it.
+  if (cards.length > 0) {
+    const rarities: CardDef['rarity'][] = ['temp', 'fulltime', 'senior', 'executive'];
+    for (const rarity of rarities) {
+      if (!cards.some((c) => c.rarity === rarity)) throw new Error(`Content has no ${rarity} cards`);
+    }
+  }
 
   const dailies = (extras.dailies ?? []).map((r) => dailySchema.parse(r));
   assertUnique(dailies.map((d) => d.id), 'daily');
