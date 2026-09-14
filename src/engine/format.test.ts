@@ -26,4 +26,10 @@ describe('formatNumber', () => {
   it('accepts Decimal below one million', () => {
     expect(formatNumber(new Decimal(4200))).toBe('4,200');
   });
+  it('rolls the mantissa over into the next magnitude at the top of a bracket', () => {
+    expect(formatNumber(999_999_999)).toBe('1.00B');
+    expect(formatNumber(new Decimal('9.999e11'))).toBe('1.00T');
+    expect(formatNumber(new Decimal('999.9e33'))).toBe('1.00aa');
+    expect(formatNumber(999_499_999)).toBe('999M');
+  });
 });

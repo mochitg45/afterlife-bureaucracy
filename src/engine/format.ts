@@ -16,9 +16,16 @@ export function formatNumber(value: Decimal | number): string {
     return Math.floor(d.toNumber()).toLocaleString('en-US');
   }
   const exponent = Math.floor(d.log10());
-  const index = Math.floor(exponent / 3);
-  const mantissa = d.div(Decimal.pow(10, index * 3)).toNumber();
+  let index = Math.floor(exponent / 3);
+  let mantissa = d.div(Decimal.pow(10, index * 3)).toNumber();
+  let digits = mantissa >= 100 ? 0 : mantissa >= 10 ? 1 : 2;
+  // Rounding the mantissa to `digits` places can push it up to 1000 (e.g. 999.9999 -> "1000"),
+  // which would print as "1000M" instead of rolling over to the next magnitude ("1.00B").
+  if (Number(mantissa.toFixed(digits)) >= 1000) {
+    index += 1;
+    mantissa = mantissa / 1000;
+    digits = mantissa >= 100 ? 0 : mantissa >= 10 ? 1 : 2;
+  }
   const suffix = index < SUFFIXES.length ? SUFFIXES[index] : letterSuffix(index);
-  const digits = mantissa >= 100 ? 0 : mantissa >= 10 ? 1 : 2;
   return mantissa.toFixed(digits) + suffix;
 }
