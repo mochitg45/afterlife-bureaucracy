@@ -133,7 +133,7 @@ describe('retention content', () => {
   it('keeps every story memo to at most three sentences', () => {
     for (const s of content.story) {
       const body = s.text.slice(s.text.indexOf(':') + 1).trim();
-      const sentences = body.split(/[.!?]+\s/);
+      const sentences = body.split(/[.!?]+['")\]]*\s/);
       expect(sentences.length, s.id).toBeLessThanOrEqual(3);
     }
   });
