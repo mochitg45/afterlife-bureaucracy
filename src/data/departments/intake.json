@@ -1,0 +1,59 @@
+{
+  "id": "intake",
+  "name": "Intake",
+  "unlockSouls": 0,
+  "accent": "#1F3B33",
+  "staff": [
+    { "id": "dave", "name": "Dave", "role": "Reaper, Overtime", "flavor": "Processing stragglers past clock-out.", "baseCost": 15, "baseRate": 0.5, "character": "dave" },
+    { "id": "seraphine", "name": "Seraphine", "role": "Angel, Temp", "flavor": "On loan from Cloud Nine Staffing.", "baseCost": 100, "baseRate": 2, "character": "seraphine" },
+    { "id": "gary", "name": "Gary", "role": "Demon Intern", "flavor": "Unionized. Takes his breaks.", "baseCost": 1100, "baseRate": 8, "character": "gary" },
+    { "id": "auditor", "name": "The Auditor (Bribed)", "role": "Looks the other way", "flavor": "For a fee. Always for a fee.", "baseCost": 12000, "baseRate": 47, "character": "auditor" }
+  ],
+  "upgrades": [
+    { "id": "faster-stapler", "name": "Faster Stapler", "desc": "+1 soul per stamp", "baseCost": 50, "costGrowth": 4, "maxLevel": 10, "effect": { "type": "click", "value": 1 } },
+    { "id": "ergonomic-chairs", "name": "Ergonomic Chairs, Dept.-wide", "desc": "Intake output +25%", "baseCost": 500, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
+    { "id": "night-shift", "name": "Night Shift Rota", "desc": "Offline cap +4 hours", "baseCost": 2500, "costGrowth": 8, "maxLevel": 3, "effect": { "type": "offlineCapHours", "value": 4 } },
+    { "id": "outsourced-purgatory", "name": "Outsourced Call Center (Purgatory)", "desc": "Intake output +100%", "baseCost": 25000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
+    { "id": "overtime-pay", "name": "Overtime Pay (Unpaid)", "desc": "Offline earnings +25% of online rate", "baseCost": 8000, "costGrowth": 5, "maxLevel": 2, "effect": { "type": "offlineRate", "value": 0.25 } }
+  ],
+  "queue": [
+    "Karen H. — requests skip-the-line to Heaven, cites 'main character energy'",
+    "Bartholomew Vance — wants reincarnation as a golden retriever, good-boy tier",
+    "Mrs. Okafor — requests refund on last life, 'defective knees'",
+    "Soul #88291 — form incomplete, missing box 7",
+    "Trevor — insists he 'wasn't done', has receipts",
+    "Anonymous — submitted form in crayon, mostly legible",
+    "Dr. Lindqvist — disputes cause of death, cites peer review",
+    "Soul #10442 — wants to speak to whoever is in charge of gravity",
+    "Priya M. — requests Heaven but 'the quiet part'",
+    "Big Tony — asks if Hell has a loyalty program",
+    "Soul #77 — has been in queue since 1300s, very patient",
+    "The Twins — one form, two souls, please advise",
+    "Captain Reyes — requests reincarnation with 'same crew'",
+    "Soul #55019 — attached 400 pages of supporting documents",
+    "Grandma Liu — brought snacks for the staff, still needs stamping",
+    "Unnamed — arrived without a form, without a name, without shoes",
+    "Marcus D. — wants Limbo 'just to think for a bit'",
+    "Soul #31337 — claims to be a glitch, requests admin access"
+  ],
+  "memos": [
+    "MEMO: Reincarnation backlog down 12%. Mortal realm reporting spike in déjà vu.",
+    "INCIDENT: Soul #4471 filed as both 'cat' and 'CEO.' Investigating.",
+    "AUDIT FLAG: Someone stamped themselves into Heaven. HR has been notified.",
+    "MEMO: Break room fridge is not a portal. Stop putting souls in it.",
+    "REMINDER: Casual Friday does not apply to reapers. The scythe stays.",
+    "MEMO: Union rep Gary reminds management that interns are entitled to two breaks per eternity.",
+    "NOTICE: Cloud Nine Staffing invoices are now 40 days overdue. Seraphine remains chipper.",
+    "MEMO: Stamp ink is a controlled substance. Sign the ledger.",
+    "INCIDENT: Queue number 88291 has been called 6,000 times. No response.",
+    "MEMO: Heaven is at 97% capacity. Please stamp slower. Or faster. Legal is unsure.",
+    "REMINDER: Souls are not to be stapled together, even if they ask nicely.",
+    "MEMO: The Auditor was seen accepting a fruit basket. This is fine.",
+    "NOTICE: Overtime is mandatory and voluntary. Please see Dave for details.",
+    "MEMO: Mortal realm reports 3% rise in people 'feeling watched'. Unrelated.",
+    "INCIDENT: A soul reincarnated as a fax machine. Filing under 'lateral move'.",
+    "MEMO: Quarterly targets have been raised. Quarters have been shortened.",
+    "REMINDER: If a soul asks what happens next, the answer is 'processing'.",
+    "MEMO: Lost & Found now holds 14 halos, 2 pitchforks, one entire sense of purpose."
+  ]
+}
