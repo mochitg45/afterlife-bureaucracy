@@ -83,6 +83,11 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [])
   assertUnique(departments.map((d) => d.id), 'department');
   assertUnique(departments.flatMap((d) => d.staff.map((s) => s.id)), 'staff');
   assertUnique(departments.flatMap((d) => d.upgrades.map((u) => u.id)), 'upgrade');
+  // createInitialState() and resetRun() both open with the free departments; without one
+  // the player would boot into an office that does not exist.
+  if (!departments.some((d) => d.unlockSouls === 0)) {
+    throw new Error('Content has no starting department: at least one department needs unlockSouls 0');
+  }
   const perks = rawPerks.map((r) => perkSchema.parse(r));
   assertUnique(perks.map((p) => p.id), 'perk');
   const perkIds = new Set(perks.map((p) => p.id));

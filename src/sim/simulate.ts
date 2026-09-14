@@ -15,6 +15,8 @@ export interface SimResult {
   firstUnlockYear: Record<string, number>;
   firstAuditReadyDay: number | null;
   firstAuditReadySec: number | null;
+  /** Played seconds from each run's start until that run first met its Audit threshold. */
+  auditReadySecByRun: number[];
   secondsPlayed: number;
 }
 
@@ -70,6 +72,9 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
   const firstUnlockYear: Record<string, number> = {};
   let firstAuditReadyDay: number | null = null;
   let firstAuditReadySec: number | null = null;
+  const auditReadySecByRun: number[] = [];
+  let runStartSec = 0;
+  let runReady = false;
   let played = 0;
   const days: DaySnapshot[] = [];
   const gapSec = (86_400 - opts.sessionsPerDay * opts.sessionSec) / opts.sessionsPerDay;
@@ -80,7 +85,11 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
         firstUnlockYear[id] = state.fiscalYear;
       }
     }
-    if (firstAuditReadyDay === null && canAudit(state)) { firstAuditReadyDay = day; firstAuditReadySec = played; }
+    if (!runReady && canAudit(state)) {
+      runReady = true;
+      auditReadySecByRun.push(played - runStartSec);
+      if (firstAuditReadyDay === null) { firstAuditReadyDay = day; firstAuditReadySec = played; }
+    }
   };
   for (let day = 1; day <= opts.days; day++) {
     for (let s = 0; s < opts.sessionsPerDay; s++) {
@@ -96,6 +105,8 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       if (canAudit(state)) {
         state = fileAudit(state, content).state;
         state = buyGreedyPerks(state, content);
+        runStartSec = played;
+        runReady = false;
         note(day);
       }
       state = applyOffline(state, content, gapSec, 0).state;
@@ -112,5 +123,5 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       audits: state.stats.audits,
     });
   }
-  return { days, firstUnlockSec, firstUnlockYear, firstAuditReadyDay, firstAuditReadySec, secondsPlayed: played };
+  return { days, firstUnlockSec, firstUnlockYear, firstAuditReadyDay, firstAuditReadySec, auditReadySecByRun, secondsPlayed: played };
 }

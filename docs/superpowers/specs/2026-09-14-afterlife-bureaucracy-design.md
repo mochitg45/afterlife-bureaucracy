@@ -24,7 +24,7 @@ Decisions already made:
 |---|---|---|
 | Minutes | Stamp, buy staff, buy upgrades, hit staff milestones | "Next milestone at 25 Daves" |
 | Hours | Unlock departments (Heaven, Hell, Reincarnation, Limbo) | "500K more souls to Hell Compliance" |
-| Days | Fiscal Year Audit (prestige) → Karma Seals → Perk Ledger | "Audit at 1M gives 4 seals, buy Offline cap perk" |
+| Days | Fiscal Year Audit (prestige) → Karma Seals → Perk Ledger | "Audit at 520B gives 12 seals, buy Offline cap perk" |
 | Weeks | Gacha collection, rank up duplicates, equip loadout | "Need 2 more Seraphine dupes for 3-star" |
 | Ongoing | Daily tasks, streak, achievements, memo story arc, weekly events | "3 more dailies for streak bonus" |
 | Months | Cosmic Restructuring (second prestige tier), new afterlife branches | "100 Seals unlocks Cosmic" |
@@ -65,8 +65,9 @@ All numbers are `Decimal` from break_infinity.js so the game survives values bey
 - Hell Compliance unlocks during the first run, before the first Audit.
 - Reincarnation Desk does not unlock before fiscal year 2, and Limbo Records not before fiscal year 3; both unlock by day 14.
 - A run started with 20 Seals and the first two Throughput perks plus the first two Head Start perks reaches the Audit threshold at least 1.3× faster (in played seconds) than the first run.
+- The prestige loop compounds: each of the first five runs reaches its Audit threshold in at most 0.85× the played seconds the previous run needed.
 
-Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, the Reincarnation and Limbo unlock thresholds (the values in section 5 are starting points), and the Audit threshold (section 6; the seal curve rescales with it automatically). Fixed: the 1.15 cost growth, the milestone table, Heaven and Hell thresholds, Seal bonus, perk values.
+Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, the Reincarnation and Limbo unlock thresholds (the values in section 5 are starting points), and the four prestige constants of section 6 — Audit base threshold, seal coefficient, seal exponent, year growth. Fixed: the 1.15 cost growth, the milestone table, Heaven and Hell thresholds, Seal bonus, perk values.
 
 **Number formatting.** Plain up to 999,999; then K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc; then letters aa, ab, ac… Numbers in IBM Plex Mono with tabular figures, and the displayed value lerps toward the true value each animation frame.
 
@@ -80,7 +81,7 @@ Five departments in v1, each defined entirely in `src/data/departments/*.json`. 
 | Heaven Admissions | 10,000 | soul teal `#3E9C93` | angels, Cloud Nine Staffing temps, choir HR |
 | Hell Compliance | 250,000 | stamp red `#A6402B` | unionized demons, torment QA, pitchfork logistics |
 | Reincarnation Desk | 600,000,000,000 | brass `#A8823C` | karma accountants, golden-retriever placement officers |
-| Limbo Records | 1,200,000,000,000 | grey-violet `#6B6478` | archivists, souls who forgot to leave, lost-and-found |
+| Limbo Records | 50,000,000,000,000 | grey-violet `#6B6478` | archivists, souls who forgot to leave, lost-and-found |
 
 Each department has:
 - 4–6 staff producers with base cost, base rate, name, role, flavor line, SVG character id and two mood faces.
@@ -93,8 +94,9 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 ## 6. Prestige: Fiscal Year Audit
 
-- Available when souls processed this run ≥ 500,000,000,000 (500B).
-- Seals awarded on Audit: `floor(sqrt(soulsThisRun / threshold))`, so seals scale with the square root of run size. The Ledger tab shows "Audit now for +N Seals" live.
+- The threshold rises every fiscal year: `auditThreshold(year) = AUDIT_BASE × YEAR_GROWTH^(year − 1)`, with `AUDIT_BASE = 520,000,000,000` (520B) and `YEAR_GROWTH = 2.5`. Year 1 asks for 520B, year 2 for 1.3T, year 3 for 3.25T, and so on — a run has to out-earn the one before it, which is what makes the loop compound instead of flattening.
+- Available when souls processed this run ≥ `auditThreshold(fiscalYear)`.
+- Seals awarded on Audit: `floor(SEAL_COEFF × (soulsThisRun / AUDIT_BASE)^SEAL_EXP)`, with `SEAL_COEFF = 12` and `SEAL_EXP = 0.4`. A run that lands exactly on the year-1 threshold pays 12 Seals; the exponent below 0.5 means a run that overshoots by orders of magnitude does not hand out a lifetime of Seals at once, while measuring against `AUDIT_BASE` rather than the year's own threshold keeps later years paying more for the same work. The result is clamped to `Number.MAX_SAFE_INTEGER`. The Ledger tab shows "Audit now for +N Seals" live.
 - Reset: KC, staff counts, upgrades, department unlocks, souls-this-run, offline cap upgrades. Keep: Seals, Perk Ledger purchases, gacha collection and equips, achievements, vouchers, lifetime statistics, fiscal year counter, settings.
 - Each Seal held grants +2% global multiplier passively.
 - **Perk Ledger:** a tree defined in `src/data/perks.json`, about 40 nodes in v1, five branches: Throughput (rate multipliers), Overtime (offline cap and rate), Stapler (click power), Requisition (voucher income and gacha discounts), Head Start (start each run with departments or staff pre-unlocked). Node cost in Seals; prerequisites by node id.
@@ -193,7 +195,7 @@ src/
 
 - vitest for the engine: cost curves, milestone multipliers, click power, offline cap and rate, audit seal formula, Perk Ledger prerequisites, gacha odds (100,000 seeded pulls within tolerance of the published odds) and pity guarantees, daily reset boundaries, save migrations from every prior fixture.
 - Content schema tests: every JSON file parses against its zod schema; every referenced id (perk prerequisites, card department, achievement targets) resolves.
-- Balance simulator `npm run sim`: models a check-in player (5 sessions/day, 3 minutes, greedy buying) and an active player, prints day-by-day table of souls, KC, departments unlocked, audits filed and seals. Pacing targets in section 4 are asserted by a test that runs the simulator.
+- Balance simulator `npm run sim`: models a check-in player (5 sessions/day, 3 minutes, greedy buying) and an active player, prints day-by-day table of souls, KC, departments unlocked, audits filed and seals, plus the played seconds each run needed to reach its Audit. Pacing targets in section 4 are asserted by a test that runs the simulator.
 - UI: React Testing Library smoke tests for each tab and overlay; manual device pass on Android before each release.
 
 ## 14. Release phasing

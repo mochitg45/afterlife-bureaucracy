@@ -25,6 +25,10 @@ describe('content', () => {
     expect(findUpgrade(c, 'faster-stapler').upgrade.effect.type).toBe('click');
     expect(() => findStaff(c, 'nobody')).toThrow(/unknown staff/i);
   });
+  it('rejects a content set with no starting department', () => {
+    const paid = { ...intake, unlockSouls: 100 };
+    expect(() => loadContent([paid])).toThrow(/starting department/i);
+  });
   it('gives every department at least two distinct queue and memo lines', () => {
     // pick() rotates by re-drawing until it differs from the current line; a
     // department with only one distinct line would make that a pointless spin.
@@ -68,7 +72,7 @@ describe('shipped departments', () => {
       ['heaven', 10000, '#3E9C93'],
       ['hell', 250000, '#A6402B'],
       ['reincarnation', 600000000000, '#A8823C'],
-      ['limbo', 1200000000000, '#6B6478'],
+      ['limbo', 50000000000000, '#6B6478'],
     ]);
   });
   it('every department has 4-6 staff, 3-6 upgrades, 15+ queue lines and 15+ memos', () => {

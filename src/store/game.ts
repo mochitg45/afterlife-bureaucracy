@@ -5,7 +5,7 @@ import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, type GameState } from '../engine/state';
 import { computeRates, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
-import { fileAudit } from '../engine/prestige';
+import { canAudit, fileAudit } from '../engine/prestige';
 import { applyOffline, MIN_OFFLINE_SECONDS } from '../engine/offline';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
@@ -225,8 +225,8 @@ export function createGameStore(deps: StoreDeps) {
         set({ memoLine: pick(memoPool(dept, s.fiscalYear), get().memoLine) });
       },
       audit() {
+        if (!canAudit(get().state)) return;
         const r = fileAudit(get().state, content);
-        if (r.sealsGained === 0) return;
         const dept = findDepartment(content, r.state.activeDept);
         set({
           state: r.state,
@@ -234,6 +234,9 @@ export function createGameStore(deps: StoreDeps) {
           lastAudit: { sealsGained: r.sealsGained, fiscalYear: r.fiscalYear },
           queueLine: pick(dept.queue, ''),
           memoLine: pick(memoPool(dept, r.state.fiscalYear), ''),
+          // The run those souls belonged to no longer exists; showing the Overnight Backlog
+          // Report after the reset would offer to double income into a wiped office.
+          pendingOffline: null,
         });
         void get().save();
       },

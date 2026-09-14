@@ -31,6 +31,17 @@ describe('perk ownership and purchase rules', () => {
   });
 });
 
+describe('canBuyPerk wallet', () => {
+  it('needs only the Seal count and the owned perk list', () => {
+    // The Perk Ledger UI subscribes to these two fields alone, so the check must not
+    // reach for anything else on GameState.
+    expect(canBuyPerk({ seals: 1, perks: [] }, content, 'throughput-1')).toEqual({ ok: true });
+    expect(canBuyPerk({ seals: 0, perks: [] }, content, 'throughput-1')).toEqual({ ok: false, reason: 'seals' });
+    expect(canBuyPerk({ seals: 99, perks: ['throughput-1'] }, content, 'throughput-1')).toEqual({ ok: false, reason: 'owned' });
+    expect(canBuyPerk({ seals: 99, perks: [] }, content, 'throughput-2')).toEqual({ ok: false, reason: 'locked' });
+  });
+});
+
 describe('perk effects', () => {
   it('sums additive effects by type', () => {
     const s = { ...base(), perks: ['overtime-1', 'overtime-2', 'stapler-1', 'stapler-2'] };

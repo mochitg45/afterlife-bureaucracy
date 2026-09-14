@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import { createInitialState, serialize, deserialize, SAVE_VERSION } from './state';
+import { createInitialState, serialize, deserialize, SAVE_VERSION, type GameState } from './state';
 import { loadContent } from './content';
 import { content } from '../data';
 import intake from '../data/departments/intake.json';
@@ -62,6 +62,13 @@ describe('state', () => {
     const raw = { saveVersion: 0, kc: '10' };
     expect(() => deserialize(JSON.stringify(raw), content)).toThrow('No migration step for save version 0');
   });
+  it('accepts a numeric-string saveVersion and still migrates it', () => {
+    const raw = { saveVersion: '2', kc: '10', boostUntilWall: 5 };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.boostUntilWall).toBe(5);
+    expect(s.perks).toEqual([]);
+  });
   it('fills missing fields from a partial old save', () => {
     const raw = { saveVersion: 2, kc: '10', soulsRun: '10', soulsLifetime: '10' };
     const s = deserialize(JSON.stringify(raw), content);
@@ -76,6 +83,18 @@ describe('state', () => {
     expect(s.staff.auditor).toBe(2);
     expect(s.staff.gary).toBeUndefined();
     expect(s.staff.seraphine).toBeUndefined();
+  });
+  it('drops departments the build no longer ships and repairs the active one', () => {
+    const raw = { saveVersion: 3, deptsUnlocked: ['intake', 'valhalla'], activeDept: 'valhalla' };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.deptsUnlocked).toEqual(['intake']);
+    expect(s.activeDept).toBe('intake');
+  });
+  it('falls back to the starting departments when every saved one is unknown', () => {
+    const raw = { saveVersion: 3, deptsUnlocked: ['valhalla'], activeDept: 'valhalla' };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.deptsUnlocked).toEqual(['intake']);
+    expect(s.activeDept).toBe('intake');
   });
   it('falls back to zero for an unparseable Decimal field', () => {
     const raw = { saveVersion: 2, kc: 'abc', soulsRun: null, soulsLifetime: '1e5' };
@@ -102,5 +121,36 @@ describe('save v3', () => {
   it('drops non-string perk entries', () => {
     const raw = { ...saveV3, perks: ['throughput-1', 7, null] };
     expect(deserialize(JSON.stringify(raw), content).perks).toEqual(['throughput-1']);
+  });
+});
+
+describe('exhaustive save round-trip', () => {
+  it('carries every field of a fully non-default state through serialize/deserialize', () => {
+    const s: GameState = {
+      saveVersion: SAVE_VERSION,
+      kc: new Decimal('1e40'),
+      soulsRun: new Decimal('2e40'),
+      soulsLifetime: new Decimal('3e40'),
+      seals: 42,
+      vouchers: 17,
+      perks: ['throughput-1', 'headstart-1'],
+      staff: { dave: 11, seraphine: 3 },
+      upgrades: { 'faster-stapler': 2 },
+      deptsUnlocked: ['intake', 'heaven'],
+      activeDept: 'heaven',
+      fiscalYear: 6,
+      boostUntilWall: 1_700_000_123_456,
+      lastSeenWallClock: 1_700_000_000_000,
+      uptimeAtSave: 98_765,
+      stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5 },
+    };
+    const back = deserialize(serialize(s), content);
+    expect(Object.keys(back).sort()).toEqual(Object.keys(s).sort());
+    for (const key of Object.keys(s) as Array<keyof GameState>) {
+      const a = s[key];
+      const b = back[key];
+      if (a instanceof Decimal) expect((b as Decimal).eq(a)).toBe(true);
+      else expect(b).toEqual(a);
+    }
   });
 });

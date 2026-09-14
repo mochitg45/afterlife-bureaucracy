@@ -17,8 +17,22 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
   (raw) => ({ ...raw, perks: [] }),
 ];
 
+/**
+ * A hand-edited or re-encoded save can arrive with saveVersion as a numeric string, which
+ * would otherwise silently restart the chain at 1 and re-run migrations. Coerced here, with
+ * a local helper, so migrate() stays usable without state.ts.
+ */
+function versionOf(v: unknown): number {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return 1;
+}
+
 export function migrate(raw: Raw): Raw {
-  const version = typeof raw.saveVersion === 'number' ? raw.saveVersion : 1;
+  const version = versionOf(raw.saveVersion);
   if (version > SAVE_VERSION) {
     throw new Error(`Save version ${version} is newer than supported ${SAVE_VERSION}`);
   }

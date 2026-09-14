@@ -29,9 +29,20 @@ describe('pacing targets (spec §4)', () => {
     expect(r.firstUnlockYear.limbo!).toBeGreaterThanOrEqual(3);
   });
 
+  it('makes each of the first five runs at least 15% faster to the Audit than the one before', () => {
+    const t = r.auditReadySecByRun;
+    expect(t.length).toBeGreaterThanOrEqual(5);
+    for (let i = 0; i < 4; i++) {
+      expect(t[i]).toBeGreaterThan(0);
+      expect(t[i + 1]).toBeLessThanOrEqual(0.85 * t[i]);
+    }
+  });
+
   it('a 20-seal, four-perk run reaches the audit threshold at least 1.3x faster', () => {
+    // Only the first Audit matters here, and the target puts it inside day 3; simulating the
+    // remaining eleven days would just be an expensive way to reach the same number.
     const seeded = simulate(
-      { ...checkIn, startSeals: 20, startPerks: ['throughput-1', 'throughput-2', 'headstart-1', 'headstart-2'] },
+      { ...checkIn, days: 4, startSeals: 20, startPerks: ['throughput-1', 'throughput-2', 'headstart-1', 'headstart-2'] },
       content,
     );
     expect(r.firstAuditReadySec).not.toBeNull();

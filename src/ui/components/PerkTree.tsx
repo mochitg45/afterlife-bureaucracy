@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { canBuyPerk } from '../../engine/perks';
@@ -15,10 +16,13 @@ function perkName(id: string): string {
   return content.perks.find((p) => p.id === id)?.name ?? id;
 }
 
-function PerkNode({ perk }: { perk: PerkDef }) {
-  const state = useGame((s) => s.state);
+// Memoised, and subscribed to Seals and perks only: the Ledger sits next to a readout that
+// changes ten times a second, and there are about forty of these nodes on screen.
+const PerkNode = memo(function PerkNode({ perk }: { perk: PerkDef }) {
+  const seals = useGame((s) => s.state.seals);
+  const perks = useGame((s) => s.state.perks);
   const buy = useGame((s) => s.buyPerk);
-  const check = canBuyPerk(state, content, perk.id);
+  const check = canBuyPerk({ seals, perks }, content, perk.id);
   const status = check.ok ? 'available' : check.reason === 'owned' ? 'owned' : check.reason === 'locked' ? 'locked' : 'unaffordable';
   return (
     <button className={`card perk ${status}`} disabled={!check.ok} onClick={() => buy(perk.id)} aria-label={perk.name}>
@@ -30,7 +34,7 @@ function PerkNode({ perk }: { perk: PerkDef }) {
       {status === 'locked' && <div className="sub">Requires {perk.requires.map(perkName).join(', ')}</div>}
     </button>
   );
-}
+});
 
 export function PerkTree() {
   return (

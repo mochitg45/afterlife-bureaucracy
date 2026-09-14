@@ -1,5 +1,5 @@
 {
-  "id": "limbo", "name": "Limbo Records", "unlockSouls": 1200000000000, "accent": "#6B6478",
+  "id": "limbo", "name": "Limbo Records", "unlockSouls": 50000000000000, "accent": "#6B6478",
   "staff": [
     { "id": "l-archivist", "name": "Archivist Pool", "role": "Filing, Indefinite", "flavor": "Everything is filed. Nothing is found.", "baseCost": 300000000, "baseRate": 2000000, "character": "archivist:0" },
     { "id": "l-lost-found", "name": "Ms. Ferro", "role": "Lost & Found", "flavor": "Holds 14 halos and one sense of purpose.", "baseCost": 2500000000, "baseRate": 12000000, "character": "archivist:1" },

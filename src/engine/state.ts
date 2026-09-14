@@ -98,6 +98,14 @@ export function deserialize(json: string, content: Content): GameState {
   const raw = migrate(JSON.parse(json) as Record<string, unknown>);
   const base = createInitialState({ wall: 0, mono: 0 }, content);
   const rawStats = (raw.stats ?? {}) as Record<string, unknown>;
+  // A save may name a department this build does not ship (a removed one, or one from a
+  // newer build rolled back). Drop those rather than booting into a department that
+  // findDepartment() will throw on.
+  const known = new Set(content.departments.map((d) => d.id));
+  const kept = Array.isArray(raw.deptsUnlocked)
+    ? (raw.deptsUnlocked as unknown[]).filter((id): id is string => typeof id === 'string' && known.has(id))
+    : [];
+  const deptsUnlocked = kept.length ? kept : base.deptsUnlocked;
   return {
     ...base,
     saveVersion: SAVE_VERSION,
@@ -109,8 +117,8 @@ export function deserialize(json: string, content: Content): GameState {
     perks: Array.isArray(raw.perks) ? (raw.perks as unknown[]).filter((p): p is string => typeof p === 'string') : [],
     staff: counts(raw.staff),
     upgrades: counts(raw.upgrades),
-    deptsUnlocked: Array.isArray(raw.deptsUnlocked) && raw.deptsUnlocked.length ? [...(raw.deptsUnlocked as string[])] : base.deptsUnlocked,
-    activeDept: typeof raw.activeDept === 'string' ? raw.activeDept : base.activeDept,
+    deptsUnlocked,
+    activeDept: deptsUnlocked.includes(raw.activeDept as string) ? (raw.activeDept as string) : deptsUnlocked[0],
     fiscalYear: num(raw.fiscalYear, 1),
     boostUntilWall: num(raw.boostUntilWall, 0),
     lastSeenWallClock: num(raw.lastSeenWallClock, 0),

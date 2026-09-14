@@ -12,6 +12,9 @@ function table(label: string, r: SimResult) {
   console.log('first unlock (played sec):', r.firstUnlockSec);
   console.log('first unlock (fiscal year):', r.firstUnlockYear);
   console.log('audit ready: day', r.firstAuditReadyDay, 'at played sec', r.firstAuditReadySec);
+  console.log('time-to-audit per run (played sec):', r.auditReadySecByRun.join(', '));
+  const ratios = r.auditReadySecByRun.slice(1).map((sec, i) => (sec / r.auditReadySecByRun[i]).toFixed(3));
+  console.log('run N+1 / run N:', ratios.join(', '), '(target <= 0.850)');
 }
 
 table('check-in player (5 x 3 min, 3 clicks/s)', simulate({ sessionsPerDay: 5, sessionSec: 180, clicksPerSec: 3, days: 14 }, content));

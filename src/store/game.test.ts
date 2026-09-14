@@ -6,7 +6,7 @@ import { content } from '../data';
 import { loadContent } from '../engine/content';
 import intake from '../data/departments/intake.json';
 import { createInitialState, serialize } from '../engine/state';
-import { AUDIT_THRESHOLD } from '../engine/prestige';
+import { AUDIT_BASE, SEAL_COEFF } from '../engine/prestige';
 
 async function make(opts: { saved?: string } = {}) {
   const storage = memoryStorage();
@@ -253,15 +253,27 @@ describe('prestige and perks in the store', () => {
   it('audit resets the run and records the ceremony payload', async () => {
     const { store } = await make();
     await store.getState().boot();
-    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_THRESHOLD).mul(4), staff: { dave: 5 } } });
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 5 } } });
     store.getState().audit();
+    const gained = Math.floor(SEAL_COEFF * 4 ** 0.4);
     const s = store.getState();
-    expect(s.state.seals).toBe(2);
+    expect(s.state.seals).toBe(gained);
     expect(s.state.staff).toEqual({});
-    expect(s.lastAudit).toEqual({ sealsGained: 2, fiscalYear: 2 });
+    expect(s.lastAudit).toEqual({ sealsGained: gained, fiscalYear: 2 });
     expect(s.rates.soulsPerSec.toNumber()).toBe(0);
     s.dismissAudit();
     expect(store.getState().lastAudit).toBeNull();
+    store.getState().stopLoop();
+  });
+  it('audit clears a pending Overnight Backlog Report', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.setState({
+      state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4) },
+      pendingOffline: { elapsedSec: 3600, creditedSec: 3600, souls: new Decimal(10), kc: new Decimal(4), capped: false },
+    });
+    store.getState().audit();
+    expect(store.getState().pendingOffline).toBeNull();
     store.getState().stopLoop();
   });
   it('audit below threshold is a no-op', async () => {

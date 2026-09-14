@@ -9,10 +9,16 @@ export function hasPerk(state: GameState, perkId: string): boolean {
 
 export type PerkBuyCheck = { ok: true } | { ok: false; reason: 'owned' | 'locked' | 'seals' };
 
-export function canBuyPerk(state: GameState, content: Content, perkId: string): PerkBuyCheck {
+/**
+ * Only the two fields the check actually reads, so a React caller can subscribe to those
+ * alone instead of re-running on every tick of the whole GameState.
+ */
+export type PerkWallet = Pick<GameState, 'seals' | 'perks'>;
+
+export function canBuyPerk(state: PerkWallet, content: Content, perkId: string): PerkBuyCheck {
   const perk = findPerk(content, perkId);
-  if (hasPerk(state, perkId)) return { ok: false, reason: 'owned' };
-  if (!perk.requires.every((r) => hasPerk(state, r))) return { ok: false, reason: 'locked' };
+  if (state.perks.includes(perkId)) return { ok: false, reason: 'owned' };
+  if (!perk.requires.every((r) => state.perks.includes(r))) return { ok: false, reason: 'locked' };
   if (state.seals < perk.cost) return { ok: false, reason: 'seals' };
   return { ok: true };
 }
