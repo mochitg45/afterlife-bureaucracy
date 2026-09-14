@@ -7,9 +7,12 @@ import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import { OfficeScreen } from './screens/OfficeScreen';
 import { LedgerScreen } from './screens/LedgerScreen';
 import { PersonnelScreen } from './screens/PersonnelScreen';
+import { TasksScreen } from './screens/TasksScreen';
 import { BacklogReport } from './overlays/BacklogReport';
 import { AuditCeremony } from './overlays/AuditCeremony';
 import { PullReveal } from './overlays/PullReveal';
+import { StoryMemo } from './overlays/StoryMemo';
+import { AchievementToast } from './components/AchievementToast';
 
 export function App() {
   const [tab, setTab] = useState<TabId>('office');
@@ -49,11 +52,13 @@ export function App() {
       {ready && tab === 'office' && <OfficeScreen />}
       {ready && tab === 'personnel' && <PersonnelScreen />}
       {ready && tab === 'ledger' && <LedgerScreen />}
-      {ready && tab === 'tasks' && <PlaceholderScreen title="Tasks" note="Daily tasks and achievements open in a later update." />}
+      {ready && tab === 'tasks' && <TasksScreen />}
       {ready && tab === 'store' && <PlaceholderScreen title="Store" note="Requisition Vouchers store opens in a later update." />}
       <BacklogReport />
       <AuditCeremony />
       <PullReveal />
+      <StoryMemo />
+      <AchievementToast />
       <TabBar active={tab} onChange={setTab} />
     </div>
   );

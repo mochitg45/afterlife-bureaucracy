@@ -13,6 +13,7 @@ export function StaffRow({ staff, mode }: { staff: StaffDef; mode: BuyMode }) {
   const kc = useGame((s) => s.state.kc);
   const rate = useGame((s) => s.rates.byStaff[staff.id] ?? ZERO, (a, b) => a.eq(b));
   const hire = useGame((s) => s.hire);
+  const mood = useGame((s) => s.mood);
   const count = mode === 'max' ? maxAffordable(staff, owned, kc) : mode;
   const cost = staffBulkCost(staff, owned, Math.max(count, 1));
   const affordable = count > 0 && cost.lte(kc);
@@ -21,7 +22,7 @@ export function StaffRow({ staff, mode }: { staff: StaffDef; mode: BuyMode }) {
   const progress = Math.min(1, (owned - prev) / (next - prev));
   return (
     <div className="card staff-row">
-      <Character id={staff.character} mood="ok" size={52} />
+      <Character id={staff.character} mood={mood} size={52} />
       <div className="staff-info">
         <div className="staff-name">{staff.name} <span className="mono owned">×{owned}</span></div>
         <div className="sub">{staff.role} — {staff.flavor}</div>
