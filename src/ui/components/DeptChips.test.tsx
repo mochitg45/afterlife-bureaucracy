@@ -17,7 +17,8 @@ describe('DeptChips', () => {
     render(<DeptChips />);
     expect(screen.getAllByRole('button')).toHaveLength(5);
     expect(screen.getByRole('button', { name: /^intake$/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /heaven admissions \(locked\)/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /heaven admissions \(locked/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /heaven admissions \(locked, unlocks at 10,000 souls\)/i })).toBeInTheDocument();
   });
   it('switches the active department', () => {
     seed(20000, ['intake', 'heaven']);
@@ -28,7 +29,7 @@ describe('DeptChips', () => {
   it('shows unlock progress for a locked department', () => {
     seed(5000, ['intake']);
     render(<DeptChips />);
-    const chip = screen.getByRole('button', { name: /heaven admissions \(locked\)/i });
+    const chip = screen.getByRole('button', { name: /heaven admissions \(locked/i });
     expect(chip.querySelector('.bar-fill')).toHaveStyle({ width: '50%' });
   });
 });

@@ -180,7 +180,8 @@ export function Character({ id, mood, size = 56 }: { id: string; mood: Mood; siz
   const [arch, variantStr] = id.split(':');
   const Arch = ARCHETYPES[arch];
   if (Arch) {
-    const variant = Math.min(ACCESSORIES.length - 1, Math.max(0, Number(variantStr ?? 0) || 0));
+    // Floor first: a fractional id like 'angel:2.7' must pick accessory 2, not index into thin air.
+    const variant = Math.min(ACCESSORIES.length - 1, Math.max(0, Math.floor(Number(variantStr ?? 0) || 0)));
     return (
       <svg viewBox="0 0 64 64" width={size} height={size} data-character={arch} data-variant={variant} data-mood={mood} aria-hidden="true">
         <Arch mood={mood} accessory={ACCESSORIES[variant]} />

@@ -32,4 +32,14 @@ describe('Character', () => {
       unmount();
     }
   });
+  it('floors a fractional variant instead of landing between accessories', () => {
+    const { container } = render(<Character id="angel:2.7" mood="ok" />);
+    const svg = container.querySelector('svg')!;
+    expect(svg.getAttribute('data-variant')).toBe('2');
+    expect(svg.querySelector('[data-accessory="tie"]')).not.toBeNull();
+  });
+  it('clamps a variant past the end of the accessory list', () => {
+    const { container } = render(<Character id="angel:99" mood="ok" />);
+    expect(container.querySelector('svg')!.getAttribute('data-variant')).toBe('4');
+  });
 });

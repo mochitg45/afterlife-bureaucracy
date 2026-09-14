@@ -7,7 +7,7 @@ describe('App shell', () => {
     expect(await screen.findByRole('tab', { name: /office/i })).toBeInTheDocument();
     expect(screen.getAllByRole('tab')).toHaveLength(5);
     fireEvent.click(screen.getByRole('tab', { name: /ledger/i }));
-    expect(await screen.findByRole('heading', { name: /^ledger$/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /fiscal year audit/i })).toBeInTheDocument();
   });
 
   it('reserves the top safe area on the app shell', async () => {
