@@ -101,3 +101,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .memo-ticker { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); background: var(--green); color: var(--paper); font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; white-space: nowrap; overflow: hidden; }
 .memo-text { display: inline-block; animation: ticker 18s linear infinite; }
 @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(42, 38, 32, 0.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+.modal { width: 100%; max-width: 380px; padding: 18px; }
+.modal-title { font-size: 20px; margin-bottom: 8px; }
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.warn { color: var(--red); }
