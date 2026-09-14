@@ -113,3 +113,17 @@ button:disabled { opacity: 0.45; cursor: default; }
 .chip.active { border-color: var(--accent); color: var(--accent); }
 .chip.locked { opacity: 0.7; }
 .chip .bar { display: block; width: 100%; }
+.ceremony .modal { text-align: center; }
+.slam { display: block; margin: 0 auto 8px; animation: slam 420ms cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes slam { 0% { transform: scale(2.4) rotate(-10deg); opacity: 0; } 60% { transform: scale(0.96); opacity: 1; } 100% { transform: scale(1); } }
+.perk-branch { margin-bottom: 14px; }
+.perk { display: block; width: 100%; text-align: left; margin-bottom: 8px; }
+.perk-head { display: flex; justify-content: space-between; gap: 8px; }
+.seal-cost { color: var(--brass); }
+.perk.owned { border-color: var(--green); }
+.perk.owned .seal-cost { color: var(--green); }
+.perk.available { border-color: var(--brass); }
+.perk.locked, .perk.unaffordable { opacity: 0.6; }
+.audit-card h3, .cosmic-card h3 { margin-bottom: 4px; }
+.cosmic-card { margin-top: 12px; opacity: 0.75; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
