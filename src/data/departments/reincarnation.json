@@ -1,3 +1,58 @@
-{ "id": "reincarnation", "name": "Reincarnation Desk", "unlockSouls": 10000000, "accent": "#A8823C",
-  "staff": [{ "id": "r-accountant", "name": "Karma Accountants", "role": "Ledger Pool", "flavor": "Every good deed, itemised.", "baseCost": 6000000, "baseRate": 50000, "character": "clerk:0" }],
-  "upgrades": [], "queue": ["Reincarnation queue placeholder one", "Reincarnation queue placeholder two"], "memos": ["MEMO: Reincarnation placeholder one.", "MEMO: Reincarnation placeholder two."] }
+{
+  "id": "reincarnation", "name": "Reincarnation Desk", "unlockSouls": 10000000, "accent": "#A8823C",
+  "staff": [
+    { "id": "r-accountant", "name": "Karma Accountants", "role": "Ledger Pool", "flavor": "Every good deed, itemised.", "baseCost": 6000000, "baseRate": 50000, "character": "clerk:0" },
+    { "id": "r-placement", "name": "Officer Pemberton", "role": "Placement, Canine", "flavor": "Golden retriever tier is oversubscribed.", "baseCost": 50000000, "baseRate": 300000, "character": "clerk:1" },
+    { "id": "r-actuary", "name": "Nadia", "role": "Actuary, Next Lives", "flavor": "Knows your odds. Won't say.", "baseCost": 400000000, "baseRate": 2000000, "character": "clerk:2" },
+    { "id": "r-wheel", "name": "Wheel Technician", "role": "Samsara Maintenance", "flavor": "It squeaks. It has always squeaked.", "baseCost": 3000000000, "baseRate": 12000000, "character": "clerk:3" },
+    { "id": "r-bodhisattva", "name": "The Bodhisattva (Contract)", "role": "Senior Advisor", "flavor": "Could leave. Stays for the pension.", "baseCost": 25000000000, "baseRate": 80000000, "character": "clerk:4" }
+  ],
+  "upgrades": [
+    { "id": "r-double-entry", "name": "Double-Entry Karma", "desc": "Reincarnation output +25%", "baseCost": 30000000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
+    { "id": "r-express-wheel", "name": "Express Wheel", "desc": "Reincarnation output +100%", "baseCost": 1500000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
+    { "id": "r-overnight-lives", "name": "Overnight Lives", "desc": "Offline cap +4 hours", "baseCost": 200000000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 4 } },
+    { "id": "r-karmic-stamp", "name": "Karmic Stamp", "desc": "+15 souls per stamp", "baseCost": 100000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 15 } }
+  ],
+  "queue": [
+    "Bartholomew Vance — golden retriever, good-boy tier, appeal upheld",
+    "Soul #70070 — requests a life 'with fewer stairs'",
+    "Ines R. — wants to be a tree, any tree, preferably somewhere quiet",
+    "Soul #19191 — would like the same life again but 'with the lottery numbers'",
+    "Captain Reyes — same crew, same ship, different iceberg",
+    "Soul #24680 — asks to be reborn 'somewhere with good bread'",
+    "Old Man Hutchins — refuses reincarnation until his grudge is resolved",
+    "Soul #33333 — requests a life as a cat, has already started ignoring us",
+    "Dr. Lindqvist — requests peer review of the reincarnation process",
+    "Soul #45454 — wants to skip childhood",
+    "Priya M. — 'the quiet part, again, please'",
+    "Soul #56565 — asks if karma carries over like unused leave",
+    "The Bodhisattva's nephew — expects a discount",
+    "Soul #67676 — requests to be reborn as 'someone taller'",
+    "Grandma Liu — wants to come back as her own grandson's neighbour, to keep an eye on him",
+    "Soul #78787 — form says 'surprise me', then lists 40 conditions",
+    "Marcus D. — done thinking, ready for a life 'with less thinking'"
+  ],
+  "memos": [
+    "MEMO: Reincarnation backlog cleared. Mortal realm reports a baby boom and a shortage of names.",
+    "NOTICE: Golden retriever tier is oversubscribed. Please consider spaniel.",
+    "INCIDENT: A soul was reincarnated as a fax machine. Again. Investigating the wheel.",
+    "MEMO: Karma Accountants remind everyone that 'it's the thought that counts' is not a line item.",
+    "REMINDER: The Wheel squeaks. Do not oil the Wheel. The squeak is structural.",
+    "MEMO: Nadia has computed everyone's odds. She has been asked to stop smiling.",
+    "NOTICE: Next-life requests citing 'main character energy' will be placed as background extras.",
+    "INCIDENT: Two souls swapped forms in the queue. Both are now each other. Both are fine with it.",
+    "MEMO: Placement reminds staff that 'tree' is a valid outcome, 'that specific tree' is not.",
+    "REMINDER: Karma does not carry over like unused leave. HR has been asked to stop saying it does.",
+    "MEMO: Mortal realm reports more déjà vu. Marketing calls it 'brand recall'.",
+    "NOTICE: The Express Wheel is not for staff use. Foreman Grax is now a hamster.",
+    "MEMO: A soul requested a life 'with less thinking'. Placement has options.",
+    "INCIDENT: Wheel Technician found a spoon in the Wheel. Logistics has been notified.",
+    "MEMO: Double-Entry Karma is live. Every good deed now has an equal and opposite invoice.",
+    "REMINDER: You cannot reincarnate as yourself. Legal has ruled twice.",
+    "MEMO: The Bodhisattva has renewed his contract. He says it's for the pension. It is not for the pension."
+  ],
+  "memosLate": [
+    "MEMO (FY2+): Post-audit, several staff have been reincarnated as their own replacements.",
+    "NOTICE (FY2+): The Wheel has been audited. It still squeaks. The auditor now squeaks."
+  ]
+}

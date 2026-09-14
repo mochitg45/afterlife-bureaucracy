@@ -1,3 +1,60 @@
-{ "id": "heaven", "name": "Heaven Admissions", "unlockSouls": 10000, "accent": "#3E9C93",
-  "staff": [{ "id": "h-cherub", "name": "Cherub Pool", "role": "Temp Choir", "flavor": "Sings while stapling.", "baseCost": 8000, "baseRate": 40, "character": "angel:0" }],
-  "upgrades": [], "queue": ["Heaven queue placeholder one", "Heaven queue placeholder two"], "memos": ["MEMO: Heaven placeholder one.", "MEMO: Heaven placeholder two."] }
+{
+  "id": "heaven", "name": "Heaven Admissions", "unlockSouls": 10000, "accent": "#3E9C93",
+  "staff": [
+    { "id": "h-cherub", "name": "Cherub Pool", "role": "Temp Choir", "flavor": "Sings while stapling. Off-key.", "baseCost": 8000, "baseRate": 40, "character": "angel:0" },
+    { "id": "h-gatekeeper", "name": "Petra", "role": "Gatekeeper, Acting", "flavor": "Has the keys. Lost the list.", "baseCost": 60000, "baseRate": 200, "character": "angel:1" },
+    { "id": "h-harpist", "name": "Melodia", "role": "Harpist, Hold Music", "flavor": "Your call is important to eternity.", "baseCost": 400000, "baseRate": 1000, "character": "angel:2" },
+    { "id": "h-archangel", "name": "Archangel Bev", "role": "Regional Manager", "flavor": "Six wings, one clipboard.", "baseCost": 3000000, "baseRate": 6000, "character": "angel:3" },
+    { "id": "h-seraph", "name": "The Seraph Board", "role": "Steering Committee", "flavor": "Burns with holy fire and quarterly goals.", "baseCost": 25000000, "baseRate": 40000, "character": "angel:4" }
+  ],
+  "upgrades": [
+    { "id": "h-halo-polish", "name": "Halo Polish Budget", "desc": "Heaven output +25%", "baseCost": 40000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
+    { "id": "h-cloud-storage", "name": "Cloud Storage (Literal)", "desc": "Offline cap +2 hours", "baseCost": 250000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 2 } },
+    { "id": "h-pearly-turnstile", "name": "Pearly Turnstile", "desc": "Heaven output +100%", "baseCost": 2000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
+    { "id": "h-blessed-stapler", "name": "Blessed Stapler", "desc": "+2 souls per stamp", "baseCost": 120000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 2 } }
+  ],
+  "queue": [
+    "Sister Agnes — requests Heaven, brought references from three popes",
+    "Soul #20117 — asks if Heaven has Wi-Fi, 'for the grandchildren'",
+    "Dmitri K. — claims 'technically never did anything', requests admission",
+    "Beloved Grandpa Joe — arrives with a casserole, refuses to let it go cold",
+    "Soul #44002 — wants to know if pets are allowed, has 14",
+    "Lady Ashcombe — expects the good seats, will not accept 'general admission'",
+    "Soul #61 — a saint, allegedly; paperwork lost in a fire, allegedly",
+    "Marisol P. — requests a room facing the sunrise, any sunrise",
+    "The Reverend — brought his own choir, they are also in the queue",
+    "Soul #90210 — asks if the halo comes in other sizes",
+    "Auntie Oyelaran — insists on inspecting the kitchens first",
+    "Soul #55555 — filed for Heaven, Hell, and Reincarnation 'to keep options open'",
+    "Pieter V. — asks whether the clouds are load-bearing",
+    "Soul #12034 — requests a transfer from Hell, cites 'clerical error, obviously'",
+    "Nana Costa — wants to know who is watering her plants",
+    "Soul #77777 — very lucky in life, would like that to continue",
+    "Brother Anselm — has taken a vow of silence, form is blank",
+    "Soul #30001 — brought a plus-one"
+  ],
+  "memos": [
+    "MEMO: Cloud Nine Staffing has raised its rates. Halos now billed separately.",
+    "NOTICE: The choir has unionised. Hold music will be silent until further notice.",
+    "MEMO: Heaven is at 98% capacity. Facilities is 'looking into more sky'.",
+    "INCIDENT: A cherub stapled a soul to the gate. Both are fine. The gate is fine.",
+    "MEMO: Pearly Gate turnstile jammed. Please use the side door until eternity.",
+    "REMINDER: Wings are not to be used to reach the top shelf. That is what interns are for.",
+    "MEMO: Archangel Bev would like everyone to know she is 'not angry, just disappointed'.",
+    "NOTICE: Harp practice is restricted to the break room. The break room is now full of harps.",
+    "MEMO: Mortal realm reports a rise in 'unexplained warm feelings'. Legal advises we deny involvement.",
+    "INCIDENT: Someone admitted a golden retriever. Nobody is filing a complaint.",
+    "MEMO: Halo polish is for halos. Stop using it on the stamp.",
+    "REMINDER: The Seraph Board meets at the top of the hour. Every hour. Forever.",
+    "NOTICE: Admissions is not responsible for lost luggage, mortal coils, or plus-ones.",
+    "MEMO: The clouds are, in fact, load-bearing. Please stop asking.",
+    "INCIDENT: Soul #55555 was admitted to three places at once. HR calls this 'initiative'.",
+    "MEMO: New policy — every admission must be stamped twice. Legal was not consulted.",
+    "REMINDER: Trumpet solos are for special occasions, not for the end of each shift."
+  ],
+  "memosLate": [
+    "MEMO (FY2+): The audit went fine. The auditor is now also in Heaven. Unrelated.",
+    "MEMO (FY2+): Second-year admissions are up. Mortal realm reports fewer people, 'somehow'.",
+    "NOTICE (FY2+): Returning staff — your halos have been reissued with a new serial number."
+  ]
+}

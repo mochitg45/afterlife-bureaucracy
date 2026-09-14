@@ -1,3 +1,58 @@
-{ "id": "hell", "name": "Hell Compliance", "unlockSouls": 250000, "accent": "#A6402B",
-  "staff": [{ "id": "d-imp", "name": "Imp Pool", "role": "Torment QA", "flavor": "Files defects against every scream.", "baseCost": 150000, "baseRate": 1500, "character": "demon:0" }],
-  "upgrades": [], "queue": ["Hell queue placeholder one", "Hell queue placeholder two"], "memos": ["MEMO: Hell placeholder one.", "MEMO: Hell placeholder two."] }
+{
+  "id": "hell", "name": "Hell Compliance", "unlockSouls": 250000, "accent": "#A6402B",
+  "staff": [
+    { "id": "d-imp", "name": "Imp Pool", "role": "Torment QA", "flavor": "Files defects against every scream.", "baseCost": 150000, "baseRate": 1500, "character": "demon:0" },
+    { "id": "d-steward", "name": "Malphas", "role": "Pitchfork Logistics", "flavor": "Tracks every fork. Loses every spoon.", "baseCost": 1000000, "baseRate": 8000, "character": "demon:1" },
+    { "id": "d-hr", "name": "Lilith from HR", "role": "People & Culture", "flavor": "Culture is mandatory.", "baseCost": 8000000, "baseRate": 50000, "character": "demon:2" },
+    { "id": "d-foreman", "name": "Foreman Grax", "role": "Furnace Operations", "flavor": "Union rep. Also on fire.", "baseCost": 60000000, "baseRate": 300000, "character": "demon:3" },
+    { "id": "d-duke", "name": "Duke Vassago", "role": "VP, Eternal Torment", "flavor": "Very senior. Very tired.", "baseCost": 500000000, "baseRate": 2000000, "character": "demon:4" }
+  ],
+  "upgrades": [
+    { "id": "d-brimstone", "name": "Bulk Brimstone Contract", "desc": "Hell output +25%", "baseCost": 800000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
+    { "id": "d-shift-rota", "name": "Infernal Shift Rota", "desc": "Offline rate +15% of online", "baseCost": 5000000, "costGrowth": 7, "maxLevel": 2, "effect": { "type": "offlineRate", "value": 0.15 } },
+    { "id": "d-lake", "name": "Lake of Fire, Deregulated", "desc": "Hell output +100%", "baseCost": 40000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
+    { "id": "d-branding-iron", "name": "Branding Iron Stamp", "desc": "+5 souls per stamp", "baseCost": 3000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 5 } }
+  ],
+  "queue": [
+    "Soul #66601 — disputes placement, 'it was one email'",
+    "Reginald T. — landlord, requests an upgrade to a suite",
+    "Soul #13013 — asks if the fire is the dry kind or the humid kind",
+    "Consultant (name withheld) — has a deck on optimising torment throughput",
+    "Soul #40404 — cannot be found in the system, insists he is here",
+    "Baroness Krull — brought her own pitchfork, monogrammed",
+    "Soul #77 (Hell branch) — was told to wait here in 1311, still waiting",
+    "Chad — asks if the gym is open",
+    "Soul #50050 — filed a complaint about the complaint form",
+    "Ms. Vantablack — claims she is here to see a client",
+    "Soul #31337 (again) — 'admin access, please, it's for a friend'",
+    "Bartholomew Vance — golden retriever request denied, appealing",
+    "Soul #99999 — requests the noise-cancelling circle",
+    "Tax Preparer #4 — asks whether torment is deductible",
+    "Soul #82000 — wants it noted that the queue in Heaven was shorter",
+    "The Twins (again) — one form, two souls, one is not supposed to be here",
+    "Soul #10010 — 'I'll take the Wi-Fi password now'"
+  ],
+  "memos": [
+    "MEMO: The union has secured two breaks per eternity for imps. Management is furious.",
+    "NOTICE: The Lake of Fire is closed for maintenance. Please use the Pond of Mild Discomfort.",
+    "INCIDENT: A pitchfork was returned with a spoon attached. Logistics is 'investigating'.",
+    "MEMO: Torment QA reminds staff that screams must be reproducible to be filed.",
+    "REMINDER: Casual Friday applies. The horns stay.",
+    "MEMO: Lilith from HR has scheduled a culture workshop. Attendance is compulsory and eternal.",
+    "NOTICE: Mortal realm reports spike in 'inexplicable guilt'. We are not taking credit. Yet.",
+    "MEMO: Brimstone prices are up 12%. Please torment efficiently.",
+    "INCIDENT: Duke Vassago fell asleep during a torment. The soul filed a compliment.",
+    "REMINDER: Souls are not to be stapled to other souls, even in Hell.",
+    "MEMO: The furnace has passed its inspection. The inspector has not.",
+    "NOTICE: The thermostat is not broken. It is a policy.",
+    "MEMO: A consultant has proposed 'synergised suffering'. Legal is still screaming.",
+    "INCIDENT: Foreman Grax caught fire again. He says it is fine. It is not fine.",
+    "MEMO: Someone requested a transfer to Heaven citing 'clerical error'. It was not a clerical error.",
+    "REMINDER: The exit sign is decorative.",
+    "MEMO: Compliance reminds everyone that Hell is, technically, compliant."
+  ],
+  "memosLate": [
+    "MEMO (FY2+): Post-audit headcount is up. The auditor recommended 'more fire'.",
+    "NOTICE (FY2+): The Pond of Mild Discomfort has been upgraded to Moderate."
+  ]
+}

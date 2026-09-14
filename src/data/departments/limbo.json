@@ -1,3 +1,59 @@
-{ "id": "limbo", "name": "Limbo Records", "unlockSouls": 500000000, "accent": "#6B6478",
-  "staff": [{ "id": "l-archivist", "name": "Archivist Pool", "role": "Filing, Indefinite", "flavor": "Everything is filed. Nothing is found.", "baseCost": 300000000, "baseRate": 2000000, "character": "archivist:0" }],
-  "upgrades": [], "queue": ["Limbo queue placeholder one", "Limbo queue placeholder two"], "memos": ["MEMO: Limbo placeholder one.", "MEMO: Limbo placeholder two."] }
+{
+  "id": "limbo", "name": "Limbo Records", "unlockSouls": 500000000, "accent": "#6B6478",
+  "staff": [
+    { "id": "l-archivist", "name": "Archivist Pool", "role": "Filing, Indefinite", "flavor": "Everything is filed. Nothing is found.", "baseCost": 300000000, "baseRate": 2000000, "character": "archivist:0" },
+    { "id": "l-lost-found", "name": "Ms. Ferro", "role": "Lost & Found", "flavor": "Holds 14 halos and one sense of purpose.", "baseCost": 2500000000, "baseRate": 12000000, "character": "archivist:1" },
+    { "id": "l-forgotten", "name": "The One Who Forgot", "role": "Resident Since Forever", "flavor": "Meant to leave. Got comfortable.", "baseCost": 20000000000, "baseRate": 80000000, "character": "archivist:2" },
+    { "id": "l-registrar", "name": "Registrar Ó Broin", "role": "Master of Records", "flavor": "Knows where box 7 is. Won't tell.", "baseCost": 150000000000, "baseRate": 500000000, "character": "archivist:3" },
+    { "id": "l-keeper", "name": "The Keeper of the Cabinet", "role": "Head of Department", "flavor": "The cabinet is bigger on the inside.", "baseCost": 1200000000000, "baseRate": 3000000000, "character": "archivist:4" }
+  ],
+  "upgrades": [
+    { "id": "l-index", "name": "Index Cards, Alphabetised", "desc": "Limbo output +25%", "baseCost": 1500000000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
+    { "id": "l-cabinet", "name": "Filing Cabinet, Infinite", "desc": "Limbo output +100%", "baseCost": 80000000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
+    { "id": "l-waiting-room", "name": "Eternal Waiting Room", "desc": "Offline cap +6 hours", "baseCost": 10000000000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 6 } },
+    { "id": "l-dust-rate", "name": "Dust Settles Overnight", "desc": "Offline rate +10% of online", "baseCost": 5000000000, "costGrowth": 7, "maxLevel": 2, "effect": { "type": "offlineRate", "value": 0.10 } },
+    { "id": "l-grey-stamp", "name": "Grey Stamp of Indeterminacy", "desc": "+50 souls per stamp", "baseCost": 4000000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 50 } }
+  ],
+  "queue": [
+    "Soul #88291 — form incomplete, missing box 7, has been told box 7 is here",
+    "Marcus D. — thinking. Still thinking.",
+    "Soul #00001 — the first soul ever filed, misplaced ever since",
+    "Unnamed — no form, no name, no shoes; has found a chair",
+    "Soul #12121 — waiting for a friend who is also waiting for a friend",
+    "Trevor — has receipts, has now also lost receipts",
+    "Soul #23232 — asked to 'hold', has been holding since the Bronze Age",
+    "The Twins — one form, two souls, both now in separate boxes",
+    "Soul #34343 — requests his own file, is told it is 'being located'",
+    "Nana Costa — plants still unwatered, would like this escalated",
+    "Soul #45454 (again) — skipped childhood, now waiting for adulthood",
+    "Auntie Oyelaran — inspected the kitchens, is now inspecting Limbo",
+    "Soul #56565 — karma still not carried over, has opened a ticket",
+    "A librarian — has started reshelving. Nobody has stopped her.",
+    "Soul #67676 — still not taller",
+    "Dr. Lindqvist — peer review pending. Reviewers are also in Limbo.",
+    "Soul #78787 — 'surprise me' request filed under S, then under U, then lost"
+  ],
+  "memos": [
+    "MEMO: Box 7 has been located. It is inside box 7.",
+    "NOTICE: Lost & Found now holds 14 halos, 2 pitchforks, one sense of purpose, and a spoon.",
+    "INCIDENT: A librarian reshelved the entire department overnight. Nobody can find anything. Efficiency is up.",
+    "MEMO: Limbo is not a waiting room. It is a records department that people wait in.",
+    "REMINDER: Souls who 'just want to think for a bit' are to be given a chair and a century.",
+    "MEMO: The Keeper reports the cabinet is 'still bigger on the inside'. Facilities disputes this.",
+    "NOTICE: Mortal realm reports a rise in 'things being exactly where you left them'. We are not sorry.",
+    "INCIDENT: Soul #00001 was found. Then filed. Then lost. Standard procedure.",
+    "MEMO: Index cards must be alphabetised by the soul's third-favourite word.",
+    "REMINDER: Dust is a filing medium. Do not disturb it.",
+    "MEMO: Registrar Ó Broin knows where everything is and has been asked, politely, to share.",
+    "NOTICE: The Eternal Waiting Room has a two-century queue for the waiting room.",
+    "MEMO: The One Who Forgot has forgotten again. Please do not remind them; they seem happy.",
+    "INCIDENT: A soul filed a ticket about a ticket about a form. The ticket has been filed.",
+    "MEMO: The Grey Stamp is neither approved nor denied. It is filed.",
+    "REMINDER: Nothing in Limbo is lost. It is merely unlocated for an unbounded period.",
+    "MEMO: Someone has started a book club. It has been going for four hundred years. They are on chapter two."
+  ],
+  "memosLate": [
+    "MEMO (FY2+): The audit report has been filed. It is now in Limbo. So is the auditor.",
+    "NOTICE (FY2+): Post-audit, the cabinet is somehow even bigger on the inside."
+  ]
+}

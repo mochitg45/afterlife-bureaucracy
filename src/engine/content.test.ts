@@ -60,3 +60,33 @@ describe('perks content', () => {
     expect(c.departments[0].memosLate).toEqual(['MEMO: year two.']);
   });
 });
+
+describe('shipped departments', () => {
+  it('ships five departments in unlock order with the spec thresholds and accents', () => {
+    expect(content.departments.map((d) => [d.id, d.unlockSouls, d.accent])).toEqual([
+      ['intake', 0, '#1F3B33'],
+      ['heaven', 10000, '#3E9C93'],
+      ['hell', 250000, '#A6402B'],
+      ['reincarnation', 10000000, '#A8823C'],
+      ['limbo', 500000000, '#6B6478'],
+    ]);
+  });
+  it('every department has 4-6 staff, 3-6 upgrades, 15+ queue lines and 15+ memos', () => {
+    for (const d of content.departments) {
+      expect(d.staff.length, d.id).toBeGreaterThanOrEqual(4);
+      expect(d.staff.length, d.id).toBeLessThanOrEqual(6);
+      expect(d.upgrades.length, d.id).toBeGreaterThanOrEqual(3);
+      expect(d.upgrades.length, d.id).toBeLessThanOrEqual(6);
+      expect(d.queue.length, d.id).toBeGreaterThanOrEqual(15);
+      expect(d.memos.length, d.id).toBeGreaterThanOrEqual(15);
+    }
+  });
+  it('staff costs and rates rise monotonically within each department', () => {
+    for (const d of content.departments) {
+      for (let i = 1; i < d.staff.length; i++) {
+        expect(d.staff[i].baseCost, `${d.id} cost`).toBeGreaterThan(d.staff[i - 1].baseCost);
+        expect(d.staff[i].baseRate, `${d.id} rate`).toBeGreaterThan(d.staff[i - 1].baseRate);
+      }
+    }
+  });
+});
