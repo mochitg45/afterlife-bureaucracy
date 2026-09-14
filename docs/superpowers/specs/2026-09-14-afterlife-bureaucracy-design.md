@@ -59,7 +59,14 @@ All numbers are `Decimal` from break_infinity.js so the game survives values bey
 - Offline rate is 50% of online rate; upgradeable to 100%. Remove-Ads purchase grants a permanent ×2 on offline earnings.
 - On return after ≥ 60 seconds away, show the "Overnight Backlog Report" modal with the amount earned and a rewarded-ad ×2 button.
 
-**Pacing targets** (validated by the balance simulator, section 13): first department unlock within 15 minutes of play; first Audit available on day 2–3 for a check-in player; each subsequent department 2–4 hours of play apart on a fresh run; a run after 20 Seals reaches the Audit threshold roughly 3× faster than the first run.
+**Pacing targets** (validated by the balance simulator, section 13, which models a check-in player: 5 sessions of 3 minutes per day, 3 stamps per second, greedy buying, auditing as soon as the Audit is available and spending Seals on the cheapest affordable perk). Targets:
+- Heaven Admissions unlocks within 15 minutes of play.
+- The first Audit becomes available on day 2 or 3 (never on day 1).
+- Hell Compliance unlocks during the first run, before the first Audit.
+- Reincarnation Desk does not unlock before fiscal year 2, and Limbo Records not before fiscal year 3; both unlock by day 14.
+- A run started with 20 Seals and the first two Throughput perks plus the first two Head Start perks reaches the Audit threshold at least 1.3× faster (in played seconds) than the first run.
+
+Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, and the Reincarnation and Limbo unlock thresholds (the values in section 5 are starting points). Fixed: the 1.15 cost growth, the milestone table, the Audit threshold, Heaven and Hell thresholds, Seal bonus, perk values.
 
 **Number formatting.** Plain up to 999,999; then K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc; then letters aa, ab, ac… Numbers in IBM Plex Mono with tabular figures, and the displayed value lerps toward the true value each animation frame.
 
