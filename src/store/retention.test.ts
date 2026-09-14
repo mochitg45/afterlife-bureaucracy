@@ -112,4 +112,32 @@ describe('retention store', () => {
     expect(a.dailies.date).toBe(s.dailies.date);
     store.getState().stopLoop();
   });
+  it('pops one story memo and one achievement toast at a time, leaving the rest queued', async () => {
+    const { store } = await make();
+    const [s1, s2] = content.story;
+    const [a1, a2] = content.achievements;
+    store.setState({ pendingStory: [s1, s2], recentAchievements: [a1, a2] });
+    store.getState().dismissStory();
+    expect(store.getState().pendingStory).toEqual([s2]);
+    store.getState().clearAchievementToast();
+    expect(store.getState().recentAchievements).toEqual([a2]);
+    store.getState().stopLoop();
+  });
+  it('pause resolves even if native scheduling rejects, and still saves', async () => {
+    const storage = memoryStorage();
+    const clock = fakeClock({ wall: new Date(2026, 8, 14, 10).getTime(), mono: 0 });
+    const n: Notifications = {
+      requestPermission: async () => true,
+      schedule: async () => { throw new Error('native scheduling failure'); },
+      cancelAll: async () => { throw new Error('native cancel failure'); },
+    };
+    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, notifications: n });
+    await store.getState().boot();
+    await store.getState().setNotifOptIn('yes');
+    const setSpy = vi.spyOn(storage, 'set');
+    await expect(store.getState().pause()).resolves.toBeUndefined();
+    expect(setSpy).toHaveBeenCalled();
+    setSpy.mockRestore();
+    store.getState().stopLoop();
+  });
 });

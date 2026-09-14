@@ -232,7 +232,7 @@ export function createGameStore(deps: StoreDeps) {
           }));
           booted = true;
           startTimers();
-          void notifications.cancelAll();
+          notifications.cancelAll().catch(() => {});
         })();
         return booting;
       },
@@ -243,20 +243,24 @@ export function createGameStore(deps: StoreDeps) {
         const s = get().state;
         if (s.settings.notifOptIn === 'yes') {
           const wall = clock.wall();
-          await notifications.schedule([
-            {
-              id: NOTIF_INTRAY,
-              atWall: wall + offlineCapSeconds(s, content) * 1000,
-              title: 'In-tray full',
-              body: 'Your staff have stopped stamping. The backlog is waiting.',
-            },
-            {
-              id: NOTIF_DAILY,
-              atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
-              title: 'Daily tasks reset',
-              body: 'Three fresh tasks are on your desk.',
-            },
-          ]);
+          try {
+            await notifications.schedule([
+              {
+                id: NOTIF_INTRAY,
+                atWall: wall + offlineCapSeconds(s, content) * 1000,
+                title: 'In-tray full',
+                body: 'Your staff have stopped stamping. The backlog is waiting.',
+              },
+              {
+                id: NOTIF_DAILY,
+                atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
+                title: 'Daily tasks reset',
+                body: 'Three fresh tasks are on your desk.',
+              },
+            ]);
+          } catch {
+            /* native scheduling is best-effort */
+          }
         }
       },
 
@@ -275,7 +279,7 @@ export function createGameStore(deps: StoreDeps) {
               pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
               mood: moodAfterGap(pendingOffline, elapsedSec),
             }));
-            void notifications.cancelAll();
+            notifications.cancelAll().catch(() => {});
             startTimers();
             await get().save();
           } finally {
@@ -342,8 +346,7 @@ export function createGameStore(deps: StoreDeps) {
       pull(count) {
         const r = pullEngine(get().state, content, count, get().rates.kcPerSec);
         if (r.results.length) {
-          apply(r.state);
-          set({ pendingPull: r.results });
+          apply(r.state, { pendingPull: r.results });
         }
       },
       dismissPull() { set({ pendingPull: null }); },
@@ -354,8 +357,8 @@ export function createGameStore(deps: StoreDeps) {
         apply(r.state);
       },
       skipDaily(taskId) { apply(skipDailyEngine(get().state, content, taskId)); },
-      dismissStory() { set({ pendingStory: [] }); },
-      clearAchievementToast() { set({ recentAchievements: [] }); },
+      dismissStory() { set((cur) => ({ pendingStory: cur.pendingStory.slice(1) })); },
+      clearAchievementToast() { set((cur) => ({ recentAchievements: cur.recentAchievements.slice(1) })); },
       async setNotifOptIn(v) {
         let notifOptIn: Settings['notifOptIn'] = 'no';
         if (v === 'yes') {
