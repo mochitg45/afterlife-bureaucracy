@@ -3,6 +3,7 @@ import type { GameState } from './state';
 import type { Content, DepartmentDef, StaffDef, UpgradeDef } from './content';
 import { perkGlobalMult, perkDeptMult, perkSum } from './perks';
 import { cardGlobalMult, cardDeptMult, cardClickMult } from './gacha';
+import { achievementMult } from './achievements';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -85,7 +86,7 @@ export function deptMult(state: GameState, content: Content, dept: DepartmentDef
 export function globalMult(state: GameState, content: Content, nowWall: number): Decimal {
   const sealBonus = 1 + 0.02 * state.seals;
   const boost = state.boostUntilWall > nowWall ? 2 : 1;
-  return new Decimal(sealBonus).mul(boost).mul(perkGlobalMult(state, content)).mul(cardGlobalMult(state, content));
+  return new Decimal(sealBonus).mul(boost).mul(perkGlobalMult(state, content)).mul(cardGlobalMult(state, content)).mul(achievementMult(state));
 }
 
 export interface Rates {

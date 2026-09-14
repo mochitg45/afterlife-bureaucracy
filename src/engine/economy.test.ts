@@ -135,3 +135,10 @@ describe('cards in multipliers', () => {
     expect(globalMult(s, content, 0).toNumber()).toBeCloseTo(1.08);
   });
 });
+
+describe('achievements in multipliers', () => {
+  it('global multiplier includes the achievement bonus', () => {
+    const s = { ...createInitialState(now, content), achievements: ['a', 'b', 'c', 'd', 'e'] };
+    expect(globalMult(s, content, 0).toNumber()).toBeCloseTo(1.05);
+  });
+});
