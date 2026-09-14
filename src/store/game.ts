@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import { create } from 'zustand';
+import { createWithEqualityFn } from 'zustand/traditional';
 import type { Content, DepartmentDef } from '../engine/content';
 import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, type GameState } from '../engine/state';
@@ -92,7 +92,7 @@ export function createGameStore(deps: StoreDeps) {
   let booted = false;
   let resuming: Promise<void> | null = null;
 
-  return create<GameStore>((set, get) => {
+  return createWithEqualityFn<GameStore>((set, get) => {
     const apply = (next: GameState) => {
       set({ state: next, rates: computeRates(next, content, clock.wall()) });
     };
@@ -240,7 +240,7 @@ export function createGameStore(deps: StoreDeps) {
       dismissAudit() { set({ lastAudit: null }); },
       buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
     };
-  });
+  }, Object.is);
 }
 
 export const useGame = createGameStore({ content: defaultContent, storage: pickStorage(), clock: realClock });
