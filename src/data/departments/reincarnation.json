@@ -1,5 +1,5 @@
 {
-  "id": "reincarnation", "name": "Reincarnation Desk", "unlockSouls": 10000000, "accent": "#A8823C",
+  "id": "reincarnation", "name": "Reincarnation Desk", "unlockSouls": 600000000000, "accent": "#A8823C",
   "staff": [
     { "id": "r-accountant", "name": "Karma Accountants", "role": "Ledger Pool", "flavor": "Every good deed, itemised.", "baseCost": 6000000, "baseRate": 50000, "character": "clerk:0" },
     { "id": "r-placement", "name": "Officer Pemberton", "role": "Placement, Canine", "flavor": "Golden retriever tier is oversubscribed.", "baseCost": 50000000, "baseRate": 300000, "character": "clerk:1" },

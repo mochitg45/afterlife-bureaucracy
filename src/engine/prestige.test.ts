@@ -7,11 +7,11 @@ const now = { wall: 0, mono: 0 };
 
 describe('sealsForRun', () => {
   it('is zero below the threshold and grows with the square root', () => {
-    expect(sealsForRun(new Decimal(999_999))).toBe(0);
+    expect(sealsForRun(new Decimal(AUDIT_THRESHOLD - 1))).toBe(0);
     expect(sealsForRun(new Decimal(AUDIT_THRESHOLD))).toBe(1);
-    expect(sealsForRun(new Decimal(4_000_000))).toBe(2);
-    expect(sealsForRun(new Decimal(1e8))).toBe(10);
-    expect(sealsForRun(new Decimal('1e14'))).toBe(10_000);
+    expect(sealsForRun(new Decimal(AUDIT_THRESHOLD * 4))).toBe(2);
+    expect(sealsForRun(new Decimal(AUDIT_THRESHOLD * 100))).toBe(10);
+    expect(sealsForRun(new Decimal(AUDIT_THRESHOLD).mul(1e8))).toBe(10_000);
   });
 });
 
@@ -19,8 +19,8 @@ describe('fileAudit', () => {
   const rich = () => ({
     ...createInitialState(now, content),
     kc: new Decimal(123),
-    soulsRun: new Decimal(9_000_000),
-    soulsLifetime: new Decimal(9_500_000),
+    soulsRun: new Decimal(AUDIT_THRESHOLD).mul(9),
+    soulsLifetime: new Decimal(AUDIT_THRESHOLD).mul(9).add(500_000),
     staff: { dave: 50, 'h-cherub': 3 },
     upgrades: { 'faster-stapler': 2 },
     deptsUnlocked: ['intake', 'heaven'],
@@ -45,7 +45,7 @@ describe('fileAudit', () => {
     expect(r.fiscalYear).toBe(2);
     expect(r.state.kc.toNumber()).toBe(0);
     expect(r.state.soulsRun.toNumber()).toBe(0);
-    expect(r.state.soulsLifetime.toNumber()).toBe(9_500_000);
+    expect(r.state.soulsLifetime.toNumber()).toBe(AUDIT_THRESHOLD * 9 + 500_000);
     expect(r.state.staff).toEqual({});
     expect(r.state.upgrades).toEqual({});
     expect(r.state.deptsUnlocked).toEqual(['intake']);

@@ -6,6 +6,7 @@ import { content } from '../data';
 import { loadContent } from '../engine/content';
 import intake from '../data/departments/intake.json';
 import { createInitialState, serialize } from '../engine/state';
+import { AUDIT_THRESHOLD } from '../engine/prestige';
 
 async function make(opts: { saved?: string } = {}) {
   const storage = memoryStorage();
@@ -252,7 +253,7 @@ describe('prestige and perks in the store', () => {
   it('audit resets the run and records the ceremony payload', async () => {
     const { store } = await make();
     await store.getState().boot();
-    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(4_000_000), staff: { dave: 5 } } });
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_THRESHOLD).mul(4), staff: { dave: 5 } } });
     store.getState().audit();
     const s = store.getState();
     expect(s.state.seals).toBe(2);

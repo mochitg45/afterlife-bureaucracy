@@ -4,7 +4,7 @@ import { startingDepartments } from './state';
 import type { Content } from './content';
 import { headStart } from './perks';
 
-export const AUDIT_THRESHOLD = 1_000_000;
+export const AUDIT_THRESHOLD = 500_000_000_000;
 
 export function sealsForRun(soulsRun: Decimal): number {
   if (soulsRun.lt(AUDIT_THRESHOLD)) return 0;

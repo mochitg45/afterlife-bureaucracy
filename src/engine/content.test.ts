@@ -67,8 +67,8 @@ describe('shipped departments', () => {
       ['intake', 0, '#1F3B33'],
       ['heaven', 10000, '#3E9C93'],
       ['hell', 250000, '#A6402B'],
-      ['reincarnation', 10000000, '#A8823C'],
-      ['limbo', 500000000, '#6B6478'],
+      ['reincarnation', 600000000000, '#A8823C'],
+      ['limbo', 1200000000000, '#6B6478'],
     ]);
   });
   it('every department has 4-6 staff, 3-6 upgrades, 15+ queue lines and 15+ memos', () => {

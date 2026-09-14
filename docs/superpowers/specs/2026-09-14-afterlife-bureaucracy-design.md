@@ -66,7 +66,7 @@ All numbers are `Decimal` from break_infinity.js so the game survives values bey
 - Reincarnation Desk does not unlock before fiscal year 2, and Limbo Records not before fiscal year 3; both unlock by day 14.
 - A run started with 20 Seals and the first two Throughput perks plus the first two Head Start perks reaches the Audit threshold at least 1.3× faster (in played seconds) than the first run.
 
-Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, and the Reincarnation and Limbo unlock thresholds (the values in section 5 are starting points). Fixed: the 1.15 cost growth, the milestone table, the Audit threshold, Heaven and Hell thresholds, Seal bonus, perk values.
+Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, the Reincarnation and Limbo unlock thresholds (the values in section 5 are starting points), and the Audit threshold (section 6; the seal curve rescales with it automatically). Fixed: the 1.15 cost growth, the milestone table, Heaven and Hell thresholds, Seal bonus, perk values.
 
 **Number formatting.** Plain up to 999,999; then K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc; then letters aa, ab, ac… Numbers in IBM Plex Mono with tabular figures, and the displayed value lerps toward the true value each animation frame.
 
@@ -79,8 +79,8 @@ Five departments in v1, each defined entirely in `src/data/departments/*.json`. 
 | Intake | start | ledger green `#1F3B33` | Dave (Reaper, Overtime), Seraphine (Angel, Temp), Gary (Demon Intern), The Auditor (Bribed) |
 | Heaven Admissions | 10,000 | soul teal `#3E9C93` | angels, Cloud Nine Staffing temps, choir HR |
 | Hell Compliance | 250,000 | stamp red `#A6402B` | unionized demons, torment QA, pitchfork logistics |
-| Reincarnation Desk | 10,000,000 | brass `#A8823C` | karma accountants, golden-retriever placement officers |
-| Limbo Records | 500,000,000 | grey-violet `#6B6478` | archivists, souls who forgot to leave, lost-and-found |
+| Reincarnation Desk | 600,000,000,000 | brass `#A8823C` | karma accountants, golden-retriever placement officers |
+| Limbo Records | 1,200,000,000,000 | grey-violet `#6B6478` | archivists, souls who forgot to leave, lost-and-found |
 
 Each department has:
 - 4–6 staff producers with base cost, base rate, name, role, flavor line, SVG character id and two mood faces.
@@ -93,8 +93,8 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 ## 6. Prestige: Fiscal Year Audit
 
-- Available when souls processed this run ≥ 1,000,000.
-- Seals awarded on Audit: `floor(sqrt(soulsThisRun / 1e6))`, so seals scale with the square root of run size. The Ledger tab shows "Audit now for +N Seals" live.
+- Available when souls processed this run ≥ 500,000,000,000 (500B).
+- Seals awarded on Audit: `floor(sqrt(soulsThisRun / threshold))`, so seals scale with the square root of run size. The Ledger tab shows "Audit now for +N Seals" live.
 - Reset: KC, staff counts, upgrades, department unlocks, souls-this-run, offline cap upgrades. Keep: Seals, Perk Ledger purchases, gacha collection and equips, achievements, vouchers, lifetime statistics, fiscal year counter, settings.
 - Each Seal held grants +2% global multiplier passively.
 - **Perk Ledger:** a tree defined in `src/data/perks.json`, about 40 nodes in v1, five branches: Throughput (rate multipliers), Overtime (offline cap and rate), Stapler (click power), Requisition (voucher income and gacha discounts), Head Start (start each run with departments or staff pre-unlocked). Node cost in Seals; prerequisites by node id.

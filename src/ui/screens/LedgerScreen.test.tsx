@@ -5,6 +5,8 @@ import { useGame } from '../../store/game';
 import { createInitialState, type GameState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
+import { AUDIT_THRESHOLD } from '../../engine/prestige';
+import { formatNumber } from '../../engine/format';
 
 function seed(patch: Partial<GameState>) {
   const state = { ...createInitialState({ wall: 0, mono: 0 }, content), ...patch };
@@ -16,10 +18,11 @@ describe('LedgerScreen', () => {
     seed({ soulsRun: new Decimal(10) });
     render(<LedgerScreen />);
     expect(screen.getByRole('button', { name: /file annual audit/i })).toBeDisabled();
-    expect(screen.getByText(/need 1\.00M souls/i)).toBeInTheDocument();
+    const needText = new RegExp(`need ${formatNumber(AUDIT_THRESHOLD).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} souls`, 'i');
+    expect(screen.getByText(needText)).toBeInTheDocument();
   });
   it('shows the seal preview and requires confirmation', () => {
-    seed({ soulsRun: new Decimal(9_000_000), staff: { dave: 3 } });
+    seed({ soulsRun: new Decimal(AUDIT_THRESHOLD).mul(9), staff: { dave: 3 } });
     render(<LedgerScreen />);
     expect(screen.getByText(/\+3 seals/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /file annual audit/i }));
