@@ -4,6 +4,7 @@ import { content } from '../../data';
 import { findDepartment } from '../../engine/content';
 import type { BuyMode } from '../../engine/actions';
 import { CurrencyBar } from '../components/CurrencyBar';
+import { DeptChips } from '../components/DeptChips';
 import { QueueCard } from '../components/QueueCard';
 import { StampButton } from '../components/StampButton';
 import { StaffRow } from '../components/StaffRow';
@@ -20,6 +21,7 @@ export function OfficeScreen() {
   return (
     <section className="screen office" style={accentStyle}>
       <CurrencyBar />
+      <DeptChips />
       <h2 className="dept-title">{dept.name} Department</h2>
       <QueueCard />
       <StampButton />

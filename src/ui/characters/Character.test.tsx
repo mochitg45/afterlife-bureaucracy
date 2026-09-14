@@ -22,4 +22,14 @@ describe('Character', () => {
     const { container } = render(<Character id="whoever" mood="ok" />);
     expect(container.querySelector('svg')!.getAttribute('data-character')).toBe('soul');
   });
+  it('renders archetype variants with accessories', () => {
+    for (const arch of ['angel', 'demon', 'clerk', 'archivist']) {
+      const { container, unmount } = render(<Character id={`${arch}:3`} mood="ok" />);
+      const svg = container.querySelector('svg')!;
+      expect(svg.getAttribute('data-character')).toBe(arch);
+      expect(svg.getAttribute('data-variant')).toBe('3');
+      expect(svg.querySelector('[data-accessory="clipboard"]')).not.toBeNull();
+      unmount();
+    }
+  });
 });

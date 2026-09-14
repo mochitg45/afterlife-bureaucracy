@@ -101,7 +101,92 @@ const REGISTRY: Record<string, (p: { mood: Mood }) => ReactElement> = {
   dave: Dave, seraphine: Seraphine, gary: Gary, auditor: Auditor,
 };
 
+type Accessory = 'none' | 'glasses' | 'tie' | 'clipboard' | 'hat';
+const ACCESSORIES: Accessory[] = ['none', 'glasses', 'tie', 'clipboard', 'hat'];
+
+function AccessoryLayer({ kind, cx, cy }: { kind: Accessory; cx: number; cy: number }) {
+  switch (kind) {
+    case 'glasses':
+      return <g data-accessory="glasses" stroke={OUTLINE} strokeWidth={SW} fill="none"><circle cx={cx - 5} cy={cy} r={4} /><circle cx={cx + 5} cy={cy} r={4} /><path d={`M ${cx - 1} ${cy} h 2`} /></g>;
+    case 'tie':
+      return <path data-accessory="tie" d={`M ${cx} ${cy + 14} l -3 6 l 3 8 l 3 -8 z`} fill="var(--brass)" stroke={OUTLINE} strokeWidth={SW} />;
+    case 'clipboard':
+      return <g data-accessory="clipboard"><rect x={cx + 10} y={cy + 14} width={10} height={13} rx={1.5} fill="var(--surface-2)" stroke={OUTLINE} strokeWidth={SW} /><path d={`M ${cx + 13} ${cy + 18} h 4 M ${cx + 13} ${cy + 22} h 4`} stroke={OUTLINE} strokeWidth={1.5} /></g>;
+    case 'hat':
+      return <g data-accessory="hat"><rect x={cx - 12} y={cy - 16} width={24} height={4} rx={1} fill={OUTLINE} /><rect x={cx - 8} y={cy - 26} width={16} height={11} rx={1.5} fill={OUTLINE} /></g>;
+    default:
+      return null;
+  }
+}
+
+function Angel({ mood, accessory }: { mood: Mood; accessory: Accessory }) {
+  return (
+    <>
+      <ellipse cx="32" cy="8" rx="9" ry="2.5" fill="none" stroke="var(--brass)" strokeWidth={SW} />
+      <path d="M12 36 C4 32 4 22 12 22 L12 36 Z M52 36 C60 32 60 22 52 22 L52 36 Z" fill="var(--surface)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M19 54 L19 34 C19 27 45 27 45 34 L45 54 Z" fill="var(--teal)" stroke={OUTLINE} strokeWidth={SW} />
+      <circle cx="32" cy="22" r="10" fill="var(--surface)" stroke={OUTLINE} strokeWidth={SW} />
+      <Face mood={mood} cx={32} cy={21} />
+      <AccessoryLayer kind={accessory} cx={32} cy={21} />
+    </>
+  );
+}
+
+function Demon({ mood, accessory }: { mood: Mood; accessory: Accessory }) {
+  return (
+    <>
+      <path d="M22 15 L17 5 L27 12 Z M42 15 L47 5 L37 12 Z" fill="var(--red)" stroke={OUTLINE} strokeWidth={SW} strokeLinejoin="round" />
+      <path d="M17 54 L17 36 C17 28 47 28 47 36 L47 54 Z" fill="var(--red)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M47 44 C56 40 58 48 52 52" fill="none" stroke={OUTLINE} strokeWidth={SW} />
+      <circle cx="32" cy="23" r="11" fill="var(--surface)" stroke={OUTLINE} strokeWidth={SW} />
+      <Face mood={mood} cx={32} cy={22} />
+      <AccessoryLayer kind={accessory} cx={32} cy={22} />
+    </>
+  );
+}
+
+function Clerk({ mood, accessory }: { mood: Mood; accessory: Accessory }) {
+  return (
+    <>
+      <path d="M18 54 L18 36 C18 28 46 28 46 36 L46 54 Z" fill="var(--brass)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M26 30 L32 40 L38 30" fill="var(--surface)" stroke={OUTLINE} strokeWidth={SW} />
+      <circle cx="32" cy="21" r="11" fill="var(--surface)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M21 18 C24 10 40 10 43 18" fill={OUTLINE} />
+      <Face mood={mood} cx={32} cy={21} />
+      <AccessoryLayer kind={accessory} cx={32} cy={21} />
+    </>
+  );
+}
+
+function Archivist({ mood, accessory }: { mood: Mood; accessory: Accessory }) {
+  return (
+    <>
+      <path d="M18 54 L18 34 C18 26 46 26 46 34 L46 54 Z" fill="var(--violet)" stroke={OUTLINE} strokeWidth={SW} />
+      <rect x="10" y="40" width="10" height="12" rx="1" fill="var(--surface-2)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M12 44 h 6 M12 48 h 6" stroke={OUTLINE} strokeWidth={1.5} />
+      <circle cx="32" cy="21" r="11" fill="var(--surface)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M22 16 C26 8 38 8 42 16 L40 12 L36 15 L32 11 L28 15 L24 12 Z" fill="var(--surface-2)" stroke={OUTLINE} strokeWidth={SW} strokeLinejoin="round" />
+      <Face mood={mood} cx={32} cy={21} />
+      <AccessoryLayer kind={accessory} cx={32} cy={21} />
+    </>
+  );
+}
+
+const ARCHETYPES: Record<string, (p: { mood: Mood; accessory: Accessory }) => ReactElement> = {
+  angel: Angel, demon: Demon, clerk: Clerk, archivist: Archivist,
+};
+
 export function Character({ id, mood, size = 56 }: { id: string; mood: Mood; size?: number }) {
+  const [arch, variantStr] = id.split(':');
+  const Arch = ARCHETYPES[arch];
+  if (Arch) {
+    const variant = Math.min(ACCESSORIES.length - 1, Math.max(0, Number(variantStr ?? 0) || 0));
+    return (
+      <svg viewBox="0 0 64 64" width={size} height={size} data-character={arch} data-variant={variant} data-mood={mood} aria-hidden="true">
+        <Arch mood={mood} accessory={ACCESSORIES[variant]} />
+      </svg>
+    );
+  }
   const Body = REGISTRY[id] ?? Soul;
   const resolved = REGISTRY[id] ? id : 'soul';
   return (

@@ -6,10 +6,12 @@ import { staffBulkCost, maxAffordable, nextMilestone, prevMilestone } from '../.
 import { formatNumber } from '../../engine/format';
 import { Character } from '../characters/Character';
 
+const ZERO = new Decimal(0);
+
 export function StaffRow({ staff, mode }: { staff: StaffDef; mode: BuyMode }) {
   const owned = useGame((s) => s.state.staff[staff.id] ?? 0);
   const kc = useGame((s) => s.state.kc);
-  const rate = useGame((s) => s.rates.byStaff[staff.id] ?? new Decimal(0));
+  const rate = useGame((s) => s.rates.byStaff[staff.id] ?? ZERO, (a, b) => a.eq(b));
   const hire = useGame((s) => s.hire);
   const count = mode === 'max' ? maxAffordable(staff, owned, kc) : mode;
   const cost = staffBulkCost(staff, owned, Math.max(count, 1));
