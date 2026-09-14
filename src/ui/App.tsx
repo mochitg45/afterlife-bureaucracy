@@ -42,7 +42,7 @@ export function App() {
   }, [pause, resume, stopLoop]);
 
   return (
-    <div className="app">
+    <div className="app safe-area">
       {!ready && <section className="screen"><h2>Opening the office…</h2></section>}
       {ready && tab === 'office' && <OfficeScreen />}
       {ready && tab === 'personnel' && <PlaceholderScreen title="Personnel" note="Requisition Lottery opens in a later update." />}

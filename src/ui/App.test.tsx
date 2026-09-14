@@ -9,4 +9,10 @@ describe('App shell', () => {
     fireEvent.click(screen.getByRole('tab', { name: /ledger/i }));
     expect(await screen.findByRole('heading', { name: /^ledger$/i })).toBeInTheDocument();
   });
+
+  it('reserves the top safe area on the app shell', async () => {
+    render(<App />);
+    const shell = await screen.findByRole('tablist', { name: /main/i });
+    expect(shell.closest('.app')).toHaveClass('safe-area');
+  });
 });
