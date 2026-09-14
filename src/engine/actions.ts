@@ -76,5 +76,5 @@ export function buyUpgrade(state: GameState, content: Content, upgradeId: string
 export function buyPerk(state: GameState, content: Content, perkId: string): GameState {
   if (!canBuyPerk(state, content, perkId).ok) return state;
   const perk = findPerk(content, perkId);
-  return { ...state, seals: state.seals - perk.cost, perks: [...state.perks, perkId] };
+  return { ...state, seals: state.seals - perk.cost, perks: [...state.perks, perkId], stats: { ...state.stats, perksBought: state.stats.perksBought + 1 } };
 }

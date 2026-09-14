@@ -26,6 +26,7 @@ describe('perk ownership and purchase rules', () => {
     const s1 = buyPerk(s0, content, 'throughput-1');
     expect(s1.seals).toBe(2);
     expect(hasPerk(s1, 'throughput-1')).toBe(true);
+    expect(s1.stats.perksBought).toBe(1);
     expect(buyPerk(s1, content, 'throughput-3')).toBe(s1);
     expect(s0.perks).toEqual([]);
   });
