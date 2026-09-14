@@ -29,7 +29,7 @@ export interface GameState {
 export interface Now { wall: number; mono: number }
 
 /** Departments that cost nothing to open are unlocked from the first day on the job. */
-function startingDepartments(content: Content): string[] {
+export function startingDepartments(content: Content): string[] {
   return content.departments.filter((d) => d.unlockSouls === 0).map((d) => d.id);
 }
 
