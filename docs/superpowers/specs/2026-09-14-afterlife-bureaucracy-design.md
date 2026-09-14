@@ -1,7 +1,7 @@
 # Afterlife Bureaucracy Inc. — Game Design Spec
 
 **Date:** 2026-09-14
-**Platform:** Android (Capacitor 7, target SDK 36), web build for development
+**Platform:** Android (Capacitor 7, target SDK 36) and iOS (Capacitor 7, iOS 15+), web build for development. Android is the first store release; the iOS project is kept buildable from the same web bundle so an App Store release needs only a Mac, signing, and the iOS-side plugin configuration.
 **Stack:** Vite + React 18 + TypeScript, zustand, break_infinity.js, vitest
 **Source concept:** `afterlife-bureaucracy-design-doc.md` (v1 scope doc). This spec supersedes it and expands it into a multi-year live-ops design.
 
@@ -15,7 +15,7 @@ Session model: **check-in idle.** 3–5 short sessions per day, 2–5 minutes ea
 
 Decisions already made:
 - Monetization: rewarded ads + in-app purchases. No interstitials in v1.
-- Backend: none. Fully on-device logic. Google Play Games Services for cloud save, achievements and leaderboards. Event configuration is a static JSON file on a CDN with a bundled fallback.
+- Backend: none. Fully on-device logic. Platform game services for cloud save, achievements and leaderboards: Google Play Games Services on Android, Game Center plus iCloud key-value storage on iOS, behind one `CloudSave`/`Achievements` interface in `src/platform`. Event configuration is a static JSON file on a CDN with a bundled fallback.
 - Art: all characters, icons and stamps are inline SVG authored in code. Two mood faces per character via layer toggle.
 
 ## 2. Progression loops
@@ -111,7 +111,7 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 **Daily tasks.** Three per day, drawn from a pool in `src/data/dailies.json` (stamp N souls, buy N staff, watch 1 ad, equip a card, reach N souls per second). Reset at local midnight. Rewards: KC scaled to current rate, plus vouchers. Streak counter with a bonus voucher pack at 7-day streaks; one missed day breaks the streak, one skip token per week protects it.
 
-**Achievements.** About 80 in v1 in `src/data/achievements.json`: souls milestones, staff counts, audits filed, cards collected, ads watched, streaks. Each grants +1% permanent global multiplier and some grant vouchers. Trophy-style badge icons (SVG), grid on the Tasks tab. Mirrored to Play Games achievements.
+**Achievements.** About 80 in v1 in `src/data/achievements.json`: souls milestones, staff counts, audits filed, cards collected, ads watched, streaks. Each grants +1% permanent global multiplier and some grant vouchers. Trophy-style badge icons (SVG), grid on the Tasks tab. Mirrored to Play Games achievements on Android and Game Center achievements on iOS.
 
 **Memo story arc.** About 120 memo lines in v1; about 30 are story memos unlocked by milestones and shown once as a modal before entering the ticker rotation. Arc: clearing the backlog destabilises the mortal realm → reality bugs → the bribed Auditor's true role → Cosmic Restructuring foreshadowing. The rest are random flavor, weighted by department and fiscal year.
 
@@ -179,7 +179,7 @@ src/
 
 - Save format: versioned JSON (`saveVersion` integer) with a migration chain in `engine/migrations.ts`. Every version bump adds a migration and a test fixture.
 - Autosave every 10 seconds and on `appStateChange` to background. Stored with Capacitor Preferences (web: localStorage).
-- Cloud save through Play Games Saved Games. On sign-in or manual sync, if local and cloud differ, keep the one with higher lifetime Souls Processed and inform the player.
+- Cloud save through Play Games Saved Games on Android and iCloud key-value storage on iOS, behind one `CloudSave` interface. On sign-in or manual sync, if local and cloud differ, keep the one with higher lifetime Souls Processed and inform the player. Saves are not shared across the two platforms in v1.
 - Clock integrity: saves carry `lastSeenWallClock` and a monotonic `uptimeAtSave`. On load, if wall clock moved backwards, or the offline gap is implausible relative to uptime, offline earnings for that gap are zero. Overtime Boost deadlines are stored as wall-clock timestamps; the clock-integrity check in this section polices clock rollback. Without a server, some cheating is accepted.
 
 ## 13. Testing and balance
@@ -197,4 +197,13 @@ src/
 
 ## 15. Out of scope
 
-Multiplayer, guilds, real-time chat, server-authoritative economy, iOS (deferred until Android proves retention), localisation beyond English (data files are structured for it later).
+Multiplayer, guilds, real-time chat, server-authoritative economy, cross-platform save sync between Android and iOS, localisation beyond English (data files are structured for it later).
+
+## 16. iOS readiness
+
+The iOS project (`ios/`) is generated with Capacitor and kept in the repository from Plan 2 onward. Rules that keep the web bundle store-ready on both platforms:
+- Portrait only on both; `viewport-fit=cover` with `env(safe-area-inset-*)` padding on the top bar, tab bar and any fixed overlay.
+- iOS 15 deployment target; `contentInset: 'always'` off (the app manages insets in CSS); background colour matches `--paper` dark value `#1B1915`.
+- Every platform plugin (ads, billing, cloud save, achievements, notifications, haptics) must have both an Android and an iOS implementation or a documented no-op on the platform that lacks it. Plan 4 chooses plugins that ship both (AdMob community plugin, RevenueCat, Capacitor Local Notifications, Capacitor Haptics).
+- Gacha odds disclosure and the "rewarded ad" wording satisfy App Store Review Guideline 3.1.1 (loot-box odds) as well as Play policy.
+- Builds and device testing for iOS happen on a Mac with Xcode; Windows sessions only generate and configure the project and must state that the build is unverified.
