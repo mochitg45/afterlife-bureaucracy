@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Afterlife Bureaucracy</string>
+    <string name="title_activity_main">Afterlife Bureaucracy</string>
+    <string name="package_name">com.afterlifebureaucracy.game</string>
+    <string name="custom_url_scheme">com.afterlifebureaucracy.game</string>
+</resources>
