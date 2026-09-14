@@ -1,14 +1,19 @@
 import Decimal from 'break_infinity.js';
 import { createWithEqualityFn } from 'zustand/traditional';
-import type { Content, DepartmentDef } from '../engine/content';
+import type { Content, DepartmentDef, AchievementDef, StoryDef } from '../engine/content';
 import { findDepartment } from '../engine/content';
-import { createInitialState, deserialize, serialize, type GameState } from '../engine/state';
+import { createInitialState, deserialize, serialize, type GameState, type Settings } from '../engine/state';
 import { computeRates, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
 import { canAudit, fileAudit } from '../engine/prestige';
-import { applyOffline, MIN_OFFLINE_SECONDS } from '../engine/offline';
+import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/offline';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
+import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
+import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, nextLocalMidnight } from '../engine/dailies';
+import { checkAchievements } from '../engine/achievements';
+import { checkStory } from '../engine/story';
+import { pull as pullEngine, equipCard, unequipCard, type PullResult } from '../engine/gacha';
 import { content as defaultContent } from '../data';
 
 /** Where an unreadable save is parked so a bad release cannot erase a player's run. */
@@ -24,6 +29,18 @@ const MAX_TICKS_PER_FIRE = 5;
 
 /** How many times pick() re-draws before accepting a repeat. */
 const PICK_ATTEMPTS = 8;
+
+/** The tick loop settles (dailies rollover, achievements, story) only on every Nth fire. */
+const SETTLE_EVERY_FIRES = 10;
+
+/** A gap this long (12h) leaves the player "cooked" on return, regardless of the offline cap. */
+const COOKED_THRESHOLD_SEC = 43_200;
+
+/** How long after a notification opt-in ask goes unasked before we ask again. */
+const ASK_NOTIF_AFTER_MS = 2 * 86_400_000;
+
+/** Minutes-in-ms past local midnight the daily-reset notification fires, so the rollover has landed. */
+const DAILY_NOTIF_DELAY_MS = 300_000;
 
 export interface PendingOffline {
   elapsedSec: number;
@@ -41,6 +58,10 @@ export interface GameStore {
   queueLine: string;
   memoLine: string;
   lastAudit: { sealsGained: number; fiscalYear: number } | null;
+  pendingPull: PullResult[] | null;
+  pendingStory: StoryDef[];
+  recentAchievements: AchievementDef[];
+  mood: 'ok' | 'cooked';
   boot(): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -57,6 +78,16 @@ export interface GameStore {
   audit(): void;
   dismissAudit(): void;
   buyPerk(perkId: string): void;
+  pull(count: 1 | 10): void;
+  dismissPull(): void;
+  equip(cardId: string): void;
+  unequip(cardId: string): void;
+  claimDaily(taskId: string): void;
+  skipDaily(taskId: string): void;
+  dismissStory(): void;
+  clearAchievementToast(): void;
+  setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
+  shouldAskNotifications(): boolean;
 }
 
 export interface StoreDeps {
@@ -65,10 +96,7 @@ export interface StoreDeps {
   clock: Clock;
   tickMs?: number;
   autosaveMs?: number;
-}
-
-function memoPool(dept: DepartmentDef, fiscalYear: number): string[] {
-  return fiscalYear >= 2 && dept.memosLate?.length ? [...dept.memos, ...dept.memosLate] : dept.memos;
+  notifications?: Notifications;
 }
 
 function pick(lines: string[], avoid: string): string {
@@ -82,43 +110,79 @@ function pick(lines: string[], avoid: string): string {
 
 export function createGameStore(deps: StoreDeps) {
   const { content, storage, clock } = deps;
+  const notifications = deps.notifications ?? pickNotifications();
   const tickMs = deps.tickMs ?? 100;
   const autosaveMs = deps.autosaveMs ?? 10_000;
   const maxTickSec = (MAX_TICKS_PER_FIRE * tickMs) / 1000;
   let tickTimer: ReturnType<typeof setInterval> | null = null;
   let saveTimer: ReturnType<typeof setInterval> | null = null;
   let lastMono = 0;
+  let fires = 0;
   let booting: Promise<void> | null = null;
   let booted = false;
   let resuming: Promise<void> | null = null;
 
   return createWithEqualityFn<GameStore>((set, get) => {
-    const apply = (next: GameState) => {
-      set({ state: next, rates: computeRates(next, content, clock.wall()) });
+    /** Also folds in the story memos the player has already seen; every department shares them. */
+    const memoPool = (dept: DepartmentDef, fiscalYear: number, storySeen: string[]): string[] => {
+      const base = fiscalYear >= 2 && dept.memosLate?.length ? [...dept.memos, ...dept.memosLate] : dept.memos;
+      const storyTexts = content.story.filter((s) => storySeen.includes(s.id)).map((s) => s.text);
+      return [...base, ...storyTexts];
     };
+
+    /** Dailies rollover, then achievements, then story triggers — in that dependency order. */
+    const settle = (next: GameState): { state: GameState; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
+      const rolled = rollover(next, content, clock.wall());
+      const a = checkAchievements(rolled, content);
+      const st = checkStory(a.state, content);
+      return { state: st.state, unlockedAch: a.unlocked, unlockedStory: st.unlocked };
+    };
+
+    /** The shared write path for any action: settle, then commit state/rates and queue any toasts. */
+    const apply = (next: GameState, extra?: Partial<GameStore>) => {
+      const r = settle(next);
+      set((cur) => ({
+        state: r.state,
+        rates: computeRates(r.state, content, clock.wall()),
+        recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
+        pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
+        ...extra,
+      }));
+    };
+
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
     /** Credit the wall-clock gap since the state was last seen, if it is worth crediting. */
-    const creditOffline = (state: GameState): { state: GameState; pendingOffline: PendingOffline | null } => {
+    const creditOffline = (state: GameState): { state: GameState; pendingOffline: PendingOffline | null; elapsedSec: number } => {
       const elapsedSec = (clock.wall() - state.lastSeenWallClock) / 1000;
-      if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null };
+      if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null, elapsedSec };
       const r = applyOffline(state, content, elapsedSec, clock.wall());
-      if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null };
+      if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null, elapsedSec };
       return {
         state: r.state,
         pendingOffline: { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped },
+        elapsedSec,
       };
     };
+
+    const moodAfterGap = (pendingOffline: PendingOffline | null, elapsedSec: number): GameStore['mood'] =>
+      (pendingOffline?.capped || elapsedSec >= COOKED_THRESHOLD_SEC) ? 'cooked' : 'ok';
 
     const startTimers = () => {
       get().stopLoop();
       lastMono = clock.mono();
+      fires = 0;
       tickTimer = setInterval(() => {
         const now = clock.mono();
         const dt = Math.min((now - lastMono) / 1000, maxTickSec);
         lastMono = now;
         const r = tickWithRates(get().state, content, dt, clock.wall());
-        set({ state: r.state, rates: r.rates });
+        fires++;
+        if (fires % SETTLE_EVERY_FIRES === 0) {
+          apply(r.state);
+        } else {
+          set({ state: r.state, rates: r.rates });
+        }
       }, tickMs);
       saveTimer = setInterval(() => { void get().save(); }, autosaveMs);
     };
@@ -131,6 +195,10 @@ export function createGameStore(deps: StoreDeps) {
       queueLine: '',
       memoLine: '',
       lastAudit: null,
+      pendingPull: null,
+      pendingStory: [],
+      recentAchievements: [],
+      mood: 'ok',
 
       boot() {
         if (booting) return booting;
@@ -138,6 +206,7 @@ export function createGameStore(deps: StoreDeps) {
           const saved = await storage.get(SAVE_KEY);
           let state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
           let pendingOffline: PendingOffline | null = null;
+          let elapsedSec = 0;
           if (saved) {
             let loaded: GameState | null = null;
             try {
@@ -146,19 +215,24 @@ export function createGameStore(deps: StoreDeps) {
               console.warn('Unreadable save: keeping a copy at ' + CORRUPT_SAVE_KEY + ' and starting a fresh file.', err);
               await storage.set(CORRUPT_SAVE_KEY, saved);
             }
-            if (loaded) ({ state, pendingOffline } = creditOffline(loaded));
+            if (loaded) ({ state, pendingOffline, elapsedSec } = creditOffline(loaded));
           }
-          const dept = findDepartment(content, state.activeDept);
-          set({
-            state,
-            rates: computeRates(state, content, clock.wall()),
+          const r = settle(state);
+          const dept = findDepartment(content, r.state.activeDept);
+          set((cur) => ({
+            state: r.state,
+            rates: computeRates(r.state, content, clock.wall()),
             ready: true,
             pendingOffline,
             queueLine: pick(dept.queue, ''),
-            memoLine: pick(memoPool(dept, state.fiscalYear), ''),
-          });
+            memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
+            recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
+            pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
+            mood: moodAfterGap(pendingOffline, elapsedSec),
+          }));
           booted = true;
           startTimers();
+          void notifications.cancelAll();
         })();
         return booting;
       },
@@ -166,6 +240,24 @@ export function createGameStore(deps: StoreDeps) {
       async pause() {
         get().stopLoop();
         await get().save();
+        const s = get().state;
+        if (s.settings.notifOptIn === 'yes') {
+          const wall = clock.wall();
+          await notifications.schedule([
+            {
+              id: NOTIF_INTRAY,
+              atWall: wall + offlineCapSeconds(s, content) * 1000,
+              title: 'In-tray full',
+              body: 'Your staff have stopped stamping. The backlog is waiting.',
+            },
+            {
+              id: NOTIF_DAILY,
+              atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
+              title: 'Daily tasks reset',
+              body: 'Three fresh tasks are on your desk.',
+            },
+          ]);
+        }
       },
 
       resume() {
@@ -173,12 +265,17 @@ export function createGameStore(deps: StoreDeps) {
         if (resuming) return resuming;
         resuming = (async () => {
           try {
-            const { state, pendingOffline } = creditOffline(get().state);
-            set({
-              state,
-              rates: computeRates(state, content, clock.wall()),
+            const { state, pendingOffline, elapsedSec } = creditOffline(get().state);
+            const r = settle(state);
+            set((cur) => ({
+              state: r.state,
+              rates: computeRates(r.state, content, clock.wall()),
               ...(pendingOffline ? { pendingOffline } : {}),
-            });
+              recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
+              pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
+              mood: moodAfterGap(pendingOffline, elapsedSec),
+            }));
+            void notifications.cancelAll();
             startTimers();
             await get().save();
           } finally {
@@ -188,14 +285,14 @@ export function createGameStore(deps: StoreDeps) {
         return resuming;
       },
 
-      stamp() { apply(click(get().state, content, clock.wall())); },
+      stamp() { apply(click(get().state, content, clock.wall()), { mood: 'ok' }); },
       hire(staffId, mode) { apply(buyStaff(get().state, content, staffId, mode)); },
       upgrade(upgradeId) { apply(buyUpgrade(get().state, content, upgradeId)); },
       setActiveDept(deptId) {
         const s = get().state;
         if (!s.deptsUnlocked.includes(deptId)) return;
         const dept = findDepartment(content, deptId);
-        set({ state: { ...s, activeDept: deptId }, queueLine: pick(dept.queue, ''), memoLine: pick(memoPool(dept, s.fiscalYear), '') });
+        set({ state: { ...s, activeDept: deptId }, queueLine: pick(dept.queue, ''), memoLine: pick(memoPool(dept, s.fiscalYear, s.storySeen), '') });
       },
       dismissOffline() { set({ pendingOffline: null }); },
       doubleOffline() {
@@ -222,7 +319,7 @@ export function createGameStore(deps: StoreDeps) {
       rotateMemo() {
         const s = get().state;
         const dept = findDepartment(content, s.activeDept);
-        set({ memoLine: pick(memoPool(dept, s.fiscalYear), get().memoLine) });
+        set({ memoLine: pick(memoPool(dept, s.fiscalYear, s.storySeen), get().memoLine) });
       },
       audit() {
         if (!canAudit(get().state)) return;
@@ -233,7 +330,7 @@ export function createGameStore(deps: StoreDeps) {
           rates: computeRates(r.state, content, clock.wall()),
           lastAudit: { sealsGained: r.sealsGained, fiscalYear: r.fiscalYear },
           queueLine: pick(dept.queue, ''),
-          memoLine: pick(memoPool(dept, r.state.fiscalYear), ''),
+          memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
           // The run those souls belonged to no longer exists; showing the Overnight Backlog
           // Report after the reset would offer to double income into a wiped office.
           pendingOffline: null,
@@ -242,6 +339,36 @@ export function createGameStore(deps: StoreDeps) {
       },
       dismissAudit() { set({ lastAudit: null }); },
       buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
+      pull(count) {
+        const r = pullEngine(get().state, content, count, get().rates.kcPerSec);
+        if (r.results.length) {
+          apply(r.state);
+          set({ pendingPull: r.results });
+        }
+      },
+      dismissPull() { set({ pendingPull: null }); },
+      equip(cardId) { apply(equipCard(get().state, content, cardId)); },
+      unequip(cardId) { apply(unequipCard(get().state, cardId)); },
+      claimDaily(taskId) {
+        const r = claimDailyEngine(get().state, content, taskId, get().rates.kcPerSec);
+        apply(r.state);
+      },
+      skipDaily(taskId) { apply(skipDailyEngine(get().state, content, taskId)); },
+      dismissStory() { set({ pendingStory: [] }); },
+      clearAchievementToast() { set({ recentAchievements: [] }); },
+      async setNotifOptIn(v) {
+        let notifOptIn: Settings['notifOptIn'] = 'no';
+        if (v === 'yes') {
+          const granted = await notifications.requestPermission();
+          notifOptIn = granted ? 'yes' : 'no';
+        }
+        apply({ ...get().state, settings: { ...get().state.settings, notifOptIn } });
+        await get().save();
+      },
+      shouldAskNotifications() {
+        const s = get().state;
+        return s.settings.notifOptIn === 'unasked' && clock.wall() - s.firstSeenWallClock >= ASK_NOTIF_AFTER_MS;
+      },
     };
   }, Object.is);
 }

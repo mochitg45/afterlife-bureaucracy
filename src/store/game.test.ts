@@ -291,7 +291,8 @@ describe('prestige and perks in the store', () => {
     store.setState({ state: { ...store.getState().state, seals: 5, staff: { dave: 1 } } });
     store.getState().buyPerk('throughput-1');
     expect(store.getState().state.seals).toBe(4);
-    expect(store.getState().rates.soulsPerSec.toNumber()).toBeCloseTo(0.5 * 1.08 * 1.1); // 4 seals → ×1.08, perk ×1.1
+    // 4 seals → ×1.08, perk ×1.1, plus the "First Perk Purchased" achievement (×1.01) it now also unlocks.
+    expect(store.getState().rates.soulsPerSec.toNumber()).toBeCloseTo(0.5 * 1.08 * 1.1 * 1.01);
     store.getState().stopLoop();
   });
   it('memo pool includes late memos from fiscal year 2', async () => {
