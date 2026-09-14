@@ -22,11 +22,16 @@ export function App() {
     };
     document.addEventListener('visibilitychange', onVisibility);
     let handle: { remove(): Promise<void> } | null = null;
+    let cancelled = false;
     if (Capacitor.isNativePlatform()) {
-      void CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) void boot(); else void save(); }).then((h) => { handle = h; });
+      void CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) void boot(); else void save(); }).then((h) => {
+        if (cancelled) void h.remove();
+        else handle = h;
+      });
     }
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
+      cancelled = true;
       void handle?.remove();
     };
   }, [boot, save]);
