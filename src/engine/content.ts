@@ -36,13 +36,39 @@ const departmentSchema = z.object({
   upgrades: z.array(upgradeSchema),
   queue: z.array(z.string()).min(1),
   memos: z.array(z.string()).min(1),
+  memosLate: z.array(z.string()).optional(),
+});
+
+const perkEffectSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('globalMult'), value: z.number().positive() }),
+  z.object({ type: z.literal('deptMult'), dept: z.string().min(1), value: z.number().positive() }),
+  z.object({ type: z.literal('offlineCapHours'), value: z.number().positive() }),
+  z.object({ type: z.literal('offlineRate'), value: z.number().positive() }),
+  z.object({ type: z.literal('click'), value: z.number().positive() }),
+  z.object({ type: z.literal('voucherMult'), value: z.number().positive() }),
+  z.object({ type: z.literal('equipSlots'), value: z.number().int().positive() }),
+  z.object({ type: z.literal('headStartDept'), dept: z.string().min(1) }),
+  z.object({ type: z.literal('headStartStaff'), staff: z.string().min(1), count: z.number().int().positive() }),
+]);
+
+const perkSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  desc: z.string(),
+  branch: z.enum(['throughput', 'overtime', 'stapler', 'requisition', 'headstart']),
+  cost: z.number().int().positive(),
+  requires: z.array(z.string().min(1)),
+  effect: perkEffectSchema,
 });
 
 export type UpgradeEffect = z.infer<typeof upgradeEffectSchema>;
 export type StaffDef = z.infer<typeof staffSchema>;
 export type UpgradeDef = z.infer<typeof upgradeSchema>;
 export type DepartmentDef = z.infer<typeof departmentSchema>;
-export interface Content { departments: DepartmentDef[] }
+export type PerkEffect = z.infer<typeof perkEffectSchema>;
+export type PerkDef = z.infer<typeof perkSchema>;
+export type PerkBranch = PerkDef['branch'];
+export interface Content { departments: DepartmentDef[]; perks: PerkDef[] }
 
 function assertUnique(ids: string[], label: string) {
   const seen = new Set<string>();
@@ -52,12 +78,29 @@ function assertUnique(ids: string[], label: string) {
   }
 }
 
-export function loadContent(raw: unknown[]): Content {
-  const departments = raw.map((r) => departmentSchema.parse(r));
+export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = []): Content {
+  const departments = rawDepartments.map((r) => departmentSchema.parse(r));
   assertUnique(departments.map((d) => d.id), 'department');
   assertUnique(departments.flatMap((d) => d.staff.map((s) => s.id)), 'staff');
   assertUnique(departments.flatMap((d) => d.upgrades.map((u) => u.id)), 'upgrade');
-  return { departments };
+  const perks = rawPerks.map((r) => perkSchema.parse(r));
+  assertUnique(perks.map((p) => p.id), 'perk');
+  const perkIds = new Set(perks.map((p) => p.id));
+  const deptIds = new Set(departments.map((d) => d.id));
+  const staffIds = new Set(departments.flatMap((d) => d.staff.map((s) => s.id)));
+  for (const p of perks) {
+    for (const req of p.requires) if (!perkIds.has(req)) throw new Error(`Unknown perk prerequisite ${req} on ${p.id}`);
+    const e = p.effect;
+    if ((e.type === 'deptMult' || e.type === 'headStartDept') && !deptIds.has(e.dept)) throw new Error(`Unknown department ${e.dept} on perk ${p.id}`);
+    if (e.type === 'headStartStaff' && !staffIds.has(e.staff)) throw new Error(`Unknown staff ${e.staff} on perk ${p.id}`);
+  }
+  return { departments, perks };
+}
+
+export function findPerk(content: Content, perkId: string): PerkDef {
+  const perk = content.perks.find((p) => p.id === perkId);
+  if (!perk) throw new Error(`Unknown perk: ${perkId}`);
+  return perk;
 }
 
 export function findDepartment(content: Content, deptId: string): DepartmentDef {

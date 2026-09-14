@@ -1,0 +1,18 @@
+{
+  "saveVersion": 3,
+  "kc": "2500",
+  "soulsRun": "9000",
+  "soulsLifetime": "9000",
+  "seals": 0,
+  "vouchers": 0,
+  "staff": { "dave": 12, "seraphine": 3 },
+  "upgrades": { "faster-stapler": 2 },
+  "deptsUnlocked": ["intake"],
+  "activeDept": "intake",
+  "fiscalYear": 1,
+  "boostUntilWall": 0,
+  "lastSeenWallClock": 1700000000000,
+  "uptimeAtSave": 90000,
+  "stats": { "clicks": 240, "staffHired": 15, "upgradesBought": 2, "audits": 0 },
+  "perks": ["throughput-1"]
+}

@@ -1,4 +1,4 @@
-import { loadContent, findStaff, findUpgrade } from './content';
+import { loadContent, findStaff, findUpgrade, findPerk } from './content';
 import { content } from '../data';
 import intake from '../data/departments/intake.json';
 
@@ -32,5 +32,31 @@ describe('content', () => {
       expect(new Set(dept.queue).size).toBeGreaterThanOrEqual(2);
       expect(new Set(dept.memos).size).toBeGreaterThanOrEqual(2);
     }
+  });
+});
+
+describe('perks content', () => {
+  it('loads the perk tree with five branches and about 40 nodes', () => {
+    expect(content.perks.length).toBeGreaterThanOrEqual(36);
+    const branches = new Set(content.perks.map((p) => p.branch));
+    expect([...branches].sort()).toEqual(['headstart', 'overtime', 'requisition', 'stapler', 'throughput']);
+  });
+  it('rejects a perk whose prerequisite does not exist', () => {
+    const bad = [{ id: 'x', name: 'X', desc: '', branch: 'stapler', cost: 1, requires: ['nope'], effect: { type: 'click', value: 1 } }];
+    expect(() => loadContent([intake], bad)).toThrow(/unknown perk/i);
+  });
+  it('rejects a perk referencing an unknown department or staff', () => {
+    const badDept = [{ id: 'x', name: 'X', desc: '', branch: 'headstart', cost: 1, requires: [], effect: { type: 'headStartDept', dept: 'nowhere' } }];
+    expect(() => loadContent([intake], badDept)).toThrow(/unknown department/i);
+    const badStaff = [{ id: 'y', name: 'Y', desc: '', branch: 'headstart', cost: 1, requires: [], effect: { type: 'headStartStaff', staff: 'nobody', count: 1 } }];
+    expect(() => loadContent([intake], badStaff)).toThrow(/unknown staff/i);
+  });
+  it('finds a perk by id and throws for unknown', () => {
+    expect(findPerk(content, 'throughput-1').branch).toBe('throughput');
+    expect(() => findPerk(content, 'zzz')).toThrow(/unknown perk/i);
+  });
+  it('accepts an optional memosLate pool', () => {
+    const c = loadContent([{ ...intake, memosLate: ['MEMO: year two.'] }]);
+    expect(c.departments[0].memosLate).toEqual(['MEMO: year two.']);
   });
 });

@@ -1,0 +1,3 @@
+{ "id": "limbo", "name": "Limbo Records", "unlockSouls": 500000000, "accent": "#6B6478",
+  "staff": [{ "id": "l-archivist", "name": "Archivist Pool", "role": "Filing, Indefinite", "flavor": "Everything is filed. Nothing is found.", "baseCost": 300000000, "baseRate": 2000000, "character": "archivist:0" }],
+  "upgrades": [], "queue": ["Limbo queue placeholder one", "Limbo queue placeholder two"], "memos": ["MEMO: Limbo placeholder one.", "MEMO: Limbo placeholder two."] }

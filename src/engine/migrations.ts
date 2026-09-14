@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 type Raw = Record<string, unknown>;
 
@@ -13,6 +13,8 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
     delete out.boostUntil;
     return out;
   },
+  // 2 -> 3: Perk Ledger purchases.
+  (raw) => ({ ...raw, perks: [] }),
 ];
 
 export function migrate(raw: Raw): Raw {

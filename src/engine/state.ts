@@ -13,6 +13,7 @@ export interface GameState {
   soulsLifetime: Decimal;
   seals: number;
   vouchers: number;
+  perks: string[];
   staff: Record<string, number>;
   upgrades: Record<string, number>;
   deptsUnlocked: string[];
@@ -41,6 +42,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     soulsLifetime: new Decimal(0),
     seals: 0,
     vouchers: 0,
+    perks: [],
     staff: {},
     upgrades: {},
     deptsUnlocked,
@@ -104,6 +106,7 @@ export function deserialize(json: string, content: Content): GameState {
     soulsLifetime: dec(raw.soulsLifetime),
     seals: num(raw.seals, 0),
     vouchers: num(raw.vouchers, 0),
+    perks: Array.isArray(raw.perks) ? (raw.perks as unknown[]).filter((p): p is string => typeof p === 'string') : [],
     staff: counts(raw.staff),
     upgrades: counts(raw.upgrades),
     deptsUnlocked: Array.isArray(raw.deptsUnlocked) && raw.deptsUnlocked.length ? [...(raw.deptsUnlocked as string[])] : base.deptsUnlocked,

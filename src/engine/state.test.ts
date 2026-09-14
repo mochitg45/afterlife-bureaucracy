@@ -5,6 +5,7 @@ import { content } from '../data';
 import intake from '../data/departments/intake.json';
 import saveV1 from './fixtures/save-v1.json';
 import saveV2 from './fixtures/save-v2.json';
+import saveV3 from './fixtures/save-v3.json';
 
 const now = { wall: 1_700_000_000_000, mono: 5_000 };
 
@@ -82,5 +83,24 @@ describe('state', () => {
     expect(s.kc.toNumber()).toBe(0);
     expect(s.soulsRun.toNumber()).toBe(0);
     expect(s.soulsLifetime.toNumber()).toBe(1e5);
+  });
+});
+
+describe('save v3', () => {
+  it('initial state has no perks', () => {
+    expect(createInitialState(now, content).perks).toEqual([]);
+  });
+  it('migrates v2 saves by adding an empty perk list', () => {
+    const s = deserialize(JSON.stringify(saveV2), content);
+    expect(s.saveVersion).toBe(3);
+    expect(s.perks).toEqual([]);
+  });
+  it('loads the v3 fixture with perks', () => {
+    const s = deserialize(JSON.stringify(saveV3), content);
+    expect(s.perks).toEqual(['throughput-1']);
+  });
+  it('drops non-string perk entries', () => {
+    const raw = { ...saveV3, perks: ['throughput-1', 7, null] };
+    expect(deserialize(JSON.stringify(raw), content).perks).toEqual(['throughput-1']);
   });
 });

@@ -1,0 +1,3 @@
+{ "id": "heaven", "name": "Heaven Admissions", "unlockSouls": 10000, "accent": "#3E9C93",
+  "staff": [{ "id": "h-cherub", "name": "Cherub Pool", "role": "Temp Choir", "flavor": "Sings while stapling.", "baseCost": 8000, "baseRate": 40, "character": "angel:0" }],
+  "upgrades": [], "queue": ["Heaven queue placeholder one", "Heaven queue placeholder two"], "memos": ["MEMO: Heaven placeholder one.", "MEMO: Heaven placeholder two."] }

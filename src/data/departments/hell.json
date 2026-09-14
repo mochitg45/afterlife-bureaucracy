@@ -1,0 +1,3 @@
+{ "id": "hell", "name": "Hell Compliance", "unlockSouls": 250000, "accent": "#A6402B",
+  "staff": [{ "id": "d-imp", "name": "Imp Pool", "role": "Torment QA", "flavor": "Files defects against every scream.", "baseCost": 150000, "baseRate": 1500, "character": "demon:0" }],
+  "upgrades": [], "queue": ["Hell queue placeholder one", "Hell queue placeholder two"], "memos": ["MEMO: Hell placeholder one.", "MEMO: Hell placeholder two."] }
