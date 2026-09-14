@@ -3,7 +3,7 @@ import { createInitialState } from './state';
 import { content } from '../data';
 import { loadContent, findStaff } from './content';
 import intake from '../data/departments/intake.json';
-import { tick, click, buyStaff, buyUpgrade, unlockDepartments } from './actions';
+import { tick, click, buyStaff, buyUpgrade, unlockDepartments, tickWithRates } from './actions';
 import { staffBulkCost } from './economy';
 
 const now = { wall: 0, mono: 0 };
@@ -31,6 +31,12 @@ describe('tick', () => {
     const s0 = { ...createInitialState(now, content), staff: { dave: 1 } };
     expect(tick(s0, content, 0, 0).soulsRun.toNumber()).toBe(0);
     expect(tick(s0, content, -5, 0).soulsRun.toNumber()).toBe(0);
+  });
+  it('tickWithRates returns the rates used for the tick', () => {
+    const s0 = { ...createInitialState(now, content), staff: { dave: 1 } };
+    const r = tickWithRates(s0, content, 2, 0);
+    expect(r.rates.soulsPerSec.toNumber()).toBeCloseTo(0.5);
+    expect(r.state.soulsRun.toNumber()).toBeCloseTo(1);
   });
 });
 

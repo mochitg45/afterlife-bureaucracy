@@ -1,10 +1,11 @@
 import Decimal from 'break_infinity.js';
 import { create } from 'zustand';
-import type { Content } from '../engine/content';
+import type { Content, DepartmentDef } from '../engine/content';
 import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, type GameState } from '../engine/state';
 import { computeRates, type Rates } from '../engine/economy';
-import { tick, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, type BuyMode } from '../engine/actions';
+import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
+import { fileAudit } from '../engine/prestige';
 import { applyOffline, MIN_OFFLINE_SECONDS } from '../engine/offline';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
@@ -39,6 +40,7 @@ export interface GameStore {
   pendingOffline: PendingOffline | null;
   queueLine: string;
   memoLine: string;
+  lastAudit: { sealsGained: number; fiscalYear: number } | null;
   boot(): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -52,6 +54,9 @@ export interface GameStore {
   stopLoop(): void;
   rotateQueue(): void;
   rotateMemo(): void;
+  audit(): void;
+  dismissAudit(): void;
+  buyPerk(perkId: string): void;
 }
 
 export interface StoreDeps {
@@ -60,6 +65,10 @@ export interface StoreDeps {
   clock: Clock;
   tickMs?: number;
   autosaveMs?: number;
+}
+
+function memoPool(dept: DepartmentDef, fiscalYear: number): string[] {
+  return fiscalYear >= 2 && dept.memosLate?.length ? [...dept.memos, ...dept.memosLate] : dept.memos;
 }
 
 function pick(lines: string[], avoid: string): string {
@@ -108,7 +117,8 @@ export function createGameStore(deps: StoreDeps) {
         const now = clock.mono();
         const dt = Math.min((now - lastMono) / 1000, maxTickSec);
         lastMono = now;
-        apply(tick(get().state, content, dt, clock.wall()));
+        const r = tickWithRates(get().state, content, dt, clock.wall());
+        set({ state: r.state, rates: r.rates });
       }, tickMs);
       saveTimer = setInterval(() => { void get().save(); }, autosaveMs);
     };
@@ -120,6 +130,7 @@ export function createGameStore(deps: StoreDeps) {
       pendingOffline: null,
       queueLine: '',
       memoLine: '',
+      lastAudit: null,
 
       boot() {
         if (booting) return booting;
@@ -144,7 +155,7 @@ export function createGameStore(deps: StoreDeps) {
             ready: true,
             pendingOffline,
             queueLine: pick(dept.queue, ''),
-            memoLine: pick(dept.memos, ''),
+            memoLine: pick(memoPool(dept, state.fiscalYear), ''),
           });
           booted = true;
           startTimers();
@@ -184,7 +195,7 @@ export function createGameStore(deps: StoreDeps) {
         const s = get().state;
         if (!s.deptsUnlocked.includes(deptId)) return;
         const dept = findDepartment(content, deptId);
-        set({ state: { ...s, activeDept: deptId }, queueLine: pick(dept.queue, ''), memoLine: pick(dept.memos, '') });
+        set({ state: { ...s, activeDept: deptId }, queueLine: pick(dept.queue, ''), memoLine: pick(memoPool(dept, s.fiscalYear), '') });
       },
       dismissOffline() { set({ pendingOffline: null }); },
       doubleOffline() {
@@ -209,9 +220,25 @@ export function createGameStore(deps: StoreDeps) {
         set({ queueLine: pick(dept.queue, get().queueLine) });
       },
       rotateMemo() {
-        const dept = findDepartment(content, get().state.activeDept);
-        set({ memoLine: pick(dept.memos, get().memoLine) });
+        const s = get().state;
+        const dept = findDepartment(content, s.activeDept);
+        set({ memoLine: pick(memoPool(dept, s.fiscalYear), get().memoLine) });
       },
+      audit() {
+        const r = fileAudit(get().state, content);
+        if (r.sealsGained === 0) return;
+        const dept = findDepartment(content, r.state.activeDept);
+        set({
+          state: r.state,
+          rates: computeRates(r.state, content, clock.wall()),
+          lastAudit: { sealsGained: r.sealsGained, fiscalYear: r.fiscalYear },
+          queueLine: pick(dept.queue, ''),
+          memoLine: pick(memoPool(dept, r.state.fiscalYear), ''),
+        });
+        void get().save();
+      },
+      dismissAudit() { set({ lastAudit: null }); },
+      buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
     };
   });
 }

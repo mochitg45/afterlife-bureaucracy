@@ -2,7 +2,7 @@ import Decimal from 'break_infinity.js';
 import type { GameState } from './state';
 import type { Content } from './content';
 import { findStaff, findUpgrade, findPerk } from './content';
-import { computeRates, staffBulkCost, maxAffordable, upgradeCost, upgradeLevel } from './economy';
+import { computeRates, staffBulkCost, maxAffordable, upgradeCost, upgradeLevel, type Rates } from './economy';
 import { canBuyPerk } from './perks';
 
 export type BuyMode = 1 | 10 | 'max';
@@ -24,12 +24,18 @@ export function unlockDepartments(state: GameState, content: Content): GameState
   return { ...state, deptsUnlocked: [...state.deptsUnlocked, ...missing] };
 }
 
+export interface TickResult { state: GameState; rates: Rates }
+
+export function tickWithRates(state: GameState, content: Content, dtSec: number, nowWall: number): TickResult {
+  const rates = computeRates(state, content, nowWall);
+  if (!(dtSec > 0) || rates.soulsPerSec.eq(0)) return { state: unlockDepartments(state, content), rates };
+  const next = addSouls(state, rates.soulsPerSec.mul(dtSec), rates.kcPerSec.mul(dtSec));
+  return { state: unlockDepartments(next, content), rates };
+}
+
 export function tick(state: GameState, content: Content, dtSec: number, nowWall: number): GameState {
   if (!(dtSec > 0)) return state;
-  const rates = computeRates(state, content, nowWall);
-  if (rates.soulsPerSec.eq(0)) return unlockDepartments(state, content);
-  const next = addSouls(state, rates.soulsPerSec.mul(dtSec), rates.kcPerSec.mul(dtSec));
-  return unlockDepartments(next, content);
+  return tickWithRates(state, content, dtSec, nowWall).state;
 }
 
 export function click(state: GameState, content: Content, nowWall: number): GameState {

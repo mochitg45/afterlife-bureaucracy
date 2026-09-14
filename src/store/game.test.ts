@@ -247,3 +247,52 @@ describe('game store lifecycle', () => {
     store.getState().stopLoop();
   });
 });
+
+describe('prestige and perks in the store', () => {
+  it('audit resets the run and records the ceremony payload', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(4_000_000), staff: { dave: 5 } } });
+    store.getState().audit();
+    const s = store.getState();
+    expect(s.state.seals).toBe(2);
+    expect(s.state.staff).toEqual({});
+    expect(s.lastAudit).toEqual({ sealsGained: 2, fiscalYear: 2 });
+    expect(s.rates.soulsPerSec.toNumber()).toBe(0);
+    s.dismissAudit();
+    expect(store.getState().lastAudit).toBeNull();
+    store.getState().stopLoop();
+  });
+  it('audit below threshold is a no-op', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    const before = store.getState().state;
+    store.getState().audit();
+    expect(store.getState().state).toBe(before);
+    expect(store.getState().lastAudit).toBeNull();
+    store.getState().stopLoop();
+  });
+  it('buyPerk spends seals and raises rates', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.setState({ state: { ...store.getState().state, seals: 5, staff: { dave: 1 } } });
+    store.getState().buyPerk('throughput-1');
+    expect(store.getState().state.seals).toBe(4);
+    expect(store.getState().rates.soulsPerSec.toNumber()).toBeCloseTo(0.5 * 1.08 * 1.1); // 4 seals → ×1.08, perk ×1.1
+    store.getState().stopLoop();
+  });
+  it('memo pool includes late memos from fiscal year 2', async () => {
+    const dept = content.departments[0];
+    const late = ['MEMO: year two only'];
+    const twoYear = { ...content, departments: [{ ...dept, memosLate: late }, ...content.departments.slice(1)] };
+    const s2 = createGameStore({ content: twoYear, storage: memoryStorage(), clock: fakeClock({ wall: 1, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    await s2.getState().boot();
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) { s2.getState().rotateMemo(); seen.add(s2.getState().memoLine); }
+    expect(seen.has(late[0])).toBe(false);
+    s2.setState({ state: { ...s2.getState().state, fiscalYear: 2 } });
+    for (let i = 0; i < 300; i++) { s2.getState().rotateMemo(); seen.add(s2.getState().memoLine); }
+    expect(seen.has(late[0])).toBe(true);
+    s2.getState().stopLoop();
+  });
+});
