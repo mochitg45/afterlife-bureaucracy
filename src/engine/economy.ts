@@ -1,0 +1,115 @@
+import Decimal from 'break_infinity.js';
+import type { GameState } from './state';
+import type { Content, DepartmentDef, StaffDef, UpgradeDef } from './content';
+
+export const COST_GROWTH = 1.15;
+const PASSIVE_KC_FRACTION = 0.4;
+const CLICK_PASSIVE_FRACTION = 0.01;
+const FIXED_MILESTONES = [10, 25, 50, 100, 200, 300, 400, 500];
+
+export function staffUnitCost(def: StaffDef, owned: number): Decimal {
+  return new Decimal(def.baseCost).mul(Decimal.pow(COST_GROWTH, owned));
+}
+
+export function staffBulkCost(def: StaffDef, owned: number, count: number): Decimal {
+  if (count <= 0) return new Decimal(0);
+  // geometric series: unit × (r^count − 1) / (r − 1)
+  const first = staffUnitCost(def, owned);
+  return first.mul(Decimal.pow(COST_GROWTH, count).sub(1)).div(COST_GROWTH - 1);
+}
+
+export function maxAffordable(def: StaffDef, owned: number, kc: Decimal): number {
+  const first = staffUnitCost(def, owned);
+  if (kc.lt(first)) return 0;
+  // n = floor(log_r(kc × (r−1) / first + 1))
+  const inner = kc.mul(COST_GROWTH - 1).div(first).add(1);
+  let n = Math.floor(inner.log10() / Math.log10(COST_GROWTH));
+  // guard against floating error on the boundary
+  while (n > 0 && staffBulkCost(def, owned, n).gt(kc)) n--;
+  while (staffBulkCost(def, owned, n + 1).lte(kc)) n++;
+  return n;
+}
+
+function milestonesPassed(owned: number): number {
+  let count = FIXED_MILESTONES.filter((m) => owned >= m).length;
+  if (owned >= 600) count += Math.floor((owned - 500) / 100);
+  return count;
+}
+
+export function milestoneMult(owned: number): Decimal {
+  return Decimal.pow(2, milestonesPassed(owned));
+}
+
+export function nextMilestone(owned: number): number {
+  for (const m of FIXED_MILESTONES) if (owned < m) return m;
+  return (Math.floor(owned / 100) + 1) * 100;
+}
+
+export function prevMilestone(owned: number): number {
+  if (owned >= 500) return Math.floor(owned / 100) * 100;
+  let prev = 0;
+  for (const m of FIXED_MILESTONES) if (owned >= m) prev = m;
+  return prev;
+}
+
+export function upgradeCost(def: UpgradeDef, level: number): Decimal {
+  return new Decimal(def.baseCost).mul(Decimal.pow(def.costGrowth, level));
+}
+
+export function upgradeLevel(state: GameState, upgradeId: string): number {
+  return state.upgrades[upgradeId] ?? 0;
+}
+
+export function staplerLevel(state: GameState, content: Content): number {
+  let level = 0;
+  for (const dept of content.departments) {
+    for (const u of dept.upgrades) {
+      if (u.effect.type === 'click') level += u.effect.value * upgradeLevel(state, u.id);
+    }
+  }
+  return level;
+}
+
+export function deptMult(state: GameState, dept: DepartmentDef): Decimal {
+  let mult = new Decimal(1);
+  for (const u of dept.upgrades) {
+    if (u.effect.type === 'deptMult') {
+      mult = mult.mul(Decimal.pow(1 + u.effect.value, upgradeLevel(state, u.id)));
+    }
+  }
+  return mult;
+}
+
+export function globalMult(state: GameState, nowMono: number): Decimal {
+  const sealBonus = 1 + 0.02 * state.seals;
+  const boost = state.boostUntil > nowMono ? 2 : 1;
+  return new Decimal(sealBonus).mul(boost);
+}
+
+export interface Rates {
+  soulsPerSec: Decimal;
+  kcPerSec: Decimal;
+  clickPower: Decimal;
+  byStaff: Record<string, Decimal>;
+}
+
+export function computeRates(state: GameState, content: Content, nowMono: number): Rates {
+  const g = globalMult(state, nowMono);
+  let souls = new Decimal(0);
+  const byStaff: Record<string, Decimal> = {};
+  for (const dept of content.departments) {
+    const dm = deptMult(state, dept);
+    for (const s of dept.staff) {
+      const owned = state.staff[s.id] ?? 0;
+      if (owned === 0) {
+        byStaff[s.id] = new Decimal(0);
+        continue;
+      }
+      const out = new Decimal(s.baseRate).mul(owned).mul(milestoneMult(owned)).mul(dm).mul(g);
+      byStaff[s.id] = out;
+      souls = souls.add(out);
+    }
+  }
+  const clickPower = new Decimal(1 + staplerLevel(state, content)).add(souls.mul(CLICK_PASSIVE_FRACTION));
+  return { soulsPerSec: souls, kcPerSec: souls.mul(PASSIVE_KC_FRACTION), clickPower, byStaff };
+}
