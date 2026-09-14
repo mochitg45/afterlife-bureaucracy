@@ -130,4 +130,11 @@ describe('retention content', () => {
     expect(() => findCard(content, content.cards[0].id)).not.toThrow();
     expect(() => findCard(content, 'nope')).toThrow(/unknown card/i);
   });
+  it('keeps every story memo to at most three sentences', () => {
+    for (const s of content.story) {
+      const body = s.text.slice(s.text.indexOf(':') + 1).trim();
+      const sentences = body.split(/[.!?]+\s/);
+      expect(sentences.length, s.id).toBeLessThanOrEqual(3);
+    }
+  });
 });
