@@ -67,10 +67,10 @@ describe('upgrades and multipliers', () => {
   it('department multiplier compounds deptMult upgrades', () => {
     const s = createInitialState(now, content);
     const intake = content.departments[0];
-    expect(deptMult(s, intake).toNumber()).toBe(1);
+    expect(deptMult(s, content, intake).toNumber()).toBe(1);
     s.upgrades['ergonomic-chairs'] = 2;
     s.upgrades['outsourced-purgatory'] = 1;
-    expect(deptMult(s, intake).toNumber()).toBeCloseTo(1.25 * 1.25 * 2);
+    expect(deptMult(s, content, intake).toNumber()).toBeCloseTo(1.25 * 1.25 * 2);
   });
   it('global multiplier uses seals and boost', () => {
     const s = createInitialState(now, content);
@@ -107,5 +107,20 @@ describe('computeRates', () => {
     s.upgrades['faster-stapler'] = 4;
     const r = computeRates(s, content, 0);
     expect(r.clickPower.toNumber()).toBeCloseTo(5 + 32);
+  });
+});
+
+describe('perks in multipliers', () => {
+  it('global multiplier includes throughput perks', () => {
+    const s = { ...createInitialState(now, content), perks: ['throughput-1'] };
+    expect(globalMult(s, content, 0).toNumber()).toBeCloseTo(1.1);
+  });
+  it('department multiplier includes department perks', () => {
+    const s = { ...createInitialState(now, content), perks: ['throughput-4'] };
+    expect(deptMult(s, content, content.departments[0]).toNumber()).toBeCloseTo(1.5);
+  });
+  it('stapler level includes click perks', () => {
+    const s = { ...createInitialState(now, content), perks: ['stapler-1'] };
+    expect(staplerLevel(s, content)).toBe(2);
   });
 });

@@ -1,8 +1,9 @@
 import Decimal from 'break_infinity.js';
 import type { GameState } from './state';
 import type { Content } from './content';
-import { findStaff, findUpgrade } from './content';
+import { findStaff, findUpgrade, findPerk } from './content';
 import { computeRates, staffBulkCost, maxAffordable, upgradeCost, upgradeLevel } from './economy';
+import { canBuyPerk } from './perks';
 
 export type BuyMode = 1 | 10 | 'max';
 
@@ -64,4 +65,10 @@ export function buyUpgrade(state: GameState, content: Content, upgradeId: string
     upgrades: { ...state.upgrades, [upgradeId]: level + 1 },
     stats: { ...state.stats, upgradesBought: state.stats.upgradesBought + 1 },
   };
+}
+
+export function buyPerk(state: GameState, content: Content, perkId: string): GameState {
+  if (!canBuyPerk(state, content, perkId).ok) return state;
+  const perk = findPerk(content, perkId);
+  return { ...state, seals: state.seals - perk.cost, perks: [...state.perks, perkId] };
 }

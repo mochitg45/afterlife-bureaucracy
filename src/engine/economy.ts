@@ -1,6 +1,7 @@
 import Decimal from 'break_infinity.js';
 import type { GameState } from './state';
 import type { Content, DepartmentDef, StaffDef, UpgradeDef } from './content';
+import { perkGlobalMult, perkDeptMult, perkSum } from './perks';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -67,23 +68,23 @@ export function staplerLevel(state: GameState, content: Content): number {
       if (u.effect.type === 'click') level += u.effect.value * upgradeLevel(state, u.id);
     }
   }
-  return level;
+  return level + perkSum(state, content, 'click');
 }
 
-export function deptMult(state: GameState, dept: DepartmentDef): Decimal {
+export function deptMult(state: GameState, content: Content, dept: DepartmentDef): Decimal {
   let mult = new Decimal(1);
   for (const u of dept.upgrades) {
     if (u.effect.type === 'deptMult') {
       mult = mult.mul(Decimal.pow(1 + u.effect.value, upgradeLevel(state, u.id)));
     }
   }
-  return mult;
+  return mult.mul(perkDeptMult(state, content, dept.id));
 }
 
 export function globalMult(state: GameState, content: Content, nowWall: number): Decimal {
   const sealBonus = 1 + 0.02 * state.seals;
   const boost = state.boostUntilWall > nowWall ? 2 : 1;
-  return new Decimal(sealBonus).mul(boost);
+  return new Decimal(sealBonus).mul(boost).mul(perkGlobalMult(state, content));
 }
 
 export interface Rates {
@@ -98,7 +99,7 @@ export function computeRates(state: GameState, content: Content, nowWall: number
   let souls = new Decimal(0);
   const byStaff: Record<string, Decimal> = {};
   for (const dept of content.departments) {
-    const dm = deptMult(state, dept);
+    const dm = deptMult(state, content, dept);
     for (const s of dept.staff) {
       const owned = state.staff[s.id] ?? 0;
       if (owned === 0) {

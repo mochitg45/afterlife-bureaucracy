@@ -3,6 +3,7 @@ import type { GameState } from './state';
 import type { Content } from './content';
 import { computeRates, upgradeLevel, PASSIVE_KC_FRACTION } from './economy';
 import { addSouls } from './actions';
+import { perkSum } from './perks';
 
 export const BASE_OFFLINE_CAP_HOURS = 4;
 export const BASE_OFFLINE_RATE = 0.5;
@@ -15,6 +16,7 @@ export function offlineCapSeconds(state: GameState, content: Content): number {
       if (u.effect.type === 'offlineCapHours') hours += u.effect.value * upgradeLevel(state, u.id);
     }
   }
+  hours += perkSum(state, content, 'offlineCapHours');
   return hours * 3600;
 }
 
@@ -25,6 +27,7 @@ export function offlineRateFraction(state: GameState, content: Content): number 
       if (u.effect.type === 'offlineRate') rate += u.effect.value * upgradeLevel(state, u.id);
     }
   }
+  rate += perkSum(state, content, 'offlineRate');
   return Math.min(1, rate);
 }
 

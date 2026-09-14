@@ -42,6 +42,12 @@ describe('applyOffline', () => {
   });
 });
 
+it('perks extend the offline cap and rate', () => {
+  const s = { ...createInitialState(now, content), perks: ['overtime-1', 'overtime-4'] };
+  expect(offlineCapSeconds(s, content)).toBe(8 * 3600);
+  expect(offlineRateFraction(s, content)).toBeCloseTo(0.6);
+});
+
 describe('fakeClock', () => {
   it('advances both clocks and allows wall-only changes', () => {
     const c = fakeClock({ wall: 1000, mono: 0 });
