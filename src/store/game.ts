@@ -4,11 +4,25 @@ import type { Content } from '../engine/content';
 import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, type GameState } from '../engine/state';
 import { computeRates, type Rates } from '../engine/economy';
-import { tick, click, buyStaff, buyUpgrade, type BuyMode } from '../engine/actions';
+import { tick, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, type BuyMode } from '../engine/actions';
 import { applyOffline, MIN_OFFLINE_SECONDS } from '../engine/offline';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { content as defaultContent } from '../data';
+
+/** Where an unreadable save is parked so a bad release cannot erase a player's run. */
+export const CORRUPT_SAVE_KEY = SAVE_KEY + '.corrupt';
+
+/**
+ * A frozen WebView or a throttled background tab can leave minutes between two
+ * interval fires. Credit at most this many ticks of full online income for one
+ * fire; the rest of the gap belongs to the offline path, which is capped and
+ * pays half rate.
+ */
+const MAX_TICKS_PER_FIRE = 5;
+
+/** How many times pick() re-draws before accepting a repeat. */
+const PICK_ATTEMPTS = 8;
 
 export interface PendingOffline {
   elapsedSec: number;
@@ -26,6 +40,8 @@ export interface GameStore {
   queueLine: string;
   memoLine: string;
   boot(): Promise<void>;
+  pause(): Promise<void>;
+  resume(): Promise<void>;
   stamp(): void;
   hire(staffId: string, mode: BuyMode): void;
   upgrade(upgradeId: string): void;
@@ -49,7 +65,9 @@ export interface StoreDeps {
 function pick(lines: string[], avoid: string): string {
   if (lines.length === 1) return lines[0];
   let line = avoid;
-  while (line === avoid) line = lines[Math.floor(Math.random() * lines.length)];
+  for (let i = 0; i < PICK_ATTEMPTS && line === avoid; i++) {
+    line = lines[Math.floor(Math.random() * lines.length)];
+  }
   return line;
 }
 
@@ -57,15 +75,43 @@ export function createGameStore(deps: StoreDeps) {
   const { content, storage, clock } = deps;
   const tickMs = deps.tickMs ?? 100;
   const autosaveMs = deps.autosaveMs ?? 10_000;
+  const maxTickSec = (MAX_TICKS_PER_FIRE * tickMs) / 1000;
   let tickTimer: ReturnType<typeof setInterval> | null = null;
   let saveTimer: ReturnType<typeof setInterval> | null = null;
   let lastMono = 0;
+  let booting: Promise<void> | null = null;
+  let booted = false;
+  let resuming: Promise<void> | null = null;
 
   return create<GameStore>((set, get) => {
     const apply = (next: GameState) => {
       set({ state: next, rates: computeRates(next, content, clock.wall()) });
     };
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
+
+    /** Credit the wall-clock gap since the state was last seen, if it is worth crediting. */
+    const creditOffline = (state: GameState): { state: GameState; pendingOffline: PendingOffline | null } => {
+      const elapsedSec = (clock.wall() - state.lastSeenWallClock) / 1000;
+      if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null };
+      const r = applyOffline(state, content, elapsedSec, clock.wall());
+      if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null };
+      return {
+        state: r.state,
+        pendingOffline: { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped },
+      };
+    };
+
+    const startTimers = () => {
+      get().stopLoop();
+      lastMono = clock.mono();
+      tickTimer = setInterval(() => {
+        const now = clock.mono();
+        const dt = Math.min((now - lastMono) / 1000, maxTickSec);
+        lastMono = now;
+        apply(tick(get().state, content, dt, clock.wall()));
+      }, tickMs);
+      saveTimer = setInterval(() => { void get().save(); }, autosaveMs);
+    };
 
     return {
       state: createInitialState({ wall: clock.wall(), mono: clock.mono() }, content),
@@ -75,45 +121,60 @@ export function createGameStore(deps: StoreDeps) {
       queueLine: '',
       memoLine: '',
 
-      async boot() {
-        const saved = await storage.get(SAVE_KEY);
-        let state: GameState;
-        let pendingOffline: PendingOffline | null = null;
-        if (saved) {
-          try {
-            state = deserialize(saved, content);
-          } catch {
-            state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
-          }
-          const elapsedSec = (clock.wall() - state.lastSeenWallClock) / 1000;
-          if (elapsedSec >= MIN_OFFLINE_SECONDS) {
-            const r = applyOffline(state, content, elapsedSec, clock.wall());
-            state = r.state;
-            if (r.creditedSec > 0) {
-              pendingOffline = { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped };
+      boot() {
+        if (booting) return booting;
+        booting = (async () => {
+          const saved = await storage.get(SAVE_KEY);
+          let state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
+          let pendingOffline: PendingOffline | null = null;
+          if (saved) {
+            let loaded: GameState | null = null;
+            try {
+              loaded = deserialize(saved, content);
+            } catch (err) {
+              console.warn('Unreadable save: keeping a copy at ' + CORRUPT_SAVE_KEY + ' and starting a fresh file.', err);
+              await storage.set(CORRUPT_SAVE_KEY, saved);
             }
+            if (loaded) ({ state, pendingOffline } = creditOffline(loaded));
           }
-        } else {
-          state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
-        }
-        const dept = findDepartment(content, state.activeDept);
-        set({
-          state,
-          rates: computeRates(state, content, clock.wall()),
-          ready: true,
-          pendingOffline,
-          queueLine: pick(dept.queue, ''),
-          memoLine: pick(dept.memos, ''),
-        });
-        lastMono = clock.mono();
+          const dept = findDepartment(content, state.activeDept);
+          set({
+            state,
+            rates: computeRates(state, content, clock.wall()),
+            ready: true,
+            pendingOffline,
+            queueLine: pick(dept.queue, ''),
+            memoLine: pick(dept.memos, ''),
+          });
+          booted = true;
+          startTimers();
+        })();
+        return booting;
+      },
+
+      async pause() {
         get().stopLoop();
-        tickTimer = setInterval(() => {
-          const now = clock.mono();
-          const dt = (now - lastMono) / 1000;
-          lastMono = now;
-          apply(tick(get().state, content, dt, clock.wall()));
-        }, tickMs);
-        saveTimer = setInterval(() => { void get().save(); }, autosaveMs);
+        await get().save();
+      },
+
+      resume() {
+        if (!booted) return get().boot();
+        if (resuming) return resuming;
+        resuming = (async () => {
+          try {
+            const { state, pendingOffline } = creditOffline(get().state);
+            set({
+              state,
+              rates: computeRates(state, content, clock.wall()),
+              ...(pendingOffline ? { pendingOffline } : {}),
+            });
+            startTimers();
+            await get().save();
+          } finally {
+            resuming = null;
+          }
+        })();
+        return resuming;
       },
 
       stamp() { apply(click(get().state, content, clock.wall())); },
@@ -129,8 +190,7 @@ export function createGameStore(deps: StoreDeps) {
       doubleOffline() {
         const p = get().pendingOffline;
         if (!p) return;
-        const s = get().state;
-        apply({ ...s, soulsRun: s.soulsRun.add(p.souls), soulsLifetime: s.soulsLifetime.add(p.souls), kc: s.kc.add(p.kc) });
+        apply(unlockDepartments(addSouls(get().state, p.souls, p.kc), content));
         set({ pendingOffline: null });
       },
       async save() {
