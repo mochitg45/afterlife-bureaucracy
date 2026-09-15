@@ -31,6 +31,12 @@ above and confirm the page loads.
 > **Play Console rejects a submission whose privacy policy URL does not resolve.** If neither is
 > acceptable, host `docs/privacy.html` anywhere else that serves static HTML over HTTPS and
 > change `PRIVACY_URL` in `src/version.ts` to match.
+>
+> Note what "make the repo public" actually costs: the whole source tree becomes readable,
+> including `docs/superpowers/` (the spec and plans) and `docs/store/ids.md`. Nothing in
+> `ids.md` is a secret — AdMob unit IDs and RevenueCat *public* SDK keys ship inside the APK
+> anyway — but the design documents are a separate decision from the privacy page, and
+> publishing `/docs` publishes them too. Hosting the single HTML file elsewhere avoids that.
 
 ### 2. Fill in the two human-owned fields
 
