@@ -1,0 +1,58 @@
+{
+  "id": "valhalla", "name": "Valhalla Intake Annex", "branch": "valhalla", "unlockSouls": 1000000000000000, "accent": "#B5651D",
+  "staff": [
+    { "id": "v-shieldmaiden", "name": "Sigrún the Shieldmaiden", "role": "Front Desk, Armed", "flavor": "Greets every arrival. Disarms most of them.", "baseCost": 100000000000000, "baseRate": 1000000000000, "character": "angel:0" },
+    { "id": "v-skald", "name": "Ottar the Skald", "role": "Minutes & Sagas", "flavor": "Takes minutes in verse. Meetings run long.", "baseCost": 700000000000000, "baseRate": 5000000000000, "character": "demon:1" },
+    { "id": "v-quartermaster", "name": "Quartermaster Hjalti", "role": "Mead & Supplies", "flavor": "Requisitions barrels. Files none of them.", "baseCost": 4900000000000000, "baseRate": 25000000000000, "character": "demon:2" },
+    { "id": "v-einherjar", "name": "The Einherjar Pool", "role": "Day Shift, Eternal", "flavor": "Fight all morning. Feast all afternoon. File nothing.", "baseCost": 34300000000000000, "baseRate": 125000000000000, "character": "angel:3" },
+    { "id": "v-valkyrie", "name": "Brynhildr", "role": "Head of Annex", "flavor": "Chooses the slain. Also chooses the seating plan.", "baseCost": 240100000000000000, "baseRate": 625000000000000, "character": "angel:4" }
+  ],
+  "upgrades": [
+    { "id": "v-mead-ledger", "name": "The Mead Ledger", "desc": "Valhalla output +30%", "baseCost": 500000000000000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.30 } },
+    { "id": "v-longship-logistics", "name": "Longship Logistics", "desc": "Valhalla output +120%", "baseCost": 20000000000000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1.2 } },
+    { "id": "v-hall-extension", "name": "Hall Extension, East Wing", "desc": "Offline cap +8 hours", "baseCost": 3000000000000000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 8 } },
+    { "id": "v-horn-stamp", "name": "Drinking Horn Stamp", "desc": "+5000 souls per stamp", "baseCost": 1500000000000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 5000 } }
+  ],
+  "queue": [
+    "Bjorn Ivarsson — died gloriously, arrived with a spear and no paperwork",
+    "Soul #91011 — claims a heroic death; witness statements say 'ladder'",
+    "Ingrid Haraldsdottir — shield-wall veteran, requests a desk facing the door",
+    "Soul #91012 — wants to know if the feasting is catered or potluck",
+    "Olaf the Unremarkable — died of old age, is appealing the classification",
+    "Soul #91013 — brought their own horn, has been asked to declare it",
+    "Astrid Vigdisdottir — three heroic deaths on file, only one body",
+    "A goat — listed as 'next of kin', will not be moved",
+    "Soul #91014 — requests transfer to Heaven Admissions; cites the noise",
+    "Leif the Landless — heroic death pending, has been waiting for one since Tuesday",
+    "Soul #91015 — asks whether the fighting counts as overtime",
+    "Gunnhild the Loud — has opinions about the seating plan, all of them final",
+    "Soul #91016 — wants the saga of their life amended; the skald refuses",
+    "Torvald Sigurdsson — arrived on a longship, parked it in Intake's bay",
+    "Soul #91017 — died heroically saving a cheese; cheese also present",
+    "Marcus D. (transferred) — thinking, but now with a shield",
+    "Soul #91018 — died twice. Has two files. Is furious about the duplicate."
+  ],
+  "memos": [
+    "MEMO: Mead is not a stationery item.",
+    "NOTICE: The Einherjar are reminded that the morning battle ends at 11:45, not 'whenever'.",
+    "INCIDENT: A longship was parked in the Intake loading bay overnight. It has been ticketed.",
+    "MEMO: 'Died gloriously' requires two witness statements. A goat is not a witness.",
+    "REMINDER: Shields are to be stored in the rack, not leaned against the filing cabinets.",
+    "MEMO: Ottar's minutes for last week's meeting run to nine verses. A summary has been requested.",
+    "NOTICE: The feasting hall is not a break room. The break room is also not a break room any more.",
+    "INCIDENT: Someone drank the mead reserved for the quarterly review. The review proceeded anyway.",
+    "MEMO: Heroic deaths involving ladders are reviewed case by case and usually declined.",
+    "REMINDER: Brynhildr chooses the slain. She does not choose your parking space. Stop asking.",
+    "MEMO: The east wing extension is finished. It is already full of shields.",
+    "NOTICE: Reincarnation Desk has asked that we stop sending souls back 'for one more fight'.",
+    "INCIDENT: The drinking horn stamp was used on an actual drinking horn. The form is now sticky.",
+    "MEMO: Quartermaster Hjalti reports 400 barrels received and 0 barrels logged. This is an improvement.",
+    "REMINDER: Sagas submitted in place of incident reports will be returned, beautifully, unread.",
+    "MEMO: The annex operates on a hall calendar. Payroll operates on a fiscal one. Neither will move.",
+    "NOTICE: Valhalla is a department of this Bureau. The horns, the fire and the wolves are decorative."
+  ],
+  "memosLate": [
+    "MEMO (FY2+): The auditor asked to see the mead ledger. The mead ledger asked to see the auditor.",
+    "NOTICE (FY2+): Post-restructuring, the annex reports directly to Cosmic. The goat remains unassigned."
+  ]
+}

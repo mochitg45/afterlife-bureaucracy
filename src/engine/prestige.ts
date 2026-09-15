@@ -4,6 +4,7 @@ import { startingDepartments } from './state';
 import type { Content } from './content';
 import { headStart } from './perks';
 import { clampEquipped } from './gacha';
+import { clauseSealMult } from './cosmic';
 
 /** Souls-this-run needed to close the books in fiscal year 1; puts the first Audit on day 2. */
 export const AUDIT_BASE = 5.2e11;
@@ -25,9 +26,9 @@ export function auditThreshold(fiscalYear: number): Decimal {
  * so a late fiscal year still pays more for the same effort; the sub-sqrt exponent keeps a
  * hugely overshot run from handing out a lifetime of Seals at once.
  */
-export function sealsForRun(soulsRun: Decimal, fiscalYear: number): number {
+export function sealsForRun(soulsRun: Decimal, fiscalYear: number, sealMult = 1): number {
   if (soulsRun.lt(auditThreshold(fiscalYear))) return 0;
-  const raw = soulsRun.div(AUDIT_BASE).pow(SEAL_EXP).mul(SEAL_COEFF).toNumber();
+  const raw = soulsRun.div(AUDIT_BASE).pow(SEAL_EXP).mul(SEAL_COEFF).mul(sealMult).toNumber();
   if (!Number.isFinite(raw)) return Number.MAX_SAFE_INTEGER;
   return Math.min(Number.MAX_SAFE_INTEGER, Math.floor(raw));
 }
@@ -65,7 +66,9 @@ export interface AuditResult { state: GameState; sealsGained: number; fiscalYear
 
 export function fileAudit(state: GameState, content: Content): AuditResult {
   if (!canAudit(state)) return { state, sealsGained: 0, fiscalYear: state.fiscalYear };
-  const sealsGained = sealsForRun(state.soulsRun, state.fiscalYear);
+  // Computed here rather than asked of the caller, so every Audit route — store, sim, UI
+  // preview — pays the Clause multiplier without having to remember it.
+  const sealsGained = sealsForRun(state.soulsRun, state.fiscalYear, clauseSealMult(state, content));
   const reset = resetRun(state, content);
   const next: GameState = {
     ...reset,

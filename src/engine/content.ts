@@ -30,6 +30,12 @@ const upgradeSchema = z.object({
 const departmentSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
+  /**
+   * A Cosmic branch this department belongs to. Branch departments stay invisible — out of
+   * the starting set and out of unlockDepartments — until a Clause puts the branch in
+   * `branchesUnlocked`, however many souls the player has earned.
+   */
+  branch: z.string().min(1).optional(),
   unlockSouls: z.number().nonnegative(),
   accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   staff: z.array(staffSchema).min(1),
@@ -59,6 +65,22 @@ const perkSchema = z.object({
   cost: z.number().int().positive(),
   requires: z.array(z.string().min(1)),
   effect: perkEffectSchema,
+});
+
+const clauseEffectSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('globalMult'), value: z.number().positive() }),
+  z.object({ type: z.literal('sealMult'), value: z.number().positive() }),
+  z.object({ type: z.literal('offlineCapHours'), value: z.number().positive() }),
+  z.object({ type: z.literal('unlockBranch'), branch: z.string().min(1) }),
+  z.object({ type: z.literal('voucherMult'), value: z.number().positive() }),
+]);
+
+const clauseSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  desc: z.string(),
+  requires: z.array(z.string().min(1)),
+  effect: clauseEffectSchema,
 });
 
 const cardEffectSchema = z.discriminatedUnion('type', [
@@ -139,6 +161,8 @@ export type DepartmentDef = z.infer<typeof departmentSchema>;
 export type PerkEffect = z.infer<typeof perkEffectSchema>;
 export type PerkDef = z.infer<typeof perkSchema>;
 export type PerkBranch = PerkDef['branch'];
+export type ClauseEffect = z.infer<typeof clauseEffectSchema>;
+export type ClauseDef = z.infer<typeof clauseSchema>;
 export type CardEffect = z.infer<typeof cardEffectSchema>;
 export type CardDef = z.infer<typeof cardSchema>;
 export type Rarity = CardDef['rarity'];
@@ -151,12 +175,14 @@ export type StoryDef = z.infer<typeof storySchema>;
 export interface Content {
   departments: DepartmentDef[];
   perks: PerkDef[];
+  clauses: ClauseDef[];
   cards: CardDef[];
   dailies: DailyDef[];
   achievements: AchievementDef[];
   story: StoryDef[];
 }
 export interface ContentExtras {
+  clauses?: unknown[];
   cards?: unknown[];
   dailies?: unknown[];
   achievements?: unknown[];
@@ -183,8 +209,8 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   assertUnique(departments.flatMap((d) => d.upgrades.map((u) => u.id)), 'upgrade');
   // createInitialState() and resetRun() both open with the free departments; without one
   // the player would boot into an office that does not exist.
-  if (!departments.some((d) => d.unlockSouls === 0)) {
-    throw new Error('Content has no starting department: at least one department needs unlockSouls 0');
+  if (!departments.some((d) => d.unlockSouls === 0 && !d.branch)) {
+    throw new Error('Content has no starting department: at least one branch-free department needs unlockSouls 0');
   }
   const perks = rawPerks.map((r) => perkSchema.parse(r));
   assertUnique(perks.map((p) => p.id), 'perk');
@@ -196,6 +222,20 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
     const e = p.effect;
     if ((e.type === 'deptMult' || e.type === 'headStartDept') && !deptIds.has(e.dept)) throw new Error(`Unknown department ${e.dept} on perk ${p.id}`);
     if (e.type === 'headStartStaff' && !staffIds.has(e.staff)) throw new Error(`Unknown staff ${e.staff} on perk ${p.id}`);
+  }
+
+  const clauses = (extras.clauses ?? []).map((r) => clauseSchema.parse(r));
+  assertUnique(clauses.map((c) => c.id), 'clause');
+  const clauseIds = new Set(clauses.map((c) => c.id));
+  // A branch nobody declares would be a Clause the player can buy that opens nothing.
+  const branches = new Set(departments.map((d) => d.branch).filter((b): b is string => !!b));
+  for (const c of clauses) {
+    for (const req of c.requires) {
+      if (!clauseIds.has(req)) throw new Error(`Unknown clause prerequisite ${req} on ${c.id}`);
+    }
+    if (c.effect.type === 'unlockBranch' && !branches.has(c.effect.branch)) {
+      throw new Error(`Unknown branch ${c.effect.branch} on clause ${c.id}`);
+    }
   }
 
   const cards = (extras.cards ?? []).map((r) => cardSchema.parse(r));
@@ -236,13 +276,18 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   const story = (extras.story ?? []).map((r) => storySchema.parse(r));
   assertUnique(story.map((s) => s.id), 'story');
 
-  return { departments, perks, cards, dailies, achievements, story };
+  return { departments, perks, clauses, cards, dailies, achievements, story };
 }
 
 export function findCard(content: Content, cardId: string): CardDef {
   const card = content.cards.find((c) => c.id === cardId);
   if (!card) throw new Error(`Unknown card: ${cardId}`);
   return card;
+}
+
+/** Non-throwing: a save can name a Clause this build no longer ships. */
+export function findClause(content: Content, clauseId: string): ClauseDef | undefined {
+  return content.clauses.find((c) => c.id === clauseId);
 }
 
 export function findPerk(content: Content, perkId: string): PerkDef {

@@ -115,9 +115,13 @@ export interface GameState {
 
 export interface Now { wall: number; mono: number }
 
-/** Departments that cost nothing to open are unlocked from the first day on the job. */
+/**
+ * Departments that cost nothing to open are unlocked from the first day on the job. A branch
+ * department never counts, whatever its threshold: it exists only once a Cosmic Clause has
+ * opened its branch.
+ */
 export function startingDepartments(content: Content): string[] {
-  return content.departments.filter((d) => d.unlockSouls === 0).map((d) => d.id);
+  return content.departments.filter((d) => d.unlockSouls === 0 && !d.branch).map((d) => d.id);
 }
 
 export function createInitialState(now: Now, content: Content): GameState {
@@ -259,14 +263,15 @@ function str(v: unknown): string {
 }
 
 /**
- * Free-form id arrays (Cosmic Clauses, unlocked branches). Task 2 tightens these to the ids
- * `content` actually ships; until then anything that is a string survives, de-duplicated.
+ * Cosmic Clause and branch ids: de-duplicated and filtered to what this build ships, so a
+ * save from a newer build (or a hand-edited one) cannot hand the player a Clause whose effect
+ * no longer exists or a branch no department declares.
  */
-function stringIds(v: unknown): string[] {
+function stringIds(v: unknown, known: Set<string>): string[] {
   if (!Array.isArray(v)) return [];
   const out: string[] = [];
   for (const id of v as unknown[]) {
-    if (typeof id === 'string' && !out.includes(id)) out.push(id);
+    if (typeof id === 'string' && known.has(id) && !out.includes(id)) out.push(id);
   }
   return out;
 }
@@ -353,12 +358,19 @@ export function deserialize(json: string, content: Content): GameState {
   const raw = migrate(JSON.parse(json) as Record<string, unknown>);
   const base = createInitialState({ wall: 0, mono: 0 }, content);
   const rawStats = (raw.stats ?? {}) as Record<string, unknown>;
+  const branchesUnlocked = stringIds(
+    raw.branchesUnlocked,
+    new Set(content.departments.map((d) => d.branch).filter((b): b is string => !!b)),
+  );
   // A save may name a department this build does not ship (a removed one, or one from a
   // newer build rolled back). Drop those rather than booting into a department that
-  // findDepartment() will throw on.
-  const known = new Set(content.departments.map((d) => d.id));
+  // findDepartment() will throw on. A branch department goes the same way unless its branch
+  // is open, so a hand-edited save cannot walk into Valhalla without the Clause.
+  const open = new Set(
+    content.departments.filter((d) => !d.branch || branchesUnlocked.includes(d.branch)).map((d) => d.id),
+  );
   const kept = Array.isArray(raw.deptsUnlocked)
-    ? (raw.deptsUnlocked as unknown[]).filter((id): id is string => typeof id === 'string' && known.has(id))
+    ? (raw.deptsUnlocked as unknown[]).filter((id): id is string => typeof id === 'string' && open.has(id))
     : [];
   const deptsUnlocked = kept.length ? kept : base.deptsUnlocked;
   const lastSeenWallClock = num(raw.lastSeenWallClock, 0);
@@ -419,8 +431,8 @@ export function deserialize(json: string, content: Content): GameState {
     entitlements: sanitizeEntitlements(raw.entitlements),
     adState: sanitizeAdState(raw.adState),
     cosmicPoints: nonNeg(raw.cosmicPoints),
-    cosmicClauses: stringIds(raw.cosmicClauses),
-    branchesUnlocked: stringIds(raw.branchesUnlocked),
+    cosmicClauses: stringIds(raw.cosmicClauses, new Set(content.clauses.map((c) => c.id))),
+    branchesUnlocked,
     processId: str(raw.processId),
   }, content);
 }

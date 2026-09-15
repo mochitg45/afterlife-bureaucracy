@@ -18,7 +18,14 @@ export function addSouls(state: GameState, souls: Decimal, kc: Decimal): GameSta
 
 export function unlockDepartments(state: GameState, content: Content): GameState {
   const missing = content.departments
-    .filter((d) => !state.deptsUnlocked.includes(d.id) && state.soulsRun.gte(d.unlockSouls))
+    .filter(
+      (d) =>
+        !state.deptsUnlocked.includes(d.id) &&
+        state.soulsRun.gte(d.unlockSouls) &&
+        // A branch department stays shut until a Cosmic Clause opens its branch, however
+        // many souls this run has filed.
+        (!d.branch || state.branchesUnlocked.includes(d.branch)),
+    )
     .map((d) => d.id);
   if (missing.length === 0) return state;
   return { ...state, deptsUnlocked: [...state.deptsUnlocked, ...missing] };

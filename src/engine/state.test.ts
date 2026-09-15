@@ -88,13 +88,13 @@ describe('state', () => {
     expect(s.staff.seraphine).toBeUndefined();
   });
   it('drops departments the build no longer ships and repairs the active one', () => {
-    const raw = { saveVersion: 3, deptsUnlocked: ['intake', 'valhalla'], activeDept: 'valhalla' };
+    const raw = { saveVersion: 3, deptsUnlocked: ['intake', 'atlantis'], activeDept: 'atlantis' };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.activeDept).toBe('intake');
   });
   it('falls back to the starting departments when every saved one is unknown', () => {
-    const raw = { saveVersion: 3, deptsUnlocked: ['valhalla'], activeDept: 'valhalla' };
+    const raw = { saveVersion: 3, deptsUnlocked: ['atlantis'], activeDept: 'atlantis' };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.activeDept).toBe('intake');

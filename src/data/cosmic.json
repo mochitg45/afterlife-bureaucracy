@@ -1,0 +1,10 @@
+[
+  { "id": "clause-throughput-1", "name": "Clause 1.1 — Standardised Throughput", "desc": "Memo from Cosmic Restructuring: every department is to post 50% more output, effective retroactively.", "requires": [], "effect": { "type": "globalMult", "value": 0.5 } },
+  { "id": "clause-throughput-2", "name": "Clause 1.2 — Throughput, Revised", "desc": "Memo from Cosmic Restructuring: the previous throughput figure was a typo. Double it.", "requires": ["clause-throughput-1"], "effect": { "type": "globalMult", "value": 1 } },
+  { "id": "clause-throughput-3", "name": "Clause 1.3 — Throughput, Final", "desc": "Memo from Cosmic Restructuring: output is now tripled. There will be no Clause 1.4. There is always a Clause 1.4.", "requires": ["clause-throughput-2"], "effect": { "type": "globalMult", "value": 2 } },
+  { "id": "clause-seals-1", "name": "Clause 2.1 — Generous Sealing", "desc": "Memo from Cosmic Restructuring: the Seal press has been recalibrated. Audits now pay half again as much.", "requires": [], "effect": { "type": "sealMult", "value": 1.5 } },
+  { "id": "clause-seals-2", "name": "Clause 2.2 — Sealing, Industrial", "desc": "Memo from Cosmic Restructuring: a second Seal press has been requisitioned. Audits pay double.", "requires": ["clause-seals-1"], "effect": { "type": "sealMult", "value": 2 } },
+  { "id": "clause-overtime-1", "name": "Clause 3.1 — The Night Shift, Formalised", "desc": "Memo from Cosmic Restructuring: the building is now open for a further 24 hours of unattended work.", "requires": [], "effect": { "type": "offlineCapHours", "value": 24 } },
+  { "id": "clause-requisition-1", "name": "Clause 4.1 — Stationery, Reallocated", "desc": "Memo from Cosmic Restructuring: the voucher budget has been found. It was behind the cabinet. Grants are up 50%.", "requires": [], "effect": { "type": "voucherMult", "value": 0.5 } },
+  { "id": "clause-valhalla", "name": "Clause 5.1 — The Valhalla Accord", "desc": "Memo from Cosmic Restructuring: a northern annex has agreed to file paperwork. Terms were mead.", "requires": ["clause-throughput-1"], "effect": { "type": "unlockBranch", "branch": "valhalla" } }
+]

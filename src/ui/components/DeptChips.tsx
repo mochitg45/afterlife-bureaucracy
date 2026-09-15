@@ -7,10 +7,14 @@ export function DeptChips() {
   const unlocked = useGame((s) => s.state.deptsUnlocked);
   const active = useGame((s) => s.state.activeDept);
   const soulsRun = useGame((s) => s.state.soulsRun);
+  const branches = useGame((s) => s.state.branchesUnlocked);
   const setActiveDept = useGame((s) => s.setActiveDept);
+  // A branch department is not a locked chip with a soul target on it — it does not exist
+  // until a Cosmic Clause opens the branch, so it must not spoil itself from day one.
+  const visible = content.departments.filter((d) => !d.branch || branches.includes(d.branch));
   return (
     <div className="dept-chips" role="group" aria-label="Departments">
-      {content.departments.map((d) => {
+      {visible.map((d) => {
         const style = { '--accent': d.accent } as CSSProperties;
         if (unlocked.includes(d.id)) {
           return (

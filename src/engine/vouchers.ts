@@ -2,9 +2,14 @@ import type { GameState } from './state';
 import type { Content } from './content';
 import { perkSum } from './perks';
 import { cardVoucherMult } from './gacha';
+import { clauseVoucherMult } from './cosmic';
 
+/**
+ * Perks and cards stack additively with each other; the Cosmic Clause sits on top as its own
+ * factor, so "+50% vouchers" reads as half again whatever the player had already built up.
+ */
 export function voucherMult(state: GameState, content: Content): number {
-  return 1 + perkSum(state, content, 'voucherMult') + cardVoucherMult(state, content);
+  return (1 + perkSum(state, content, 'voucherMult') + cardVoucherMult(state, content)) * clauseVoucherMult(state, content);
 }
 
 /**
