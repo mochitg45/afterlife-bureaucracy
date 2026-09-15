@@ -93,13 +93,20 @@ const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
   union_monthly: { price: '$3.99', title: 'Union Membership (monthly)' },
 };
 
-/** Browser and test fallback: mock catalogue, purchases always succeed, nothing to restore. */
+/**
+ * Browser and test fallback: a mock catalogue, nothing to restore, and a purchase that
+ * succeeds only in a development build.
+ *
+ * The success is gated on `isDevBuild()` deliberately: there is no payment behind a web
+ * build, so a production one that answered `'ok'` would hand out every product for free.
+ */
 export const webBilling: Billing = {
   async init() {},
   async products() {
     return PRODUCT_IDS.map((id) => ({ id, ...WEB_CATALOGUE[id] }));
   },
   purchase() {
+    if (!isDevBuild()) return Promise.resolve<PurchaseResult>('error');
     return new Promise<PurchaseResult>((resolve) => {
       setTimeout(() => resolve('ok'), WEB_PURCHASE_DURATION_MS);
     });

@@ -18,13 +18,21 @@ export interface Ads {
 /** How long the web mock pretends to play an ad for. */
 export const WEB_AD_DURATION_MS = 300;
 
-/** Browser and test fallback: no SDK, always rewards after a short pretend playback. */
+/**
+ * Browser and test fallback: no SDK, so a development build rewards after a short pretend
+ * playback and every other build reports the placement closed.
+ *
+ * The grant is gated on `isDevBuild()` deliberately. A production web build has no ad
+ * network behind it, so handing out the reward anyway would be a free, unlimited version of
+ * every placement for anyone who opens the game in a browser.
+ */
 export const webAds: Ads = {
   async init() {},
   isReady() {
     return true;
   },
   showRewarded() {
+    if (!isDevBuild()) return Promise.resolve<AdResult>('unavailable');
     return new Promise<AdResult>((resolve) => {
       setTimeout(() => resolve('rewarded'), WEB_AD_DURATION_MS);
     });

@@ -108,9 +108,43 @@ describe('webBilling', () => {
     expect(settled).toBe('ok');
   });
 
-  it('restores nothing', async () => {
+  it('restores and syncs nothing', async () => {
     await expect(webBilling.init()).resolves.toBeUndefined();
-    expect(await webBilling.restore()).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    const nothing = { removeAds: false, unionUntilWall: 0, starterPackBought: false };
+    expect(await webBilling.restore()).toEqual(nothing);
+    // The store's merge only ever adds, so "nothing" leaves the local entitlements standing.
+    expect(await webBilling.sync()).toEqual(nothing);
+  });
+});
+
+describe('web fallbacks in a production build', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('grants no rewarded ad', async () => {
+    vi.stubEnv('DEV', false);
+    expect(isDevBuild()).toBe(false);
+    for (const p of AD_PLACEMENTS) {
+      // No timers involved: there is no ad network behind a web build, so it resolves at once.
+      expect(await webAds.showRewarded(p)).toBe('unavailable');
+    }
+  });
+
+  it('completes no purchase', async () => {
+    vi.stubEnv('DEV', false);
+    expect(await webBilling.purchase('vouchers_10')).toBe('error');
+    expect(await webBilling.purchase('remove_ads')).toBe('error');
+  });
+
+  it('still grants in a development build, so the browser build stays playable', async () => {
+    vi.useFakeTimers();
+    expect(isDevBuild()).toBe(true);
+    const ad = webAds.showRewarded('free-pull');
+    const buy = webBilling.purchase('vouchers_10');
+    await vi.advanceTimersByTimeAsync(300);
+    expect(await ad).toBe('rewarded');
+    expect(await buy).toBe('ok');
   });
 });
 
