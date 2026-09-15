@@ -5,10 +5,10 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 ## AdMob (Android)
 - App ID: `ca-app-pub-5130289288594607~4830589570`
 - Rewarded ad unit ids (create one per placement, names as listed):
-  - offline-double: `TODO`
-  - overtime-boost: `TODO`
-  - free-pull: `TODO`
-  - daily-skip: `TODO`
+  - offline-double: `ca-app-pub-5130289288594607/7233778673`
+  - overtime-boost: `ca-app-pub-5130289288594607/2737586738`
+  - free-pull: `ca-app-pub-5130289288594607/3254618178`
+  - daily-skip: `ca-app-pub-5130289288594607/8562785171`
 
 ## Google Play
 - Package: `com.afterlifebureaucracy.game`
