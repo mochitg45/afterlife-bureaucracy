@@ -2,7 +2,8 @@ import Decimal from 'break_infinity.js';
 import type { GameState, Stats, DailyBaseline } from './state';
 import type { Content, DailyDef, DailyKind } from './content';
 import { nextFloat } from './rng';
-import { grantVouchers } from './vouchers';
+import { grantVouchers, grantVouchersExact } from './vouchers';
+import { UNION_ROLLOVER_VOUCHERS } from './entitlements';
 import { canAudit } from './prestige';
 import { canBuyPerk } from './perks';
 
@@ -45,12 +46,24 @@ function hashDate(key: string): number {
 }
 
 /**
+ * What the engine cannot work out for itself. The ad network lives behind a platform
+ * interface, so whether a rewarded ad can be shown at all is the store's answer, not the
+ * engine's; it defaults to false so every engine test draws the same deterministic tasks.
+ */
+export interface DailyEligibility {
+  adsReady?: boolean;
+}
+
+/**
  * Whether today's player could actually finish a task of this kind. A day that offers
  * "equip a card" to someone with no cards, or "file an audit" to a first-day player, is a
  * task they can only skip.
  */
-export function isKindFeasible(state: GameState, content: Content, kind: DailyKind): boolean {
+export function isKindFeasible(state: GameState, content: Content, kind: DailyKind, eligibility: DailyEligibility = {}): boolean {
   switch (kind) {
+    case 'ad':
+      // No ad network, no ad task: it would be unfinishable for the whole day.
+      return eligibility.adsReady === true;
     case 'audit':
       // Past the first audit the threshold is always reachable within a day, so only the
       // player who has never closed a fiscal year needs to be within reach of one.
@@ -66,8 +79,8 @@ export function isKindFeasible(state: GameState, content: Content, kind: DailyKi
   }
 }
 
-export function pickTasks(content: Content, date: string, state: GameState): DailyDef[] {
-  const pool = content.dailies.filter((d) => isKindFeasible(state, content, d.kind));
+export function pickTasks(content: Content, date: string, state: GameState, eligibility: DailyEligibility = {}): DailyDef[] {
+  const pool = content.dailies.filter((d) => isKindFeasible(state, content, d.kind, eligibility));
   const out: DailyDef[] = [];
   let seed = hashDate(date);
   while (out.length < TASKS_PER_DAY && pool.length) {
@@ -83,6 +96,7 @@ export function pickTasks(content: Content, date: string, state: GameState): Dai
 /** Every kind but `rate`, which is measured against a snapshot rather than a counter. */
 const STAT_FOR_KIND: Record<Exclude<DailyKind, 'rate'>, keyof DailyBaseline> = {
   clicks: 'clicks',
+  ad: 'adsWatched',
   hire: 'staffHired',
   upgrades: 'upgradesBought',
   equip: 'equips',
@@ -103,6 +117,7 @@ export function baselineFrom(stats: Stats): DailyBaseline {
     audits: stats.audits,
     perksBought: stats.perksBought,
     pulls: stats.pulls,
+    adsWatched: stats.adsWatched,
   };
 }
 
@@ -124,7 +139,15 @@ export function isDone(state: DailyProgressView, def: DailyDef): boolean {
   return progressOf(state, def) >= def.target;
 }
 
-export function rollover(state: GameState, content: Content, wallMs: number): GameState {
+/**
+ * What today's rollover needs to know about the world outside the engine: whether the Union
+ * Membership is paying out, and whether ad tasks can be drawn at all.
+ */
+export interface RolloverOptions extends DailyEligibility {
+  unionActive?: boolean;
+}
+
+export function rollover(state: GameState, content: Content, wallMs: number, options: RolloverOptions = {}): GameState {
   const today = dayKey(wallMs);
   const d = state.dailies;
   if (d.date === today) return state;
@@ -137,11 +160,11 @@ export function rollover(state: GameState, content: Content, wallMs: number): Ga
     skipTokens = Math.min(1, skipTokens + 1);
     lastTokenDate = today;
   }
-  return {
+  const next: GameState = {
     ...state,
     dailies: {
       date: today,
-      tasks: pickTasks(content, today, state).map((t) => ({ id: t.id, claimed: false })),
+      tasks: pickTasks(content, today, state, options).map((t) => ({ id: t.id, claimed: false })),
       skipped: [],
       streak,
       bestStreak,
@@ -152,6 +175,8 @@ export function rollover(state: GameState, content: Content, wallMs: number): Ga
       soulsPerSecSnapshot: d.soulsPerSecSnapshot,
     },
   };
+  // A membership perk, not a reward: exact, so the requisition multipliers never touch it.
+  return options.unionActive ? grantVouchersExact(next, UNION_ROLLOVER_VOUCHERS) : next;
 }
 
 export function claimDaily(
@@ -180,9 +205,27 @@ export function claimDaily(
   return { state: next, vouchers: next.vouchers - before, kc };
 }
 
-export function skipDaily(state: GameState, content: Content, taskId: string): GameState {
+/** Whether this task can still be written off: it exists, is unclaimed, and is not already done. */
+function skippable(state: GameState, content: Content, taskId: string): boolean {
   const task = state.dailies.tasks.find((t) => t.id === taskId);
   const def = content.dailies.find((x) => x.id === taskId);
-  if (!task || !def || task.claimed || state.dailies.skipTokens < 1 || isDone(state, def)) return state;
-  return { ...state, dailies: { ...state.dailies, skipTokens: state.dailies.skipTokens - 1, skipped: [...state.dailies.skipped, taskId] } };
+  return !!task && !!def && !task.claimed && !isDone(state, def);
+}
+
+function markSkipped(state: GameState, taskId: string, skipTokens: number): GameState {
+  return { ...state, dailies: { ...state.dailies, skipTokens, skipped: [...state.dailies.skipped, taskId] } };
+}
+
+export function skipDaily(state: GameState, content: Content, taskId: string): GameState {
+  if (state.dailies.skipTokens < 1 || !skippable(state, content, taskId)) return state;
+  return markSkipped(state, taskId, state.dailies.skipTokens - 1);
+}
+
+/**
+ * The rewarded-ad write-off: the same effect as a skip token, paid for with an ad instead.
+ * The per-day limit lives in the store's ad state, not in the token pool.
+ */
+export function skipDailyFree(state: GameState, content: Content, taskId: string): GameState {
+  if (!skippable(state, content, taskId)) return state;
+  return markSkipped(state, taskId, state.dailies.skipTokens);
 }

@@ -53,9 +53,20 @@ function pickCard(seed: number, pool: CardDef[]): { seed: number; card: CardDef 
   return { seed: r.seed, card: pool[Math.min(pool.length - 1, Math.floor(r.value * pool.length))] };
 }
 
+export interface PullOptions {
+  /** A pull the player was given (a rewarded ad): rolled and counted, but never charged. */
+  free?: boolean;
+}
+
 /** Spends vouchers, rolls `count` cards from a seeded RNG, and applies duplicate-to-KC conversion past 5 stars. Refuses (same state) if vouchers are short. */
-export function pull(state: GameState, content: Content, count: 1 | 10, kcPerSec: Decimal): { state: GameState; results: PullResult[] } {
-  const cost = count === 10 ? TEN_PULL_COST : PULL_COST;
+export function pull(
+  state: GameState,
+  content: Content,
+  count: 1 | 10,
+  kcPerSec: Decimal,
+  opts: PullOptions = {},
+): { state: GameState; results: PullResult[] } {
+  const cost = opts.free ? 0 : count === 10 ? TEN_PULL_COST : PULL_COST;
   if (state.vouchers < cost) return { state, results: [] };
   let seed = state.rngSeed;
   let pity = { ...state.pity };

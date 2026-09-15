@@ -58,6 +58,13 @@ describe('pull', () => {
     expect(ten.results).toHaveLength(10);
     expect(s0.vouchers).toBe(100);
   });
+  it('draws a free single without spending a voucher', () => {
+    const s0 = { ...base(), vouchers: 0 };
+    const free = pull(s0, content, 1, rate, { free: true });
+    expect(free.results).toHaveLength(1);
+    expect(free.state.vouchers).toBe(0);
+    expect(free.state.stats.pulls).toBe(1);
+  });
   it('refuses when vouchers are short', () => {
     const s0 = { ...base(), vouchers: 8 };
     expect(pull(s0, content, 10, rate).state).toBe(s0);

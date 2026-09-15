@@ -41,7 +41,7 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
       bestStreak: 0,
       skipTokens: 0,
       lastTokenDate: '',
-      baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
+      baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0, adsWatched: 0 },
       completedToday: false,
       soulsPerSecSnapshot: '0',
     },

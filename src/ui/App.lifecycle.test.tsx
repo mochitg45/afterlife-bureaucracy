@@ -5,9 +5,12 @@ import { useGame } from '../store/game';
 
 const addListenerMock = vi.fn();
 
-vi.mock('@capacitor/core', () => ({
-  Capacitor: { isNativePlatform: () => true },
-}));
+// Only isNativePlatform is faked: registerPlugin has to stay real, or the native plugin
+// modules the store imports (AdMob, RevenueCat, Play Games) fail to load.
+vi.mock('@capacitor/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@capacitor/core')>();
+  return { ...actual, Capacitor: { ...actual.Capacitor, isNativePlatform: () => true } };
+});
 
 vi.mock('@capacitor/app', () => ({
   App: { addListener: (...args: unknown[]) => addListenerMock(...args) },

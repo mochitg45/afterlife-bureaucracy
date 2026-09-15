@@ -311,7 +311,7 @@ describe('exhaustive save round-trip', () => {
         bestStreak: 9,
         skipTokens: 2,
         lastTokenDate: '2026-09-08',
-        baseline: { clicks: 240, staffHired: 15, upgradesBought: 2, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
+        baseline: { clicks: 240, staffHired: 15, upgradesBought: 2, equips: 0, audits: 0, perksBought: 0, pulls: 0, adsWatched: 0 },
         completedToday: true,
         soulsPerSecSnapshot: '1.25e7',
       },

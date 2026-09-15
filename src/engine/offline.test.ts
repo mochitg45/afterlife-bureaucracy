@@ -22,6 +22,14 @@ describe('offline caps', () => {
 
 describe('applyOffline', () => {
   const base = () => ({ ...createInitialState(now, content), staff: { dave: 1 } }); // 0.5 souls/s
+  it('pays the Remove-Ads holder double, without touching the cap or the half rate', () => {
+    const s = base();
+    const plain = applyOffline(s, content, 600, 0);
+    const exempt = applyOffline({ ...s, entitlements: { ...s.entitlements, removeAds: true } }, content, 600, 0);
+    expect(exempt.souls.div(plain.souls).toNumber()).toBeCloseTo(2);
+    expect(exempt.kc.div(plain.kc).toNumber()).toBeCloseTo(2);
+    expect(exempt.creditedSec).toBe(plain.creditedSec);
+  });
   it('credits half rate for elapsed time under the cap', () => {
     const r = applyOffline(base(), content, 600, 0);
     expect(r.creditedSec).toBe(600);

@@ -4,14 +4,14 @@ import { content } from '../data';
 import { loadContent, ALWAYS_AVAILABLE_DAILY_KINDS } from './content';
 import intake from '../data/departments/intake.json';
 import dailies from '../data/dailies.json';
-import { dayKey, nextLocalMidnight, daysBetween, pickTasks, rollover, claimDaily, skipDaily, progressOf, isDone, TASKS_PER_DAY } from './dailies';
+import { dayKey, nextLocalMidnight, daysBetween, pickTasks, rollover, claimDaily, skipDaily, skipDailyFree, progressOf, isDone, TASKS_PER_DAY } from './dailies';
 import { voucherMult, grantVouchers, grantVouchersExact } from './vouchers';
 
 const now = { wall: 0, mono: 0 };
 const T0 = new Date(2026, 8, 14, 10, 0, 0).getTime();
 const day = (n: number) => T0 + n * 86_400_000;
-const KIND_STAT = { clicks: 'clicks', hire: 'staffHired', upgrades: 'upgradesBought', equip: 'equips', audit: 'audits', perk: 'perksBought', pulls: 'pulls' } as const;
-const GATED_KINDS = ['equip', 'audit', 'perk', 'pulls'];
+const KIND_STAT = { clicks: 'clicks', hire: 'staffHired', upgrades: 'upgradesBought', equip: 'equips', audit: 'audits', perk: 'perksBought', pulls: 'pulls', ad: 'adsWatched' } as const;
+const GATED_KINDS = ['equip', 'audit', 'perk', 'pulls', 'ad'];
 const fresh = () => createInitialState(now, content);
 /** A player who has unlocked every gated task kind: cards owned, vouchers banked, Seals to spend, one audit filed. */
 const unlockedAll = (): GameState => {
@@ -46,6 +46,16 @@ describe('task feasibility', () => {
       expect(drawn, dayKey(day(i))).toHaveLength(TASKS_PER_DAY);
       for (const t of drawn) expect(GATED_KINDS, `${dayKey(day(i))} drew ${t.id}`).not.toContain(t.kind);
     }
+  });
+  it('offers the ad task only when the store reports an ad network', () => {
+    const s = unlockedAll();
+    const drawn = (adsReady: boolean) => {
+      const kinds = new Set<string>();
+      for (let i = 0; i < 365; i++) for (const t of pickTasks(content, dayKey(day(i)), s, { adsReady })) kinds.add(t.kind);
+      return kinds;
+    };
+    expect(drawn(false).has('ad')).toBe(false);
+    expect(drawn(true).has('ad')).toBe(true);
   });
   it('offers gated kinds once the player can do them', () => {
     const s = unlockedAll();
@@ -146,6 +156,23 @@ describe('claim and skip', () => {
     expect(s1.dailies.skipTokens).toBe(0);
     expect(claimDaily(s1, content, id, new Decimal(1)).vouchers).toBe(1);
     expect(skipDaily(s1, content, s1.dailies.tasks[1].id)).toBe(s1);
+  });
+  it('writes a task off without a token for the rewarded-ad skip', () => {
+    const s0 = rollover({ ...createInitialState(now, content), vouchers: 0 }, content, T0);
+    const noTokens = { ...s0, dailies: { ...s0.dailies, skipTokens: 0 } };
+    const id = noTokens.dailies.tasks[0].id;
+    // A skip token would be refused here; the ad reward is not.
+    expect(skipDaily(noTokens, content, id)).toBe(noTokens);
+    const s1 = skipDailyFree(noTokens, content, id);
+    expect(s1.dailies.skipped).toEqual([id]);
+    expect(s1.dailies.skipTokens).toBe(0);
+    // Already written off, so a second ad changes nothing.
+    expect(skipDailyFree(s1, content, id)).toBe(s1);
+  });
+  it('grants two exact vouchers on a rollover for a union member', () => {
+    const s0 = { ...createInitialState(now, content), vouchers: 0, perks: ['requisition-1'] };
+    expect(rollover(s0, content, T0, { unionActive: true }).vouchers).toBe(2);
+    expect(rollover(s0, content, T0).vouchers).toBe(0);
   });
   it('grants the streak bonus on every 7th consecutive day', () => {
     let s = { ...ready() };

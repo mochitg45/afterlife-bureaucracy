@@ -47,6 +47,8 @@ export interface DailyBaseline {
   audits: number;
   perksBought: number;
   pulls: number;
+  /** Rewarded ads watched before today, so the "watch an ad" daily measures today's alone. */
+  adsWatched: number;
 }
 
 export interface DailiesState {
@@ -156,7 +158,7 @@ export function createInitialState(now: Now, content: Content): GameState {
       bestStreak: 0,
       skipTokens: 0,
       lastTokenDate: '',
-      baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
+      baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0, adsWatched: 0 },
       completedToday: false,
       soulsPerSecSnapshot: '0',
     },
@@ -328,6 +330,7 @@ function sanitizeDailies(v: unknown, knownDailyIds: Set<string>, fallback: Daili
       audits: num(rawBaseline.audits, fallback.baseline.audits),
       perksBought: num(rawBaseline.perksBought, fallback.baseline.perksBought),
       pulls: num(rawBaseline.pulls, fallback.baseline.pulls),
+      adsWatched: num(rawBaseline.adsWatched, fallback.baseline.adsWatched),
     },
     completedToday: typeof raw.completedToday === 'boolean' ? raw.completedToday : fallback.completedToday,
     soulsPerSecSnapshot: typeof raw.soulsPerSecSnapshot === 'string' ? raw.soulsPerSecSnapshot : fallback.soulsPerSecSnapshot,

@@ -105,7 +105,7 @@ const cardSchema = z.object({
 const dailySchema = z
   .object({
     id: z.string().min(1),
-    kind: z.enum(['clicks', 'hire', 'upgrades', 'equip', 'audit', 'perk', 'pulls', 'rate']),
+    kind: z.enum(['clicks', 'hire', 'upgrades', 'equip', 'audit', 'perk', 'pulls', 'rate', 'ad']),
     target: z.number().int().positive(),
     text: z.string().min(1),
   })

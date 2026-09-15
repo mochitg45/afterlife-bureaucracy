@@ -5,6 +5,7 @@ import { perkGlobalMult, perkDeptMult, perkSum } from './perks';
 import { cardGlobalMult, cardDeptMult, cardClickMult } from './gacha';
 import { achievementMult } from './achievements';
 import { clauseGlobalMult } from './cosmic';
+import { unionGlobalMult } from './entitlements';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -92,7 +93,8 @@ export function globalMult(state: GameState, content: Content, nowWall: number):
     .mul(perkGlobalMult(state, content))
     .mul(cardGlobalMult(state, content))
     .mul(achievementMult(state))
-    .mul(clauseGlobalMult(state, content));
+    .mul(clauseGlobalMult(state, content))
+    .mul(unionGlobalMult(state, nowWall));
 }
 
 export interface Rates {

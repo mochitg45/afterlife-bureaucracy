@@ -33,7 +33,7 @@ function dailiesWith(overrides: Partial<DailiesState> = {}): DailiesState {
     bestStreak: 5,
     skipTokens: 1,
     lastTokenDate: TODAY,
-    baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
+    baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0, adsWatched: 0 },
     completedToday: false,
     soulsPerSecSnapshot: '0',
     ...overrides,
