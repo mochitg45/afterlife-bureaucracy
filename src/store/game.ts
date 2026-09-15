@@ -7,6 +7,7 @@ import { computeRates, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
 import { canAudit, fileAudit } from '../engine/prestige';
 import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/offline';
+import { assessGap, newProcessId, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
@@ -68,6 +69,11 @@ export interface GameStore {
   pendingStory: StoryDef[];
   recentAchievements: AchievementDef[];
   mood: 'ok' | 'cooked';
+  /**
+   * The device clock could not be trusted on the last assessed gap. Sticky for the rest of
+   * the session: the daily rollover stays frozen until a boot with an honest gap clears it.
+   */
+  clockSuspect: boolean;
   boot(): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -127,6 +133,7 @@ export function createGameStore(deps: StoreDeps) {
   let booting: Promise<void> | null = null;
   let booted = false;
   let resuming: Promise<void> | null = null;
+  let processId = '';
 
   return createWithEqualityFn<GameStore>((set, get) => {
     /** Also folds in the story memos the player has already seen; every department shares them. */
@@ -145,8 +152,13 @@ export function createGameStore(deps: StoreDeps) {
      * The engine holds no rates of its own, so the "reach N souls per second" daily can only
      * be judged against a snapshot; this is where it gets stamped.
      */
-    const settle = (next: GameState): { state: GameState; rates: Rates; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
-      const rolled = rollover(next, content, clock.wall());
+    const settle = (
+      next: GameState,
+      suspect: boolean = get().clockSuspect,
+    ): { state: GameState; rates: Rates; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
+      // A rewound or jumped clock would otherwise hand out a fresh set of daily tasks on
+      // demand, so the rollover stays frozen until the clock looks honest again.
+      const rolled = suspect ? next : rollover(next, content, clock.wall());
       const a = checkAchievements(rolled, content);
       const st = checkStory(a.state, content);
       const rates = computeRates(st.state, content, clock.wall());
@@ -172,16 +184,26 @@ export function createGameStore(deps: StoreDeps) {
 
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
-    /** Credit the wall-clock gap since the state was last seen, if it is worth crediting. */
-    const creditOffline = (state: GameState): { state: GameState; pendingOffline: PendingOffline | null; elapsedSec: number } => {
-      const elapsedSec = (clock.wall() - state.lastSeenWallClock) / 1000;
-      if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null, elapsedSec };
+    /**
+     * Credit the gap since the state was last seen, if it is worth crediting. How much of the
+     * wall-clock gap is honest is engine/integrity.ts's call, not this store's.
+     */
+    const creditOffline = (
+      state: GameState,
+    ): { state: GameState; pendingOffline: PendingOffline | null; elapsedSec: number; assessment: GapAssessment } => {
+      const assessment = assessGap(
+        { lastSeenWallClock: state.lastSeenWallClock, uptimeAtSave: state.uptimeAtSave, processId: state.processId },
+        { wall: clock.wall(), mono: clock.mono(), processId },
+      );
+      const elapsedSec = assessment.creditSec;
+      if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null, elapsedSec, assessment };
       const r = applyOffline(state, content, elapsedSec, clock.wall());
-      if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null, elapsedSec };
+      if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null, elapsedSec, assessment };
       return {
         state: r.state,
         pendingOffline: { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped },
         elapsedSec,
+        assessment,
       };
     };
 
@@ -219,14 +241,20 @@ export function createGameStore(deps: StoreDeps) {
       pendingStory: [],
       recentAchievements: [],
       mood: 'ok',
+      clockSuspect: false,
 
       boot() {
         if (booting) return booting;
         booting = (async () => {
+          // A fresh id per boot: the forward-jump rule must only ever fire on a resume within
+          // this same process, never across a restart where uptime legitimately starts over.
+          processId = newProcessId();
           const saved = await storage.get(SAVE_KEY);
           let state = createInitialState({ wall: clock.wall(), mono: clock.mono() }, content);
           let pendingOffline: PendingOffline | null = null;
           let elapsedSec = 0;
+          // A fresh file has no gap to assess, so it starts from an honest clock.
+          let suspect = false;
           if (saved) {
             let loaded: GameState | null = null;
             try {
@@ -235,9 +263,16 @@ export function createGameStore(deps: StoreDeps) {
               console.warn('Unreadable save: keeping a copy at ' + CORRUPT_SAVE_KEY + ' and starting a fresh file.', err);
               await storage.set(CORRUPT_SAVE_KEY, saved);
             }
-            if (loaded) ({ state, pendingOffline, elapsedSec } = creditOffline(loaded));
+            if (loaded) {
+              const credited = creditOffline(loaded);
+              ({ state, pendingOffline, elapsedSec } = credited);
+              // This boot's verdict replaces any earlier one: an 'ok' or 'capped' gap is what
+              // clears a flag a previous session set.
+              suspect = credited.assessment.suspect;
+            }
           }
-          const r = settle(state);
+          state = { ...state, processId };
+          const r = settle(state, suspect);
           const dept = findDepartment(content, r.state.activeDept);
           set((cur) => ({
             state: r.state,
@@ -249,6 +284,7 @@ export function createGameStore(deps: StoreDeps) {
             recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
             pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
             mood: moodAfterGap(pendingOffline, elapsedSec),
+            clockSuspect: suspect,
           }));
           booted = true;
           startTimers();
@@ -302,8 +338,10 @@ export function createGameStore(deps: StoreDeps) {
         if (resuming) return resuming;
         resuming = (async () => {
           try {
-            const { state, pendingOffline, elapsedSec } = creditOffline(get().state);
-            const r = settle(state);
+            const { state, pendingOffline, elapsedSec, assessment } = creditOffline(get().state);
+            // A resume can only raise suspicion; only a boot clears it.
+            const suspect = get().clockSuspect || assessment.suspect;
+            const r = settle(state, suspect);
             set((cur) => ({
               state: r.state,
               rates: r.rates,
@@ -311,6 +349,7 @@ export function createGameStore(deps: StoreDeps) {
               recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
               pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
               mood: moodAfterGap(pendingOffline, elapsedSec),
+              clockSuspect: suspect,
             }));
             notifications.cancelAll().catch(() => {});
             startTimers();

@@ -310,3 +310,106 @@ describe('prestige and perks in the store', () => {
     s2.getState().stopLoop();
   });
 });
+
+describe('clock integrity in the store', () => {
+  const W0 = 1_700_000_000_000;
+
+  /** A store on its own memory storage, with the tick loop effectively disabled. */
+  async function integrityStore(saved?: string) {
+    const storage = memoryStorage();
+    if (saved) await storage.set(SAVE_KEY, saved);
+    const clock = fakeClock({ wall: W0, mono: 10_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    return { store, storage, clock };
+  }
+
+  it('stamps a fresh process id on boot and writes it to the save', async () => {
+    const { store, storage } = await integrityStore();
+    await store.getState().boot();
+    const id = store.getState().state.processId;
+    expect(id).not.toBe('');
+    await store.getState().save();
+    expect(JSON.parse((await storage.get(SAVE_KEY))!).processId).toBe(id);
+    store.getState().stopLoop();
+  });
+
+  it('gives two boots of the same save different process ids', async () => {
+    const a = await integrityStore();
+    await a.store.getState().boot();
+    await a.store.getState().save();
+    a.store.getState().stopLoop();
+    const saved = (await a.storage.get(SAVE_KEY))!;
+    const b = await integrityStore(saved);
+    await b.store.getState().boot();
+    b.store.getState().stopLoop();
+    expect(JSON.parse(saved).processId).not.toBe('');
+    expect(b.store.getState().state.processId).not.toBe(JSON.parse(saved).processId);
+  });
+
+  it('credits nothing and skips the daily rollover when the wall clock moves backwards', async () => {
+    const { store, clock } = await integrityStore();
+    await store.getState().boot();
+    hireDave(store);
+    await store.getState().pause();
+    const before = store.getState().state.soulsRun.toNumber();
+    const dateBefore = store.getState().state.dailies.date;
+    expect(dateBefore).not.toBe('');
+    clock.setWall(clock.wall() - 2 * 86_400_000);
+    await store.getState().resume();
+    expect(store.getState().state.soulsRun.toNumber()).toBeCloseTo(before);
+    expect(store.getState().pendingOffline).toBeNull();
+    expect(store.getState().state.dailies.date).toBe(dateBefore);
+    expect(store.getState().clockSuspect).toBe(true);
+    store.getState().stopLoop();
+  });
+
+  it('credits only the monotonic gap when the wall clock jumps forward mid-process', async () => {
+    const { store, clock } = await integrityStore();
+    await store.getState().boot();
+    hireDave(store);
+    await store.getState().pause();
+    const before = store.getState().state.soulsRun.toNumber();
+    const dateBefore = store.getState().state.dailies.date;
+    clock.advance(120_000);                       // two honest minutes of uptime
+    clock.setWall(clock.wall() + 3_600_000);      // ... and an hour the clock invented
+    await store.getState().resume();
+    const p = store.getState().pendingOffline!;
+    expect(p).not.toBeNull();
+    expect(p.elapsedSec).toBe(120);
+    expect(p.creditedSec).toBe(120);
+    expect(store.getState().state.soulsRun.toNumber() - before).toBeCloseTo(0.5 * 120 * 0.5);
+    expect(store.getState().state.dailies.date).toBe(dateBefore);
+    expect(store.getState().clockSuspect).toBe(true);
+    store.getState().stopLoop();
+  });
+
+  it('credits a sixty-day gap as thirty days', async () => {
+    const s = createInitialState({ wall: W0 - 60 * 86_400_000, mono: 0 }, content);
+    s.staff = { dave: 1 };
+    const { store } = await integrityStore(serialize(s));
+    await store.getState().boot();
+    const p = store.getState().pendingOffline!;
+    expect(p.elapsedSec).toBe(30 * 86_400);
+    expect(p.creditedSec).toBe(4 * 3600);  // still bounded by the offline cap
+    expect(p.capped).toBe(true);
+    expect(store.getState().clockSuspect).toBe(false);
+    store.getState().stopLoop();
+  });
+
+  it('clears the suspect flag on the next honest boot', async () => {
+    const future = createInitialState({ wall: W0 + 2 * 86_400_000, mono: 0 }, content);
+    future.staff = { dave: 1 };
+    const { store, storage, clock } = await integrityStore(serialize(future));
+    await store.getState().boot();
+    expect(store.getState().clockSuspect).toBe(true);
+    expect(store.getState().pendingOffline).toBeNull();
+    await store.getState().save();
+    store.getState().stopLoop();
+
+    const again = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    await again.getState().boot();
+    expect(again.getState().clockSuspect).toBe(false);
+    expect(again.getState().state.dailies.date).not.toBe('');
+    again.getState().stopLoop();
+  });
+});

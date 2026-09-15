@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 type Raw = Record<string, unknown>;
 
@@ -58,6 +58,19 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
     voucherFraction: 0,
     dailies: { ...((raw.dailies as object) ?? {}), soulsPerSecSnapshot: '0' },
     settings: { ...((raw.settings as object) ?? {}), notifDate: '', notifsSent: 0 },
+  }),
+  // 5 -> 6: monetization (entitlements, rewarded-ad bookkeeping), Cosmic Restructuring
+  // and the per-process id the clock-integrity check reads. processId is left empty: the
+  // process that wrote this save is long gone, so no same-process comparison is valid.
+  (raw) => ({
+    ...raw,
+    entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false },
+    adState: { freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 },
+    cosmicPoints: 0,
+    cosmicClauses: [],
+    branchesUnlocked: [],
+    processId: '',
+    stats: { ...((raw.stats as object) ?? {}), cosmics: 0, purchases: 0 },
   }),
 ];
 

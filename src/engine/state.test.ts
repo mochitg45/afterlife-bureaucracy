@@ -8,6 +8,7 @@ import saveV2 from './fixtures/save-v2.json';
 import saveV3 from './fixtures/save-v3.json';
 import saveV4 from './fixtures/save-v4.json';
 import saveV5 from './fixtures/save-v5.json';
+import saveV6 from './fixtures/save-v6.json';
 
 const now = { wall: 1_700_000_000_000, mono: 5_000 };
 
@@ -210,6 +211,74 @@ describe('save v5', () => {
   });
 });
 
+describe('save v6', () => {
+  it('initial state carries the v6 defaults', () => {
+    const s = createInitialState(now, content);
+    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(s.adState).toEqual({ freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 });
+    expect(s.cosmicPoints).toBe(0);
+    expect(s.cosmicClauses).toEqual([]);
+    expect(s.branchesUnlocked).toEqual([]);
+    expect(s.processId).toBe('');
+    expect(s.stats.cosmics).toBe(0);
+    expect(s.stats.purchases).toBe(0);
+  });
+  it('migrates a v5 save to v6 with defaults, keeping the rest of it', () => {
+    const s = deserialize(JSON.stringify(saveV5), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(s.adState).toEqual({ freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 });
+    expect(s.cosmicPoints).toBe(0);
+    expect(s.cosmicClauses).toEqual([]);
+    expect(s.branchesUnlocked).toEqual([]);
+    expect(s.processId).toBe('');
+    expect(s.stats.cosmics).toBe(0);
+    expect(s.stats.purchases).toBe(0);
+    expect(s.voucherFraction).toBeCloseTo(0.4);
+    expect(s.dailies.streak).toBe(3);
+  });
+  it('loads the v6 fixture', () => {
+    const s = deserialize(JSON.stringify(saveV6), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true });
+    expect(s.adState).toEqual({ freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1700000300000 });
+    expect(s.cosmicPoints).toBe(2);
+    expect(s.cosmicClauses).toEqual(['clause-throughput-1']);
+    expect(s.branchesUnlocked).toEqual(['valhalla']);
+    expect(s.processId).toBe('abc123');
+    expect(s.stats.cosmics).toBe(1);
+    expect(s.stats.purchases).toBe(3);
+  });
+  it('sanitises the entitlement and ad-state fields', () => {
+    const raw = {
+      ...saveV6,
+      entitlements: { removeAds: 'yes', unionUntilWall: -5, starterPackBought: 1 },
+      adState: { freePullDate: 7, dailySkipDate: null, boostCooldownUntilWall: -200 },
+      cosmicPoints: -3,
+      stats: { ...saveV6.stats, cosmics: -1, purchases: 'x' },
+    };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(s.adState).toEqual({ freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 });
+    expect(s.cosmicPoints).toBe(0);
+    expect(s.stats.cosmics).toBe(0);
+    expect(s.stats.purchases).toBe(0);
+  });
+  it('drops non-string and duplicate clause and branch ids', () => {
+    const raw = { ...saveV6, cosmicClauses: ['clause-throughput-1', 7, 'clause-throughput-1', null], branchesUnlocked: ['valhalla', 'valhalla', false] };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.cosmicClauses).toEqual(['clause-throughput-1']);
+    expect(s.branchesUnlocked).toEqual(['valhalla']);
+  });
+  it('falls back to empty arrays when the clause fields are not arrays', () => {
+    const raw = { ...saveV6, cosmicClauses: 'clause-throughput-1', branchesUnlocked: 3, processId: 42 };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.cosmicClauses).toEqual([]);
+    expect(s.branchesUnlocked).toEqual([]);
+    expect(s.processId).toBe('');
+  });
+});
+
 describe('exhaustive save round-trip', () => {
   it('carries every field of a fully non-default state through serialize/deserialize', () => {
     const s: GameState = {
@@ -229,7 +298,7 @@ describe('exhaustive save round-trip', () => {
       boostUntilWall: 1_700_000_123_456,
       lastSeenWallClock: 1_700_000_000_000,
       uptimeAtSave: 98_765,
-      stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5, pulls: 9, equips: 2, dailiesClaimed: 4, adsWatched: 1, perksBought: 3 },
+      stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5, pulls: 9, equips: 2, dailiesClaimed: 4, adsWatched: 1, perksBought: 3, cosmics: 2, purchases: 4 },
       cards: { 'c-dave-overtime': 3, 'c-seraphine-chipper': 1 },
       equipped: ['c-dave-overtime'],
       pity: { senior: 4, executive: 12 },
@@ -250,6 +319,12 @@ describe('exhaustive save round-trip', () => {
       storySeen: ['s-first-stamp', 's-deja-vu'],
       settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1 },
       firstSeenWallClock: 1_699_000_000_000,
+      entitlements: { removeAds: true, unionUntilWall: 1_700_000_999_000, starterPackBought: true },
+      adState: { freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1_700_000_555_000 },
+      cosmicPoints: 3,
+      cosmicClauses: ['clause-throughput-1', 'clause-seals-1'],
+      branchesUnlocked: ['valhalla'],
+      processId: 'k3f9zq',
     };
     const back = deserialize(serialize(s), content);
     expect(Object.keys(back).sort()).toEqual(Object.keys(s).sort());

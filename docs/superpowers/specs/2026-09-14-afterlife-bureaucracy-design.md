@@ -188,8 +188,8 @@ src/
 
 - Save format: versioned JSON (`saveVersion` integer) with a migration chain in `engine/migrations.ts`. Every version bump adds a migration and a test fixture.
 - Autosave every 10 seconds and on `appStateChange` to background. Stored with Capacitor Preferences (web: localStorage).
-- Cloud save through Play Games Saved Games on Android and iCloud key-value storage on iOS, behind one `CloudSave` interface. On sign-in or manual sync, if local and cloud differ, keep the one with higher lifetime Souls Processed and inform the player. Saves are not shared across the two platforms in v1.
-- Clock integrity: saves carry `lastSeenWallClock` and a monotonic `uptimeAtSave`. On load, if wall clock moved backwards, or the offline gap is implausible relative to uptime, offline earnings for that gap are zero. Overtime Boost deadlines are stored as wall-clock timestamps; the clock-integrity check in this section polices clock rollback. Without a server, some cheating is accepted.
+- Cloud save through Play Games Saved Games on Android and iCloud key-value storage on iOS, behind one `CloudSave` interface. On sign-in or manual sync, if local and cloud differ, keep the one with higher lifetime Souls Processed and inform the player. Saves are not shared across the two platforms in v1. Play Games Saved Games sync ships in v1.1; v1.0 offers a manual export/import save code (Settings).
+- Clock integrity: saves carry `lastSeenWallClock`, a monotonic `uptimeAtSave` and the `processId` that wrote them. On load, `engine/integrity.ts` assesses the gap: a wall clock moved backwards by more than 60 s credits nothing and freezes the daily rollover until the next honest boot; within one process, a wall-clock jump exceeding the monotonic gap by more than 5 minutes credits only the monotonic gap; any single gap longer than 30 days is credited as 30 days. Overtime Boost deadlines are stored as wall-clock timestamps; the clock-integrity check in this section polices clock rollback. Without a server, some cheating is accepted.
 
 ## 13. Testing and balance
 
@@ -200,8 +200,8 @@ src/
 
 ## 14. Release phasing
 
-- **v1.0** — everything above except weekly events and the Cosmic Restructuring UI. Store-ready: privacy policy, odds disclosure, data-safety form, adaptive icon, screenshots.
-- **v1.1** — weekly events with CDN config and Play Games leaderboard.
+- **v1.0** — everything above except weekly events, cloud sync and the Cosmic Restructuring UI. Play Games achievements and leaderboard, plus a manual export/import save code in place of cloud sync. Store-ready: privacy policy, odds disclosure, data-safety form, adaptive icon, screenshots.
+- **v1.1** — weekly events with CDN config, and Play Games Saved Games sync.
 - **v1.2** — Cosmic Restructuring UI and the Valhalla branch (new department data plus Cosmic Clauses).
 
 ## 15. Out of scope

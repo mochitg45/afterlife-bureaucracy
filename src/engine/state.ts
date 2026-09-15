@@ -15,6 +15,26 @@ export interface Stats {
   dailiesClaimed: number;
   adsWatched: number;
   perksBought: number;
+  cosmics: number;
+  purchases: number;
+}
+
+/** Things the player owns for good (or until a subscription lapses), never reset by a run. */
+export interface Entitlements {
+  removeAds: boolean;
+  /** Wall-clock ms-epoch the Union Membership runs to; 0 when not subscribed. */
+  unionUntilWall: number;
+  starterPackBought: boolean;
+}
+
+/** Per-day and per-cooldown bookkeeping for the rewarded-ad placements. */
+export interface AdState {
+  /** Local day key the free single pull was taken on. */
+  freePullDate: string;
+  /** Local day key the daily-skip reward was taken on. */
+  dailySkipDate: string;
+  /** Wall-clock ms-epoch before which the Overtime Boost ad is unavailable. */
+  boostCooldownUntilWall: number;
 }
 
 export interface DailyTaskState { id: string; claimed: boolean }
@@ -84,6 +104,13 @@ export interface GameState {
   storySeen: string[];
   settings: Settings;
   firstSeenWallClock: number;
+  entitlements: Entitlements;
+  adState: AdState;
+  cosmicPoints: number;
+  cosmicClauses: string[];
+  branchesUnlocked: string[];
+  /** The process that last wrote this save; see engine/integrity.ts. */
+  processId: string;
 }
 
 export interface Now { wall: number; mono: number }
@@ -112,7 +139,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     boostUntilWall: 0,
     lastSeenWallClock: now.wall,
     uptimeAtSave: now.mono,
-    stats: { clicks: 0, staffHired: 0, upgradesBought: 0, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0 },
+    stats: { clicks: 0, staffHired: 0, upgradesBought: 0, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0, cosmics: 0, purchases: 0 },
     cards: {},
     equipped: [],
     pity: { senior: 0, executive: 0 },
@@ -133,6 +160,12 @@ export function createInitialState(now: Now, content: Content): GameState {
     storySeen: [],
     settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0 },
     firstSeenWallClock: now.wall,
+    entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false },
+    adState: { freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 },
+    cosmicPoints: 0,
+    cosmicClauses: [],
+    branchesUnlocked: [],
+    processId: '',
   };
 }
 
@@ -208,6 +241,52 @@ function nonNegInt(v: unknown, fallback: number): number {
 function knownIds(v: unknown, known: Set<string>): string[] {
   if (!Array.isArray(v)) return [];
   return (v as unknown[]).filter((id): id is string => typeof id === 'string' && known.has(id));
+}
+
+/** Booleans written by a hand-edited save can arrive as 'true' or 1; only a real boolean counts. */
+function bool(v: unknown, fallback: boolean): boolean {
+  return typeof v === 'boolean' ? v : fallback;
+}
+
+/** Timestamps and counters that can never sensibly be negative. */
+function nonNeg(v: unknown): number {
+  const n = num(v, 0);
+  return n >= 0 ? n : 0;
+}
+
+function str(v: unknown): string {
+  return typeof v === 'string' ? v : '';
+}
+
+/**
+ * Free-form id arrays (Cosmic Clauses, unlocked branches). Task 2 tightens these to the ids
+ * `content` actually ships; until then anything that is a string survives, de-duplicated.
+ */
+function stringIds(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const id of v as unknown[]) {
+    if (typeof id === 'string' && !out.includes(id)) out.push(id);
+  }
+  return out;
+}
+
+function sanitizeEntitlements(v: unknown): Entitlements {
+  const raw = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  return {
+    removeAds: bool(raw.removeAds, false),
+    unionUntilWall: nonNeg(raw.unionUntilWall),
+    starterPackBought: bool(raw.starterPackBought, false),
+  };
+}
+
+function sanitizeAdState(v: unknown): AdState {
+  const raw = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  return {
+    freePullDate: str(raw.freePullDate),
+    dailySkipDate: str(raw.dailySkipDate),
+    boostCooldownUntilWall: nonNeg(raw.boostCooldownUntilWall),
+  };
 }
 
 function sanitizeDailies(v: unknown, knownDailyIds: Set<string>, fallback: DailiesState): DailiesState {
@@ -319,6 +398,8 @@ export function deserialize(json: string, content: Content): GameState {
       dailiesClaimed: num(rawStats.dailiesClaimed, 0),
       adsWatched: num(rawStats.adsWatched, 0),
       perksBought: num(rawStats.perksBought, 0),
+      cosmics: nonNeg(rawStats.cosmics),
+      purchases: nonNeg(rawStats.purchases),
     },
     cards,
     equipped: equippedCards(raw.equipped, cards),
@@ -335,5 +416,11 @@ export function deserialize(json: string, content: Content): GameState {
     storySeen: knownIds(raw.storySeen, knownStoryIds),
     settings: sanitizeSettings(raw.settings),
     firstSeenWallClock: num(raw.firstSeenWallClock, lastSeenWallClock),
+    entitlements: sanitizeEntitlements(raw.entitlements),
+    adState: sanitizeAdState(raw.adState),
+    cosmicPoints: nonNeg(raw.cosmicPoints),
+    cosmicClauses: stringIds(raw.cosmicClauses),
+    branchesUnlocked: stringIds(raw.branchesUnlocked),
+    processId: str(raw.processId),
   }, content);
 }

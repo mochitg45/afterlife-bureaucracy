@@ -90,7 +90,7 @@ describe('fileAudit', () => {
     vouchers: 4,
     perks: ['throughput-1'],
     boostUntilWall: 5,
-    stats: { clicks: 10, staffHired: 53, upgradesBought: 2, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0 },
+    stats: { clicks: 10, staffHired: 53, upgradesBought: 2, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0, cosmics: 0, purchases: 0 },
   });
   const expected = Math.floor(SEAL_COEFF * 9 ** 0.4);
   it('refuses below the threshold', () => {
