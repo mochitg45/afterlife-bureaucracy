@@ -109,6 +109,11 @@ export interface GameStore {
   clockSuspect: boolean;
   /** Whether the ad SDK has an ad to show. Every rewarded button is gated on it. */
   adsReady: boolean;
+  /**
+   * The placement whose ad is on screen. Single-flight: a second rewarded ad started over
+   * the first would spend one day's allowance twice.
+   */
+  adPending: AdPlacement | null;
   /** The store catalogue, loaded in the background on boot; empty until it lands. */
   products: Product[];
   /** The purchase currently in flight, so the Store tab can disable itself while it runs. */
@@ -192,6 +197,14 @@ export function createGameStore(deps: StoreDeps) {
   let resuming: Promise<void> | null = null;
   let processId = '';
   let stopEntitlementUpdates: (() => void) | null = null;
+  /**
+   * Whether the daily rollover may run — the assessment's own verdict (`allowRollover`),
+   * carried between calls. One rule, one name: `clockSuspect` is the *UI and ad* flag and
+   * says nothing about the rollover, and this says nothing about the UI.
+   *
+   * A fresh file has no gap to assess, so it starts honest.
+   */
+  let allowRollover = true;
 
   return createWithEqualityFn<GameStore>((set, get) => {
     /** Also folds in the story memos the player has already seen; every department shares them. */
@@ -250,13 +263,13 @@ export function createGameStore(deps: StoreDeps) {
      */
     const settle = (
       next: GameState,
-      suspect: boolean = get().clockSuspect,
+      allow: boolean = allowRollover,
     ): { state: GameState; rates: Rates; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
       const wall = clock.wall();
       const member = unionActive(next, wall);
       // A rewound or jumped clock would otherwise hand out a fresh set of daily tasks on
       // demand, so the rollover stays frozen until the clock looks honest again.
-      const rolled = suspect ? next : rollover(next, content, wall, { unionActive: member, adsReady: get().adsReady });
+      const rolled = allow ? rollover(next, content, wall, { unionActive: member, adsReady: get().adsReady }) : next;
       // A membership claims finished paperwork for you; without one the player claims it.
       const claimed = member ? autoClaimDailies(rolled) : rolled;
       const a = checkAchievements(claimed, content);
@@ -386,6 +399,7 @@ export function createGameStore(deps: StoreDeps) {
       mood: 'ok',
       clockSuspect: false,
       adsReady: false,
+      adPending: null,
       products: [],
       purchasePending: null,
       lastCosmic: null,
@@ -435,6 +449,7 @@ export function createGameStore(deps: StoreDeps) {
           let elapsedSec = 0;
           // A fresh file has no gap to assess, so it starts from an honest clock.
           let suspect = false;
+          allowRollover = true;
           if (saved) {
             let loaded: GameState | null = null;
             try {
@@ -449,10 +464,11 @@ export function createGameStore(deps: StoreDeps) {
               // This boot's verdict replaces any earlier one: an 'ok' or 'capped' gap is what
               // clears a flag a previous session set.
               suspect = credited.assessment.suspect;
+              allowRollover = credited.assessment.allowRollover;
             }
           }
           state = { ...state, processId };
-          const r = settle(state, suspect);
+          const r = settle(state, allowRollover);
           const dept = findDepartment(content, r.state.activeDept);
           set((cur) => ({
             state: r.state,
@@ -519,9 +535,11 @@ export function createGameStore(deps: StoreDeps) {
         resuming = (async () => {
           try {
             const { state, pendingOffline, elapsedSec, assessment } = creditOffline(get().state);
-            // A resume can only raise suspicion; only a boot clears it.
+            // A resume can only raise suspicion; only a boot clears it. The rollover gate
+            // follows the same one-way rule, under its own name.
             const suspect = get().clockSuspect || assessment.suspect;
-            const r = settle(state, suspect);
+            allowRollover = allowRollover && assessment.allowRollover;
+            const r = settle(state, allowRollover);
             set((cur) => ({
               state: r.state,
               rates: r.rates,
@@ -631,6 +649,9 @@ export function createGameStore(deps: StoreDeps) {
 
       canWatch(placement) {
         if (!get().adsReady) return false;
+        // Every placement's allowance is keyed to a day or a wall-clock cooldown, so a clock
+        // that cannot be trusted can farm all four. Closed until an honest boot clears it.
+        if (get().clockSuspect) return false;
         const s = get().state;
         const wall = clock.wall();
         switch (placement) {
@@ -649,17 +670,36 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       async watchAd(placement, taskId) {
+        // Single-flight across every placement: two ads in flight would each check the gate
+        // before either had spent it.
+        if (get().adPending) return 'unavailable';
         if (!get().canWatch(placement)) return 'unavailable';
         // Checked before the ad plays: nobody watches thirty seconds for a reward that has
         // nowhere to land.
         if (placement === 'daily-skip' && !taskId) return 'unavailable';
         let result: AdResult;
+        set({ adPending: placement });
         try {
           result = await ads.showRewarded(placement);
         } catch {
           return 'unavailable';
+        } finally {
+          set({ adPending: null });
         }
         if (result !== 'rewarded') return result;
+
+        // An ad is thirty seconds the device clock could be nudged through, and a placement's
+        // allowance is spent against the day it is granted on. Re-assess the gap, then ask
+        // canWatch again on the fresh state — not a raw read of the flag that was true when
+        // the ad started — so a midnight crossed mid-ad cannot spend two days of one placement.
+        const s = get().state;
+        const assessment = assessGap(
+          { lastSeenWallClock: s.lastSeenWallClock, uptimeAtSave: s.uptimeAtSave, processId: s.processId },
+          { wall: clock.wall(), mono: clock.mono(), processId },
+        );
+        if (assessment.suspect) set({ clockSuspect: true });
+        if (!assessment.allowRollover) allowRollover = false;
+        if (!get().canWatch(placement)) return 'unavailable';
 
         const wall = clock.wall();
         const today = dayKey(wall);

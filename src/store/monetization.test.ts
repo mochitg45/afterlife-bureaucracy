@@ -7,6 +7,7 @@ import { computeRates } from '../engine/economy';
 import { serialize, type GameState } from '../engine/state';
 import { encodeSave } from '../platform/saveCode';
 import { PLAY_ACHIEVEMENT_IDS } from '../platform/gameIds';
+import { AD_PLACEMENTS } from '../platform/ads';
 import type { Ads, AdPlacement, AdResult } from '../platform/ads';
 import type { Billing, Product, ProductId, PurchaseResult, Restored } from '../platform/billing';
 import type { GameServices } from '../platform/gameServices';
@@ -31,11 +32,16 @@ function fakeAds() {
   const shown: AdPlacement[] = [];
   let ready = true;
   let result: AdResult = 'rewarded';
+  /** Runs while the ad is "on screen", so a test can move the world under it. */
+  let during: (() => void) | null = null;
+  let gate: Promise<void> | null = null;
   const ads: Ads = {
     async init() {},
     isReady: () => ready,
     async showRewarded(placement) {
       shown.push(placement);
+      if (gate) await gate;
+      during?.();
       return result;
     },
   };
@@ -44,6 +50,13 @@ function fakeAds() {
     shown,
     setReady: (v: boolean) => { ready = v; },
     setResult: (r: AdResult) => { result = r; },
+    setDuring: (fn: (() => void) | null) => { during = fn; },
+    /** Holds every ad open until the returned function is called. */
+    hold: () => {
+      let release = () => {};
+      gate = new Promise<void>((r) => { release = r; });
+      return () => { gate = null; release(); };
+    },
   };
 }
 
@@ -239,6 +252,49 @@ describe('rewarded ads', () => {
     await store.getState().boot();
     await expect(store.getState().watchAd('overtime-boost')).resolves.toBe('unavailable');
     expect(store.getState().state.stats.adsWatched).toBe(0);
+    store.getState().stopLoop();
+  });
+
+  it('closes every placement while the clock is suspect', async () => {
+    const { store, clock, seed } = await make();
+    seed({ staff: { dave: 20 } });
+    await store.getState().pause();
+    clock.advance(3600_000);
+    await store.getState().resume();
+    expect(store.getState().pendingOffline).not.toBeNull();
+    for (const p of AD_PLACEMENTS) expect(store.getState().canWatch(p)).toBe(true);
+    store.setState({ clockSuspect: true });
+    for (const p of AD_PLACEMENTS) expect(store.getState().canWatch(p)).toBe(false);
+    expect(await store.getState().watchAd('overtime-boost')).toBe('unavailable');
+    expect(store.getState().state.stats.adsWatched).toBe(0);
+    store.getState().stopLoop();
+  });
+
+  it('runs one ad at a time', async () => {
+    const { store, ads } = await make();
+    const release = ads.hold();
+    const first = store.getState().watchAd('overtime-boost');
+    expect(store.getState().adPending).toBe('overtime-boost');
+    const second = await store.getState().watchAd('free-pull');
+    expect(second).toBe('unavailable');
+    release();
+    expect(await first).toBe('rewarded');
+    expect(store.getState().adPending).toBeNull();
+    expect(ads.shown).toEqual(['overtime-boost']);
+    expect(store.getState().state.stats.adsWatched).toBe(1);
+    store.getState().stopLoop();
+  });
+
+  it('grants nothing when the clock is nudged forward while the ad plays', async () => {
+    const { store, clock, ads } = await make();
+    ads.setDuring(() => clock.setWall(clock.wall() + 3600_000));
+    expect(store.getState().canWatch('free-pull')).toBe(true);
+    expect(await store.getState().watchAd('free-pull')).toBe('unavailable');
+    expect(store.getState().clockSuspect).toBe(true);
+    expect(store.getState().state.adState.freePullDate).toBe('');
+    expect(store.getState().pendingPull).toBeNull();
+    expect(store.getState().state.stats.adsWatched).toBe(0);
+    ads.setDuring(null);
     store.getState().stopLoop();
   });
 });
