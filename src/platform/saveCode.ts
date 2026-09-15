@@ -9,6 +9,13 @@
 
 export const SAVE_CODE_PREFIX = 'AB1.';
 
+/**
+ * Longest code we will even look at. A real save is a few kilobytes; anything past this is
+ * a paste bomb, and rejecting it before the base64 and JSON work keeps a hostile code from
+ * costing the device a decode of an arbitrarily large payload.
+ */
+export const MAX_SAVE_CODE_CHARS = 64 * 1024;
+
 const PREFIX_TAG = 'AB1';
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const CHECKSUM = /^[0-9a-f]{8}$/;
@@ -51,6 +58,8 @@ export function encodeSave(json: string): string {
 }
 
 export function decodeSave(code: string): string {
+  // Checked first, on the raw input: nothing else here touches a string this long.
+  if (code.length > MAX_SAVE_CODE_CHARS) invalid();
   const parts = code.trim().split('.');
   if (parts.length !== 3) invalid();
   const [tag, body, checksum] = parts;

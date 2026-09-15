@@ -835,7 +835,16 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       exportSaveCode() {
-        return encodeSave(serialize(withClocks(get().state)));
+        const s = withClocks(get().state);
+        // A save code carries a run, never a receipt. Purchases belong to the store account
+        // that paid for them, so a shared code cannot hand anyone Remove Ads or a membership.
+        return encodeSave(
+          serialize({
+            ...s,
+            entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false },
+            stats: { ...s.stats, purchases: 0 },
+          }),
+        );
       },
 
       async importSaveCode(code) {
@@ -846,9 +855,19 @@ export function createGameStore(deps: StoreDeps) {
           // Nothing has been written yet, so a bad code leaves the running save untouched.
           return 'invalid';
         }
+        // The other half of the export rule: whatever the code claims about entitlements, the
+        // importer keeps their own. An old code exported before the strip cannot grant any.
+        const mine = get().state;
         // The imported clocks belong to another device: adopting them would credit (or refuse)
         // an offline gap this player never had.
-        const r = settle({ ...imported, processId, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
+        const r = settle({
+          ...imported,
+          processId,
+          lastSeenWallClock: clock.wall(),
+          uptimeAtSave: clock.mono(),
+          entitlements: mine.entitlements,
+          stats: { ...imported.stats, purchases: mine.stats.purchases },
+        });
         const dept = findDepartment(content, r.state.activeDept);
         set({
           state: r.state,
@@ -860,6 +879,9 @@ export function createGameStore(deps: StoreDeps) {
           queueLine: pick(dept.queue, ''),
           memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
         });
+        // The imported file is a different run: restart the loop so the tick's elapsed-time
+        // baseline and the autosave belong to it, not to the run it replaced.
+        startTimers();
         await get().save();
         return 'ok';
       },

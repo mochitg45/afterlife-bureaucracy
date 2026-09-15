@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encodeSave, decodeSave, SAVE_CODE_PREFIX } from './saveCode';
+import { encodeSave, decodeSave, SAVE_CODE_PREFIX, MAX_SAVE_CODE_CHARS } from './saveCode';
 
 describe('saveCode', () => {
   it('round-trips a json payload', () => {
@@ -14,7 +14,9 @@ describe('saveCode', () => {
 
   it('round-trips an empty object and a large payload', () => {
     expect(decodeSave(encodeSave('{}'))).toBe('{}');
-    const big = JSON.stringify({ blob: 'x'.repeat(200_000) });
+    // Large, but still inside the decoder's length cap.
+    const big = JSON.stringify({ blob: 'x'.repeat(40_000) });
+    expect(encodeSave(big).length).toBeLessThan(MAX_SAVE_CODE_CHARS);
     expect(decodeSave(encodeSave(big))).toBe(big);
   });
 
@@ -67,5 +69,16 @@ describe('saveCode', () => {
   it('tolerates surrounding whitespace when decoding', () => {
     const code = encodeSave('{"a":1}');
     expect(decodeSave(`  ${code}\n`)).toBe('{"a":1}');
+  });
+
+  it('rejects an oversized code before decoding it', () => {
+    // A real save is a few kilobytes. Anything past the cap is refused on its length alone,
+    // before any base64 or JSON work touches it.
+    const body = 'A'.repeat(MAX_SAVE_CODE_CHARS);
+    expect(() => decodeSave(`AB1.${body}.0000000a`)).toThrow('Invalid save code');
+    const big = JSON.stringify({ pad: 'x'.repeat(MAX_SAVE_CODE_CHARS) });
+    const code = encodeSave(big);
+    expect(code.length).toBeGreaterThan(MAX_SAVE_CODE_CHARS);
+    expect(() => decodeSave(code)).toThrow('Invalid save code');
   });
 });

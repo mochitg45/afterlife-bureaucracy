@@ -5,7 +5,7 @@ import { fakeClock } from '../engine/time';
 import { content } from '../data';
 import { computeRates } from '../engine/economy';
 import { serialize, type GameState } from '../engine/state';
-import { encodeSave } from '../platform/saveCode';
+import { decodeSave, encodeSave } from '../platform/saveCode';
 import { PLAY_ACHIEVEMENT_IDS } from '../platform/gameIds';
 import { AD_PLACEMENTS } from '../platform/ads';
 import type { Ads, AdPlacement, AdResult } from '../platform/ads';
@@ -658,6 +658,61 @@ describe('game services and the save code', () => {
     expect(store.getState().state.vouchers).toBe(99);
     expect(store.getState().state.lastSeenWallClock).toBe(clock.wall());
     expect(store.getState().pendingOffline).toBeNull();
+    store.getState().stopLoop();
+  });
+
+  it('exports progress without the receipts', async () => {
+    const { store, seed } = await make();
+    seed({
+      vouchers: 7,
+      entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true },
+      stats: { ...store.getState().state.stats, purchases: 4 },
+    });
+    const exported = JSON.parse(decodeSave(store.getState().exportSaveCode()));
+    expect(exported.vouchers).toBe(7);
+    expect(exported.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(exported.stats.purchases).toBe(0);
+    // The running save keeps everything it had.
+    expect(store.getState().state.entitlements.removeAds).toBe(true);
+    store.getState().stopLoop();
+  });
+
+  it('keeps the importer\'s own entitlements, whatever the code claims', async () => {
+    const { store, seed } = await make();
+    const mine = seed({
+      entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: false },
+      stats: { ...store.getState().state.stats, purchases: 2 },
+    });
+    // A code from an older build, or a hand-edited one, that does carry entitlements.
+    const foreign = {
+      ...mine,
+      vouchers: 42,
+      entitlements: { removeAds: false, unionUntilWall: T0 + 10 * UNION_PERIOD_MS, starterPackBought: true },
+      stats: { ...mine.stats, purchases: 99 },
+    };
+    expect(await store.getState().importSaveCode(encodeSave(serialize(foreign)))).toBe('ok');
+    expect(store.getState().state.vouchers).toBe(42);
+    expect(store.getState().state.entitlements).toEqual({
+      removeAds: true,
+      unionUntilWall: T0 + UNION_PERIOD_MS,
+      starterPackBought: false,
+    });
+    expect(store.getState().state.stats.purchases).toBe(2);
+    store.getState().stopLoop();
+  });
+
+  it('restarts the tick and autosave loop after an import', async () => {
+    const storage = memoryStorage();
+    const clock = fakeClock({ wall: T0, mono: 0 });
+    const store = createGameStore({ content, storage, clock, tickMs: 5, autosaveMs: 5 });
+    await store.getState().boot();
+    const code = store.getState().exportSaveCode();
+    // Stopped, as a boot-less import would leave it: no tick, no autosave.
+    store.getState().stopLoop();
+    expect(await store.getState().importSaveCode(code)).toBe('ok');
+    // The import's own save is not the loop; blank it and wait for the autosave to write again.
+    await storage.set(SAVE_KEY, '');
+    await vi.waitFor(async () => expect((await storage.get(SAVE_KEY))?.length).toBeGreaterThan(0));
     store.getState().stopLoop();
   });
 });
