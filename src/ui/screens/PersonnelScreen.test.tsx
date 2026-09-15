@@ -67,4 +67,11 @@ describe('PersonnelScreen', () => {
     expect(screen.getByText(/senior guaranteed in 3/i)).toBeInTheDocument();
     expect(screen.getByText(/executive guaranteed in 30/i)).toBeInTheDocument();
   });
+  it('shows the settings gear', () => {
+    seed({});
+    const onSettings = vi.fn();
+    render(<PersonnelScreen onSettings={onSettings} />);
+    fireEvent.click(screen.getByRole('button', { name: /settings/i }));
+    expect(onSettings).toHaveBeenCalled();
+  });
 });

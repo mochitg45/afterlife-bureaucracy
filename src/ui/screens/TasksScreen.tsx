@@ -4,6 +4,7 @@ import { content } from '../../data';
 import { progressOf, isDone, type DailyProgressView } from '../../engine/dailies';
 import type { DailyDef } from '../../engine/content';
 import { Badge } from '../components/Badge';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 function fillText(def: DailyDef): string {
   return def.text.replace('{n}', String(def.target));
@@ -65,7 +66,7 @@ const AchievementGrid = memo(function AchievementGrid({ unlocked }: { unlocked: 
   );
 });
 
-export function TasksScreen() {
+export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   // Three narrow subscriptions rather than the whole GameState: a tick changes kc and souls
   // on every fire, and none of this screen depends on either.
   const dailies = useGame((s) => s.state.dailies);
@@ -78,7 +79,7 @@ export function TasksScreen() {
 
   return (
     <section className="screen tasks">
-      <h2 className="visually-hidden">Tasks</h2>
+      <ScreenHeader title="Tasks" onSettings={onSettings} />
       <div className="card">
         <h3>Daily tasks</h3>
         <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>

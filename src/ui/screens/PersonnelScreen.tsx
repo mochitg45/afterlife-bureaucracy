@@ -5,6 +5,7 @@ import { findCard } from '../../engine/content';
 import type { Rarity } from '../../engine/content';
 import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, equipSlots } from '../../engine/gacha';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 /** How long the "No free lanyard" nudge stays up after a blocked equip attempt. */
 const NO_LANYARD_MS = 2000;
@@ -49,7 +50,7 @@ const Collection = memo(function Collection({
   );
 });
 
-export function PersonnelScreen() {
+export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   // Narrow subscriptions rather than the whole GameState: kc and souls move on every tick and
   // nothing on this screen reads them.
   const vouchers = useGame((s) => s.state.vouchers);
@@ -84,7 +85,7 @@ export function PersonnelScreen() {
 
   return (
     <section className="screen personnel">
-      <h2 className="visually-hidden">Personnel</h2>
+      <ScreenHeader title="Personnel" onSettings={onSettings} />
       <header className="card">
         <div className="label">Requisition Vouchers</div>
         <div className="mono value brass">{vouchers} ◇</div>

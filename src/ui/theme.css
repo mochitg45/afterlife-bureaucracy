@@ -171,3 +171,15 @@ button:disabled { opacity: 0.45; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .slam, .foil, .float, .memo-text { animation: none; }
 }
+
+.screen-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.screen-header h2 { font-size: 22px; }
+.screen-header .gear-btn { position: static; }
+.cosmic-panel { margin-top: 12px; }
+.cosmic-card.ready { opacity: 1; border-color: var(--brass); }
+.clause { margin-bottom: 8px; }
+.clause.owned { border-color: var(--green); }
+.clause.owned .seal-cost { color: var(--green); }
+.clause.available { border-color: var(--brass); }
+.clause.locked, .clause.unaffordable { opacity: 0.6; }
+.clause .seal-cost { color: var(--brass); }

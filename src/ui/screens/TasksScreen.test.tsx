@@ -136,4 +136,11 @@ describe('TasksScreen', () => {
     expect(commits).toBe(before);
     expect(screen.getByText(content.achievements[0].name).closest('.badge-tile')).toBe(badge);
   });
+  it('shows the settings gear', () => {
+    seed({ dailies: dailiesWith() });
+    const onSettings = vi.fn();
+    render(<TasksScreen onSettings={onSettings} />);
+    fireEvent.click(screen.getByRole('button', { name: /settings/i }));
+    expect(onSettings).toHaveBeenCalled();
+  });
 });

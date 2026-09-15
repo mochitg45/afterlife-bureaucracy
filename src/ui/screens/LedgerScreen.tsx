@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { sealsForRun, canAudit, auditThreshold } from '../../engine/prestige';
+import { clauseSealMult } from '../../engine/cosmic';
+import { content } from '../../data';
 import { PerkTree } from '../components/PerkTree';
+import { CosmicPanel } from '../components/CosmicPanel';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 /**
  * The live half of the Ledger. Kept in its own component so the souls-this-run readout can
@@ -11,10 +15,12 @@ import { PerkTree } from '../components/PerkTree';
 function AuditCard() {
   const year = useGame((s) => s.state.fiscalYear);
   const soulsRun = useGame((s) => s.state.soulsRun);
+  // Narrow on purpose: the preview needs the Clause seal multiplier, not the whole state.
+  const cosmicClauses = useGame((s) => s.state.cosmicClauses);
   const audit = useGame((s) => s.audit);
   const [confirming, setConfirming] = useState(false);
   const ready = canAudit({ soulsRun, fiscalYear: year });
-  const preview = sealsForRun(soulsRun, year);
+  const preview = sealsForRun(soulsRun, year, clauseSealMult({ cosmicClauses }, content));
   const onAudit = () => {
     if (!confirming) { setConfirming(true); return; }
     setConfirming(false);
@@ -37,12 +43,12 @@ function AuditCard() {
   );
 }
 
-export function LedgerScreen() {
+export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
   const seals = useGame((s) => s.state.seals);
   const year = useGame((s) => s.state.fiscalYear);
   return (
     <section className="screen ledger">
-      <h2 className="visually-hidden">Ledger</h2>
+      <ScreenHeader title="Ledger" onSettings={onSettings} />
       <header className="currency-bar card">
         <div><div className="label">Karma Seals</div><div className="mono value brass">{seals} ◆</div></div>
         <div><div className="label">Fiscal Year</div><div className="mono value">{year}</div></div>
@@ -50,10 +56,7 @@ export function LedgerScreen() {
       <AuditCard />
       <div className="section-head"><h3>Perk Ledger</h3><span className="sub">Spend Seals. Permanent.</span></div>
       <PerkTree />
-      <div className="card cosmic-card">
-        <h3>Cosmic Restructuring</h3>
-        <p className="sub">Unlocks at 100 Seals. The Auditor has been asking questions.</p>
-      </div>
+      <CosmicPanel />
     </section>
   );
 }

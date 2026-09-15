@@ -67,9 +67,23 @@ describe('LedgerScreen', () => {
     expect(screen.getByRole('button', { name: /stamped memo pads/i })).toHaveClass('owned');
     expect(screen.getByRole('button', { name: /two-sided forms/i })).toHaveClass('unaffordable');
   });
+  it('applies the clause seal multiplier to the audit preview', () => {
+    const mult = 1.5; // clause-seals-1
+    const gained = Math.floor(SEAL_COEFF * 9 ** 0.4 * mult);
+    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(9), cosmicClauses: ['clause-seals-1'] });
+    render(<LedgerScreen />);
+    expect(screen.getByText(`+${gained} Seals`)).toBeInTheDocument();
+  });
   it('shows the cosmic placeholder', () => {
     seed({});
     render(<LedgerScreen />);
     expect(screen.getByText(/unlocks at 100 seals/i)).toBeInTheDocument();
+  });
+  it('shows the settings gear', () => {
+    seed({});
+    const onSettings = vi.fn();
+    render(<LedgerScreen onSettings={onSettings} />);
+    fireEvent.click(screen.getByRole('button', { name: /settings/i }));
+    expect(onSettings).toHaveBeenCalled();
   });
 });
