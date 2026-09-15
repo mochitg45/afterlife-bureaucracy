@@ -12,18 +12,29 @@ describe('BacklogReport', () => {
     const { container } = render(<BacklogReport />);
     expect(container).toBeEmptyDOMElement();
   });
-  it('shows earnings and doubles them', () => {
+  it('shows earnings and doubles them with a rewarded ad', () => {
+    const watchAd = vi.fn(async () => 'rewarded' as const);
     const state = createInitialState({ wall: 0, mono: 0 }, content);
     useGame.setState({
-      state, rates: computeRates(state, content, 0),
+      state, rates: computeRates(state, content, 0), adsReady: true, watchAd,
       pendingOffline: { elapsedSec: 7200, creditedSec: 7200, souls: new Decimal(900), kc: new Decimal(360), capped: false },
     });
     render(<BacklogReport />);
     expect(screen.getByText(/2h 0m/)).toBeInTheDocument();
     expect(screen.getByText('900')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /×2/i }));
-    expect(useGame.getState().state.soulsRun.toNumber()).toBe(900);
-    expect(useGame.getState().pendingOffline).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Watch ad ×2' }));
+    expect(watchAd).toHaveBeenCalledWith('offline-double');
+  });
+
+  it('hides the ad button when the placement is closed', () => {
+    const state = createInitialState({ wall: 0, mono: 0 }, content);
+    useGame.setState({
+      state, rates: computeRates(state, content, 0), adsReady: false,
+      pendingOffline: { elapsedSec: 7200, creditedSec: 7200, souls: new Decimal(900), kc: new Decimal(360), capped: false },
+    });
+    render(<BacklogReport />);
+    expect(screen.queryByRole('button', { name: 'Watch ad ×2' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /file it/i })).toBeInTheDocument();
   });
   it('mentions the cap when capped', () => {
     const state = createInitialState({ wall: 0, mono: 0 }, content);

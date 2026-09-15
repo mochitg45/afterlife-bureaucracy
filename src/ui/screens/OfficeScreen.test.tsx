@@ -46,4 +46,48 @@ describe('OfficeScreen', () => {
     expect(screen.getByText(content.departments[0].queue[0])).toBeInTheDocument();
     expect(screen.getByText(content.departments[0].memos[0])).toBeInTheDocument();
   });
+  it('watches an ad for the Overtime Boost', () => {
+    const watchAd = vi.fn(async () => 'rewarded' as const);
+    seed(0);
+    useGame.setState({ adsReady: true, watchAd });
+    render(<OfficeScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Overtime Boost' }));
+    expect(watchAd).toHaveBeenCalledWith('overtime-boost');
+  });
+
+  it('counts down an Overtime Boost that is already running', () => {
+    seed(0);
+    const state = useGame.getState().state;
+    // watchAd always sets both: four hours of boost inside an eight-hour cooldown.
+    useGame.setState({
+      adsReady: true,
+      state: {
+        ...state,
+        boostUntilWall: Date.now() + 2 * 3600_000,
+        adState: { ...state.adState, boostCooldownUntilWall: Date.now() + 6 * 3600_000 },
+      },
+    });
+    render(<OfficeScreen />);
+    expect(screen.getByRole('button', { name: 'Overtime Boost' })).toBeDisabled();
+    expect(screen.getByText('×2 for 2h 0m')).toBeInTheDocument();
+  });
+
+  it('shows the Overtime Boost cooldown', () => {
+    seed(0);
+    const state = useGame.getState().state;
+    useGame.setState({
+      adsReady: true,
+      state: { ...state, adState: { ...state.adState, boostCooldownUntilWall: Date.now() + 3 * 3600_000 } },
+    });
+    render(<OfficeScreen />);
+    expect(screen.getByText('Available in 3h 0m')).toBeInTheDocument();
+  });
+
+  it('says when there is no ad to show', () => {
+    seed(0);
+    useGame.setState({ adsReady: false });
+    render(<OfficeScreen />);
+    expect(screen.getByRole('button', { name: 'Overtime Boost' })).toBeDisabled();
+    expect(screen.getByText('Ad not available')).toBeInTheDocument();
+  });
 });

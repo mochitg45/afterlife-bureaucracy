@@ -11,7 +11,8 @@ function fmtDuration(sec: number): string {
 export function BacklogReport() {
   const pending = useGame((s) => s.pendingOffline);
   const dismiss = useGame((s) => s.dismissOffline);
-  const double = useGame((s) => s.doubleOffline);
+  const canWatch = useGame((s) => s.canWatch('offline-double'));
+  const watchAd = useGame((s) => s.watchAd);
   if (!pending) return null;
   return (
     <Modal open title="Overnight Backlog Report">
@@ -22,7 +23,12 @@ export function BacklogReport() {
         <div><div className="label">Karma Credits</div><div className="mono value brass">{formatNumber(pending.kc)}</div></div>
       </div>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={double}>Watch ad ×2 (preview)</button>
+        {/* Hidden, not disabled: there is no reward to promise when the placement is closed. */}
+        {canWatch && (
+          <button className="btn btn-primary" aria-label="Watch ad ×2" onClick={() => void watchAd('offline-double')}>
+            Watch ad ×2
+          </button>
+        )}
         <button className="btn btn-ghost" onClick={dismiss}>File it</button>
       </div>
     </Modal>

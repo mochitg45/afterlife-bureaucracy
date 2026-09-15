@@ -74,4 +74,20 @@ describe('PersonnelScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /settings/i }));
     expect(onSettings).toHaveBeenCalled();
   });
+  it('offers the free daily pull behind a rewarded ad', () => {
+    const watchAd = vi.fn(async () => 'rewarded' as const);
+    seed({ vouchers: 0 });
+    useGame.setState({ adsReady: true, watchAd });
+    render(<PersonnelScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Free daily pull' }));
+    expect(watchAd).toHaveBeenCalledWith('free-pull', undefined);
+  });
+
+  it('closes the free pull once it has been taken today and says why', () => {
+    seed({ vouchers: 0 });
+    useGame.setState({ adsReady: false });
+    render(<PersonnelScreen />);
+    expect(screen.getByRole('button', { name: 'Free daily pull' })).toBeDisabled();
+    expect(screen.getByText('Ad not available')).toBeInTheDocument();
+  });
 });

@@ -1,0 +1,131 @@
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import { StoreScreen, STORE_FOOTNOTE } from './StoreScreen';
+import { useGame } from '../../store/game';
+import { createInitialState, type GameState } from '../../engine/state';
+import { computeRates } from '../../engine/economy';
+import { content } from '../../data';
+import type { Product } from '../../platform/billing';
+import { UNION_PERIOD_MS } from '../../engine/entitlements';
+
+const PRODUCTS: Product[] = [
+  { id: 'vouchers_10', price: '$0.99', title: '10 Overtime Vouchers' },
+  { id: 'vouchers_55', price: '$4.99', title: '55 Overtime Vouchers' },
+  { id: 'vouchers_120', price: '$9.99', title: '120 Overtime Vouchers' },
+  { id: 'vouchers_300', price: '$19.99', title: '300 Overtime Vouchers' },
+  { id: 'remove_ads', price: '$4.99', title: 'Exempt From Advertising' },
+  { id: 'starter_pack', price: '$2.99', title: 'New Clerk Starter Pack' },
+  { id: 'union_monthly', price: '$3.99', title: 'Union Membership (monthly)' },
+];
+
+/** StoreScreen reads the wall clock directly for the Starter-Pack window and the union expiry. */
+const NOW = Date.now();
+
+function seed(patch: Partial<GameState> = {}, store: Partial<Parameters<typeof useGame.setState>[0]> = {}) {
+  const state = { ...createInitialState({ wall: NOW, mono: 0 }, content), ...patch };
+  useGame.setState({
+    state,
+    rates: computeRates(state, content, NOW),
+    ready: true,
+    products: PRODUCTS,
+    purchasePending: null,
+    ...store,
+  });
+}
+
+describe('StoreScreen', () => {
+  it('lists the four voucher packs with their prices and buys one', async () => {
+    const buy = vi.fn(async () => 'ok' as const);
+    seed({}, { buy });
+    render(<StoreScreen />);
+    expect(screen.getByRole('heading', { name: 'Vouchers' })).toBeInTheDocument();
+    for (const p of PRODUCTS.slice(0, 4)) {
+      expect(screen.getByRole('button', { name: `Buy ${p.title}` })).toHaveTextContent(p.price);
+    }
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Buy 55 Overtime Vouchers' })); });
+    expect(buy).toHaveBeenCalledWith('vouchers_55');
+    expect(screen.getByRole('status')).toHaveTextContent(/filed/i);
+  });
+
+  it('reports a cancelled purchase', async () => {
+    seed({}, { buy: vi.fn(async () => 'cancelled' as const) });
+    render(<StoreScreen />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Buy 10 Overtime Vouchers' })); });
+    expect(screen.getByRole('status')).toHaveTextContent(/cancelled/i);
+  });
+
+  it('disables every buy button while a purchase is pending', () => {
+    seed({}, { purchasePending: 'vouchers_10' });
+    render(<StoreScreen />);
+    expect(screen.getByRole('button', { name: 'Buy 10 Overtime Vouchers' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Buy Exempt From Advertising' })).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent('Purchase pending…');
+  });
+
+  it('marks Remove Ads as owned instead of offering it again', () => {
+    seed({ entitlements: { removeAds: true, unionUntilWall: 0, starterPackBought: false } });
+    render(<StoreScreen />);
+    expect(screen.queryByRole('button', { name: 'Buy Exempt From Advertising' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Remove Ads' })).toBeInTheDocument();
+    expect(screen.getByText('Owned')).toBeInTheDocument();
+  });
+
+  it('offers the Starter Pack with its contents while eligible', () => {
+    seed({ firstSeenWallClock: NOW });
+    render(<StoreScreen />);
+    expect(screen.getByRole('heading', { name: 'Starter Pack' })).toBeInTheDocument();
+    expect(screen.getByText(/20 Requisition Vouchers/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Buy New Clerk Starter Pack' })).toBeInTheDocument();
+  });
+
+  it('hides the Starter Pack once the window has closed', () => {
+    seed({ firstSeenWallClock: NOW - 5 * 86_400_000 });
+    render(<StoreScreen />);
+    expect(screen.queryByRole('heading', { name: 'Starter Pack' })).not.toBeInTheDocument();
+  });
+
+  it('shows the union benefits and its price', () => {
+    seed({ firstSeenWallClock: NOW - 5 * 86_400_000 });
+    render(<StoreScreen />);
+    expect(screen.getByRole('heading', { name: 'Union Membership' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Buy Union Membership (monthly)' })).toHaveTextContent('$3.99');
+    expect(screen.queryByText(/active until/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the expiry date while the membership is active', () => {
+    const until = NOW + UNION_PERIOD_MS;
+    seed({ entitlements: { removeAds: false, unionUntilWall: until, starterPackBought: false } });
+    render(<StoreScreen />);
+    expect(screen.getByText(`Active until ${new Date(until).toLocaleDateString()}`)).toBeInTheDocument();
+  });
+
+  it('restores purchases', () => {
+    const restorePurchases = vi.fn(async () => {});
+    seed({}, { restorePurchases });
+    render(<StoreScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' }));
+    expect(restorePurchases).toHaveBeenCalled();
+  });
+
+  it('prints the virtual-currency footnote', () => {
+    seed();
+    render(<StoreScreen />);
+    expect(screen.getByText(STORE_FOOTNOTE)).toBeInTheDocument();
+    expect(STORE_FOOTNOTE).toBe(
+      'Requisition Vouchers are a virtual currency with no real-world value. Subscriptions renew monthly until cancelled in Google Play.',
+    );
+  });
+
+  it('says the desk is closed when the catalogue never arrived', () => {
+    seed({}, { products: [] });
+    render(<StoreScreen />);
+    expect(screen.getByText(/requisition desk is closed/i)).toBeInTheDocument();
+  });
+
+  it('shows the settings gear', () => {
+    const onSettings = vi.fn();
+    seed();
+    render(<StoreScreen onSettings={onSettings} />);
+    fireEvent.click(screen.getByRole('button', { name: /settings/i }));
+    expect(onSettings).toHaveBeenCalled();
+  });
+});

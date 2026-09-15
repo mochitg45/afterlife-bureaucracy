@@ -3,26 +3,34 @@ import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { useGame } from '../store/game';
 import { TabBar, type TabId } from './components/TabBar';
-import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import { OfficeScreen } from './screens/OfficeScreen';
 import { LedgerScreen } from './screens/LedgerScreen';
 import { PersonnelScreen } from './screens/PersonnelScreen';
 import { TasksScreen } from './screens/TasksScreen';
+import { StoreScreen } from './screens/StoreScreen';
 import { BacklogReport } from './overlays/BacklogReport';
 import { AuditCeremony } from './overlays/AuditCeremony';
+import { CosmicCeremony } from './overlays/CosmicCeremony';
 import { PullReveal } from './overlays/PullReveal';
 import { StoryMemo } from './overlays/StoryMemo';
 import { AchievementToast } from './components/AchievementToast';
 import { SettingsSheet } from './overlays/SettingsSheet';
 import { NotifPrompt } from './overlays/NotifPrompt';
+import { SaveCodeSheet } from './overlays/SaveCodeSheet';
 
 export function App() {
   const [tab, setTab] = useState<TabId>('office');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [saveCodeOpen, setSaveCodeOpen] = useState(false);
   const openSettings = () => setSettingsOpen(true);
   const onGoToOdds = () => {
     setTab('personnel');
     setSettingsOpen(false);
+  };
+  // One sheet at a time: two stacked dialogs would leave two focus traps fighting over Tab.
+  const onSaveCode = () => {
+    setSettingsOpen(false);
+    setSaveCodeOpen(true);
   };
   const boot = useGame((s) => s.boot);
   const pause = useGame((s) => s.pause);
@@ -58,17 +66,19 @@ export function App() {
     <div className="app safe-area">
       {!ready && <section className="screen"><h2>Opening the office…</h2></section>}
       {ready && tab === 'office' && <OfficeScreen onSettings={openSettings} />}
-      {ready && tab === 'personnel' && <PersonnelScreen />}
-      {ready && tab === 'ledger' && <LedgerScreen />}
-      {ready && tab === 'tasks' && <TasksScreen />}
-      {ready && tab === 'store' && <PlaceholderScreen title="Store" note="Requisition Vouchers store opens in a later update." />}
+      {ready && tab === 'personnel' && <PersonnelScreen onSettings={openSettings} />}
+      {ready && tab === 'ledger' && <LedgerScreen onSettings={openSettings} />}
+      {ready && tab === 'tasks' && <TasksScreen onSettings={openSettings} />}
+      {ready && tab === 'store' && <StoreScreen onSettings={openSettings} />}
       <BacklogReport />
       <AuditCeremony />
+      <CosmicCeremony />
       <PullReveal />
       <StoryMemo />
       <AchievementToast />
-      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} />
-      {!settingsOpen && <NotifPrompt />}
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
+      <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
+      {!settingsOpen && !saveCodeOpen && <NotifPrompt />}
       <TabBar active={tab} onChange={setTab} />
     </div>
   );

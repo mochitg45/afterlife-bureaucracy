@@ -74,7 +74,7 @@ describe('LedgerScreen', () => {
     render(<LedgerScreen />);
     expect(screen.getByText(`+${gained} Seals`)).toBeInTheDocument();
   });
-  it('shows the cosmic placeholder', () => {
+  it('shows the locked cosmic panel', () => {
     seed({});
     render(<LedgerScreen />);
     expect(screen.getByText(/unlocks at 100 seals/i)).toBeInTheDocument();

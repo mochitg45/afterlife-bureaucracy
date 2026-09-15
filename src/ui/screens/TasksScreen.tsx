@@ -5,6 +5,7 @@ import { progressOf, isDone, type DailyProgressView } from '../../engine/dailies
 import type { DailyDef } from '../../engine/content';
 import { Badge } from '../components/Badge';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { AdButton } from '../components/AdButton';
 
 function fillText(def: DailyDef): string {
   return def.text.replace('{n}', String(def.target));
@@ -39,6 +40,9 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
           <button className="btn btn-ghost" aria-label={`Skip: ${text}`} onClick={() => skipDaily(taskId)}>
             Skip
           </button>
+        )}
+        {!done && !task.claimed && (
+          <AdButton placement="daily-skip" taskId={taskId} label={`Skip with ad: ${text}`} text="Skip with ad" />
         )}
       </div>
     </div>

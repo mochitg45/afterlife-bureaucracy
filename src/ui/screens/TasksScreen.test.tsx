@@ -143,4 +143,26 @@ describe('TasksScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /settings/i }));
     expect(onSettings).toHaveBeenCalled();
   });
+  it('skips an unfinished task with a rewarded ad', () => {
+    const watchAd = vi.fn(async () => 'rewarded' as const);
+    seed({ dailies: dailiesWith({ skipTokens: 0 }) });
+    useGame.setState({ adsReady: true, watchAd });
+    render(<TasksScreen />);
+    fireEvent.click(screen.getByRole('button', { name: `Skip with ad: ${TASK_TEXT}` }));
+    expect(watchAd).toHaveBeenCalledWith('daily-skip', TASK_ID);
+  });
+
+  it('closes the ad skip once it has been spent today', () => {
+    seed({ dailies: dailiesWith({ skipTokens: 0 }), adState: { freePullDate: '', dailySkipDate: TODAY, boostCooldownUntilWall: 0 } });
+    useGame.setState({ adsReady: true });
+    render(<TasksScreen />);
+    expect(screen.getByRole('button', { name: `Skip with ad: ${TASK_TEXT}` })).toBeDisabled();
+  });
+
+  it('offers no ad skip on a claimed task', () => {
+    seed({ dailies: dailiesWith({ tasks: [{ id: TASK_ID, claimed: true }] }) });
+    useGame.setState({ adsReady: true });
+    render(<TasksScreen />);
+    expect(screen.queryByRole('button', { name: `Skip with ad: ${TASK_TEXT}` })).not.toBeInTheDocument();
+  });
 });

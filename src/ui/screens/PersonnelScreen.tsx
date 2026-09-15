@@ -6,6 +6,7 @@ import type { Rarity } from '../../engine/content';
 import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, equipSlots } from '../../engine/gacha';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { AdButton } from '../components/AdButton';
 
 /** How long the "No free lanyard" nudge stays up after a blocked equip attempt. */
 const NO_LANYARD_MS = 2000;
@@ -98,6 +99,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
           <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label="Draw ten requisitions">
             {TEN_PULL_COST} ◇
           </button>
+          <AdButton placement="free-pull" label="Free daily pull" />
           <button
             className="btn btn-ghost"
             aria-label="See odds"
