@@ -1,6 +1,7 @@
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
+import { useWatchAd } from '../hooks/useWatchAd';
 
 function fmtDuration(sec: number): string {
   const h = Math.floor(sec / 3600);
@@ -12,7 +13,7 @@ export function BacklogReport() {
   const pending = useGame((s) => s.pendingOffline);
   const dismiss = useGame((s) => s.dismissOffline);
   const canWatch = useGame((s) => s.canWatch('offline-double'));
-  const watchAd = useGame((s) => s.watchAd);
+  const { busy, watch } = useWatchAd('offline-double');
   if (!pending) return null;
   return (
     <Modal open title="Overnight Backlog Report">
@@ -25,7 +26,7 @@ export function BacklogReport() {
       <div className="modal-actions">
         {/* Hidden, not disabled: there is no reward to promise when the placement is closed. */}
         {canWatch && (
-          <button className="btn btn-primary" aria-label="Watch ad ×2" onClick={() => void watchAd('offline-double')}>
+          <button className="btn btn-primary" aria-label="Watch ad ×2" disabled={busy} onClick={watch}>
             Watch ad ×2
           </button>
         )}

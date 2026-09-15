@@ -90,4 +90,16 @@ describe('PersonnelScreen', () => {
     expect(screen.getByRole('button', { name: 'Free daily pull' })).toBeDisabled();
     expect(screen.getByText('Ad not available')).toBeInTheDocument();
   });
+
+  it('starts one free pull however fast the button is tapped', () => {
+    const watchAd = vi.fn(() => new Promise<'rewarded'>(() => {}));
+    seed({ vouchers: 0 });
+    useGame.setState({ adsReady: true, watchAd });
+    render(<PersonnelScreen />);
+    const button = screen.getByRole('button', { name: 'Free daily pull' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(watchAd).toHaveBeenCalledTimes(1);
+    expect(button).toBeDisabled();
+  });
 });

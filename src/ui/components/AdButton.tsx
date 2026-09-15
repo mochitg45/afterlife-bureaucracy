@@ -1,4 +1,5 @@
 import { useGame } from '../../store/game';
+import { useWatchAd } from '../hooks/useWatchAd';
 import type { AdPlacement } from '../../platform/ads';
 
 /**
@@ -25,14 +26,14 @@ export function AdButton({
 }) {
   const ready = useGame((s) => s.canWatch(placement));
   const adsReady = useGame((s) => s.adsReady);
-  const watchAd = useGame((s) => s.watchAd);
+  const { busy, watch } = useWatchAd(placement, taskId);
   return (
     <span className="ad-button">
       <button
         className={'btn' + (primary ? ' btn-primary' : '')}
-        disabled={!ready}
+        disabled={!ready || busy}
         aria-label={label}
-        onClick={() => void watchAd(placement, taskId)}
+        onClick={watch}
       >
         {text ?? label}
       </button>

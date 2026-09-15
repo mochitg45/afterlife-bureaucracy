@@ -10,6 +10,7 @@ import { StampButton } from '../components/StampButton';
 import { StaffRow } from '../components/StaffRow';
 import { UpgradeRow } from '../components/UpgradeRow';
 import { MemoTicker } from '../components/MemoTicker';
+import { useWatchAd } from '../hooks/useWatchAd';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
 
@@ -32,7 +33,7 @@ function OvertimeBoost() {
   const cooldownUntilWall = useGame((s) => s.state.adState.boostCooldownUntilWall);
   const adsReady = useGame((s) => s.adsReady);
   const ready = useGame((s) => s.canWatch('overtime-boost'));
-  const watchAd = useGame((s) => s.watchAd);
+  const { busy, watch } = useWatchAd('overtime-boost');
   const [now, setNow] = useState(() => Date.now());
 
   const boostLeft = boostUntilWall - now;
@@ -53,7 +54,7 @@ function OvertimeBoost() {
 
   return (
     <div className="card boost-card">
-      <button className="btn btn-primary" aria-label="Overtime Boost" disabled={!ready} onClick={() => void watchAd('overtime-boost')}>
+      <button className="btn btn-primary" aria-label="Overtime Boost" disabled={!ready || busy} onClick={watch}>
         Overtime Boost ×2
       </button>
       <span className="mono sub">{note}</span>

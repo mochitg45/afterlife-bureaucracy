@@ -52,7 +52,7 @@ describe('OfficeScreen', () => {
     useGame.setState({ adsReady: true, watchAd });
     render(<OfficeScreen />);
     fireEvent.click(screen.getByRole('button', { name: 'Overtime Boost' }));
-    expect(watchAd).toHaveBeenCalledWith('overtime-boost');
+    expect(watchAd).toHaveBeenCalledWith('overtime-boost', undefined);
   });
 
   it('counts down an Overtime Boost that is already running', () => {
