@@ -10,7 +10,7 @@ import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
-import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, nextLocalMidnight } from '../engine/dailies';
+import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
 import { pull as pullEngine, equipCard, unequipCard, type PullResult } from '../engine/gacha';
@@ -41,6 +41,12 @@ const ASK_NOTIF_AFTER_MS = 2 * 86_400_000;
 
 /** Minutes-in-ms past local midnight the daily-reset notification fires, so the rollover has landed. */
 const DAILY_NOTIF_DELAY_MS = 300_000;
+
+/**
+ * In-tray nudges allowed per local day. With the always-scheduled daily-reset reminder that
+ * caps the tray at two notifications a day, however often the app is backgrounded.
+ */
+const MAX_DISCRETIONARY_NOTIFS_PER_DAY = 1;
 
 export interface PendingOffline {
   elapsedSec: number;
@@ -130,12 +136,26 @@ export function createGameStore(deps: StoreDeps) {
       return [...base, ...storyTexts];
     };
 
-    /** Dailies rollover, then achievements, then story triggers — in that dependency order. */
-    const settle = (next: GameState): { state: GameState; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
+    /**
+     * Dailies rollover, then achievements, then story triggers — in that dependency order —
+     * and finally the rates, which every caller of settle needs anyway. Unlocking an
+     * achievement raises the global multiplier, so the rates have to be computed from the
+     * settled state, not the one handed in.
+     *
+     * The engine holds no rates of its own, so the "reach N souls per second" daily can only
+     * be judged against a snapshot; this is where it gets stamped.
+     */
+    const settle = (next: GameState): { state: GameState; rates: Rates; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
       const rolled = rollover(next, content, clock.wall());
       const a = checkAchievements(rolled, content);
       const st = checkStory(a.state, content);
-      return { state: st.state, unlockedAch: a.unlocked, unlockedStory: st.unlocked };
+      const rates = computeRates(st.state, content, clock.wall());
+      const snapshot = rates.soulsPerSec.toString();
+      const state =
+        st.state.dailies.soulsPerSecSnapshot === snapshot
+          ? st.state
+          : { ...st.state, dailies: { ...st.state.dailies, soulsPerSecSnapshot: snapshot } };
+      return { state, rates, unlockedAch: a.unlocked, unlockedStory: st.unlocked };
     };
 
     /** The shared write path for any action: settle, then commit state/rates and queue any toasts. */
@@ -143,7 +163,7 @@ export function createGameStore(deps: StoreDeps) {
       const r = settle(next);
       set((cur) => ({
         state: r.state,
-        rates: computeRates(r.state, content, clock.wall()),
+        rates: r.rates,
         recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
         pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
         ...extra,
@@ -221,7 +241,7 @@ export function createGameStore(deps: StoreDeps) {
           const dept = findDepartment(content, r.state.activeDept);
           set((cur) => ({
             state: r.state,
-            rates: computeRates(r.state, content, clock.wall()),
+            rates: r.rates,
             ready: true,
             pendingOffline,
             queueLine: pick(dept.queue, ''),
@@ -239,28 +259,41 @@ export function createGameStore(deps: StoreDeps) {
 
       async pause() {
         get().stopLoop();
-        await get().save();
         const s = get().state;
-        if (s.settings.notifOptIn === 'yes') {
-          const wall = clock.wall();
-          try {
-            await notifications.schedule([
-              {
-                id: NOTIF_INTRAY,
-                atWall: wall + offlineCapSeconds(s, content) * 1000,
-                title: 'In-tray full',
-                body: 'Your staff have stopped stamping. The backlog is waiting.',
-              },
-              {
-                id: NOTIF_DAILY,
-                atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
-                title: 'Daily tasks reset',
-                body: 'Three fresh tasks are on your desk.',
-              },
-            ]);
-          } catch {
-            /* native scheduling is best-effort */
-          }
+        if (s.settings.notifOptIn !== 'yes') {
+          await get().save();
+          return;
+        }
+        const wall = clock.wall();
+        const today = dayKey(wall);
+        // The budget is per local day, so a player who backgrounds the app a dozen times
+        // still gets at most the in-tray nudge plus the daily-reset one.
+        const sentToday = s.settings.notifDate === today ? s.settings.notifsSent : 0;
+        // An office with no staff produces nothing, so an "in-tray full" nudge would be a lie.
+        const intray = sentToday < MAX_DISCRETIONARY_NOTIFS_PER_DAY && get().rates.soulsPerSec.gt(0);
+        set({ state: { ...s, settings: { ...s.settings, notifDate: today, notifsSent: sentToday + (intray ? 1 : 0) } } });
+        await get().save();
+        const items = [];
+        if (intray) {
+          items.push({
+            id: NOTIF_INTRAY,
+            atWall: wall + offlineCapSeconds(s, content) * 1000,
+            title: 'In-tray full',
+            body: 'Your staff have stopped stamping. The backlog is waiting.',
+          });
+        }
+        // Always re-scheduled, never counted: it reuses one id, so it replaces itself rather
+        // than stacking up another notification per pause.
+        items.push({
+          id: NOTIF_DAILY,
+          atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
+          title: 'Daily tasks reset',
+          body: 'Three fresh tasks are on your desk.',
+        });
+        try {
+          await notifications.schedule(items);
+        } catch {
+          /* native scheduling is best-effort */
         }
       },
 
@@ -273,7 +306,7 @@ export function createGameStore(deps: StoreDeps) {
             const r = settle(state);
             set((cur) => ({
               state: r.state,
-              rates: computeRates(r.state, content, clock.wall()),
+              rates: r.rates,
               ...(pendingOffline ? { pendingOffline } : {}),
               recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
               pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,

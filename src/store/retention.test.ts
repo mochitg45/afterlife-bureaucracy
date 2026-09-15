@@ -3,6 +3,8 @@ import { createGameStore } from './game';
 import { memoryStorage } from '../platform/storage';
 import { fakeClock } from '../engine/time';
 import { content } from '../data';
+import { computeRates } from '../engine/economy';
+import type { GameState } from '../engine/state';
 import type { Notifications } from '../platform/notifications';
 
 function fakeNotifications() {
@@ -20,7 +22,15 @@ async function make(wall = new Date(2026, 8, 14, 10).getTime()) {
   const { n, calls } = fakeNotifications();
   const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, notifications: n });
   await store.getState().boot();
-  return { store, storage, clock, calls };
+  /** State and rates move together, so a seeded state does not leave stale rates behind. */
+  const seed = (patch: Partial<GameState>) => {
+    const state = { ...store.getState().state, ...patch };
+    store.setState({ state, rates: computeRates(state, content, clock.wall()) });
+    return state;
+  };
+  /** An office that actually produces souls, which the in-tray notification requires. */
+  const staffUp = () => seed({ staff: { dave: 5 } });
+  return { store, storage, clock, calls, seed, staffUp };
 }
 
 describe('retention store', () => {
@@ -60,14 +70,24 @@ describe('retention store', () => {
     expect(store.getState().recentAchievements).toEqual([]);
     store.getState().stopLoop();
   });
-  it('claims a finished daily', async () => {
-    const { store } = await make();
+  it('claims a finished daily, paying vouchers and KC', async () => {
+    const { store, seed } = await make();
+    const def = content.dailies.find((d) => d.id === 'd-clicks-1')!;
     const s = store.getState().state;
-    const clicksTask = s.dailies.tasks.map((t) => content.dailies.find((d) => d.id === t.id)!).find((d) => d.kind === 'clicks');
-    if (!clicksTask) { store.getState().stopLoop(); return; }
-    for (let i = 0; i < clicksTask.target; i++) store.getState().stamp();
-    store.getState().claimDaily(clicksTask.id);
-    expect(store.getState().state.vouchers).toBeGreaterThanOrEqual(1);
+    // Seeded explicitly rather than relying on today's draw, so the task under test is always
+    // the one this assertion is written against.
+    seed({
+      vouchers: 0,
+      kc: new Decimal(0),
+      dailies: { ...s.dailies, tasks: [{ id: def.id, claimed: false }], baseline: { ...s.dailies.baseline, clicks: 0 } },
+      stats: { ...s.stats, clicks: def.target },
+    });
+    store.getState().claimDaily(def.id);
+    const after = store.getState().state;
+    expect(after.dailies.tasks.find((t) => t.id === def.id)!.claimed).toBe(true);
+    expect(after.vouchers).toBe(1);
+    expect(after.kc.gt(0)).toBe(true);
+    expect(after.stats.dailiesClaimed).toBe(1);
     store.getState().stopLoop();
   });
   it('sets cooked mood after a long absence and restores on stamp', async () => {
@@ -81,15 +101,45 @@ describe('retention store', () => {
     store.getState().stopLoop();
   });
   it('schedules notifications on pause only after opt-in, cancels on resume', async () => {
-    const { store, calls } = await make();
+    const { store, calls, staffUp } = await make();
     await store.getState().pause();
     expect(calls.filter((c) => c.startsWith('schedule'))).toHaveLength(0);
     await store.getState().setNotifOptIn('yes');
     expect(store.getState().state.settings.notifOptIn).toBe('yes');
+    staffUp();
     await store.getState().pause();
     expect(calls).toContain('schedule:1,2');
     await store.getState().resume();
     expect(calls.filter((c) => c === 'cancel').length).toBeGreaterThan(0);
+    store.getState().stopLoop();
+  });
+  it('spends the in-tray notification budget once a day, however many times the app pauses', async () => {
+    const { store, calls, clock, staffUp } = await make();
+    await store.getState().setNotifOptIn('yes');
+    staffUp();
+    await store.getState().pause();
+    await store.getState().resume();
+    staffUp();
+    await store.getState().pause();
+    const scheduled = calls.filter((c) => c.startsWith('schedule:'));
+    expect(scheduled).toEqual(['schedule:1,2', 'schedule:2']);
+    expect(store.getState().state.settings.notifsSent).toBe(1);
+    // A new local day refills the budget.
+    await store.getState().resume();
+    clock.advance(24 * 3600 * 1000);
+    staffUp();
+    await store.getState().pause();
+    const afterMidnight = calls.filter((c) => c.startsWith('schedule:'));
+    expect(afterMidnight[afterMidnight.length - 1]).toBe('schedule:1,2');
+    expect(store.getState().state.settings.notifsSent).toBe(1);
+    store.getState().stopLoop();
+  });
+  it('skips the in-tray notification when the office produces nothing', async () => {
+    const { store, calls } = await make();
+    await store.getState().setNotifOptIn('yes');
+    await store.getState().pause();
+    expect(calls.filter((c) => c.startsWith('schedule:'))).toEqual(['schedule:2']);
+    expect(store.getState().state.settings.notifsSent).toBe(0);
     store.getState().stopLoop();
   });
   it('asks for notifications only after two days', async () => {
