@@ -15,4 +15,10 @@ describe('App shell', () => {
     const shell = await screen.findByRole('tablist', { name: /main/i });
     expect(shell.closest('.app')).toHaveClass('safe-area');
   });
+
+  it('opens the settings sheet from the gear button', async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: /settings/i }));
+    expect(await screen.findByRole('dialog', { name: /settings/i })).toBeInTheDocument();
+  });
 });

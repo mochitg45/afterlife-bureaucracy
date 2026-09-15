@@ -13,14 +13,14 @@ import { MemoTicker } from '../components/MemoTicker';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
 
-export function OfficeScreen() {
+export function OfficeScreen({ onSettings }: { onSettings?: () => void }) {
   const activeDept = useGame((s) => s.state.activeDept);
   const dept = findDepartment(content, activeDept);
   const [mode, setMode] = useState<BuyMode>(1);
   const accentStyle = { '--accent': dept.accent } as CSSProperties;
   return (
     <section className="screen office" style={accentStyle}>
-      <CurrencyBar />
+      <CurrencyBar onSettings={onSettings} />
       <DeptChips />
       <h2 className="dept-title">{dept.name} Department</h2>
       <QueueCard />

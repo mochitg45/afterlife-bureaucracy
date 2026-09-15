@@ -162,3 +162,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .safe-area .screen { padding-top: calc(12px + env(safe-area-inset-top)); }
 .safe-area .modal-backdrop { padding-top: calc(20px + env(safe-area-inset-top)); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
 .safe-area .memo-ticker { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+.currency-bar { position: relative; }
+.gear-btn { position: absolute; top: 8px; right: 8px; padding: 4px 8px; line-height: 1; }
+.settings-row { margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .slam, .foil, .float, .memo-text { animation: none; }
+}

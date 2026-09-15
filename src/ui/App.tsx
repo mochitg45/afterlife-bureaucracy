@@ -13,9 +13,17 @@ import { AuditCeremony } from './overlays/AuditCeremony';
 import { PullReveal } from './overlays/PullReveal';
 import { StoryMemo } from './overlays/StoryMemo';
 import { AchievementToast } from './components/AchievementToast';
+import { SettingsSheet } from './overlays/SettingsSheet';
+import { NotifPrompt } from './overlays/NotifPrompt';
 
 export function App() {
   const [tab, setTab] = useState<TabId>('office');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const openSettings = () => setSettingsOpen(true);
+  const onGoToOdds = () => {
+    setTab('personnel');
+    setSettingsOpen(false);
+  };
   const boot = useGame((s) => s.boot);
   const pause = useGame((s) => s.pause);
   const resume = useGame((s) => s.resume);
@@ -49,7 +57,7 @@ export function App() {
   return (
     <div className="app safe-area">
       {!ready && <section className="screen"><h2>Opening the office…</h2></section>}
-      {ready && tab === 'office' && <OfficeScreen />}
+      {ready && tab === 'office' && <OfficeScreen onSettings={openSettings} />}
       {ready && tab === 'personnel' && <PersonnelScreen />}
       {ready && tab === 'ledger' && <LedgerScreen />}
       {ready && tab === 'tasks' && <TasksScreen />}
@@ -59,6 +67,8 @@ export function App() {
       <PullReveal />
       <StoryMemo />
       <AchievementToast />
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} />
+      {!settingsOpen && <NotifPrompt />}
       <TabBar active={tab} onChange={setTab} />
     </div>
   );
