@@ -61,10 +61,11 @@ function Glyph({ kind }: { kind: AchievementDef['badge'] }) {
         />
       );
     case 'gear':
+      // Six teeth at 60-degree increments around the hub circle.
       return (
         <g stroke={OUTLINE} strokeWidth={SW} strokeLinecap="round" fill="none">
           <circle cx="32" cy="29" r="8" />
-          <path d="M32 15 v5 M32 38 v5 M18 29 h5 M39 29 h5 M22 19 l3.5 3.5 M42 19 l-3.5 3.5 M22 39 l3.5 -3.5 M42 39 l-3.5 -3.5" />
+          <path d="M40 29 L45 29 M36 35.9 L38.5 40.3 M28 35.9 L25.5 40.3 M24 29 L19 29 M28 22.1 L25.5 17.7 M36 22.1 L38.5 17.7" />
         </g>
       );
     default:
