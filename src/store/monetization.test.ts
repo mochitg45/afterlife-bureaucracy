@@ -47,10 +47,16 @@ function fakeAds() {
   };
 }
 
+const NOTHING: Restored = { removeAds: false, unionUntilWall: 0, starterPackBought: false };
+
 function fakeBilling() {
   const bought: ProductId[] = [];
   let result: PurchaseResult = 'ok';
-  let restored: Restored = { removeAds: false, unionUntilWall: 0, starterPackBought: false };
+  let restored: Restored = { ...NOTHING };
+  let synced: Restored = { ...NOTHING };
+  let syncs = 0;
+  let restoreThrows = false;
+  let push: ((r: Restored) => void) | null = null;
   const catalogue: Product[] = [{ id: 'vouchers_10', price: '$0.99', title: '10 Overtime Vouchers' }];
   const billing: Billing = {
     async init() {},
@@ -59,7 +65,18 @@ function fakeBilling() {
       bought.push(id);
       return result;
     },
-    async restore() { return restored; },
+    async restore() {
+      if (restoreThrows) throw new Error('store unreachable');
+      return restored;
+    },
+    async sync() {
+      syncs++;
+      return synced;
+    },
+    onUpdate(cb) {
+      push = cb;
+      return () => { push = null; };
+    },
   };
   return {
     billing,
@@ -67,6 +84,11 @@ function fakeBilling() {
     catalogue,
     setResult: (r: PurchaseResult) => { result = r; },
     setRestored: (r: Restored) => { restored = r; },
+    setRestoreThrows: (v: boolean) => { restoreThrows = v; },
+    setSynced: (r: Restored) => { synced = r; },
+    syncCount: () => syncs,
+    /** Fires the store's customer-info listener, as a mid-session renewal would. */
+    pushUpdate: (r: Restored) => push?.(r),
   };
 }
 
@@ -288,6 +310,84 @@ describe('purchases', () => {
       unionUntilWall: T0 + 10_000,
       starterPackBought: true,
     });
+    store.getState().stopLoop();
+  });
+});
+
+describe('entitlement sync', () => {
+  it('boot asks the store silently and folds a renewal in', async () => {
+    const storage = memoryStorage();
+    const clock = fakeClock({ wall: T0, mono: 0 });
+    const billing = fakeBilling();
+    billing.setSynced({ removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: false });
+    const store = createGameStore({
+      content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000,
+      ads: fakeAds().ads, billing: billing.billing, gameServices: fakeServices().services,
+    });
+    await store.getState().boot();
+    await vi.waitFor(() => expect(store.getState().state.entitlements.removeAds).toBe(true));
+    expect(store.getState().state.entitlements.unionUntilWall).toBe(T0 + UNION_PERIOD_MS);
+    // Silent: the user-initiated restore flow was never touched.
+    expect(billing.syncCount()).toBeGreaterThan(0);
+    store.getState().stopLoop();
+  });
+
+  it('sync never takes an entitlement away', async () => {
+    const { store, billing, seed, clock } = await make();
+    await vi.waitFor(() => expect(billing.syncCount()).toBeGreaterThan(0));
+    seed({ entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true } });
+    billing.setSynced({ ...NOTHING });
+    await store.getState().pause();
+    clock.advance(1000);
+    await store.getState().resume();
+    expect(store.getState().state.entitlements).toEqual({
+      removeAds: true,
+      unionUntilWall: T0 + UNION_PERIOD_MS,
+      starterPackBought: true,
+    });
+    store.getState().stopLoop();
+  });
+
+  it('resume picks up a renewal that happened while the app was closed', async () => {
+    const { store, billing, clock } = await make();
+    await vi.waitFor(() => expect(billing.syncCount()).toBeGreaterThan(0));
+    const before = billing.syncCount();
+    billing.setSynced({ removeAds: false, unionUntilWall: T0 + 2 * UNION_PERIOD_MS, starterPackBought: false });
+    await store.getState().pause();
+    clock.advance(60_000);
+    await store.getState().resume();
+    expect(billing.syncCount()).toBeGreaterThan(before);
+    expect(store.getState().state.entitlements.unionUntilWall).toBe(T0 + 2 * UNION_PERIOD_MS);
+    store.getState().stopLoop();
+  });
+
+  it('a mid-session customer-info update lands through the same merge', async () => {
+    const { store, billing } = await make();
+    await vi.waitFor(() => expect(billing.syncCount()).toBeGreaterThan(0));
+    expect(store.getState().state.entitlements.removeAds).toBe(false);
+    billing.pushUpdate({ removeAds: true, unionUntilWall: 0, starterPackBought: false });
+    expect(store.getState().state.entitlements.removeAds).toBe(true);
+    // Still never a downgrade.
+    billing.pushUpdate({ ...NOTHING });
+    expect(store.getState().state.entitlements.removeAds).toBe(true);
+    store.getState().stopLoop();
+  });
+
+  it('a parked corrupt save still gets the account back', async () => {
+    const storage = memoryStorage();
+    await storage.set(SAVE_KEY, '{not json');
+    const clock = fakeClock({ wall: T0, mono: 0 });
+    const billing = fakeBilling();
+    billing.setSynced({ removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const store = createGameStore({
+      content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000,
+      ads: fakeAds().ads, billing: billing.billing, gameServices: fakeServices().services,
+    });
+    await store.getState().boot();
+    await vi.waitFor(() => expect(store.getState().state.entitlements.removeAds).toBe(true));
+    expect(store.getState().state.entitlements.starterPackBought).toBe(true);
+    warn.mockRestore();
     store.getState().stopLoop();
   });
 });

@@ -18,7 +18,7 @@ import { pull as pullEngine, equipCard, unequipCard, type PullResult } from '../
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
-import { pickBilling, type Billing, type Product, type ProductId, type PurchaseResult } from '../platform/billing';
+import { pickBilling, type Billing, type Product, type ProductId, type PurchaseResult, type Restored } from '../platform/billing';
 import { pickGameServices, type GameServices } from '../platform/gameServices';
 import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
@@ -191,6 +191,7 @@ export function createGameStore(deps: StoreDeps) {
   let booted = false;
   let resuming: Promise<void> | null = null;
   let processId = '';
+  let stopEntitlementUpdates: (() => void) | null = null;
 
   return createWithEqualityFn<GameStore>((set, get) => {
     /** Also folds in the story memos the player has already seen; every department shares them. */
@@ -285,6 +286,48 @@ export function createGameStore(deps: StoreDeps) {
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
     /**
+     * Folds what the store reports into what the save holds. A merge, never a replacement:
+     * a store that answers with less than the save already has (an outage, a receipt that
+     * has not caught up, a sync that ran before the subscription was re-validated) takes
+     * nothing away. The same rule serves the silent boot/resume sync, the mid-session
+     * update listener and the player's own Restore Purchases.
+     *
+     * Returns whether anything moved, so the caller can skip a pointless write.
+     */
+    const mergeRestored = (restored: Restored): boolean => {
+      const held = get().state.entitlements;
+      const merged = {
+        removeAds: held.removeAds || restored.removeAds,
+        unionUntilWall: Math.max(held.unionUntilWall, restored.unionUntilWall),
+        starterPackBought: held.starterPackBought || restored.starterPackBought,
+      };
+      const changed =
+        merged.removeAds !== held.removeAds ||
+        merged.unionUntilWall !== held.unionUntilWall ||
+        merged.starterPackBought !== held.starterPackBought;
+      if (!changed) return false;
+      apply({ ...get().state, entitlements: merged });
+      return true;
+    };
+
+    /**
+     * The silent half of the entitlement story: a monthly renewal that happened while the
+     * app was closed only reaches the save if something asks the store. `restore()` cannot
+     * do that job — it is user-initiated and may raise account prompts — so every boot and
+     * resume asks `sync()` instead, and the local +30 d stamp from the purchase itself
+     * stays as the offline fallback.
+     */
+    const syncEntitlements = async (): Promise<void> => {
+      let restored: Restored;
+      try {
+        restored = await billing.sync();
+      } catch {
+        return; // store unreachable: the save keeps what it holds
+      }
+      if (mergeRestored(restored)) await get().save();
+    };
+
+    /**
      * Credit the gap since the state was last seen, if it is worth crediting. How much of the
      * wall-clock gap is honest is engine/integrity.ts's call, not this store's.
      */
@@ -367,6 +410,21 @@ export function createGameStore(deps: StoreDeps) {
             } catch {
               /* store outage: an empty catalogue, not a broken boot */
             }
+            // Ordered after the boot itself: the boot's own set() replaces the whole state,
+            // so a merge that landed first would be thrown away. Awaiting the boot promise
+            // is safe here — nothing in boot waits on this block.
+            await booting;
+            // Mid-session renewals (and revocations, which the merge ignores) land through
+            // the same never-take-away path as the sync below.
+            stopEntitlementUpdates?.();
+            stopEntitlementUpdates =
+              billing.onUpdate?.((restored) => {
+                if (mergeRestored(restored)) void get().save();
+              }) ?? null;
+            // Runs on every boot, including the one that parked an unreadable save and
+            // started a fresh file: Remove Ads and a running membership belong to the
+            // account, not to the file that was lost.
+            await syncEntitlements();
           })();
           // A fresh id per boot: the forward-jump rule must only ever fire on a resume within
           // this same process, never across a restart where uptime legitimately starts over.
@@ -476,6 +534,8 @@ export function createGameStore(deps: StoreDeps) {
             notifications.cancelAll().catch(() => {});
             set({ adsReady: ads.isReady() });
             startTimers();
+            // After the set above, never before it: a resume replaces the whole state too.
+            await syncEntitlements();
             await get().save();
           } finally {
             resuming = null;
@@ -669,17 +729,7 @@ export function createGameStore(deps: StoreDeps) {
         } catch {
           return;
         }
-        const held = get().state.entitlements;
-        // A merge, never a replacement: a store that reports less than the save already holds
-        // (an outage, or a receipt that has not caught up) takes nothing away.
-        apply({
-          ...get().state,
-          entitlements: {
-            removeAds: held.removeAds || restored.removeAds,
-            unionUntilWall: Math.max(held.unionUntilWall, restored.unionUntilWall),
-            starterPackBought: held.starterPackBought || restored.starterPackBought,
-          },
-        });
+        mergeRestored(restored);
         await get().save();
       },
 

@@ -62,8 +62,23 @@ export interface Billing {
   init(): Promise<void>;
   products(): Promise<Product[]>;
   purchase(id: ProductId): Promise<PurchaseResult>;
+  /** User-initiated: the store may show account pickers or sign-in prompts. */
   restore(): Promise<Restored>;
+  /**
+   * Silent read of what the store currently believes this account owns. Safe to call on
+   * every boot and resume — no UI, no prompts — which is how a subscription renewal (or a
+   * lapse handled as "never take away") reaches a save that has been offline for a month.
+   */
+  sync(): Promise<Restored>;
+  /**
+   * Mid-session entitlement changes pushed by the store. Returns an unsubscribe function.
+   * Optional: only the native implementation has anything to push.
+   */
+  onUpdate?(cb: (restored: Restored) => void): () => void;
 }
+
+/** Nothing owned. The caller's merge never takes away, so this is always a safe answer. */
+const NOTHING_RESTORED: Restored = { removeAds: false, unionUntilWall: 0, starterPackBought: false };
 
 /** How long the web mock pretends a purchase flow takes. */
 export const WEB_PURCHASE_DURATION_MS = 300;
@@ -90,7 +105,12 @@ export const webBilling: Billing = {
     });
   },
   async restore() {
-    return { removeAds: false, unionUntilWall: 0, starterPackBought: false };
+    return { ...NOTHING_RESTORED };
+  },
+  // There is no web store to ask, and the caller's merge only ever adds, so answering
+  // "nothing" leaves the entitlements the save already holds exactly as they are.
+  async sync() {
+    return { ...NOTHING_RESTORED };
   },
 };
 
@@ -103,8 +123,6 @@ function readEntitlements(customerInfo: CustomerInfo): Restored {
     starterPackBought: (customerInfo.allPurchasedProductIdentifiers ?? []).includes('starter_pack'),
   };
 }
-
-const NOTHING_RESTORED: Restored = { removeAds: false, unionUntilWall: 0, starterPackBought: false };
 
 /**
  * RevenueCat billing. Every SDK call is guarded so a store outage degrades to an empty
@@ -176,6 +194,33 @@ export const revenueCatBilling: Billing = (() => {
       } catch {
         return { ...NOTHING_RESTORED };
       }
+    },
+
+    async sync() {
+      try {
+        const { customerInfo } = await Purchases.getCustomerInfo();
+        return readEntitlements(customerInfo);
+      } catch {
+        // An outage reports nothing; the caller's merge keeps what the save already holds.
+        return { ...NOTHING_RESTORED };
+      }
+    },
+
+    onUpdate(cb) {
+      let id: string | undefined;
+      let cancelled = false;
+      Purchases.addCustomerInfoUpdateListener((customerInfo) => cb(readEntitlements(customerInfo)))
+        .then((listenerId) => {
+          if (cancelled) void Purchases.removeCustomerInfoUpdateListener({ listenerToRemove: listenerId });
+          else id = listenerId;
+        })
+        .catch(() => {
+          /* unconfigured SDK: no pushes, and boot/resume sync still covers renewals */
+        });
+      return () => {
+        cancelled = true;
+        if (id) void Purchases.removeCustomerInfoUpdateListener({ listenerToRemove: id }).catch(() => {});
+      };
     },
   };
 })();
