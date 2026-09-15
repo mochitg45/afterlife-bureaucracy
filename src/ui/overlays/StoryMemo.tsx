@@ -7,7 +7,7 @@ export function StoryMemo() {
   const memo = pendingStory[0];
   if (!memo) return null;
   return (
-    <div className="modal-backdrop">
+    <div className="modal-backdrop story">
       <div className="modal card memo" role="dialog" aria-modal="true" aria-label="Memo">
         <h2 className="modal-title">{memo.title}</h2>
         <p>{memo.text}</p>

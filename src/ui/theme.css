@@ -104,6 +104,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .memo-text { display: inline-block; animation: ticker 18s linear infinite; }
 @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(42, 38, 32, 0.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+/* A story beat fires alongside a pull reveal often enough that it must sit on top of one. */
+.modal-backdrop.story { z-index: 55; }
 .modal { width: 100%; max-width: 380px; padding: 18px; }
 .modal-title { font-size: 20px; margin-bottom: 8px; }
 .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }

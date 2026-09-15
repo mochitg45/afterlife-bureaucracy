@@ -1,23 +1,23 @@
+import { memo, useMemo } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
-import { progressOf, isDone } from '../../engine/dailies';
+import { progressOf, isDone, type DailyProgressView } from '../../engine/dailies';
 import type { DailyDef } from '../../engine/content';
-import type { GameState } from '../../engine/state';
 import { Badge } from '../components/Badge';
 
 function fillText(def: DailyDef): string {
   return def.text.replace('{n}', String(def.target));
 }
 
-function TaskRow({ taskId, state }: { taskId: string; state: GameState }) {
+function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) {
   const claimDaily = useGame((s) => s.claimDaily);
   const skipDaily = useGame((s) => s.skipDaily);
   const def = content.dailies.find((d) => d.id === taskId);
-  const task = state.dailies.tasks.find((t) => t.id === taskId);
+  const task = view.dailies.tasks.find((t) => t.id === taskId);
   if (!def || !task) return null;
 
-  const progress = progressOf(state, def);
-  const done = isDone(state, def);
+  const progress = progressOf(view, def);
+  const done = isDone(view, def);
   const text = fillText(def);
   const pct = (Math.min(progress, def.target) / def.target) * 100;
 
@@ -34,7 +34,7 @@ function TaskRow({ taskId, state }: { taskId: string; state: GameState }) {
             Claim
           </button>
         )}
-        {state.dailies.skipTokens > 0 && !done && !task.claimed && (
+        {view.dailies.skipTokens > 0 && !done && !task.claimed && (
           <button className="btn btn-ghost" aria-label={`Skip: ${text}`} onClick={() => skipDaily(taskId)}>
             Skip
           </button>
@@ -44,10 +44,36 @@ function TaskRow({ taskId, state }: { taskId: string; state: GameState }) {
   );
 }
 
+/**
+ * Eighty-odd badges that only ever change when an achievement unlocks. Memoised on the
+ * unlocked-id set alone so the grid sits still through the ten-a-second tick loop.
+ */
+const AchievementGrid = memo(function AchievementGrid({ unlocked }: { unlocked: Set<string> }) {
+  return (
+    <div className="badge-grid">
+      {content.achievements.map((a) => {
+        const isUnlocked = unlocked.has(a.id);
+        return (
+          <div key={a.id} className={'badge-tile' + (isUnlocked ? '' : ' locked')}>
+            <Badge kind={a.badge} tier={a.tier} locked={!isUnlocked} />
+            <span className="badge-name">{a.name}</span>
+            <span className="sub badge-desc">{a.desc}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
 export function TasksScreen() {
-  const state = useGame((s) => s.state);
-  const { streak, bestStreak, skipTokens, tasks } = state.dailies;
-  const unlocked = state.achievements.length;
+  // Three narrow subscriptions rather than the whole GameState: a tick changes kc and souls
+  // on every fire, and none of this screen depends on either.
+  const dailies = useGame((s) => s.state.dailies);
+  const stats = useGame((s) => s.state.stats);
+  const achievements = useGame((s) => s.state.achievements);
+  const unlocked = useMemo(() => new Set(achievements), [achievements]);
+  const { streak, bestStreak, skipTokens, tasks } = dailies;
+  const view: DailyProgressView = { dailies, stats };
   const total = content.achievements.length;
 
   return (
@@ -58,24 +84,13 @@ export function TasksScreen() {
         <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>
         <p className="sub">Skip tokens: {skipTokens}</p>
       </div>
-      {tasks.map((t) => <TaskRow key={t.id} taskId={t.id} state={state} />)}
+      {tasks.map((t) => <TaskRow key={t.id} taskId={t.id} view={view} />)}
 
       <div className="section-head">
         <h3>Achievements</h3>
-        <span className="sub mono">{unlocked} / {total}</span>
+        <span className="sub mono">{achievements.length} / {total}</span>
       </div>
-      <div className="badge-grid">
-        {content.achievements.map((a) => {
-          const isUnlocked = state.achievements.includes(a.id);
-          return (
-            <div key={a.id} className={'badge-tile' + (isUnlocked ? '' : ' locked')}>
-              <Badge kind={a.badge} tier={a.tier} locked={!isUnlocked} />
-              <span className="badge-name">{a.name}</span>
-              <span className="sub badge-desc">{a.desc}</span>
-            </div>
-          );
-        })}
-      </div>
+      <AchievementGrid unlocked={unlocked} />
     </section>
   );
 }

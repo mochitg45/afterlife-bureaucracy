@@ -1,7 +1,7 @@
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
-import { APP_VERSION } from '../../version';
+import { APP_VERSION, PRIVACY_URL } from '../../version';
 
 export function SettingsSheet({ open, onClose, onGoToOdds }: { open: boolean; onClose: () => void; onGoToOdds: () => void }) {
   const notifOptIn = useGame((s) => s.state.settings.notifOptIn);
@@ -30,7 +30,7 @@ export function SettingsSheet({ open, onClose, onGoToOdds }: { open: boolean; on
       </div>
       <div className="settings-row mono sub">{APP_VERSION}</div>
       <div className="settings-row">
-        <a href="https://example.invalid/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
+        <a href={PRIVACY_URL} target="_blank" rel="noreferrer">Privacy Policy</a>
       </div>
       <div className="modal-actions">
         <button className="btn btn-primary" onClick={onClose}>Close</button>

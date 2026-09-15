@@ -1,4 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { Profiler } from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import Decimal from 'break_infinity.js';
 import { TasksScreen } from './TasksScreen';
 import { useGame } from '../../store/game';
 import { createInitialState, type GameState, type DailiesState } from '../../engine/state';
@@ -9,9 +11,18 @@ import { content } from '../../data';
 const TASK_ID = 'd-clicks-1'; // kind: clicks, target: 150
 const TASK_DEF = content.dailies.find((d) => d.id === TASK_ID)!;
 const TASK_TEXT = TASK_DEF.text.replace('{n}', String(TASK_DEF.target));
-// Claiming settles through the real clock, so the seeded "today" must match it or a rollover
-// would replace this task list before the assertion runs.
-const TODAY = dayKey(Date.now());
+// Claiming settles through the store's real clock, so the clock is frozen here and the seeded
+// "today" read off it: a rollover mid-test would replace the task list under the assertions.
+const NOW = new Date(2026, 8, 14, 10, 0, 0).getTime();
+const TODAY = dayKey(NOW);
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(NOW);
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 function dailiesWith(overrides: Partial<DailiesState> = {}): DailiesState {
   return {
@@ -24,6 +35,7 @@ function dailiesWith(overrides: Partial<DailiesState> = {}): DailiesState {
     lastTokenDate: TODAY,
     baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
     completedToday: false,
+    soulsPerSecSnapshot: '0',
     ...overrides,
   };
 }
@@ -106,5 +118,22 @@ describe('TasksScreen', () => {
     expect(unlockedBadge).toHaveAttribute('data-locked', 'false');
     expect(lockedBadge).toHaveAttribute('data-locked', 'true');
     void lockedId;
+  });
+
+  it('does not re-render when only kc changes on a tick', () => {
+    seed({ dailies: dailiesWith(), achievements: [content.achievements[0].id] });
+    let commits = 0;
+    render(
+      <Profiler id="tasks" onRender={() => { commits += 1; }}>
+        <TasksScreen />
+      </Profiler>,
+    );
+    const badge = screen.getByText(content.achievements[0].name).closest('.badge-tile');
+    const before = commits;
+    act(() => {
+      useGame.setState({ state: { ...useGame.getState().state, kc: new Decimal(1) } });
+    });
+    expect(commits).toBe(before);
+    expect(screen.getByText(content.achievements[0].name).closest('.badge-tile')).toBe(badge);
   });
 });

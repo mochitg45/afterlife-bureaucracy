@@ -1,4 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { Profiler } from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import Decimal from 'break_infinity.js';
 import { PersonnelScreen } from './PersonnelScreen';
 import { useGame } from '../../store/game';
 import { createInitialState, type GameState } from '../../engine/state';
@@ -35,6 +37,29 @@ describe('PersonnelScreen', () => {
     expect(screen.getAllByText(/empty slot/i)).toHaveLength(2);
     fireEvent.click(screen.getAllByRole('button', { name: /^dave, reaper, double overtime$/i })[0]);
     expect(useGame.getState().state.equipped).toEqual([]);
+  });
+  it('offers a See odds shortcut that survives a jsdom without scrollIntoView', () => {
+    seed({ vouchers: 0 });
+    render(<PersonnelScreen />);
+    const btn = screen.getByRole('button', { name: /see odds/i });
+    expect(btn).toBeInTheDocument();
+    expect(() => fireEvent.click(btn)).not.toThrow();
+  });
+  it('does not re-render when only kc changes on a tick', () => {
+    seed({ cards: { 'c-dave-overtime': 1 } });
+    let commits = 0;
+    render(
+      <Profiler id="personnel" onRender={() => { commits += 1; }}>
+        <PersonnelScreen />
+      </Profiler>,
+    );
+    const tile = screen.getAllByRole('button', { name: /^dave, reaper, double overtime$/i })[0];
+    const before = commits;
+    act(() => {
+      useGame.setState({ state: { ...useGame.getState().state, kc: new Decimal(1) } });
+    });
+    expect(commits).toBe(before);
+    expect(screen.getAllByRole('button', { name: /^dave, reaper, double overtime$/i })[0]).toBe(tile);
   });
   it('shows pity counters', () => {
     seed({ pity: { senior: 7, executive: 30 } });
