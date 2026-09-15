@@ -3,7 +3,7 @@ import { createInitialState } from './state';
 import { content } from '../data';
 import {
   sealsForRun, canAudit, fileAudit, resetRun, auditThreshold,
-  AUDIT_BASE, SEAL_COEFF, YEAR_GROWTH,
+  AUDIT_BASE, SEAL_COEFF, SEAL_CAP_PER_AUDIT, YEAR_GROWTH,
 } from './prestige';
 
 const now = { wall: 0, mono: 0 };
@@ -21,7 +21,9 @@ describe('sealsForRun', () => {
     expect(sealsForRun(new Decimal(AUDIT_BASE), 1)).toBe(SEAL_COEFF);
   });
   it('is zero below the year threshold', () => {
-    expect(sealsForRun(new Decimal(AUDIT_BASE).sub(1), 1)).toBe(0);
+    // A fraction under, not AUDIT_BASE − 1: at this size a single soul is below the float
+    // resolution of the base and would compare equal to the threshold.
+    expect(sealsForRun(new Decimal(AUDIT_BASE).mul(0.999), 1)).toBe(0);
     // The same run that pays out in year 1 is short of year 2's raised bar.
     expect(sealsForRun(new Decimal(AUDIT_BASE), 2)).toBe(0);
   });
@@ -33,9 +35,15 @@ describe('sealsForRun', () => {
     // Ten times the souls is well short of ten times the Seals.
     expect(ten).toBeLessThan(10 * SEAL_COEFF);
   });
-  it('clamps absurd runs to a safe integer instead of overflowing', () => {
-    expect(sealsForRun(new Decimal('1e100'), 1)).toBe(Number.MAX_SAFE_INTEGER);
-    expect(sealsForRun(new Decimal('1e1000'), 1)).toBe(Number.MAX_SAFE_INTEGER);
+  it('never pays more than the per-audit cap, however absurd the run', () => {
+    expect(sealsForRun(new Decimal('1e100'), 1)).toBe(SEAL_CAP_PER_AUDIT);
+    // Past the range of a JS number the payout is the cap too, not NaN or MAX_SAFE_INTEGER.
+    expect(sealsForRun(new Decimal('1e1000'), 1)).toBe(SEAL_CAP_PER_AUDIT);
+  });
+  it('caps a merely large overshoot at SEAL_CAP_PER_AUDIT', () => {
+    const uncapped = Math.floor(SEAL_COEFF * 1e6 ** 0.4);
+    expect(uncapped).toBeGreaterThan(SEAL_CAP_PER_AUDIT);
+    expect(sealsForRun(new Decimal(AUDIT_BASE).mul(1e6), 1)).toBe(SEAL_CAP_PER_AUDIT);
   });
 });
 
@@ -148,7 +156,7 @@ describe('fileAudit', () => {
     expect(resetRun(s, content).equipped).toEqual(five);
   });
   it('canAudit follows the threshold', () => {
-    expect(canAudit({ ...rich(), soulsRun: new Decimal(AUDIT_BASE).sub(1) })).toBe(false);
+    expect(canAudit({ ...rich(), soulsRun: new Decimal(AUDIT_BASE).mul(0.999) })).toBe(false);
     expect(canAudit(rich())).toBe(true);
   });
 });

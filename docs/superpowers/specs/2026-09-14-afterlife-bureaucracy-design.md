@@ -24,7 +24,7 @@ Decisions already made:
 |---|---|---|
 | Minutes | Stamp, buy staff, buy upgrades, hit staff milestones | "Next milestone at 25 Daves" |
 | Hours | Unlock departments (Heaven, Hell, Reincarnation, Limbo) | "500K more souls to Hell Compliance" |
-| Days | Fiscal Year Audit (prestige) → Karma Seals → Perk Ledger | "Audit at 520B gives 12 seals, buy Offline cap perk" |
+| Days | Fiscal Year Audit (prestige) → Karma Seals → Perk Ledger | "Audit at 8 Qa gives 16 seals, buy Offline cap perk" |
 | Weeks | Gacha collection, rank up duplicates, equip loadout | "Need 2 more Seraphine dupes for 3-star" |
 | Ongoing | Daily tasks, streak, achievements, memo story arc, weekly events | "3 more dailies for streak bonus" |
 | Months | Cosmic Restructuring (second prestige tier), new afterlife branches | "100 Seals unlocks Cosmic" |
@@ -59,15 +59,18 @@ All numbers are `Decimal` from break_infinity.js so the game survives values bey
 - Offline rate is 50% of online rate; upgradeable to 100%. Remove-Ads purchase grants a permanent ×2 on offline earnings.
 - On return after ≥ 60 seconds away, show the "Overnight Backlog Report" modal with the amount earned and a rewarded-ad ×2 button.
 
-**Pacing targets** (validated by the balance simulator, section 13, which models a check-in player: 5 sessions of 3 minutes per day, 3 stamps per second, greedy buying, auditing as soon as the Audit is available and spending Seals on the cheapest affordable perk). Targets:
+**Pacing targets** (validated by the balance simulator, section 13, which models a check-in player: 5 sessions of 3 minutes per day, 3 stamps per second, greedy buying, auditing as soon as the Audit is available, spending Seals on the cheapest affordable perk, claiming every finished daily, taking one rewarded `offline-double` ad per session, spending vouchers on pulls, and filing a Cosmic Restructuring the moment the Bureau will hear one). Targets, over 30 simulated days:
 - Heaven Admissions unlocks within 15 minutes of play.
 - The first Audit becomes available on day 2 or 3 (never on day 1).
 - Hell Compliance unlocks during the first run, before the first Audit.
 - Reincarnation Desk does not unlock before fiscal year 2, and Limbo Records not before fiscal year 3; both unlock by day 14.
 - A run started with 20 Seals and the first two Throughput perks plus the first two Head Start perks reaches the Audit threshold at least 1.3× faster (in played seconds) than the first run.
 - The prestige loop compounds: each of the first five runs reaches its Audit threshold in at most 0.85× the played seconds the previous run needed.
+- The first Cosmic Restructuring is available between day 8 and day 30.
+- The recurring voucher faucet — the three daily tasks plus the seven-day streak pack — pays a free player 2–4 vouchers a day averaged over days 3–14. Achievement grants are a separate one-off budget (170 vouchers across the 80 unlocks) that lands on top of this, mostly in the first fortnight.
+- No single Audit pays more than `SEAL_CAP_PER_AUDIT` (200) Seals in the first 30 days.
 
-Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, the Reincarnation and Limbo unlock thresholds (the values in section 5 are starting points), and the four prestige constants of section 6 — Audit base threshold, seal coefficient, seal exponent, year growth. Fixed: the 1.15 cost growth, the milestone table, Heaven and Hell thresholds, Seal bonus, perk values.
+Tunable to meet these: staff `baseCost`/`baseRate` in every department (Intake's Dave and Seraphine stay at 15 / 0.5 and 100 / 2 because tests and tutorial copy depend on them), upgrade costs, Perk Ledger node costs, Cosmic Clause values, the Reincarnation, Limbo and Valhalla unlock thresholds (the values in section 5 are starting points), and the five prestige constants of section 6 — Audit base threshold, seal coefficient, seal exponent, year growth and the per-Audit Seal cap. Fixed: the 1.15 cost growth, the milestone table, Heaven and Hell thresholds, Seal bonus, perk effect values, the achievement voucher grants.
 
 **Number formatting.** Plain up to 999,999; then K, M, B, T, Qa, Qi, Sx, Sp, Oc, No, Dc; then letters aa, ab, ac… Numbers in IBM Plex Mono with tabular figures, and the displayed value lerps toward the true value each animation frame.
 
@@ -80,8 +83,8 @@ Five departments in v1, each defined entirely in `src/data/departments/*.json`. 
 | Intake | start | ledger green `#1F3B33` | Dave (Reaper, Overtime), Seraphine (Angel, Temp), Gary (Demon Intern), The Auditor (Bribed) |
 | Heaven Admissions | 10,000 | soul teal `#3E9C93` | angels, Cloud Nine Staffing temps, choir HR |
 | Hell Compliance | 250,000 | stamp red `#A6402B` | unionized demons, torment QA, pitchfork logistics |
-| Reincarnation Desk | 600,000,000,000 | brass `#A8823C` | karma accountants, golden-retriever placement officers |
-| Limbo Records | 50,000,000,000,000 | grey-violet `#6B6478` | archivists, souls who forgot to leave, lost-and-found |
+| Reincarnation Desk | 9,600,000,000,000,000 | brass `#A8823C` | karma accountants, golden-retriever placement officers |
+| Limbo Records | 240,000,000,000,000,000 | grey-violet `#6B6478` | archivists, souls who forgot to leave, lost-and-found |
 
 Each department has:
 - 4–6 staff producers with base cost, base rate, name, role, flavor line, SVG character id and two mood faces.
@@ -94,9 +97,9 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 ## 6. Prestige: Fiscal Year Audit
 
-- The threshold rises every fiscal year: `auditThreshold(year) = AUDIT_BASE × YEAR_GROWTH^(year − 1)`, with `AUDIT_BASE = 520,000,000,000` (520B) and `YEAR_GROWTH = 2.5`. Year 1 asks for 520B, year 2 for 1.3T, year 3 for 3.25T, and so on — a run has to out-earn the one before it, which is what makes the loop compound instead of flattening.
+- The threshold rises every fiscal year: `auditThreshold(year) = AUDIT_BASE × YEAR_GROWTH^(year − 1)`, with `AUDIT_BASE = 8,000,000,000,000,000` (8 Qa) and `YEAR_GROWTH = 1.25`. Year 1 asks for 8 Qa, year 2 for 10 Qa, year 3 for 12.5 Qa, and so on — a run has to out-earn the one before it, which is what makes the loop compound instead of flattening. The growth is gentle because the Backlog Report dominates a check-in player's income: one four-hour-plus gap is worth tens of thousands of seconds of online rate, so souls jump by orders of magnitude at every session boundary, and a steeper year growth simply walls the loop off after a handful of fiscal years.
 - Available when souls processed this run ≥ `auditThreshold(fiscalYear)`.
-- Seals awarded on Audit: `floor(SEAL_COEFF × (soulsThisRun / AUDIT_BASE)^SEAL_EXP)`, with `SEAL_COEFF = 12` and `SEAL_EXP = 0.4`. A run that lands exactly on the year-1 threshold pays 12 Seals; the exponent below 0.5 means a run that overshoots by orders of magnitude does not hand out a lifetime of Seals at once, while measuring against `AUDIT_BASE` rather than the year's own threshold keeps later years paying more for the same work. The result is clamped to `Number.MAX_SAFE_INTEGER`. The Ledger tab shows "Audit now for +N Seals" live.
+- Seals awarded on Audit: `min(SEAL_CAP_PER_AUDIT, floor(SEAL_COEFF × (soulsThisRun / AUDIT_BASE)^SEAL_EXP × clauseSealMult))`, with `SEAL_COEFF = 16`, `SEAL_EXP = 0.4` and `SEAL_CAP_PER_AUDIT = 200`. A run that lands exactly on the year-1 threshold pays 16 Seals; the exponent below 0.5 means a run that overshoots by orders of magnitude does not hand out a lifetime of Seals at once, while measuring against `AUDIT_BASE` rather than the year's own threshold keeps later years paying more for the same work. The cap is the hard stop above that: every Seal held is +2% global multiplier for good, so an uncapped payout on a heavily overshot run feeds straight into the next overshoot — the simulator showed the loop collapsing into three-second fiscal years inside a week without it. The Ledger tab shows "Audit now for +N Seals" live.
 - Reset: KC, staff counts, upgrades, department unlocks, souls-this-run, offline cap upgrades. Keep: Seals, Perk Ledger purchases, gacha collection and equips, achievements, vouchers, lifetime statistics, fiscal year counter, settings.
 - Each Seal held grants +2% global multiplier passively.
 - **Perk Ledger:** a tree defined in `src/data/perks.json`, about 40 nodes in v1, five branches: Throughput (rate multipliers), Overtime (offline cap and rate), Stapler (click power), Requisition (voucher income and gacha discounts), Head Start (start each run with departments or staff pre-unlocked). Node cost in Seals; prerequisites by node id.
@@ -113,7 +116,7 @@ Departments are shown as chips at the top of the Office tab. A locked department
 - Duplicates raise the card's rank from 1 to 5 stars; each star scales the bonus. Extra duplicates past 5 stars convert to KC.
 - Equip slots: 3 at start, up to 8 through Perk Ledger. Only equipped cards apply their bonus.
 - Reveal animation: filing drawer slides open, envelope rises, a stamp reveals the rarity colour; Executive pulls get a gold-foil shake and confetti of forms.
-- Free-to-play voucher income target: about 3 per day from dailies, achievements and the daily rewarded-ad pull, so a free single pull every day or so and a 10-pull roughly monthly.
+- Free-to-play voucher income target: 2–4 per day from the recurring faucet (the three daily tasks and the seven-day streak pack), so a free single pull every day or so and a 10-pull roughly monthly. Achievement unlocks pay a separate one-off 170 vouchers across the 80 badges; the simulator shows roughly half of that arriving inside the first fortnight, which is an onboarding bulge rather than sustained income.
 - RNG: seeded xorshift so unit tests can verify odds and pity deterministically.
 
 ## 8. Retention systems
@@ -195,7 +198,7 @@ src/
 
 - vitest for the engine: cost curves, milestone multipliers, click power, offline cap and rate, audit seal formula, Perk Ledger prerequisites, gacha odds (100,000 seeded pulls within tolerance of the published odds) and pity guarantees, daily reset boundaries, save migrations from every prior fixture.
 - Content schema tests: every JSON file parses against its zod schema; every referenced id (perk prerequisites, card department, achievement targets) resolves.
-- Balance simulator `npm run sim`: models a check-in player (5 sessions/day, 3 minutes, greedy buying) and an active player, prints day-by-day table of souls, KC, departments unlocked, audits filed and seals, plus the played seconds each run needed to reach its Audit. Pacing targets in section 4 are asserted by a test that runs the simulator.
+- Balance simulator `npm run sim`: models a check-in player (5 sessions/day, 3 minutes, greedy buying, 30 days) and an active player over the full economy — dailies rolled over on a synthetic wall clock and claimed when finished, one rewarded `offline-double` ad per session, vouchers spent on pulls, the best cards equipped, perks bought after every Audit, Cosmic Restructuring filed as soon as it is available and the cheapest Clause taken. It prints a day-by-day table of souls, KC, departments unlocked, audits filed, Seals, vouchers, cards, achievements and Clauses, plus the played seconds each run needed to reach its Audit, the Seals every Audit paid, and the days Cosmic fired. Pacing targets in section 4 are asserted by a test that runs the simulator.
 - UI: React Testing Library smoke tests for each tab and overlay; manual device pass on Android before each release.
 
 ## 14. Release phasing

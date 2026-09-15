@@ -74,9 +74,9 @@ describe('shipped departments', () => {
       ['intake', 0, '#1F3B33'],
       ['heaven', 10000, '#3E9C93'],
       ['hell', 250000, '#A6402B'],
-      ['reincarnation', 600000000000, '#A8823C'],
-      ['limbo', 50000000000000, '#6B6478'],
-      ['valhalla', 1000000000000000, '#B5651D'],
+      ['reincarnation', 9.6e15, '#A8823C'],
+      ['limbo', 2.4e17, '#6B6478'],
+      ['valhalla', 5e18, '#B5651D'],
     ]);
   });
   it('gates exactly one department behind a Cosmic branch', () => {

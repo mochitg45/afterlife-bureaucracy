@@ -1,7 +1,11 @@
-import { simulate } from './simulate';
+import { simulate, vouchersPerDay, maxSealsPerAudit } from './simulate';
 import { content } from '../data';
+import { SEAL_CAP_PER_AUDIT } from '../engine/prestige';
 
-const checkIn = { sessionsPerDay: 5, sessionSec: 180, clicksPerSec: 3, days: 14 };
+/** Thirty days, because Cosmic Restructuring and the Seal cap are thirty-day targets. */
+const checkIn = { sessionsPerDay: 5, sessionSec: 180, clicksPerSec: 3, days: 30 };
+/** Played seconds in the first fourteen days of the check-in profile. */
+const DAY_14_SEC = 14 * checkIn.sessionsPerDay * checkIn.sessionSec;
 
 describe('pacing targets (spec §4)', () => {
   const r = simulate(checkIn, content);
@@ -27,6 +31,8 @@ describe('pacing targets (spec §4)', () => {
     expect(r.firstUnlockYear.reincarnation!).toBeGreaterThanOrEqual(2);
     expect(r.firstUnlockYear.limbo).toBeDefined();
     expect(r.firstUnlockYear.limbo!).toBeGreaterThanOrEqual(3);
+    expect(r.firstUnlockSec.reincarnation!).toBeLessThanOrEqual(DAY_14_SEC);
+    expect(r.firstUnlockSec.limbo!).toBeLessThanOrEqual(DAY_14_SEC);
   });
 
   it('makes each of the first five runs at least 15% faster to the Audit than the one before', () => {
@@ -40,7 +46,7 @@ describe('pacing targets (spec §4)', () => {
 
   it('a 20-seal, four-perk run reaches the audit threshold at least 1.3x faster', () => {
     // Only the first Audit matters here, and the target puts it inside day 3; simulating the
-    // remaining eleven days would just be an expensive way to reach the same number.
+    // remaining days would just be an expensive way to reach the same number.
     const seeded = simulate(
       { ...checkIn, days: 4, startSeals: 20, startPerks: ['throughput-1', 'throughput-2', 'headstart-1', 'headstart-2'] },
       content,
@@ -48,5 +54,26 @@ describe('pacing targets (spec §4)', () => {
     expect(r.firstAuditReadySec).not.toBeNull();
     expect(seeded.firstAuditReadySec).not.toBeNull();
     expect(seeded.firstAuditReadySec! * 1.3).toBeLessThanOrEqual(r.firstAuditReadySec!);
+  });
+
+  it('puts the first Cosmic Restructuring between day 8 and day 30', () => {
+    expect(r.firstCosmicDay).not.toBeNull();
+    expect(r.firstCosmicDay!).toBeGreaterThanOrEqual(8);
+    expect(r.firstCosmicDay!).toBeLessThanOrEqual(30);
+  });
+
+  it('pays a free player 2-4 vouchers a day from the daily faucet over days 3-14', () => {
+    // The recurring faucet — three daily tasks plus the seven-day streak pack — is the income
+    // the spec's target describes. Achievement grants are a separate one-off budget (170
+    // vouchers across 80 unlocks) that lands mostly in the first fortnight on top of this.
+    const faucet = vouchersPerDay(r, 3, 14, 'tasks');
+    expect(faucet).toBeGreaterThanOrEqual(2);
+    expect(faucet).toBeLessThanOrEqual(4);
+  });
+
+  it('never pays more than 200 Seals for one Audit in the first 30 days', () => {
+    expect(r.sealsPerAudit.length).toBeGreaterThan(0);
+    expect(maxSealsPerAudit(r)).toBeLessThanOrEqual(SEAL_CAP_PER_AUDIT);
+    expect(SEAL_CAP_PER_AUDIT).toBe(200);
   });
 });

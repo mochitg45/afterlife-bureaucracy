@@ -1,5 +1,5 @@
 {
-  "id": "valhalla", "name": "Valhalla Intake Annex", "branch": "valhalla", "unlockSouls": 1000000000000000, "accent": "#B5651D",
+  "id": "valhalla", "name": "Valhalla Intake Annex", "branch": "valhalla", "unlockSouls": 5000000000000000000, "accent": "#B5651D",
   "staff": [
     { "id": "v-shieldmaiden", "name": "Sigrún the Shieldmaiden", "role": "Front Desk, Armed", "flavor": "Greets every arrival. Disarms most of them.", "baseCost": 100000000000000, "baseRate": 1000000000000, "character": "angel:0" },
     { "id": "v-skald", "name": "Ottar the Skald", "role": "Minutes & Sagas", "flavor": "Takes minutes in verse. Meetings run long.", "baseCost": 700000000000000, "baseRate": 5000000000000, "character": "demon:1" },

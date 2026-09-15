@@ -409,7 +409,7 @@ describe('game services and the save code', () => {
 
   it('submits the lifetime-souls score on an audit', async () => {
     const { store, services, seed } = await make();
-    seed({ soulsRun: new Decimal('1e13'), soulsLifetime: new Decimal('1e12') });
+    seed({ soulsRun: new Decimal('1e16'), soulsLifetime: new Decimal('1e12') });
     store.getState().audit();
     expect(services.scores).toEqual([['lb-lifetime-souls', 12_000]]);
     // Orders of magnitude, so a score always fits a 64-bit leaderboard.

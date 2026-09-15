@@ -277,7 +277,7 @@ describe('Valhalla content', () => {
     const d = dept();
     expect(d.branch).toBe('valhalla');
     expect(d.name).toBe('Valhalla Intake Annex');
-    expect(d.unlockSouls).toBe(1e15);
+    expect(d.unlockSouls).toBe(5e18);
     expect(d.accent).toBe('#B5651D');
   });
   it('ships five staff, four upgrades and full queue and memo pools', () => {
