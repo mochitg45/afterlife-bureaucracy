@@ -7,6 +7,7 @@ import saveV1 from './fixtures/save-v1.json';
 import saveV2 from './fixtures/save-v2.json';
 import saveV3 from './fixtures/save-v3.json';
 import saveV4 from './fixtures/save-v4.json';
+import saveV5 from './fixtures/save-v5.json';
 
 const now = { wall: 1_700_000_000_000, mono: 5_000 };
 
@@ -142,7 +143,7 @@ describe('save v4', () => {
   });
   it('migrates a v3 save to v4 with defaults', () => {
     const s = deserialize(JSON.stringify(saveV3), content);
-    expect(s.saveVersion).toBe(4);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.cards).toEqual({});
     expect(s.dailies.date).toBe('');
     expect(s.firstSeenWallClock).toBe(saveV3.lastSeenWallClock);
@@ -161,6 +162,52 @@ describe('save v4', () => {
     expect(s.equipped).toEqual(['c-dave-overtime']);
     expect(s.pity).toEqual({ senior: 0, executive: 0 });
   });
+  it('seeds the RNG per save from its own timestamp rather than a shared constant', () => {
+    const a = deserialize(JSON.stringify({ ...saveV3, lastSeenWallClock: 1_700_000_000_000 }), content);
+    const b = deserialize(JSON.stringify({ ...saveV3, lastSeenWallClock: 1_700_000_777_000 }), content);
+    expect(a.rngSeed).toBeGreaterThan(0);
+    expect(b.rngSeed).toBeGreaterThan(0);
+    expect(a.rngSeed).not.toBe(b.rngSeed);
+  });
+});
+
+describe('save v5', () => {
+  it('initial state carries the v5 defaults', () => {
+    const s = createInitialState(now, content);
+    expect(s.voucherFraction).toBe(0);
+    expect(s.dailies.soulsPerSecSnapshot).toBe('0');
+    expect(s.settings.notifDate).toBe('');
+    expect(s.settings.notifsSent).toBe(0);
+  });
+  it('migrates a v4 save to v5 with defaults, keeping the rest of its dailies and settings', () => {
+    const s = deserialize(JSON.stringify(saveV4), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.voucherFraction).toBe(0);
+    expect(s.dailies.soulsPerSecSnapshot).toBe('0');
+    expect(s.dailies.streak).toBe(3);
+    expect(s.settings).toEqual({ notifOptIn: 'unasked', notifDate: '', notifsSent: 0 });
+  });
+  it('loads the v5 fixture', () => {
+    const s = deserialize(JSON.stringify(saveV5), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.voucherFraction).toBeCloseTo(0.4);
+    expect(s.dailies.soulsPerSecSnapshot).toBe('42');
+    expect(s.settings).toEqual({ notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1 });
+  });
+  it('drops an out-of-range voucher remainder and a negative notification count', () => {
+    const raw = { ...saveV5, voucherFraction: 3.5, settings: { ...saveV5.settings, notifsSent: -4, notifDate: 7 } };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.voucherFraction).toBe(0);
+    expect(s.settings.notifsSent).toBe(0);
+    expect(s.settings.notifDate).toBe('');
+  });
+  it('clamps a save carrying more equipped cards than the state has slots', () => {
+    const five = ['c-dave-overtime', 'c-seraphine-chipper', 'c-gary-break', 'c-cherub-choir', 'c-imp-qa'];
+    const cards = Object.fromEntries(five.map((id) => [id, 1]));
+    const raw = { ...saveV5, perks: [], cards, equipped: five };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.equipped).toEqual(five.slice(0, 3));
+  });
 });
 
 describe('exhaustive save round-trip', () => {
@@ -172,6 +219,7 @@ describe('exhaustive save round-trip', () => {
       soulsLifetime: new Decimal('3e40'),
       seals: 42,
       vouchers: 17,
+      voucherFraction: 0.25,
       perks: ['throughput-1', 'headstart-1'],
       staff: { dave: 11, seraphine: 3 },
       upgrades: { 'faster-stapler': 2 },
@@ -196,10 +244,11 @@ describe('exhaustive save round-trip', () => {
         lastTokenDate: '2026-09-08',
         baseline: { clicks: 240, staffHired: 15, upgradesBought: 2, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
         completedToday: true,
+        soulsPerSecSnapshot: '1.25e7',
       },
       achievements: ['a-souls-1', 'a-clicks-1'],
       storySeen: ['s-first-stamp', 's-deja-vu'],
-      settings: { notifOptIn: 'yes' },
+      settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1 },
       firstSeenWallClock: 1_699_000_000_000,
     };
     const back = deserialize(serialize(s), content);

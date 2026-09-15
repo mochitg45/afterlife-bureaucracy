@@ -118,7 +118,7 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 ## 8. Retention systems
 
-**Daily tasks.** Three per day, drawn from a pool in `src/data/dailies.json` (stamp N souls, buy N staff, watch 1 ad, equip a card, reach N souls per second). Reset at local midnight. Rewards: KC scaled to current rate, plus vouchers. Streak counter with a bonus voucher pack at 7-day streaks; one missed day breaks the streak, one skip token per week protects it.
+**Daily tasks.** Three per day, drawn from a pool in `src/data/dailies.json` (stamp N souls, hire N staff, buy N upgrades, reach N souls per second, watch 1 ad (Plan 4), plus gated tasks — equip a card, draw a requisition, buy a perk, file an audit — offered only on days the player can currently do them). Reset at local midnight. Rewards: KC scaled to current rate, plus vouchers. Streak counter with a bonus voucher pack at 7-day streaks; one missed day breaks the streak, one skip token per week protects it.
 
 **Achievements.** About 80 in v1 in `src/data/achievements.json`: souls milestones, staff counts, audits filed, cards collected, ads watched, streaks. Each grants +1% permanent global multiplier and some grant vouchers. Trophy-style badge icons (SVG), grid on the Tasks tab. Mirrored to Play Games achievements on Android and Game Center achievements on iOS.
 

@@ -1,13 +1,23 @@
 import Decimal from 'break_infinity.js';
-import { createInitialState } from './state';
+import { createInitialState, type GameState } from './state';
 import { content } from '../data';
+import { loadContent, ALWAYS_AVAILABLE_DAILY_KINDS } from './content';
+import intake from '../data/departments/intake.json';
+import dailies from '../data/dailies.json';
 import { dayKey, nextLocalMidnight, daysBetween, pickTasks, rollover, claimDaily, skipDaily, progressOf, isDone, TASKS_PER_DAY } from './dailies';
-import { voucherMult, grantVouchers } from './vouchers';
+import { voucherMult, grantVouchers, grantVouchersExact } from './vouchers';
 
 const now = { wall: 0, mono: 0 };
 const T0 = new Date(2026, 8, 14, 10, 0, 0).getTime();
 const day = (n: number) => T0 + n * 86_400_000;
 const KIND_STAT = { clicks: 'clicks', hire: 'staffHired', upgrades: 'upgradesBought', equip: 'equips', audit: 'audits', perk: 'perksBought', pulls: 'pulls' } as const;
+const GATED_KINDS = ['equip', 'audit', 'perk', 'pulls'];
+const fresh = () => createInitialState(now, content);
+/** A player who has unlocked every gated task kind: cards owned, vouchers banked, Seals to spend, one audit filed. */
+const unlockedAll = (): GameState => {
+  const s = fresh();
+  return { ...s, vouchers: 5, cards: { 'c-dave-overtime': 1 }, seals: 50, stats: { ...s.stats, audits: 1 } };
+};
 
 describe('day helpers', () => {
   it('formats local day keys and computes midnight and day gaps', () => {
@@ -19,11 +29,44 @@ describe('day helpers', () => {
     expect(daysBetween('', '2026-09-14')).toBe(0);
   });
   it('picks 3 tasks of distinct kinds deterministically per date', () => {
-    const a = pickTasks(content, '2026-09-14'), b = pickTasks(content, '2026-09-14'), c = pickTasks(content, '2026-09-15');
+    const s = fresh();
+    const a = pickTasks(content, '2026-09-14', s), b = pickTasks(content, '2026-09-14', s), c = pickTasks(content, '2026-09-15', s);
     expect(a).toHaveLength(TASKS_PER_DAY);
     expect(new Set(a.map((t) => t.kind)).size).toBe(3);
     expect(a.map((t) => t.id)).toEqual(b.map((t) => t.id));
     expect(a.map((t) => t.id)).not.toEqual(c.map((t) => t.id));
+  });
+});
+
+describe('task feasibility', () => {
+  it('never offers a fresh save a task it cannot start, over a full year of dates', () => {
+    const s = fresh();
+    for (let i = 0; i < 365; i++) {
+      const drawn = pickTasks(content, dayKey(day(i)), s);
+      expect(drawn, dayKey(day(i))).toHaveLength(TASKS_PER_DAY);
+      for (const t of drawn) expect(GATED_KINDS, `${dayKey(day(i))} drew ${t.id}`).not.toContain(t.kind);
+    }
+  });
+  it('offers gated kinds once the player can do them', () => {
+    const s = unlockedAll();
+    const kinds = new Set<string>();
+    for (let i = 0; i < 365; i++) for (const t of pickTasks(content, dayKey(day(i)), s)) kinds.add(t.kind);
+    expect([...kinds].some((k) => GATED_KINDS.includes(k))).toBe(true);
+  });
+  it('completes a rate task from the souls-per-second snapshot alone', () => {
+    const s0 = fresh();
+    const def = content.dailies.find((d) => d.kind === 'rate')!;
+    const below = { ...s0, dailies: { ...s0.dailies, soulsPerSecSnapshot: String(def.target - 1) } };
+    expect(progressOf(below, def)).toBe(def.target - 1);
+    expect(isDone(below, def)).toBe(false);
+    const at = { ...s0, dailies: { ...s0.dailies, soulsPerSecSnapshot: '1e30' } };
+    expect(progressOf(at, def)).toBe(def.target);
+    expect(isDone(at, def)).toBe(true);
+  });
+  it('rejects a daily pool without enough always-available kinds', () => {
+    const gatedOnly = dailies.filter((d) => !ALWAYS_AVAILABLE_DAILY_KINDS.includes(d.kind as never));
+    expect(() => loadContent([intake], [], { dailies: gatedOnly })).toThrow(/always-available/i);
+    expect(() => loadContent([intake], [], { dailies })).not.toThrow();
   });
 });
 
@@ -71,12 +114,14 @@ describe('claim and skip', () => {
   const ready = () => {
     const s = rollover({ ...createInitialState(now, content), vouchers: 0 }, content, T0);
     const stats = { ...s.stats };
+    let soulsPerSecSnapshot = s.dailies.soulsPerSecSnapshot;
     for (const t of s.dailies.tasks) {
       const d = content.dailies.find((x) => x.id === t.id)!;
+      if (d.kind === 'rate') { soulsPerSecSnapshot = String(d.target); continue; }
       const key = KIND_STAT[d.kind];
       stats[key] = s.dailies.baseline[key] + d.target;
     }
-    return { ...s, stats };
+    return { ...s, stats, dailies: { ...s.dailies, soulsPerSecSnapshot } };
   };
   it('pays vouchers and KC once per task and completes the day', () => {
     let s = ready();
@@ -108,10 +153,23 @@ describe('claim and skip', () => {
     for (const t of s.dailies.tasks) s = claimDaily(s, content, t.id, new Decimal(0)).state;
     expect(s.vouchers).toBe(3 + 3);
   });
-  it('voucher multiplier rounds up', () => {
-    const s = { ...createInitialState(now, content), perks: ['requisition-1'] };
+  it('carries the sub-voucher remainder instead of rounding every grant up', () => {
+    const s = { ...fresh(), perks: ['requisition-1'] };
     expect(voucherMult(s, content)).toBeCloseTo(1.1);
-    expect(grantVouchers(s, content, 1).vouchers).toBe(2);
-    expect(grantVouchers(createInitialState(now, content), content, 1).vouchers).toBe(1);
+    const one = grantVouchers(s, content, 1);
+    expect(one.vouchers).toBe(1);
+    expect(one.voucherFraction).toBeCloseTo(0.1);
+    let acc = s;
+    for (let i = 0; i < 10; i++) acc = grantVouchers(acc, content, 1);
+    expect(acc.vouchers).toBe(11);
+    expect(acc.voucherFraction).toBeCloseTo(0);
+    expect(grantVouchers(fresh(), content, 1).vouchers).toBe(1);
+  });
+  it('grants an exact voucher amount without the multiplier or the remainder', () => {
+    const s = { ...fresh(), perks: ['requisition-1'], voucherFraction: 0.9 };
+    const r = grantVouchersExact(s, 5);
+    expect(r.vouchers).toBe(5);
+    expect(r.voucherFraction).toBe(0.9);
+    expect(grantVouchersExact(s, 0)).toBe(s);
   });
 });

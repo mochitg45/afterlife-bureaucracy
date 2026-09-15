@@ -83,7 +83,7 @@ const cardSchema = z.object({
 const dailySchema = z
   .object({
     id: z.string().min(1),
-    kind: z.enum(['clicks', 'hire', 'upgrades', 'equip', 'audit', 'perk', 'pulls']),
+    kind: z.enum(['clicks', 'hire', 'upgrades', 'equip', 'audit', 'perk', 'pulls', 'rate']),
     target: z.number().int().positive(),
     text: z.string().min(1),
   })
@@ -163,6 +163,11 @@ export interface ContentExtras {
   story?: unknown[];
 }
 
+/** Daily kinds every player can make progress on from the first minute, whatever they own. */
+export const ALWAYS_AVAILABLE_DAILY_KINDS: DailyKind[] = ['clicks', 'hire', 'upgrades', 'rate'];
+/** pickTasks needs one ungated kind per task it draws. */
+const MIN_ALWAYS_AVAILABLE_KINDS = 3;
+
 function assertUnique(ids: string[], label: string) {
   const seen = new Set<string>();
   for (const id of ids) {
@@ -209,6 +214,16 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
 
   const dailies = (extras.dailies ?? []).map((r) => dailySchema.parse(r));
   assertUnique(dailies.map((d) => d.id), 'daily');
+  // pickTasks draws TASKS_PER_DAY tasks of distinct kinds from the kinds the player can
+  // currently do; without enough ungated kinds a fresh save would be handed a short list.
+  if (dailies.length > 0) {
+    const covered = new Set(dailies.filter((d) => ALWAYS_AVAILABLE_DAILY_KINDS.includes(d.kind)).map((d) => d.kind));
+    if (covered.size < MIN_ALWAYS_AVAILABLE_KINDS) {
+      throw new Error(
+        `Daily pool needs at least ${MIN_ALWAYS_AVAILABLE_KINDS} always-available kinds (${ALWAYS_AVAILABLE_DAILY_KINDS.join(', ')}), found ${covered.size}`,
+      );
+    }
+  }
 
   const achievements = (extras.achievements ?? []).map((r) => achievementSchema.parse(r));
   assertUnique(achievements.map((a) => a.id), 'achievement');

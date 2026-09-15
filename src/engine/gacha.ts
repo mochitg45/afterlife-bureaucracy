@@ -87,8 +87,20 @@ export function pull(state: GameState, content: Content, count: 1 | 10, kcPerSec
   };
 }
 
-export function equipSlots(state: GameState, content: Content): number {
+/** Only `perks` is read, so a React caller can subscribe to that alone rather than the whole state. */
+export function equipSlots(state: Pick<GameState, 'perks'>, content: Content): number {
   return Math.min(MAX_EQUIP_SLOTS, BASE_EQUIP_SLOTS + perkSum(state, content, 'equipSlots'));
+}
+
+/**
+ * Trims `equipped` to the slots the state can actually hold. Losing a slot-granting perk
+ * (Cosmic Restructuring) or rolling back to a build with fewer slots would otherwise leave
+ * cards equipped past the last lanyard, quietly paying out multipliers the player cannot see.
+ */
+export function clampEquipped(state: GameState, content: Content): GameState {
+  const slots = equipSlots(state, content);
+  if (state.equipped.length <= slots) return state;
+  return { ...state, equipped: state.equipped.slice(0, slots) };
 }
 
 /** Equips an owned card into a free slot. Refuses (same state) if not owned, already equipped, or no free slot. */

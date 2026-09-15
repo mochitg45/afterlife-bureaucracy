@@ -135,6 +135,18 @@ describe('fileAudit', () => {
     const s = { ...rich(), soulsRun: new Decimal('1e200'), seals: Number.MAX_SAFE_INTEGER - 1 };
     expect(fileAudit(s, content).state.seals).toBe(Number.MAX_SAFE_INTEGER);
   });
+  it('trims equipped cards past the slot count the reset leaves behind', () => {
+    const five = ['c-dave-overtime', 'c-seraphine-chipper', 'c-gary-break', 'c-cherub-choir', 'c-imp-qa'];
+    // Five lanyards' worth of cards, but the perks that granted the extra slots are gone,
+    // which is exactly the shape Cosmic Restructuring will hand resetRun.
+    const s = { ...rich(), perks: [], cards: Object.fromEntries(five.map((id) => [id, 1])), equipped: five };
+    expect(resetRun(s, content).equipped).toEqual(five.slice(0, 3));
+  });
+  it('keeps equipped cards the extra-slot perks still pay for', () => {
+    const five = ['c-dave-overtime', 'c-seraphine-chipper', 'c-gary-break', 'c-cherub-choir', 'c-imp-qa'];
+    const s = { ...rich(), perks: ['requisition-1', 'requisition-3', 'requisition-4'], cards: Object.fromEntries(five.map((id) => [id, 1])), equipped: five };
+    expect(resetRun(s, content).equipped).toEqual(five);
+  });
   it('canAudit follows the threshold', () => {
     expect(canAudit({ ...rich(), soulsRun: new Decimal(AUDIT_BASE).sub(1) })).toBe(false);
     expect(canAudit(rich())).toBe(true);

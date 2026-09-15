@@ -5,6 +5,8 @@
   { "id": "d-hire-2", "kind": "hire", "target": 40, "text": "Hire {n} staff" },
   { "id": "d-upgrades-1", "kind": "upgrades", "target": 2, "text": "Buy {n} upgrades" },
   { "id": "d-upgrades-2", "kind": "upgrades", "target": 5, "text": "Buy {n} upgrades" },
+  { "id": "d-rate-1", "kind": "rate", "target": 25, "text": "Reach {n} souls per second" },
+  { "id": "d-rate-2", "kind": "rate", "target": 250, "text": "Reach {n} souls per second" },
   { "id": "d-equip-1", "kind": "equip", "target": 1, "text": "Equip {n} personnel card" },
   { "id": "d-pulls-1", "kind": "pulls", "target": 1, "text": "Draw {n} requisition" },
   { "id": "d-audit-1", "kind": "audit", "target": 1, "text": "File {n} annual audit" },

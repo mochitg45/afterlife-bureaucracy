@@ -3,6 +3,7 @@ import type { GameState } from './state';
 import { startingDepartments } from './state';
 import type { Content } from './content';
 import { headStart } from './perks';
+import { clampEquipped } from './gacha';
 
 /** Souls-this-run needed to close the books in fiscal year 1; puts the first Audit on day 2. */
 export const AUDIT_BASE = 5.2e11;
@@ -38,21 +39,26 @@ export function canAudit(state: { soulsRun: Decimal; fiscalYear: number }): bool
 /**
  * The shared "fresh fiscal year" reset: everything a run owns goes, everything meta stays.
  * Cosmic Restructuring must clear `perks` on the state *before* calling this, or the head
- * start it grants would be computed from perks the player is about to lose.
+ * start it grants would be computed from perks the player is about to lose — and because
+ * clearing them can also take slot-granting perks away, this ends with clampEquipped so the
+ * player is never left wearing more lanyards than the new perk set pays for.
  */
 export function resetRun(state: GameState, content: Content): GameState {
   const start = headStart(state, content);
   const unlocked = new Set([...startingDepartments(content), ...start.depts]);
   const deptsUnlocked = content.departments.filter((d) => unlocked.has(d.id)).map((d) => d.id);
-  return {
-    ...state,
-    kc: new Decimal(0),
-    soulsRun: new Decimal(0),
-    staff: { ...start.staff },
-    upgrades: {},
-    deptsUnlocked,
-    activeDept: deptsUnlocked[0],
-  };
+  return clampEquipped(
+    {
+      ...state,
+      kc: new Decimal(0),
+      soulsRun: new Decimal(0),
+      staff: { ...start.staff },
+      upgrades: {},
+      deptsUnlocked,
+      activeDept: deptsUnlocked[0],
+    },
+    content,
+  );
 }
 
 export interface AuditResult { state: GameState; sealsGained: number; fiscalYear: number }

@@ -1,6 +1,15 @@
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 type Raw = Record<string, unknown>;
+
+/**
+ * A per-save RNG seed derived from the one timestamp an old save always carries. A shared
+ * constant would hand every migrating player the identical pull sequence.
+ */
+function seedFrom(lastSeenWallClock: unknown): number {
+  const n = typeof lastSeenWallClock === 'number' && Number.isFinite(lastSeenWallClock) ? Math.floor(Math.abs(lastSeenWallClock)) : 0;
+  return (n % 2147483647) || 1;
+}
 
 // steps[v] upgrades a save from version v to v+1. Version 0 never shipped, so
 // steps[0] is deliberately absent and such a save is rejected rather than wiped.
@@ -23,7 +32,7 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
     cards: {},
     equipped: [],
     pity: { senior: 0, executive: 0 },
-    rngSeed: 0x9e3779b9,
+    rngSeed: seedFrom(raw.lastSeenWallClock),
     dailies: {
       date: '',
       tasks: [],
@@ -34,12 +43,21 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
       lastTokenDate: '',
       baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
       completedToday: false,
+      soulsPerSecSnapshot: '0',
     },
     achievements: [],
     storySeen: [],
-    settings: { notifOptIn: 'unasked' },
+    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0 },
     firstSeenWallClock: typeof raw.lastSeenWallClock === 'number' ? raw.lastSeenWallClock : 0,
     stats: { ...((raw.stats as object) ?? {}), pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0 },
+  }),
+  // 4 -> 5: the voucher faucet's carried remainder, the souls-per-second snapshot the
+  // "reach N souls per second" daily reads, and the per-day notification budget.
+  (raw) => ({
+    ...raw,
+    voucherFraction: 0,
+    dailies: { ...((raw.dailies as object) ?? {}), soulsPerSecSnapshot: '0' },
+    settings: { ...((raw.settings as object) ?? {}), notifDate: '', notifsSent: 0 },
   }),
 ];
 

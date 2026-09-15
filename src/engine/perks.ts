@@ -23,13 +23,13 @@ export function canBuyPerk(state: PerkWallet, content: Content, perkId: string):
   return { ok: true };
 }
 
-function owned(state: GameState, content: Content): PerkDef[] {
+function owned(state: Pick<GameState, 'perks'>, content: Content): PerkDef[] {
   return content.perks.filter((p) => state.perks.includes(p.id));
 }
 
 export type AdditivePerkType = 'offlineCapHours' | 'offlineRate' | 'click' | 'voucherMult' | 'equipSlots';
 
-export function perkSum(state: GameState, content: Content, type: AdditivePerkType): number {
+export function perkSum(state: Pick<GameState, 'perks'>, content: Content, type: AdditivePerkType): number {
   let total = 0;
   for (const p of owned(state, content)) {
     if (p.effect.type === type) total += p.effect.value;

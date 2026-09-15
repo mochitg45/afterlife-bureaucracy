@@ -3,6 +3,8 @@ import type { GameState, Stats, DailyBaseline } from './state';
 import type { Content, DailyDef, DailyKind } from './content';
 import { nextFloat } from './rng';
 import { grantVouchers } from './vouchers';
+import { canAudit } from './prestige';
+import { canBuyPerk } from './perks';
 
 export const TASKS_PER_DAY = 3;
 export const STREAK_BONUS_EVERY = 7;
@@ -42,8 +44,30 @@ function hashDate(key: string): number {
   return h || 1;
 }
 
-export function pickTasks(content: Content, date: string): DailyDef[] {
-  const pool = [...content.dailies];
+/**
+ * Whether today's player could actually finish a task of this kind. A day that offers
+ * "equip a card" to someone with no cards, or "file an audit" to a first-day player, is a
+ * task they can only skip.
+ */
+export function isKindFeasible(state: GameState, content: Content, kind: DailyKind): boolean {
+  switch (kind) {
+    case 'audit':
+      // Past the first audit the threshold is always reachable within a day, so only the
+      // player who has never closed a fiscal year needs to be within reach of one.
+      return state.stats.audits > 0 || canAudit(state);
+    case 'perk':
+      return content.perks.some((p) => canBuyPerk(state, content, p.id).ok);
+    case 'pulls':
+      return state.vouchers >= 1;
+    case 'equip':
+      return Object.keys(state.cards).length > 0;
+    default:
+      return true;
+  }
+}
+
+export function pickTasks(content: Content, date: string, state: GameState): DailyDef[] {
+  const pool = content.dailies.filter((d) => isKindFeasible(state, content, d.kind));
   const out: DailyDef[] = [];
   let seed = hashDate(date);
   while (out.length < TASKS_PER_DAY && pool.length) {
@@ -56,7 +80,8 @@ export function pickTasks(content: Content, date: string): DailyDef[] {
   return out;
 }
 
-const STAT_FOR_KIND: Record<DailyKind, keyof DailyBaseline> = {
+/** Every kind but `rate`, which is measured against a snapshot rather than a counter. */
+const STAT_FOR_KIND: Record<Exclude<DailyKind, 'rate'>, keyof DailyBaseline> = {
   clicks: 'clicks',
   hire: 'staffHired',
   upgrades: 'upgradesBought',
@@ -65,6 +90,9 @@ const STAT_FOR_KIND: Record<DailyKind, keyof DailyBaseline> = {
   perk: 'perksBought',
   pulls: 'pulls',
 };
+
+/** The two slices of state a daily's progress is read from; lets React subscribe to just these. */
+export type DailyProgressView = Pick<GameState, 'stats' | 'dailies'>;
 
 export function baselineFrom(stats: Stats): DailyBaseline {
   return {
@@ -78,13 +106,22 @@ export function baselineFrom(stats: Stats): DailyBaseline {
   };
 }
 
-export function progressOf(state: GameState, def: DailyDef): number {
+export function progressOf(state: DailyProgressView, def: DailyDef): number {
+  if (def.kind === 'rate') {
+    // Reported as a plain number for the progress bar; a rate past the target is clamped to
+    // it rather than overflowing a Decimal-sized souls/sec into the UI.
+    const n = Number(state.dailies.soulsPerSecSnapshot);
+    return Number.isFinite(n) ? Math.min(def.target, Math.max(0, n)) : 0;
+  }
   const key = STAT_FOR_KIND[def.kind];
   return Math.max(0, state.stats[key] - state.dailies.baseline[key]);
 }
 
-export function isDone(state: GameState, def: DailyDef): boolean {
-  return state.dailies.skipped.includes(def.id) || progressOf(state, def) >= def.target;
+export function isDone(state: DailyProgressView, def: DailyDef): boolean {
+  if (state.dailies.skipped.includes(def.id)) return true;
+  // The snapshot can run far past Number.MAX_SAFE_INTEGER, so the comparison stays in Decimal.
+  if (def.kind === 'rate') return new Decimal(state.dailies.soulsPerSecSnapshot).gte(def.target);
+  return progressOf(state, def) >= def.target;
 }
 
 export function rollover(state: GameState, content: Content, wallMs: number): GameState {
@@ -104,7 +141,7 @@ export function rollover(state: GameState, content: Content, wallMs: number): Ga
     ...state,
     dailies: {
       date: today,
-      tasks: pickTasks(content, today).map((t) => ({ id: t.id, claimed: false })),
+      tasks: pickTasks(content, today, state).map((t) => ({ id: t.id, claimed: false })),
       skipped: [],
       streak,
       bestStreak,
@@ -112,6 +149,7 @@ export function rollover(state: GameState, content: Content, wallMs: number): Ga
       lastTokenDate,
       baseline: baselineFrom(state.stats),
       completedToday: false,
+      soulsPerSecSnapshot: d.soulsPerSecSnapshot,
     },
   };
 }

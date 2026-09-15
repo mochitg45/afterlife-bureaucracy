@@ -1,5 +1,6 @@
 import Decimal from 'break_infinity.js';
 import { migrate, SAVE_VERSION } from './migrations';
+import { clampEquipped } from './gacha';
 import type { Content } from './content';
 
 export { SAVE_VERSION };
@@ -38,9 +39,20 @@ export interface DailiesState {
   lastTokenDate: string;
   baseline: DailyBaseline;
   completedToday: boolean;
+  /**
+   * The engine holds no rates, so the store stamps the current souls/sec here on every
+   * settle; the "reach N souls per second" daily reads it. A Decimal string, not a number.
+   */
+  soulsPerSecSnapshot: string;
 }
 
-export interface Settings { notifOptIn: 'unasked' | 'yes' | 'no' }
+export interface Settings {
+  notifOptIn: 'unasked' | 'yes' | 'no';
+  /** Local day key the notification budget below is counted against. */
+  notifDate: string;
+  /** Notifications already scheduled today, so a chatty app cannot spam the tray. */
+  notifsSent: number;
+}
 
 export interface GameState {
   saveVersion: number;
@@ -49,6 +61,8 @@ export interface GameState {
   soulsLifetime: Decimal;
   seals: number;
   vouchers: number;
+  /** Carried remainder of a fractional voucher grant, 0 <= f < 1. Keeps the faucet honest. */
+  voucherFraction: number;
   perks: string[];
   staff: Record<string, number>;
   upgrades: Record<string, number>;
@@ -88,6 +102,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     soulsLifetime: new Decimal(0),
     seals: 0,
     vouchers: 0,
+    voucherFraction: 0,
     perks: [],
     staff: {},
     upgrades: {},
@@ -112,10 +127,11 @@ export function createInitialState(now: Now, content: Content): GameState {
       lastTokenDate: '',
       baseline: { clicks: 0, staffHired: 0, upgradesBought: 0, equips: 0, audits: 0, perksBought: 0, pulls: 0 },
       completedToday: false,
+      soulsPerSecSnapshot: '0',
     },
     achievements: [],
     storySeen: [],
-    settings: { notifOptIn: 'unasked' },
+    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0 },
     firstSeenWallClock: now.wall,
   };
 }
@@ -230,6 +246,7 @@ function sanitizeDailies(v: unknown, knownDailyIds: Set<string>, fallback: Daili
       pulls: num(rawBaseline.pulls, fallback.baseline.pulls),
     },
     completedToday: typeof raw.completedToday === 'boolean' ? raw.completedToday : fallback.completedToday,
+    soulsPerSecSnapshot: typeof raw.soulsPerSecSnapshot === 'string' ? raw.soulsPerSecSnapshot : fallback.soulsPerSecSnapshot,
   };
 }
 
@@ -240,7 +257,17 @@ function sanitizeSettings(v: unknown): Settings {
   const notifOptIn = NOTIF_OPT_INS.includes(raw.notifOptIn as Settings['notifOptIn'])
     ? (raw.notifOptIn as Settings['notifOptIn'])
     : 'unasked';
-  return { notifOptIn };
+  return {
+    notifOptIn,
+    notifDate: typeof raw.notifDate === 'string' ? raw.notifDate : '',
+    notifsSent: Math.max(0, Math.floor(num(raw.notifsSent, 0))),
+  };
+}
+
+/** Carried voucher remainder: anything outside [0, 1) is noise from a hand-edited save. */
+function fraction(v: unknown): number {
+  const n = num(v, 0);
+  return n >= 0 && n < 1 ? n : 0;
 }
 
 export function deserialize(json: string, content: Content): GameState {
@@ -262,7 +289,9 @@ export function deserialize(json: string, content: Content): GameState {
   const knownStoryIds = new Set(content.story.map((s) => s.id));
   const cards = cardCounts(raw.cards, knownCardIds);
   const rawPity = raw.pity && typeof raw.pity === 'object' && !Array.isArray(raw.pity) ? (raw.pity as Record<string, unknown>) : {};
-  return {
+  // A save written before a slot-granting perk was refunded (or by a build with more slots)
+  // can carry more equipped cards than this state can hold; clampEquipped trims the tail.
+  return clampEquipped({
     ...base,
     saveVersion: SAVE_VERSION,
     kc: dec(raw.kc),
@@ -270,6 +299,7 @@ export function deserialize(json: string, content: Content): GameState {
     soulsLifetime: dec(raw.soulsLifetime),
     seals: num(raw.seals, 0),
     vouchers: num(raw.vouchers, 0),
+    voucherFraction: fraction(raw.voucherFraction),
     perks: Array.isArray(raw.perks) ? (raw.perks as unknown[]).filter((p): p is string => typeof p === 'string') : [],
     staff: counts(raw.staff),
     upgrades: counts(raw.upgrades),
@@ -294,13 +324,16 @@ export function deserialize(json: string, content: Content): GameState {
     equipped: equippedCards(raw.equipped, cards),
     pity: { senior: nonNegInt(rawPity.senior, 0), executive: nonNegInt(rawPity.executive, 0) },
     rngSeed: (() => {
-      const n = num(raw.rngSeed, base.rngSeed);
-      return Number.isInteger(n) && n > 0 ? n : base.rngSeed;
+      // Derived from this save's own last-seen timestamp, so two players falling back never
+      // share a pull sequence.
+      const fallbackSeed = (Math.floor(Math.abs(lastSeenWallClock)) % 2147483647) || 1;
+      const n = num(raw.rngSeed, fallbackSeed);
+      return Number.isInteger(n) && n > 0 ? n : fallbackSeed;
     })(),
     dailies: sanitizeDailies(raw.dailies, knownDailyIds, base.dailies),
     achievements: knownIds(raw.achievements, knownAchievementIds),
     storySeen: knownIds(raw.storySeen, knownStoryIds),
     settings: sanitizeSettings(raw.settings),
     firstSeenWallClock: num(raw.firstSeenWallClock, lastSeenWallClock),
-  };
+  }, content);
 }
