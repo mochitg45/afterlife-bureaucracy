@@ -11,7 +11,7 @@ import { assessGap, newProcessId, type GapAssessment } from '../engine/integrity
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
-import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, isDone, nextLocalMidnight, dayKey } from '../engine/dailies';
+import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
 import { pull as pullEngine, equipCard, unequipCard, type PullResult } from '../engine/gacha';
@@ -299,6 +299,36 @@ export function createGameStore(deps: StoreDeps) {
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
     /**
+     * The ad SDK finishes initialising well after the daily rollover has run, so a boot that
+     * settled with `adsReady: false` drew today's three tasks from a pool the "watch an ad"
+     * daily was filtered out of — and on Android that is every boot, so the task would never
+     * be drawn at all.
+     *
+     * Re-draws today's set once, and only while it is untouched: no progress, nothing claimed,
+     * nothing skipped. A player who has already started the day keeps the tasks they started.
+     */
+    const refreshDailiesForAds = () => {
+      if (!get().adsReady) return;
+      const s = get().state;
+      const today = dayKey(clock.wall());
+      if (s.dailies.date !== today || s.dailies.skipped.length) return;
+      for (const task of s.dailies.tasks) {
+        if (task.claimed) return;
+        const def = content.dailies.find((d) => d.id === task.id);
+        if (!def) continue;
+        // 'rate' has no counter to compare against a baseline: its progress is a standing
+        // snapshot, so only an already-satisfied one counts as work the player would lose.
+        if (def.kind === 'rate' ? isDone(s, def) : progressOf(s, def) > 0) return;
+      }
+      const picked = pickTasks(content, today, s, { adsReady: true });
+      if (!picked.length) return;
+      const same =
+        picked.length === s.dailies.tasks.length && picked.every((p, i) => p.id === s.dailies.tasks[i].id);
+      if (same) return;
+      set({ state: { ...s, dailies: { ...s.dailies, tasks: picked.map((t) => ({ id: t.id, claimed: false })) } } });
+    };
+
+    /**
      * Folds what the store reports into what the save holds. A merge, never a replacement:
      * a store that answers with less than the save already has (an outage, a receipt that
      * has not caught up, a sync that ran before the subscription was re-validated) takes
@@ -415,7 +445,11 @@ export function createGameStore(deps: StoreDeps) {
             } catch {
               /* no ad SDK: every placement stays closed */
             }
+            // Set first, so a boot that has not settled yet draws with ads in the pool;
+            // then, once the boot has settled, re-draw a set that was picked without them.
             set({ adsReady: ads.isReady() });
+            await booting;
+            refreshDailiesForAds();
           })();
           void (async () => {
             try {
@@ -551,6 +585,7 @@ export function createGameStore(deps: StoreDeps) {
             }));
             notifications.cancelAll().catch(() => {});
             set({ adsReady: ads.isReady() });
+            refreshDailiesForAds();
             startTimers();
             // After the set above, never before it: a resume replaces the whole state too.
             await syncEntitlements();

@@ -255,6 +255,50 @@ describe('rewarded ads', () => {
     store.getState().stopLoop();
   });
 
+  it('re-draws today\'s tasks once the ad SDK reports ready', async () => {
+    const storage = memoryStorage();
+    const clock = fakeClock({ wall: T0, mono: 0 });
+    const ads = fakeAds();
+    // Android: the SDK is still initialising when the rollover runs, so the "watch an ad"
+    // daily is filtered out of the pool and would never be drawn.
+    ads.setReady(false);
+    const store = createGameStore({
+      content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, ads: ads.ads,
+    });
+    await store.getState().boot();
+    const kindOf = () => store.getState().state.dailies.tasks.map((t) => content.dailies.find((d) => d.id === t.id)!.kind);
+    expect(store.getState().adsReady).toBe(false);
+    expect(kindOf()).not.toContain('ad');
+
+    ads.setReady(true);
+    await store.getState().pause();
+    await store.getState().resume();
+    expect(store.getState().adsReady).toBe(true);
+    // 2026-09-14 hashes to an ad task once the kind is feasible.
+    expect(kindOf()).toContain('ad');
+    store.getState().stopLoop();
+  });
+
+  it('leaves a started day alone when the ad SDK arrives late', async () => {
+    const storage = memoryStorage();
+    const clock = fakeClock({ wall: T0, mono: 0 });
+    const ads = fakeAds();
+    ads.setReady(false);
+    const store = createGameStore({
+      content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, ads: ads.ads,
+    });
+    await store.getState().boot();
+    const before = store.getState().state.dailies.tasks.map((t) => t.id);
+    // One click is progress on the 'clicks' task this date draws.
+    store.getState().stamp();
+
+    ads.setReady(true);
+    await store.getState().pause();
+    await store.getState().resume();
+    expect(store.getState().state.dailies.tasks.map((t) => t.id)).toEqual(before);
+    store.getState().stopLoop();
+  });
+
   it('closes every placement while the clock is suspect', async () => {
     const { store, clock, seed } = await make();
     seed({ staff: { dave: 20 } });
