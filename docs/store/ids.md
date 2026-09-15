@@ -15,7 +15,9 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 - IAP product ids: vouchers_10, vouchers_55, vouchers_120, vouchers_300, remove_ads, starter_pack, union_monthly (create in Play Console → Monetize)
 
 ## RevenueCat
-- Public SDK key (Android): `TODO` (public key only; never commit secret keys)
+- Test Store public key (sandbox, dev builds): `test_KVdHDShyXRlyPVWbhZFJxMJFQLg`
+- Play Store public SDK key (goog_…, release builds): `TODO`
+(public keys only; never commit secret keys)
 
 ## Play Games Services
 - Project / app id: `TODO`
