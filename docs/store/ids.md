@@ -21,5 +21,5 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 
 ## Play Games Services
 - Project / app id: `TODO`
-- Achievement ids: map in `src/platform/gameIds.ts` (Plan 4)
+- Achievement ids: map in `src/platform/gameIds.ts` (Plan 4) — all `TODO` until the Play Games project is created
 - Leaderboard `lifetime-souls`: `TODO`

@@ -25,6 +25,23 @@
 
         </activity>
 
+        <!--
+            AdMob app id. Public value (it ships inside the APK); the ids live in
+            docs/store/ids.md and are mirrored in src/platform/adUnits.ts. The Google
+            Mobile Ads SDK crashes at startup if this meta-data is missing.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5130289288594607~4830589570" />
+
+        <!--
+            Play Games Services app id goes here once the Play Games project exists
+            (see src/platform/gameIds.ts). Adding it with a placeholder value would crash
+            the app at startup, so it stays out until the console id is real:
+            <meta-data android:name="com.google.android.gms.games.APP_ID"
+                       android:value="\ TODO" />
+        -->
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -39,4 +56,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Advertising ID, required by AdMob on Android 13+ and declared in Play Data safety. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 </manifest>
