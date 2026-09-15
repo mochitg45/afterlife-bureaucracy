@@ -16,7 +16,7 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 
 ## RevenueCat
 - Test Store public key (sandbox, dev builds): `test_KVdHDShyXRlyPVWbhZFJxMJFQLg`
-- Play Store public SDK key (goog_…, release builds): `TODO`
+- Play Store public SDK key (release builds): `goog_qrKNtlMXOEqzWLCObOPioONRTFb`
 (public keys only; never commit secret keys)
 
 ## Play Games Services
