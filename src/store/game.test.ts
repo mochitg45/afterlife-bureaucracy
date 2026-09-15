@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import { createGameStore, CORRUPT_SAVE_KEY } from './game';
+import { createGameStore, CORRUPT_SAVE_KEY, BOOT_QUEUE_CAP } from './game';
 import { memoryStorage, SAVE_KEY } from '../platform/storage';
 import { fakeClock } from '../engine/time';
 import { content } from '../data';
@@ -411,5 +411,32 @@ describe('clock integrity in the store', () => {
     expect(again.getState().clockSuspect).toBe(false);
     expect(again.getState().state.dailies.date).not.toBe('');
     again.getState().stopLoop();
+  });
+});
+
+describe('boot queue caps', () => {
+  /** A save far enough along that a fresh boot unlocks a whole shelf of memos and badges at once. */
+  function loadedSave(): string {
+    const s = createInitialState({ wall: 1_000_000, mono: 0 }, content);
+    s.soulsLifetime = new Decimal('1e30');
+    s.soulsRun = new Decimal('1e30');
+    s.kc = new Decimal('1e30');
+    s.fiscalYear = 12;
+    s.seals = 500;
+    s.stats = { ...s.stats, clicks: 100_000, staffHired: 5_000, upgradesBought: 500, audits: 40, pulls: 500, adsWatched: 100 };
+    return serialize(s);
+  }
+
+  it('shows at most three memos and three badges on boot, filing the rest silently', async () => {
+    const { store } = await make({ saved: loadedSave() });
+    await store.getState().boot();
+    const s = store.getState();
+    expect(s.pendingStory.length).toBe(BOOT_QUEUE_CAP);
+    expect(s.recentAchievements.length).toBe(BOOT_QUEUE_CAP);
+    // Everything that unlocked is recorded, whether or not its memo made the queue.
+    expect(s.state.storySeen.length).toBeGreaterThan(BOOT_QUEUE_CAP);
+    expect(s.state.achievements.length).toBeGreaterThan(BOOT_QUEUE_CAP);
+    expect(s.state.storySeen).toEqual(expect.arrayContaining(s.pendingStory.map((m) => m.id)));
+    store.getState().stopLoop();
   });
 });

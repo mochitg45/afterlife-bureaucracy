@@ -1,4 +1,5 @@
 import { useGame } from '../../store/game';
+import { Modal } from '../components/Modal';
 
 /** A "Special Elite" typewriter memo for a story beat the player just triggered. */
 export function StoryMemo() {
@@ -7,14 +8,11 @@ export function StoryMemo() {
   const memo = pendingStory[0];
   if (!memo) return null;
   return (
-    <div className="modal-backdrop story">
-      <div className="modal card memo" role="dialog" aria-modal="true" aria-label="Memo">
-        <h2 className="modal-title">{memo.title}</h2>
-        <p>{memo.text}</p>
-        <div className="modal-actions">
-          <button className="btn btn-primary" onClick={dismissStory}>Filed</button>
-        </div>
+    <Modal open title={memo.title} label="Memo" className="memo" backdropClassName="story">
+      <p>{memo.text}</p>
+      <div className="modal-actions">
+        <button className="btn btn-primary" onClick={dismissStory}>Filed</button>
       </div>
-    </div>
+    </Modal>
   );
 }

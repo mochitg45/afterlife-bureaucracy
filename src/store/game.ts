@@ -56,6 +56,14 @@ const DAILY_NOTIF_DELAY_MS = 300_000;
  */
 const MAX_DISCRETIONARY_NOTIFS_PER_DAY = 1;
 
+/**
+ * How many story memos and achievement toasts a single boot may queue up. A player returning
+ * after a long break (or importing a save) can cross a dozen triggers at once; the rest are
+ * already recorded as seen, so the extras are filed silently rather than shown one modal at
+ * a time before the office opens.
+ */
+export const BOOT_QUEUE_CAP = 3;
+
 /** How long the Overtime Boost ad runs the office at double rate. */
 export const BOOST_AD_DURATION_MS = 4 * 3600_000;
 /**
@@ -395,8 +403,8 @@ export function createGameStore(deps: StoreDeps) {
             pendingOffline,
             queueLine: pick(dept.queue, ''),
             memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
-            recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
-            pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
+            recentAchievements: [...cur.recentAchievements, ...r.unlockedAch].slice(0, BOOT_QUEUE_CAP),
+            pendingStory: [...cur.pendingStory, ...r.unlockedStory].slice(0, BOOT_QUEUE_CAP),
             mood: moodAfterGap(pendingOffline, elapsedSec),
             clockSuspect: suspect,
           }));
