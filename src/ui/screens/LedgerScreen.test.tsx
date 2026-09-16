@@ -31,8 +31,8 @@ describe('LedgerScreen', () => {
     expect(screen.getByText(startingWith(needPrefix(3)))).toBeInTheDocument();
   });
   it('shows the seal preview and requires confirmation', () => {
-    const gained = Math.floor(SEAL_COEFF * 9 ** 0.4);
-    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(9), staff: { dave: 3 } });
+    const gained = Math.floor(SEAL_COEFF * 4 ** 0.4);
+    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 3 } });
     render(<LedgerScreen />);
     expect(screen.getByText(`+${gained} Seals`)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /file annual audit/i }));
@@ -69,8 +69,8 @@ describe('LedgerScreen', () => {
   });
   it('applies the clause seal multiplier to the audit preview', () => {
     const mult = 1.5; // clause-seals-1
-    const gained = Math.floor(SEAL_COEFF * 9 ** 0.4 * mult);
-    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(9), cosmicClauses: ['clause-seals-1'] });
+    const gained = Math.floor(SEAL_COEFF * 4 ** 0.4 * mult);
+    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(4), cosmicClauses: ['clause-seals-1'] });
     render(<LedgerScreen />);
     expect(screen.getByText(`+${gained} Seals`)).toBeInTheDocument();
   });

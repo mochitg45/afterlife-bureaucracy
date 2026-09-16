@@ -47,13 +47,13 @@ function loaded(): GameState {
 describe('cosmicThreshold', () => {
   it('starts at COSMIC_THRESHOLD and grows by COSMIC_THRESHOLD_GROWTH per filing', () => {
     expect(COSMIC_THRESHOLD).toBe(100);
-    expect(COSMIC_THRESHOLD_GROWTH).toBe(1.5);
-    expect([0, 1, 2, 3, 4].map(cosmicThreshold)).toEqual([100, 150, 225, 338, 506]);
+    expect(COSMIC_THRESHOLD_GROWTH).toBe(2.5);
+    expect([0, 1, 2, 3, 4].map(cosmicThreshold)).toEqual([100, 250, 625, 1563, 3906]);
   });
   it('treats a missing or nonsense filing count as none filed', () => {
     expect(cosmicThreshold(-3)).toBe(100);
     expect(cosmicThreshold(Number.NaN)).toBe(100);
-    expect(cosmicThreshold(2.9)).toBe(225);
+    expect(cosmicThreshold(2.9)).toBe(625);
   });
 });
 
@@ -67,10 +67,10 @@ describe('canCosmic', () => {
   });
   it('asks for more after every filing', () => {
     expect(canCosmic(wallet(100, 1))).toBe(false);
-    expect(canCosmic(wallet(149, 1))).toBe(false);
-    expect(canCosmic(wallet(150, 1))).toBe(true);
-    expect(canCosmic(wallet(224, 2))).toBe(false);
-    expect(canCosmic(wallet(225, 2))).toBe(true);
+    expect(canCosmic(wallet(249, 1))).toBe(false);
+    expect(canCosmic(wallet(250, 1))).toBe(true);
+    expect(canCosmic(wallet(624, 2))).toBe(false);
+    expect(canCosmic(wallet(625, 2))).toBe(true);
   });
 });
 
@@ -96,10 +96,16 @@ describe('fileCosmic', () => {
     expect(r.state.cosmicPoints).toBe(3);
     expect(r.state.stats.cosmics).toBe(5);
   });
-  it('leaves the fiscal year, lifetime souls, vouchers, cards and audit count alone', () => {
+  it('opens a new fiscal calendar at year 1', () => {
+    const s = loaded();
+    expect(s.fiscalYear).toBe(7);
+    // The Seal bonus and the whole Perk Ledger are gone; a year-7 threshold against the office
+    // that is left is a dead week, not a reward.
+    expect(fileCosmic(s, content).state.fiscalYear).toBe(1);
+  });
+  it('leaves lifetime souls, vouchers, cards and audit count alone', () => {
     const s = loaded();
     const r = fileCosmic(s, content);
-    expect(r.state.fiscalYear).toBe(7);
     expect(r.state.soulsLifetime.eq(s.soulsLifetime)).toBe(true);
     expect(r.state.vouchers).toBe(11);
     expect(r.state.cards).toEqual(s.cards);

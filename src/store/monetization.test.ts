@@ -558,7 +558,8 @@ describe('cosmic restructuring in the store', () => {
     expect(s.perks).toEqual([]);
     expect(s.cosmicPoints).toBe(1);
     expect(s.stats.cosmics).toBe(1);
-    expect(s.fiscalYear).toBe(4);
+    // A Restructuring opens a new calendar: the fiscal year goes back to 1 with the office.
+    expect(s.fiscalYear).toBe(1);
     expect(s.soulsRun.toNumber()).toBe(0);
     store.getState().dismissCosmic();
     expect(store.getState().lastCosmic).toBeNull();

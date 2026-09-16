@@ -27,7 +27,7 @@ export const YEAR_GROWTH = 1.5;
  * any run already at the ceiling. The multiplier is bounded at ×2 and gated behind Cosmic
  * Restructuring, so the runaway stays shut.
  */
-export const SEAL_CAP_PER_AUDIT = 150;
+export const SEAL_CAP_PER_AUDIT = 80;
 
 /** The ceiling in force for a given Clause Seal multiplier. */
 export function sealCap(sealMult = 1): number {

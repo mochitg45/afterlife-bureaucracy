@@ -306,9 +306,13 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       if (canCosmic(state)) {
         state = fileCosmic(state, content).state;
         cosmicDays.push(day);
-        // Every Clause costs the same single Cosmic Point, so "cheapest affordable" is just
-        // the first one the prerequisites allow, in content order.
-        const clause = content.clauses.find((c) => canBuyClause(state, content, c.id).ok);
+        // Every Clause costs the same single Cosmic Point, so there is no cheapest: the
+        // simulated player takes the Seal Clauses the moment their prerequisites allow it,
+        // then the rest in content order. Paying more Seals per Audit is the strongest thing
+        // a Clause point buys, and it is the branch that exercises the scaled cap — a
+        // simulator that never reaches ×1.5 leaves `sealCap` untested against a real run.
+        const affordable = content.clauses.filter((c) => canBuyClause(state, content, c.id).ok);
+        const clause = affordable.find((c) => c.effect.type === 'sealMult') ?? affordable[0];
         if (clause) state = buyClause(state, content, clause.id);
         runStartSec = played;
         runReady = false;

@@ -27,7 +27,7 @@ describe('CosmicPanel', () => {
     const base = createInitialState({ wall: 0, mono: 0 }, content);
     seed({ seals: 200, stats: { ...base.stats, cosmics: 2 } });
     render(<CosmicPanel />);
-    expect(screen.getByText(/the next one is filed at 225 seals/i)).toBeInTheDocument();
+    expect(screen.getByText(/the next one is filed at 625 seals/i)).toBeInTheDocument();
     expect(screen.getByText(`200 / ${cosmicThreshold(2)} Seals`)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /restructure/i })).not.toBeInTheDocument();
   });

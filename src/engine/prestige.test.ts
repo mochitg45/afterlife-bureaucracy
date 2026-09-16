@@ -29,14 +29,14 @@ describe('sealsForRun', () => {
   });
   it('grows sub-linearly with the size of the run', () => {
     const two = sealsForRun(new Decimal(AUDIT_BASE).mul(2), 1);
-    const ten = sealsForRun(new Decimal(AUDIT_BASE).mul(10), 1);
+    const five = sealsForRun(new Decimal(AUDIT_BASE).mul(5), 1);
     expect(two).toBe(Math.floor(SEAL_COEFF * 2 ** 0.4));
-    expect(ten).toBe(Math.floor(SEAL_COEFF * 10 ** 0.4));
-    // Five times the souls is well short of five times the Seals, and ten times the souls of
-    // ten times them — both below the cap, so this is the curve and not the ceiling talking.
-    expect(ten).toBeLessThan(5 * two);
-    expect(ten).toBeLessThan(10 * SEAL_COEFF);
-    expect(ten).toBeLessThan(SEAL_CAP_PER_AUDIT);
+    expect(five).toBe(Math.floor(SEAL_COEFF * 5 ** 0.4));
+    // Two and a half times the souls is well short of two and a half times the Seals, and
+    // both payouts are under the cap, so this is the curve and not the ceiling talking.
+    expect(five).toBeLessThan(2.5 * two);
+    expect(five).toBeLessThan(5 * SEAL_COEFF);
+    expect(five).toBeLessThan(SEAL_CAP_PER_AUDIT);
   });
   it('never pays more than the per-audit cap, however absurd the run', () => {
     expect(sealsForRun(new Decimal('1e100'), 1)).toBe(SEAL_CAP_PER_AUDIT);
@@ -107,8 +107,8 @@ describe('fileAudit', () => {
   const rich = () => ({
     ...createInitialState(now, content),
     kc: new Decimal(123),
-    soulsRun: new Decimal(AUDIT_BASE).mul(9),
-    soulsLifetime: new Decimal(AUDIT_BASE).mul(9).add(500_000),
+    soulsRun: new Decimal(AUDIT_BASE).mul(4),
+    soulsLifetime: new Decimal(AUDIT_BASE).mul(4).add(500_000),
     staff: { dave: 50, 'h-cherub': 3 },
     upgrades: { 'faster-stapler': 2 },
     deptsUnlocked: ['intake', 'heaven'],
@@ -118,7 +118,7 @@ describe('fileAudit', () => {
     boostUntilWall: 5,
     stats: { clicks: 10, staffHired: 53, upgradesBought: 2, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0, cosmics: 0, purchases: 0 },
   });
-  const expected = Math.floor(SEAL_COEFF * 9 ** 0.4);
+  const expected = Math.floor(SEAL_COEFF * 4 ** 0.4);
   it('refuses below the threshold', () => {
     const s = { ...rich(), soulsRun: new Decimal(10) };
     const r = fileAudit(s, content);
@@ -138,7 +138,7 @@ describe('fileAudit', () => {
     expect(r.fiscalYear).toBe(2);
     expect(r.state.kc.toNumber()).toBe(0);
     expect(r.state.soulsRun.toNumber()).toBe(0);
-    expect(r.state.soulsLifetime.eq(new Decimal(AUDIT_BASE).mul(9).add(500_000))).toBe(true);
+    expect(r.state.soulsLifetime.eq(new Decimal(AUDIT_BASE).mul(4).add(500_000))).toBe(true);
     expect(r.state.staff).toEqual({});
     expect(r.state.upgrades).toEqual({});
     expect(r.state.deptsUnlocked).toEqual(['intake']);

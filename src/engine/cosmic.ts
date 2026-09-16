@@ -12,8 +12,13 @@ export const COSMIC_THRESHOLD = 100;
  * late run banked a hundred Seals in a couple of days and the simulator filed eight
  * Restructurings inside the first month, which is neither ceremonious nor paced. Growth keeps
  * the first filing where it was and pushes each next one a real distance further out.
+ *
+ * It has to be this steep because each filing also raises the player's Seal income: a Cosmic
+ * Point buys a Seal Clause, which raises both the payout and the cap it is measured against,
+ * and the fresh fiscal year below means a Restructuring is followed by a burst of one-session
+ * fiscal years paying that raised cap. The threshold has to outrun its own reward.
  */
-export const COSMIC_THRESHOLD_GROWTH = 1.5;
+export const COSMIC_THRESHOLD_GROWTH = 2.5;
 /** Every Clause costs the same: one Cosmic Point. The tree is gated by prerequisites, not price. */
 export const CLAUSE_COST = 1;
 
@@ -39,8 +44,13 @@ export interface CosmicResult { state: GameState; pointsGained: number }
 
 /**
  * The second prestige tier: hand back every Seal and Perk the player has accumulated for one
- * Cosmic Point. The fiscal year survives — Cosmic restructures the staff, not the calendar —
- * and so do lifetime souls, vouchers, cards, Clauses and unlocked branches.
+ * Cosmic Point. The Bureau opens a new calendar with the new staff, so the fiscal year goes
+ * back to 1 and the Audit threshold with it; lifetime souls, vouchers, cards, Clauses,
+ * unlocked branches, achievements and every lifetime statistic survive.
+ *
+ * The year has to reset. A Restructuring wipes the Seal bonus and the whole Perk Ledger, and
+ * leaving the player in fiscal year 31 with a fresh office meant a threshold their new staff
+ * could not approach for the best part of a week — the reward for filing was a dead stretch.
  *
  * Perks are cleared *before* resetRun so the Head Start it grants is computed from the perk
  * set the player is left with, and resetRun's own clampEquipped then trims any lanyard the
@@ -52,6 +62,7 @@ export function fileCosmic(state: GameState, content: Content): CosmicResult {
   return {
     state: {
       ...reset,
+      fiscalYear: 1,
       cosmicPoints: state.cosmicPoints + 1,
       stats: { ...state.stats, cosmics: state.stats.cosmics + 1 },
     },

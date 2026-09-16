@@ -89,7 +89,7 @@ describe('pacing targets (spec §4)', () => {
     }
     // And with no Clause bought at all, that cap is the flat constant.
     expect(maxSealsPerAudit(r)).toBeLessThanOrEqual(SEAL_CAP_PER_AUDIT * Math.max(...r.sealMultPerAudit));
-    expect(SEAL_CAP_PER_AUDIT).toBe(150);
-    expect(sealCap()).toBe(150);
+    expect(SEAL_CAP_PER_AUDIT).toBe(80);
+    expect(sealCap()).toBe(80);
   });
 });

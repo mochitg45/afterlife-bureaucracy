@@ -21,7 +21,10 @@ export function CosmicCeremony() {
   return (
     <Modal open title="The Bureau has been restructured." label="Cosmic Restructuring" header={SEAL} backdropClassName="ceremony">
       <div className="mono value brass">+{last.pointsGained} Clause point</div>
-      <p className="sub">Your Seals and Perks have been returned to the Bureau. The paperwork survives. It always does.</p>
+      <p className="sub">
+        Your Seals and Perks have been returned to the Bureau, and the calendar with them: it is fiscal year 1
+        again. The paperwork survives. It always does.
+      </p>
       <p className="sub">The next restructuring will be heard at {cosmicThreshold(cosmics)} Seals.</p>
       <div className="modal-actions">
         <button className="btn btn-primary" onClick={dismiss}>Back to the office</button>
