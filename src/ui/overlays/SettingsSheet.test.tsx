@@ -2,6 +2,8 @@ import { act, render, screen, fireEvent } from '@testing-library/react';
 import Decimal from 'break_infinity.js';
 import { SettingsSheet } from './SettingsSheet';
 import { useGame, type RestoreResult } from '../../store/game';
+import type { CloudSyncResult } from '../../engine/cloudSync';
+import type { SignInResult } from '../../platform/cloudSave';
 import { createInitialState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
@@ -14,6 +16,12 @@ function seed(notifOptIn: 'unasked' | 'yes' | 'no') {
   state.fiscalYear = 2;
   state.soulsLifetime = new Decimal(12345);
   useGame.setState({ state, rates: computeRates(state, content, 0), ready: true });
+}
+
+function seedCloud(cloud: Partial<{ available: boolean; signedIn: boolean; syncing: boolean; lastSyncWall: number; lastResult: CloudSyncResult }>) {
+  useGame.setState({
+    cloud: { available: false, signedIn: false, syncing: false, lastSyncWall: 0, lastResult: 'none', ...cloud },
+  });
 }
 
 describe('SettingsSheet', () => {
@@ -82,20 +90,96 @@ describe('SettingsSheet', () => {
     expect(screen.getByRole('status')).toHaveTextContent('The store did not respond. Try again later.');
   });
 
-  it('signs in to Play Games and reports the outcome', async () => {
+  it('says the platform has no cloud slot at all', () => {
     seed('no');
-    useGame.setState({ signInGameServices: vi.fn(async () => true) });
+    seedCloud({ available: false });
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in to Play Games' })); });
-    expect(screen.getByRole('status')).toHaveTextContent(/signed in/i);
+    expect(screen.getByText('Not available on this platform')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+  });
+
+  it('offers a cloud sign-in when the slot is there and nobody is signed in', async () => {
+    seed('no');
+    seedCloud({ available: true });
+    const signInCloud = vi.fn(async (): Promise<SignInResult> => 'ok');
+    useGame.setState({ signInCloud });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    expect(screen.getByText('Not signed in')).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in' })); });
+    expect(signInCloud).toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent(/signed in to play games/i);
   });
 
   it('says when Play Games will not sign in', async () => {
     seed('no');
-    useGame.setState({ signInGameServices: vi.fn(async () => false) });
+    seedCloud({ available: true });
+    useGame.setState({ signInCloud: vi.fn(async (): Promise<SignInResult> => 'unavailable') });
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in to Play Games' })); });
-    expect(screen.getByRole('status')).toHaveTextContent(/could not sign in/i);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in' })); });
+    expect(screen.getByRole('status')).toHaveTextContent(/not available on this device/i);
+  });
+
+  it('shows how long ago the last sync landed', () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true, lastSyncWall: Date.now() - 5 * 60_000, lastResult: 'uploaded' });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    expect(screen.getByText('Synced 5 min ago')).toBeInTheDocument();
+  });
+
+  it('says when the last sync failed', () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true, lastSyncWall: Date.now(), lastResult: 'error' });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    expect(screen.getByText('Sync failed')).toBeInTheDocument();
+  });
+
+  it('syncs on demand', async () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true });
+    const syncCloud = vi.fn(async (): Promise<CloudSyncResult> => 'uploaded');
+    useGame.setState({ syncCloud });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sync now' })); });
+    expect(syncCloud).toHaveBeenCalledWith('manual');
+    expect(screen.getByRole('status')).toHaveTextContent('Uploaded this device to the cloud.');
+  });
+
+  // Both overrides throw away one of the two saves, so neither is ever one stray tap away.
+  it('takes two taps to restore from the cloud', async () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true });
+    const restoreCloud = vi.fn(async (): Promise<CloudSyncResult> => 'downloaded');
+    useGame.setState({ restoreCloud });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Restore from cloud' }));
+    expect(restoreCloud).not.toHaveBeenCalled();
+    expect(screen.getByText('Confirm restore')).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore from cloud' })); });
+    expect(restoreCloud).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('status')).toHaveTextContent('Restored this device from the cloud.');
+  });
+
+  it('takes two taps to upload this device', async () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true });
+    const uploadLocal = vi.fn(async (): Promise<CloudSyncResult> => 'uploaded');
+    useGame.setState({ uploadLocal });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Upload this device' }));
+    expect(uploadLocal).not.toHaveBeenCalled();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Upload this device' })); });
+    expect(uploadLocal).toHaveBeenCalledTimes(1);
+  });
+
+  // One confirm at a time: arming the upload must disarm a restore the player left armed.
+  it('cancels a pending confirm when the other override is armed', () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Restore from cloud' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Upload this device' }));
+    expect(screen.queryByText('Confirm restore')).not.toBeInTheDocument();
+    expect(screen.getByText('Confirm upload')).toBeInTheDocument();
   });
 
   it('opens the save code sheet', () => {

@@ -189,3 +189,43 @@ button:disabled { opacity: 0.45; cursor: default; }
 .save-code { width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); resize: vertical; }
 .boost-card { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
 .ad-button { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Title screen: ledger-ruled parchment, the seal, and the two doors into the office. */
+.title-paper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  background-image: repeating-linear-gradient(
+    var(--paper) 0, var(--paper) 27px, var(--line) 27px, var(--line) 28px
+  );
+}
+.title-wrap { width: 100%; max-width: 360px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.title-name { font-size: 30px; line-height: 1.15; color: var(--green); }
+.title-tagline { font-size: 14px; }
+.title-cast { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 4px 0; }
+.title-seal { width: 108px; height: 108px; }
+.title-chip { align-self: center; min-width: 0; text-align: center; color: var(--green); border-color: var(--green); }
+.title-status { min-height: 16px; margin: 0; }
+.title-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; }
+.title-footer { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 6px; }
+.link { color: var(--ink-muted); text-decoration: underline; font-size: 12px; }
+.pulse { animation: sealPulse 2.4s ease-in-out infinite; }
+@keyframes sealPulse {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50% { transform: scale(1.04) rotate(2deg); }
+}
+
+/* Cloud save: the notice above the office, and the Settings row that drives it by hand. */
+.cloud-notice {
+  position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 12px); z-index: 30;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.cloud-notice .btn { flex: 0 0 auto; }
+.cloud-row { align-items: baseline; }
+.cloud-actions { flex-wrap: wrap; justify-content: flex-start; }
+.cloud-actions .btn { padding: 6px 10px; font-size: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse { animation: none; }
+}

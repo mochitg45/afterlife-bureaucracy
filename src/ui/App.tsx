@@ -17,15 +17,21 @@ import { AchievementToast } from './components/AchievementToast';
 import { SettingsSheet } from './overlays/SettingsSheet';
 import { NotifPrompt } from './overlays/NotifPrompt';
 import { SaveCodeSheet } from './overlays/SaveCodeSheet';
+import { CloudNotice } from './components/CloudNotice';
+import { TitleScreen } from './screens/TitleScreen';
 
 export function App() {
   const [tab, setTab] = useState<TabId>('office');
+  // Every cold boot opens on the title screen: it is where the Play Games sign-in lives, and
+  // the sync it runs has to finish before the office shows a desk that may be about to change.
+  const [phase, setPhase] = useState<'title' | 'game'>('title');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saveCodeOpen, setSaveCodeOpen] = useState(false);
   const openSettings = () => setSettingsOpen(true);
   const onGoToOdds = () => {
     setTab('personnel');
     setSettingsOpen(false);
+    setPhase('game');
   };
   // One sheet at a time: two stacked dialogs would leave two focus traps fighting over Tab.
   const onSaveCode = () => {
@@ -65,21 +71,29 @@ export function App() {
   return (
     <div className="app safe-area">
       {!ready && <section className="screen"><h2>Opening the office…</h2></section>}
-      {ready && tab === 'office' && <OfficeScreen onSettings={openSettings} />}
-      {ready && tab === 'personnel' && <PersonnelScreen onSettings={openSettings} />}
-      {ready && tab === 'ledger' && <LedgerScreen onSettings={openSettings} />}
-      {ready && tab === 'tasks' && <TasksScreen onSettings={openSettings} />}
-      {ready && tab === 'store' && <StoreScreen onSettings={openSettings} />}
-      <BacklogReport />
-      <AuditCeremony />
-      <CosmicCeremony />
-      <PullReveal />
-      <StoryMemo />
-      <AchievementToast />
-      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
-      <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
-      {!settingsOpen && !saveCodeOpen && <NotifPrompt />}
-      <TabBar active={tab} onChange={setTab} />
+      {ready && phase === 'title' && <TitleScreen onEnter={() => setPhase('game')} onGoToOdds={onGoToOdds} />}
+      {/* The whole office, overlays included: a ceremony or a prompt over the title screen
+          would be a dialog about a desk the player has not sat down at yet. */}
+      {ready && phase === 'game' && (
+        <>
+          {tab === 'office' && <OfficeScreen onSettings={openSettings} />}
+          {tab === 'personnel' && <PersonnelScreen onSettings={openSettings} />}
+          {tab === 'ledger' && <LedgerScreen onSettings={openSettings} />}
+          {tab === 'tasks' && <TasksScreen onSettings={openSettings} />}
+          {tab === 'store' && <StoreScreen onSettings={openSettings} />}
+          <CloudNotice />
+          <BacklogReport />
+          <AuditCeremony />
+          <CosmicCeremony />
+          <PullReveal />
+          <StoryMemo />
+          <AchievementToast />
+          <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
+          <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
+          {!settingsOpen && !saveCodeOpen && <NotifPrompt />}
+          <TabBar active={tab} onChange={setTab} />
+        </>
+      )}
     </div>
   );
 }

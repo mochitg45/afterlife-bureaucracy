@@ -126,6 +126,8 @@ async function shoot(browser, url, { file, save, tab, waitFor }) {
   const page = await context.newPage();
   await page.goto(url, { waitUntil: 'load' });
   await page.addStyleTag({ content: STILL_CSS });
+  // Every cold boot opens on the title screen, so the office is one tap behind it.
+  await page.getByRole('button', { name: 'Clock in' }).click();
   if (tab) await page.getByRole('tab', { name: tab }).click();
   await page.waitForSelector(waitFor, { state: 'visible', timeout: 15000 });
   // The store's tick writes numbers a frame or two after mount; one settle beats a flaky race.
