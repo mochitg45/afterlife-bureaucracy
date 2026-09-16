@@ -19,9 +19,10 @@
 | `@openforge/capacitor-game-connect` | 5.0.2 | `src/platform/gameServices.ts` |
 
 `@openforge/capacitor-game-connect` declares a `@capacitor/core@^5` peer range and has no
-Capacitor 7 release, so the repository carries `.npmrc` with `legacy-peer-deps=true`. The
-plugin's Android module is a thin wrapper over `play-services-games-v2` and builds against
-Capacitor 7; drop the `.npmrc` line if the plugin ever widens its peer range.
+Capacitor 7 release, so `package.json` carries a scoped `overrides` entry that pins the
+plugin's `@capacitor/core` peer to the project's own version. The plugin's Android module is a
+thin wrapper over `play-services-games-v2` and builds against Capacitor 7; drop the override if
+the plugin ever widens its peer range.
 
 ## Where the ids come from
 

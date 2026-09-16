@@ -24,8 +24,8 @@ export const YEAR_GROWTH = 1.5;
  *
  * The ceiling scales with the Clause Seal multiplier (`sealCap` below): a Clause that promises
  * "Audits pay double" has to mean it, and a flat cap silently cancelled the whole purchase for
- * any run already at the ceiling. The multiplier is bounded at ×2 and gated behind Cosmic
- * Restructuring, so the runaway stays shut.
+ * any run already at the ceiling. The multiplier is bounded at ×3 (×1.5 × ×2) and gated behind
+ * Cosmic Restructuring, so the runaway stays shut.
  */
 export const SEAL_CAP_PER_AUDIT = 80;
 

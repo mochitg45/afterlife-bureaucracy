@@ -24,7 +24,7 @@ export const CLAUSE_COST = 1;
 
 /**
  * Seals the next Cosmic Restructuring asks for, after `cosmics` of them have been filed:
- * 100, 150, 225, 338, 506, … Every reader — the engine, the store, the Ledger's Cosmic panel
+ * 100, 250, 625, 1563, 3906, … Every reader — the engine, the store, the Ledger's Cosmic panel
  * and the ceremony — goes through this, so the number on screen is always the one the filing
  * will actually check.
  */
