@@ -20,9 +20,52 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 (public keys only; never commit secret keys)
 
 ## Play Games Services
-- Project / app id: `TODO`
-- Achievement ids: map in `src/platform/gameIds.ts` (Plan 4) — all `TODO` until the Play Games project is created
-- Leaderboard `lifetime-souls`: `TODO`
+- Project / app id (numeric, e.g. `123456789012`): `TODO`
+- Achievement ids: map in `src/platform/gameIds.ts` (`PLAY_ACHIEVEMENT_IDS`) — all `TODO` until the Play Games project is created
+- Leaderboard `lifetime-souls`: map in `src/platform/gameIds.ts` (`LEADERBOARD_LIFETIME_SOULS`) — `TODO`
+
+### Console steps
+
+Written as the screens read, in order:
+
+1. **Play Console → Grow users → Play Games Services → Setup and management → Configuration**
+   → **Create new Play Games Services project** (or **link an existing Cloud project** if one
+   already backs this Google account). Name it after the game; this is a one-time, permanent
+   choice for this app.
+2. **Credentials** tab → **Add credential** → **Android** → package name
+   `com.afterlifebureaucracy.game` and the SHA-1 of the *upload* keystore (`docs/release.md`
+   step 3 creates that keystore; read the fingerprint with
+   `keytool -list -v -keystore afterlife-upload.jks -alias afterlife-upload`). This is what lets
+   a release APK/AAB signed with that key authenticate as this Play Games project. Add the
+   debug-keystore SHA-1 too (same command against `~/.android/debug.keystore`, alias
+   `androiddebugkey`) if sign-in should also work from `gradlew assembleDebug` builds.
+3. **Properties** tab → turn **Saved Games** on. Sign-in and achievements work without this;
+   `CloudSavePlugin`'s `loadSnapshot`/`saveSnapshot` do not.
+4. **Achievements** tab → **Create achievement** for each entry in
+   `src/data/achievements.json`, then copy each generated id (`CgkI…`) into
+   `PLAY_ACHIEVEMENT_IDS` in `src/platform/gameIds.ts`, keyed by the local achievement id.
+5. **Leaderboards** tab → **Create leaderboard** named `lifetime-souls`, then copy its
+   generated id into `LEADERBOARD_LIFETIME_SOULS` in `src/platform/gameIds.ts`.
+6. **Publish** the Play Games Services project (top of the Configuration page) once the above is
+   done — an unpublished project only works for testers added on the project's **Testers** tab.
+
+### Where the numeric App ID goes
+
+The **Configuration** page shows a numeric **App ID** (different from any achievement or
+leaderboard id, which look like `CgkI…`). Copy it into:
+
+- `docs/store/ids.md` — the "Project / app id" line above.
+- `AndroidManifest.xml` — uncomment the `com.google.android.gms.games.APP_ID` meta-data and set
+  `android:value` to the numeric id (see the comment there for why it stays commented out until
+  then).
+- Alternative to hardcoding it in the manifest: put the id in
+  `android/app/src/main/res/values/games-ids.xml` as
+  `<string name="game_services_project_id">…</string>` and point the meta-data at
+  `android:value="@string/game_services_project_id"` instead. Either works; a string resource is
+  easier to swap per build variant if one is ever added.
+
+The same App ID unlocks both Play Games sign-in/achievements *and* cloud save — there is no
+separate id for Saved Games, only the Properties toggle in step 3 above.
 
 ## Fill before publishing
 

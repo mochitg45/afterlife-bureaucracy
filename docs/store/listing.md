@@ -193,6 +193,7 @@ RevenueCat records, delete Play Games data from the Google account).
 | App interactions (ad impressions, clicks, rewards) | Yes | Yes | Required | Advertising or marketing; analytics (AdMob) |
 | Purchase history | Yes | Yes | Required | App functionality — restoring purchases and entitlements (RevenueCat, Play Billing) |
 | Other user IDs (pseudonymous RevenueCat app user ID) | Yes | Yes | Required | App functionality — restoring purchases (RevenueCat) |
+| App activity / game progress (saved-game snapshot: departments, staff, cards, currencies, statistics, settings) | Yes | Yes | Optional | App functionality — cloud save backup via Play Games saved games |
 | Approximate location (derived from IP by the ad SDK) | Yes | Yes | Required | Advertising or marketing (AdMob) |
 | Personal info (name, email, address, phone number) | No | No | — | — |
 | Photos, videos, audio, files, contacts, calendar, messages | No | No | — | — |
@@ -203,7 +204,12 @@ RevenueCat records, delete Play Games data from the Google account).
 Play Games sign-in is optional and off by default. If the player signs in, their Play Games
 gamer ID and their achievement and leaderboard scores go to Google; declare that under **Device
 or other IDs**, marked *Optional*, purpose *App functionality*, where the console offers the
-distinction.
+distinction. If the player also lets the game back up their save, the saved-game snapshot
+itself is declared separately under **App activity**, also *Optional*, purpose *App
+functionality* — it is encrypted in transit like every other SDK call, and the player can have
+it deleted by signing out in Settings and deleting the snapshot from Play Games Services in
+their Google account (Data & privacy → Play Games Services), the same route as any other Play
+Games data.
 
 ### App content declarations
 

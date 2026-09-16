@@ -40,6 +40,18 @@ and `saveSnapshot` over a single snapshot slot named `afterlife-main`, opened wi
 through the same `GamesSignInClient` as `@openforge/capacitor-game-connect`, so the player is
 never prompted twice.
 
+`gameServices.ts`'s `isSignedIn()` and `cloudSave.ts`'s `isSignedIn()` read different things but
+cannot disagree in a way that matters: game-connect's flag is local-only and stays false until
+its own `signIn()` resolves, while `CloudSave.isAuthenticated()` asks the shared
+`GamesSignInClient` directly every time, so cloud save can only ever see a signed-in player
+slightly *before* game-connect's cached flag catches up, never see one signed in when the
+native client disagrees.
+
+Saved games additionally need **Saved Games** turned on for the Play Games Services project
+(Play Console → Grow users → Play Games Services → Setup and management → Properties) — sign-in
+and achievements work without it, `loadSnapshot`/`saveSnapshot` do not; see `docs/store/ids.md`
+for the full console walkthrough.
+
 It calls `com.google.android.gms:play-services-games-v2` directly, so `android/app/build.gradle`
 declares that dependency explicitly instead of leaning on the copy game-connect pulls in.
 game-connect asks for `+`, which currently floats to `22.1.0`; the app pins the same version so
@@ -50,7 +62,9 @@ whenever the resolved version moves.
 
 Cloud save stays dark until the Play Games project exists: with `gameIds.ts` unmapped and the
 `com.google.android.gms.games.APP_ID` meta-data absent from the manifest, sign-in fails, the
-TypeScript wrapper reports `unavailable`, and the game runs on its local save alone.
+TypeScript wrapper reports `unavailable`, and the game runs on its local save alone. Even once
+the project exists and the meta-data is in place, cloud save specifically also needs the Saved
+Games toggle above — achievements and the leaderboard do not.
 
 ## Where the ids come from
 

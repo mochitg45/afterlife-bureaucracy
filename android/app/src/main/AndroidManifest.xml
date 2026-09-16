@@ -33,10 +33,16 @@
 
         <!--
             Play Games Services app id goes here once the Play Games project exists
-            (see src/platform/gameIds.ts). Adding it with a placeholder value would crash
-            the app at startup, so it stays out until the console id is real:
+            (see docs/store/ids.md and src/platform/gameIds.ts). The same numeric id also
+            unlocks cloud save (CloudSavePlugin.java) once Saved Games is turned on for the
+            project in Play Console; there is no separate id for that. Adding this with a
+            placeholder value would crash the app at startup, so it stays out until the
+            console id is real:
             <meta-data android:name="com.google.android.gms.games.APP_ID"
                        android:value="\ TODO" />
+            or, as a string resource (see android/app/src/main/res/values/games-ids.xml):
+            <meta-data android:name="com.google.android.gms.games.APP_ID"
+                       android:value="@string/game_services_project_id" />
         -->
 
         <provider

@@ -65,9 +65,13 @@ controllers or processors under their own policies, which are linked below.</p>
   </tr>
   <tr>
     <td><strong>Google Play Games Services</strong></td>
-    <td>Achievements and the leaderboard. Optional: the game is fully playable signed out.</td>
-    <td>Your Play Games profile and gamer ID, and the achievement and leaderboard scores you
-        earn, if and only if you sign in.</td>
+    <td>Achievements, the leaderboard, and an optional cloud backup of your save. Optional: the
+        game is fully playable signed out, on the local save alone.</td>
+    <td>Your Play Games profile and gamer ID, the achievement and leaderboard scores you earn,
+        and — only if you sign in — a single saved-game snapshot of your progress
+        (departments, staff, cards, currencies, statistics and settings). The snapshot is
+        stored in your Google account through Play Games Services, the same way any other
+        Play Games saved game is; we never see it and it never touches a server of ours.</td>
   </tr>
 </table>
 
@@ -111,8 +115,11 @@ data the services above hold:</p>
   <li><strong>AdMob:</strong> reset your Advertising ID, or use Google's privacy controls.</li>
   <li><strong>RevenueCat:</strong> write to us with your purchase order ID and we will request
       deletion of the associated records on your behalf.</li>
-  <li><strong>Play Games:</strong> delete the game's Play Games data from your Google account at
-      <a href="https://myaccount.google.com/">myaccount.google.com</a>.</li>
+  <li><strong>Play Games:</strong> delete the game's Play Games data, including the saved-game
+      snapshot, from your Google account at
+      <a href="https://myaccount.google.com/">myaccount.google.com</a> (Data &amp; privacy →
+      Play Games Services). Signing out in the app's Settings and uninstalling removes it from
+      the device; the snapshot itself stays in your Google account until you delete it there.</li>
 </ul>
 
 <h2>Changes</h2>

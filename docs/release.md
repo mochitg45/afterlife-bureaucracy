@@ -83,10 +83,12 @@ machine without the key (and CI) is not broken by its absence.
   rating, target audience, advertising ID).
 - Monetize → Products: create the six managed products and the one subscription, with exactly
   the IDs in `docs/store/ids.md`.
-- Play Games Services: create the project, then paste its app ID, the 80 achievement IDs and
-  the `lifetime-souls` leaderboard ID into `docs/store/ids.md` and `src/platform/gameIds.ts`,
-  and add the `com.google.android.gms.games.APP_ID` meta-data to `AndroidManifest.xml` (it is
-  commented out there on purpose — a placeholder value crashes the app at startup).
+- Play Games Services: create the project, add the Android OAuth credential (package name +
+  upload-key SHA-1) and turn on **Saved Games**, then paste its numeric app ID, the 80
+  achievement IDs and the `lifetime-souls` leaderboard ID into `docs/store/ids.md` and
+  `src/platform/gameIds.ts`, and add the `com.google.android.gms.games.APP_ID` meta-data to
+  `AndroidManifest.xml` (it is commented out there on purpose — a placeholder value crashes the
+  app at startup). Full console walkthrough in `docs/store/ids.md`.
 
 ---
 
@@ -144,7 +146,14 @@ stops its own preview server; nothing is left listening.
    it; the keystore above becomes the *upload* key, and Google holds the app signing key.
 3. Release notes: the "what's new" block in `docs/store/listing.md`.
 4. Add testers, roll out, install from the opt-in link, and do the manual device pass below.
-5. Promote internal → closed → production only after the device pass is clean.
+5. Before promoting past internal testing: confirm the Play Games ids in `docs/store/ids.md`
+   and `src/platform/gameIds.ts` are the real console values (not `TODO`), the
+   `com.google.android.gms.games.APP_ID` meta-data in `AndroidManifest.xml` is uncommented with
+   that id, and **Saved Games** is turned on in Play Console → Grow users → Play Games Services
+   → Setup and management → Properties. Internal testers can exercise sign-in, achievements and
+   cloud save against an unpublished Play Games project; closed and production testers need the
+   project **Published** too (same Configuration page) — see `docs/store/ids.md`.
+6. Promote internal → closed → production only after the device pass is clean.
 
 ### Manual device pass (nothing here is covered by the test suite)
 
