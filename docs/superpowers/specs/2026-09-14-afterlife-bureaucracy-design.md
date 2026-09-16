@@ -167,6 +167,8 @@ Overlays: Overnight Backlog Report, Audit ceremony, gacha reveal, story memo, se
 
 Visual direction follows the concept doc: parchment palette, Special Elite for headers, IBM Plex Sans for body, IBM Plex Mono for numbers, ink-stamp SVG characters with bold outlines and one or two flat fills. A dark theme mirrors the palette with brighter accents. Fonts are bundled locally, not fetched.
 
+*Decision 2026-09-16:* four alternative directions were mocked up on the style canvas (Midnight Ledger, Corporate Cartoon, Cozy Afterlife, Risograph Office); the parchment direction above is kept. Still open for later design work: a title / sign-in screen (arrives with cloud save) and a first-launch opening (two memos plus a first-stamp training overlay); the canvas holds a first draft of both in the parchment style. Known art gaps to close: cards whose `character` is `soul` (e.g. Grandma Liu) have no portrait yet, and archetype variants differ only by a small accessory.
+
 ## 11. Architecture
 
 ```
