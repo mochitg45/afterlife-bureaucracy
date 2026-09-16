@@ -9,19 +9,20 @@ import { clauseSealMult } from './cosmic';
 /** Souls-this-run needed to close the books in fiscal year 1; puts the check-in player's first Audit on day 2. */
 export const AUDIT_BASE = 8e15;
 /** Seals granted for a run that lands exactly on the year-1 threshold. */
-export const SEAL_COEFF = 16;
+export const SEAL_COEFF = 40;
 /** Below 0.5 so a run that overshoots by orders of magnitude does not explode the Seal count. */
 export const SEAL_EXP = 0.4;
 /** The threshold multiplies by this every fiscal year, so each run has to out-earn the last. */
-export const YEAR_GROWTH = 1.25;
+export const YEAR_GROWTH = 1.5;
 /**
- * The most Seals one Audit can pay. Without it a run that overshoots its threshold on the
- * back of a long Backlog Report hands out thousands of Seals at once, and since every Seal
- * is +2% global multiplier for good, the next run overshoots further still — the simulator
- * showed the loop collapsing to three-second fiscal years inside a week. The cap keeps the
- * compounding on the perk tree, where the player chooses it, rather than on the payout.
+ * The most Seals one Audit can pay at a Clause multiplier of 1. Without a cap, a run that
+ * overshoots its threshold on the back of a long Backlog Report hands out thousands of Seals
+ * at once, and since every Seal is +2% global multiplier for good, the next run overshoots
+ * further still — the simulator showed the loop collapsing to three-second fiscal years
+ * inside a week. The cap keeps the compounding on the perk tree, where the player chooses it,
+ * rather than on the payout.
  */
-export const SEAL_CAP_PER_AUDIT = 200;
+export const SEAL_CAP_PER_AUDIT = 150;
 
 /** The Audit threshold for a given fiscal year: AUDIT_BASE × YEAR_GROWTH^(year − 1). */
 export function auditThreshold(fiscalYear: number): Decimal {

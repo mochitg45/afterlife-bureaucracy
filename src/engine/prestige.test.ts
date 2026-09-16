@@ -28,12 +28,15 @@ describe('sealsForRun', () => {
     expect(sealsForRun(new Decimal(AUDIT_BASE), 2)).toBe(0);
   });
   it('grows sub-linearly with the size of the run', () => {
+    const two = sealsForRun(new Decimal(AUDIT_BASE).mul(2), 1);
     const ten = sealsForRun(new Decimal(AUDIT_BASE).mul(10), 1);
-    const hundred = sealsForRun(new Decimal(AUDIT_BASE).mul(100), 1);
+    expect(two).toBe(Math.floor(SEAL_COEFF * 2 ** 0.4));
     expect(ten).toBe(Math.floor(SEAL_COEFF * 10 ** 0.4));
-    expect(hundred).toBe(Math.floor(SEAL_COEFF * 100 ** 0.4));
-    // Ten times the souls is well short of ten times the Seals.
+    // Five times the souls is well short of five times the Seals, and ten times the souls of
+    // ten times them — both below the cap, so this is the curve and not the ceiling talking.
+    expect(ten).toBeLessThan(5 * two);
     expect(ten).toBeLessThan(10 * SEAL_COEFF);
+    expect(ten).toBeLessThan(SEAL_CAP_PER_AUDIT);
   });
   it('never pays more than the per-audit cap, however absurd the run', () => {
     expect(sealsForRun(new Decimal('1e100'), 1)).toBe(SEAL_CAP_PER_AUDIT);

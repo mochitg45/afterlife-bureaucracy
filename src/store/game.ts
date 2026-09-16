@@ -3,7 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional';
 import type { Content, DepartmentDef, AchievementDef, StoryDef } from '../engine/content';
 import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, type GameState, type Settings } from '../engine/state';
-import { computeRates, type Rates } from '../engine/economy';
+import { computeRates, BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
 import { canAudit, fileAudit } from '../engine/prestige';
 import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/offline';
@@ -64,13 +64,11 @@ const MAX_DISCRETIONARY_NOTIFS_PER_DAY = 1;
  */
 export const BOOT_QUEUE_CAP = 3;
 
-/** How long the Overtime Boost ad runs the office at double rate. */
-export const BOOST_AD_DURATION_MS = 4 * 3600_000;
 /**
- * How long the Overtime Boost placement stays closed after one is watched: the four hours of
- * boost plus a four-hour cooldown, so the reward is at most half the day.
+ * The Overtime Boost window and cooldown. Defined in the engine, where `boostUntilWall` is
+ * read, and re-exported here because the ad placement that grants them lives in this module.
  */
-export const BOOST_AD_COOLDOWN_MS = 8 * 3600_000;
+export { BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS };
 
 /**
  * A per-process id, regenerated on every boot. Two boots of the same save must not collide,

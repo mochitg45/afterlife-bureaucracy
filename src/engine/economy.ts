@@ -9,6 +9,17 @@ import { unionGlobalMult } from './entitlements';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
+/**
+ * How long the Overtime Boost ad runs the office at double rate, and how long the placement
+ * stays closed afterwards: the four hours of boost plus a four-hour cooldown, so the reward
+ * is at most half the day.
+ *
+ * They live here rather than in the store because `boostUntilWall` is engine state read by
+ * `globalMult` below, and the balance simulator — which may not import the store — has to
+ * model the same window the store grants.
+ */
+export const BOOST_AD_DURATION_MS = 4 * 3600_000;
+export const BOOST_AD_COOLDOWN_MS = 8 * 3600_000;
 const CLICK_PASSIVE_FRACTION = 0.01;
 const FIXED_MILESTONES = [10, 25, 50, 100, 200, 300, 400, 500];
 
