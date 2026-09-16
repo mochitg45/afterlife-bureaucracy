@@ -24,6 +24,34 @@ plugin's `@capacitor/core` peer to the project's own version. The plugin's Andro
 thin wrapper over `play-services-games-v2` and builds against Capacitor 7; drop the override if
 the plugin ever widens its peer range.
 
+## In-repo plugins
+
+Some native code lives in this repository rather than in an npm package. It is registered in
+`MainActivity.onCreate` before `super.onCreate` — a plugin registered after the bridge starts
+is invisible to the web layer — and reached from TypeScript with `registerPlugin(...)`.
+
+| Plugin | Java | Wrapped by |
+|---|---|---|
+| `CloudSave` | `android/app/src/main/java/com/afterlifebureaucracy/game/CloudSavePlugin.java` | `src/platform/cloudSave.ts` |
+
+`CloudSave` is Play Games Services saved games: `isAuthenticated`, `signIn`, `loadSnapshot`
+and `saveSnapshot` over a single snapshot slot named `afterlife-main`, opened with
+`RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED` so the SDK resolves conflicts itself. It signs in
+through the same `GamesSignInClient` as `@openforge/capacitor-game-connect`, so the player is
+never prompted twice.
+
+It calls `com.google.android.gms:play-services-games-v2` directly, so `android/app/build.gradle`
+declares that dependency explicitly instead of leaning on the copy game-connect pulls in.
+game-connect asks for `+`, which currently floats to `22.1.0`; the app pins the same version so
+the compiled-against version is written down. A lower pin is not an error — Gradle just
+upgrades it to whatever the `+` resolves to — so check with
+`gradlew.bat :app:dependencies --configuration debugRuntimeClasspath` and raise the pin
+whenever the resolved version moves.
+
+Cloud save stays dark until the Play Games project exists: with `gameIds.ts` unmapped and the
+`com.google.android.gms.games.APP_ID` meta-data absent from the manifest, sign-in fails, the
+TypeScript wrapper reports `unavailable`, and the game runs on its local save alone.
+
 ## Where the ids come from
 
 All of them are public values that ship inside the APK. `docs/store/ids.md` is the source

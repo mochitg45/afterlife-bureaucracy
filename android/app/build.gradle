@@ -60,6 +60,11 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // Play Games Services v2, used directly by the in-repo CloudSavePlugin (saved games).
+    // @openforge/capacitor-game-connect declares this as `+`, which floated to 22.1.0, so the
+    // pin is set there: a lower pin is silently upgraded by the dynamic range and the pin
+    // stops documenting what actually compiles. Raise it if the `+` ever resolves higher.
+    implementation "com.google.android.gms:play-services-games-v2:22.1.0"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
