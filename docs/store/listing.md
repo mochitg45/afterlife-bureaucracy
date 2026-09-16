@@ -207,9 +207,10 @@ or other IDs**, marked *Optional*, purpose *App functionality*, where the consol
 distinction. If the player also lets the game back up their save, the saved-game snapshot
 itself is declared separately under **App activity**, also *Optional*, purpose *App
 functionality* — it is encrypted in transit like every other SDK call, and the player can have
-it deleted by signing out in Settings and deleting the snapshot from Play Games Services in
-their Google account (Data & privacy → Play Games Services), the same route as any other Play
-Games data.
+it deleted from the Play Games app (Settings → Delete Play Games account & data) or from Android
+Settings → Google → Manage your Google Account → Data & privacy → your apps' data, the same
+route as any other Play Games data. Uninstalling the app removes the local save only; the cloud
+snapshot stays until deleted through one of those routes.
 
 ### App content declarations
 
