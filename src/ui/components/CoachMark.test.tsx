@@ -1,13 +1,18 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CoachMark } from './CoachMark';
 
-/** A stand-in for the real stamp button, carrying the attribute the coach mark hunts for. */
+/**
+ * A stand-in for the real stamp button, carrying the attribute the coach mark hunts for.
+ * jsdom implements no layout and no scrollIntoView, so both are stubbed here.
+ */
 function withTarget(rect: Partial<DOMRect>) {
   const button = document.createElement('button');
   button.setAttribute('data-coach', 'stamp');
   button.getBoundingClientRect = () => ({ x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({}), ...rect }) as DOMRect;
+  const scrollIntoView = vi.fn();
+  button.scrollIntoView = scrollIntoView;
   document.body.appendChild(button);
-  return button;
+  return Object.assign(button, { scrollIntoView });
 }
 
 describe('CoachMark', () => {
@@ -80,6 +85,50 @@ describe('CoachMark', () => {
     expect(card).toHaveClass('above');
     expect(card.style.bottom).toBe(window.innerHeight - 646 + 16 + 'px');
     expect(card.style.top).toBe('');
+  });
+
+  it('scrolls the target into view before measuring it', () => {
+    const button = withTarget({ top: 100, left: 40, width: 120, height: 120, bottom: 220, right: 160 });
+    render(<CoachMark target="stamp" title="T" text="X" stepIndex={0} total={3} onSkip={() => {}} />);
+    expect(button.scrollIntoView).toHaveBeenCalledWith({ block: 'center', behavior: 'auto' });
+  });
+
+  it('falls back to the centred card when the target sits below the viewport', () => {
+    // A Hire row scrolled past is still in the DOM and still answers with a real box —
+    // just one nobody can see, which would put the hole and its Skip button off-screen.
+    const button = withTarget({ top: window.innerHeight + 40, left: 262, width: 84, height: 54, bottom: window.innerHeight + 94, right: 346 });
+    const { container } = render(
+      <CoachMark target="stamp" title="Hire Dave." text="Karma Credits pay the staff." stepIndex={1} total={3} onSkip={() => {}} />,
+    );
+    expect(button.scrollIntoView).toHaveBeenCalled();
+    expect(container.querySelector('.coach-hole')).toBeNull();
+    expect(container.querySelector('.coach-card')).toHaveClass('centred');
+    expect(container.querySelector('.coach-dim')).toBeInTheDocument();
+  });
+
+  it('falls back to the centred card when the target sits above the viewport', () => {
+    withTarget({ top: -180, left: 40, width: 120, height: 120, bottom: -60, right: 160 });
+    const { container } = render(
+      <CoachMark target="stamp" title="Stamp the soul." text="Then stamp the next one." stepIndex={0} total={3} onSkip={() => {}} />,
+    );
+    expect(container.querySelector('.coach-hole')).toBeNull();
+    expect(container.querySelector('.coach-card')).toHaveClass('centred');
+  });
+
+  it('does not scroll the page around on every resize', () => {
+    const button = withTarget({ top: 100, left: 40, width: 120, height: 120, bottom: 220, right: 160 });
+    render(<CoachMark target="stamp" title="T" text="X" stepIndex={0} total={3} onSkip={() => {}} />);
+    expect(button.scrollIntoView).toHaveBeenCalledTimes(1);
+    fireEvent(window, new Event('resize'));
+    fireEvent(window, new Event('resize'));
+    expect(button.scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('announces itself as a live region, not a dialog that would take the tap', () => {
+    render(<CoachMark target="none" title="That is the job." text="X" stepIndex={2} total={3} onSkip={() => {}} />);
+    const card = screen.getByRole('region', { name: 'That is the job.' });
+    expect(card).toHaveAttribute('aria-live', 'polite');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('shows the step counter and calls onSkip', () => {

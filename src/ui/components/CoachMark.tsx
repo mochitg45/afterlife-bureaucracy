@@ -13,6 +13,18 @@ const GAP = 16;
 const ROOM_BELOW = 220;
 
 /**
+ * Whether a measured target is somewhere the player can actually see. A row that has been
+ * scrolled past is still in the DOM and still answers `getBoundingClientRect()` with a real
+ * box, just one outside the viewport — spotlighting it would draw the hole off-screen and
+ * push the card's own Skip button off with it.
+ */
+function onScreen(r: DOMRect): boolean {
+  // A target with no box yet is a screen still laying out, not a target somewhere else.
+  if (r.width === 0 || r.height === 0) return false;
+  return r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+}
+
+/**
  * One step of the walkthrough: a dimmed office with a hole cut over the control the player
  * is being asked to press, and a card explaining why.
  *
@@ -48,16 +60,17 @@ export function CoachMark({
       setHole(null);
       return;
     }
+    const find = () => document.querySelector<HTMLElement>(`[data-coach="${target}"]`);
     const measure = () => {
-      const el = document.querySelector(`[data-coach="${target}"]`);
+      const el = find();
       if (!el) {
         setHole(null);
         return;
       }
       const r = el.getBoundingClientRect();
-      // A target that is present but has no box yet (a screen still laying out) would give a
-      // zero-size hole over the top-left corner, which reads as a bug; centre the card instead.
-      if (r.width === 0 || r.height === 0) {
+      // Nothing to spotlight that the player can see: centre the card instead of cutting a
+      // hole in a part of the page that is not on screen.
+      if (!onScreen(r)) {
         setHole(null);
         return;
       }
@@ -73,6 +86,12 @@ export function CoachMark({
         card: above ? { bottom: window.innerHeight - r.top + GAP + 'px' } : { top: r.bottom + GAP + 'px' },
       });
     };
+    // Bring the target into view before the first measurement, so a step whose control has
+    // been scrolled past gets a real spotlight rather than the centred fallback. Only here,
+    // never on resize: yanking the page around while someone is rotating the phone or has a
+    // keyboard open would be the walkthrough fighting them. Optional-called because jsdom
+    // does not implement it.
+    find()?.scrollIntoView?.({ block: 'center', behavior: 'auto' });
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
@@ -94,8 +113,11 @@ export function CoachMark({
       <div
         className={'coach-card card' + (hole ? (hole.above ? ' above' : '') : ' centred')}
         style={hole?.card}
-        role="dialog"
+        // Deliberately not a dialog: a dialog would trap focus and take the next tap, and
+        // this card exists to send that tap to the real button showing through the hole.
+        role="region"
         aria-label={title}
+        aria-live="polite"
       >
         <div className="label mono">Step {stepIndex + 1} of {total}</div>
         <h3 className="coach-title">{title}</h3>
