@@ -10,6 +10,8 @@ import com.google.android.gms.games.SnapshotsClient;
 import com.google.android.gms.games.snapshot.Snapshot;
 import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Play Games Services saved games (snapshots), exposed to the web layer as the `CloudSave`
@@ -25,6 +27,17 @@ import java.nio.charset.StandardCharsets;
 @CapacitorPlugin(name = "CloudSave")
 public class CloudSavePlugin extends Plugin {
   private static final int POLICY = SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED;
+
+  /**
+   * Snapshot completion callbacks run here, not on the main thread. `readFully()` and
+   * `writeBytes()` touch the snapshot file, and the single-argument `addOnCompleteListener`
+   * would run them on the UI thread — jank on a slow device, an ANR on a large save.
+   *
+   * Single-threaded on purpose: it also serialises opens, so a save and a load can never hold
+   * the same snapshot open at once. Nothing on this thread touches the Activity or any view;
+   * `call.resolve`/`call.reject` are thread-safe in Capacitor.
+   */
+  private static final Executor IO = Executors.newSingleThreadExecutor();
 
   @PluginMethod
   public void isAuthenticated(PluginCall call) {
@@ -48,7 +61,7 @@ public class CloudSavePlugin extends Plugin {
   public void loadSnapshot(PluginCall call) {
     String name = call.getString("name", "afterlife-main");
     SnapshotsClient client = PlayGames.getSnapshotsClient(getActivity());
-    client.open(name, true, POLICY).addOnCompleteListener(t -> {
+    client.open(name, true, POLICY).addOnCompleteListener(IO, t -> {
       try {
         if (!t.isSuccessful()) { call.reject("open failed", t.getException()); return; }
         Snapshot snap = t.getResult().getData();
@@ -71,14 +84,16 @@ public class CloudSavePlugin extends Plugin {
     String name = call.getString("name", "afterlife-main");
     String data = call.getString("data", "");
     String description = call.getString("description", "");
+    // `savedAtWall` is accepted for symmetry with loadSnapshot but deliberately unused: the
+    // SDK stamps its own last-modified time on commit, and that is what loadSnapshot reads back.
     SnapshotsClient client = PlayGames.getSnapshotsClient(getActivity());
-    client.open(name, true, POLICY).addOnCompleteListener(t -> {
+    client.open(name, true, POLICY).addOnCompleteListener(IO, t -> {
       if (!t.isSuccessful()) { call.reject("open failed", t.getException()); return; }
       Snapshot snap = t.getResult().getData();
       if (snap == null) { call.reject("no snapshot"); return; }
       snap.getSnapshotContents().writeBytes(data.getBytes(StandardCharsets.UTF_8));
       SnapshotMetadataChange change = new SnapshotMetadataChange.Builder().setDescription(description).build();
-      client.commitAndClose(snap, change).addOnCompleteListener(c -> {
+      client.commitAndClose(snap, change).addOnCompleteListener(IO, c -> {
         if (c.isSuccessful()) call.resolve(); else call.reject("commit failed", c.getException());
       });
     });
