@@ -10,8 +10,8 @@ submission; they are marked `[… — fill before publishing]` and tracked in `i
 - Free, with in-app purchases and ads
 - Privacy policy URL: <https://mochitg45.github.io/afterlife-bureaucracy/privacy.html>
   (served from `docs/privacy.html`; GitHub Pages must be enabled first — see `docs/release.md`)
-- Developer name shown on the listing: `[DEVELOPER_NAME — fill before publishing]`
-- Support email: `[CONTACT_EMAIL — fill before publishing]`
+- Developer name shown on the listing: `Inata Sun`
+- Support email: `inatasunsoft@gmail.com`
 
 ---
 

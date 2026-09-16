@@ -40,11 +40,10 @@ above and confirm the page loads.
 
 ### 2. Fill in the two human-owned fields
 
-`docs/privacy.html` and `docs/store/listing.md` both carry
-`[CONTACT_EMAIL — fill before publishing]` and `[DEVELOPER_NAME — fill before publishing]`.
-These are deliberately blank: the support address on a published listing is a decision, not a
-detail, and it is the address that receives every refund request forever. Decide it, then
-replace both placeholders in both files (and tick the TODOs in `docs/store/ids.md`).
+Done: `docs/privacy.html` and `docs/store/listing.md` carry the support address
+`inatasunsoft@gmail.com` and the developer name `Inata Sun`. That address receives every
+refund and support request for the life of the listing; changing it later means editing both
+files and the Play Console listing together.
 
 ### 3. Create the upload keystore
 
