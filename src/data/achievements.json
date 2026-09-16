@@ -41,7 +41,7 @@
   { "id": "a-depts-1", "name": "Two Departments", "desc": "Welcome to middle management.", "badge": "scroll", "tier": 1, "condition": { "type": "departmentsUnlocked", "target": 2 } },
   { "id": "a-depts-2", "name": "Three Departments", "desc": "The org chart needs a second page.", "badge": "scroll", "tier": 2, "condition": { "type": "departmentsUnlocked", "target": 3 }, "vouchers": 1 },
   { "id": "a-depts-3", "name": "Four Departments", "desc": "You have opinions about all four now.", "badge": "scroll", "tier": 3, "condition": { "type": "departmentsUnlocked", "target": 4 }, "vouchers": 3 },
-  { "id": "a-depts-4", "name": "The Whole Afterlife", "desc": "Every department, under one roof. Poor roof.", "badge": "scroll", "tier": 4, "condition": { "type": "departmentsUnlocked", "target": 5 }, "vouchers": 6 },
+  { "id": "a-depts-4", "name": "Five Departments", "desc": "Almost the whole afterlife, under one roof. Poor roof.", "badge": "scroll", "tier": 4, "condition": { "type": "departmentsUnlocked", "target": 5 }, "vouchers": 6 },
 
   { "id": "a-audits-1", "name": "Books Closed", "desc": "One fiscal year, closed and filed.", "badge": "trophy", "tier": 1, "condition": { "type": "audits", "target": 1 } },
   { "id": "a-audits-2", "name": "Three Years Audited", "desc": "The Auditor recognizes your face now.", "badge": "trophy", "tier": 2, "condition": { "type": "audits", "target": 3 }, "vouchers": 1 },

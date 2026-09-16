@@ -66,6 +66,10 @@ describe('StoreScreen', () => {
     render(<StoreScreen />);
     expect(screen.queryByRole('button', { name: 'Buy Exempt From Advertising' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Remove Ads' })).toBeInTheDocument();
+    // The copy promises the Backlog Report multiplier and nothing about removing prompts the
+    // game never shows anyone.
+    expect(screen.getByText(/permanent ×2 on the overnight backlog report/i)).toBeInTheDocument();
+    expect(screen.queryByText(/hides every ad prompt/i)).not.toBeInTheDocument();
     expect(screen.getByText('Owned')).toBeInTheDocument();
   });
 

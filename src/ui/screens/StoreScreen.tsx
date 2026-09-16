@@ -115,7 +115,10 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
       {removeAds && (
         <div className="card store-section">
           <h3>Remove Ads</h3>
-          <p className="sub">Hides every ad prompt and doubles the Overnight Backlog Report, permanently. The rewarded buttons stay available.</p>
+          <p className="sub">
+            Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on you — the rewarded buttons
+            stay optional either way.
+          </p>
           {entitlements.removeAds
             ? <div className="mono value brass">Owned</div>
             : <div className="modal-actions"><BuyButton product={removeAds} onResult={onPurchase} /></div>}

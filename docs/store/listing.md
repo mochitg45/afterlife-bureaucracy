@@ -99,7 +99,7 @@ runtime (the app always displays the store's own localised price, never these).
 | `vouchers_55` | 55 Overtime Vouchers | $4.99 | 55 vouchers |
 | `vouchers_120` | 120 Overtime Vouchers | $9.99 | 120 vouchers |
 | `vouchers_300` | 300 Overtime Vouchers | $19.99 | 300 vouchers |
-| `remove_ads` | Exempt From Advertising | $4.99 | Permanent ×2 offline earnings; hides every ad prompt. The optional rewarded buttons stay available. |
+| `remove_ads` | Exempt From Advertising | $4.99 | Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on the player — the rewarded buttons stay optional either way, and there are no other ad prompts to remove |
 | `starter_pack` | New Clerk Starter Pack | $2.99 | Offered once, only while days since first launch ≤ 3: 20 vouchers, the Senior Staff card Grandma Liu at 1 star, and Karma Credits equal to 30 minutes of current income |
 
 ### Subscription
@@ -161,7 +161,7 @@ does.
 | In-app purchases | Yes |
 | Advertising | Yes, rewarded video only |
 | Shares user location | No |
-| User interaction or user-generated content | No. No chat, no multiplayer, no social features beyond the Play Games leaderboard |
+| User interaction or user-generated content | No. No chat, no multiplayer, no social features beyond the Play Games achievements and lifetime-souls leaderboard (wired in the build; console ids pending, see `ids.md`) |
 | Digital purchases / unlockable content | Yes |
 
 Expected outcome: ESRB **Everyone**, PEGI **3** or **7**, USK **0**, with the "in-app

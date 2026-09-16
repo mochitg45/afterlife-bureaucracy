@@ -91,6 +91,7 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
         <h3>Daily tasks</h3>
         <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>
         <p className="sub">Skip tokens: {skipTokens}</p>
+        <p className="sub">A skipped task counts as finished — write one off and claim it like any other.</p>
         {clockSuspect && (
           <p className="sub warn" role="status">Clock check failed — daily tasks are paused until the next launch.</p>
         )}

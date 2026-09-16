@@ -168,6 +168,12 @@ describe('claim and skip', () => {
     expect(s1.dailies.skipTokens).toBe(0);
     // Already written off, so a second ad changes nothing.
     expect(skipDailyFree(s1, content, id)).toBe(s1);
+    // The write-off is an instant completion, not a forfeit: the task is claimable and pays
+    // its vouchers and KC like any other (spec §8).
+    expect(isDone(s1, content.dailies.find((d) => d.id === id)!)).toBe(true);
+    const claim = claimDaily(s1, content, id, new Decimal(1));
+    expect(claim.vouchers).toBe(1);
+    expect(claim.state.dailies.tasks.find((t) => t.id === id)!.claimed).toBe(true);
   });
   it('grants two exact vouchers on a rollover for a union member', () => {
     const s0 = { ...createInitialState(now, content), vouchers: 0, perks: ['requisition-1'] };

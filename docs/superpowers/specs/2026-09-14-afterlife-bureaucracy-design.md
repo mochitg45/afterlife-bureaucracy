@@ -105,7 +105,7 @@ Departments are shown as chips at the top of the Office tab. A locked department
 - **Perk Ledger:** a tree defined in `src/data/perks.json`, about 40 nodes in v1, five branches: Throughput (rate multipliers), Overtime (offline cap and rate), Stapler (click power), Requisition (voucher income and gacha discounts), Head Start (start each run with departments or staff pre-unlocked). Node cost in Seals; prerequisites by node id.
 - Audit ceremony: full-screen overlay, stamp slams "APPROVED", paper burst animation, fiscal year counter increments, then a fresh Intake office. Memo pools include year-specific lines so later years read differently.
 
-**Cosmic Restructuring (second tier).** The first is unlocked at 100 Seals, and each filing raises the bar by half again: `cosmicThreshold(filings) = 100 × 1.5^filings`, so 100, 150, 225, 338, 506, … Every reader — the Bureau's own check, the Ledger's Cosmic panel and the ceremony that announces the next one — goes through that one function, so the number on screen is always the number the filing will check. A flat 100 turned into a treadmill the moment the Perk Ledger was doing its work: the simulator filed eight Restructurings in the first month. Resets Seals and Perk Ledger for Cosmic Clauses, each granting large multipliers and unlocking new afterlife branches (Valhalla first). The data model (`cosmicClauses`, `branchesUnlocked` in the save) ships in v1.0; the UI ships in v1.2.
+**Cosmic Restructuring (second tier).** The first is unlocked at 100 Seals, and each filing raises the bar by half again: `cosmicThreshold(filings) = 100 × 1.5^filings`, so 100, 150, 225, 338, 506, … Every reader — the Bureau's own check, the Ledger's Cosmic panel and the ceremony that announces the next one — goes through that one function, so the number on screen is always the number the filing will check. A flat 100 turned into a treadmill the moment the Perk Ledger was doing its work: the simulator filed eight Restructurings in the first month. Resets Seals and Perk Ledger for Cosmic Clauses, each granting large multipliers and unlocking new afterlife branches (Valhalla first). The data model (`cosmicClauses`, `branchesUnlocked` in the save), the Cosmic panel on the Ledger, the ceremony and the Valhalla branch all ship in v1.0.
 
 ## 7. Gacha: Personnel Requisition Lottery
 
@@ -121,7 +121,7 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 ## 8. Retention systems
 
-**Daily tasks.** Three per day, drawn from a pool in `src/data/dailies.json` (stamp N souls, hire N staff, buy N upgrades, reach N souls per second, watch 1 ad (Plan 4), plus gated tasks — equip a card, draw a requisition, buy a perk, file an audit — offered only on days the player can currently do them). Reset at local midnight. Rewards: KC scaled to current rate, plus vouchers. Streak counter with a bonus voucher pack at 7-day streaks; one missed day breaks the streak, one skip token per week protects it.
+**Daily tasks.** Three per day, drawn from a pool in `src/data/dailies.json` (stamp N souls, hire N staff, buy N upgrades, reach N souls per second, watch 1 ad (Plan 4), plus gated tasks — equip a card, draw a requisition, buy a perk, file an audit — offered only on days the player can currently do them). Reset at local midnight. Rewards: KC scaled to current rate, plus vouchers. Streak counter with a bonus voucher pack at 7-day streaks; one missed day breaks the streak, one skip token per week protects it. A skipped task — by token or by the rewarded `daily-skip` ad — counts as finished, not forfeited: it is claimable and pays its KC and vouchers like any other, which is what makes the ad worth thirty seconds. The in-app help on the Tasks screen says so.
 
 **Achievements.** About 80 in v1 in `src/data/achievements.json`: souls milestones, staff counts, audits filed, cards collected, ads watched, streaks. Each grants +1% permanent global multiplier and some grant vouchers. Trophy-style badge icons (SVG), grid on the Tasks tab. Mirrored to Play Games achievements on Android and Game Center achievements on iOS.
 
@@ -131,7 +131,9 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 **Local notifications** (Capacitor Local Notifications, opt-in prompt after day 2): offline cap reached, daily tasks reset, Audit available. Maximum 2 per day.
 
-**Weekly events (v1.1).** A 3-day "Overflow" department appears with its own progress, event-only cards, and a Play Games leaderboard. Event definitions are fetched from a static JSON URL at launch with a bundled fallback; no server logic.
+**Leaderboard.** One leaderboard, lifetime Souls Processed, through Play Games on Android and Game Center on iOS. It ships in v1.0 alongside the achievement mirroring, behind the same optional sign-in.
+
+**Weekly events (v1.1).** A 3-day "Overflow" department appears with its own progress, event-only cards, and an event-scoped Play Games leaderboard of its own. Event definitions are fetched from a static JSON URL at launch with a bundled fallback; no server logic.
 
 ## 9. Monetization
 
@@ -143,7 +145,7 @@ Departments are shown as chips at the top of the Office tab. A locked department
 
 **In-app purchases** (Google Play Billing 8+, via RevenueCat or the Capacitor community billing plugin; decide at implementation time based on plugin health).
 - Voucher packs: 10, 55, 120, 300.
-- Remove Ads (one-time, about $4.99): grants the permanent ×2 offline bonus and hides all ad prompts except the optional rewarded buttons.
+- Remove Ads (one-time, about $4.99): a permanent ×2 on the Overnight Backlog Report. The name is the joke, not the promise — v1 shows no interstitials, banners or forced prompts to anybody, so there is nothing for it to remove, and the store copy, the privacy policy and the Play listing all say plainly that the rewarded buttons stay optional either way. Making the rewarded rewards free for owners (an ad-free ×2 Backlog Report, a free pull without the ad) is a v1.1 candidate; it is deliberately not v1.0, because it would turn every rewarded placement into a second price list.
 - Starter Pack: offered once, days 1–3: vouchers, one Senior Staff card, KC.
 - Union Membership (monthly subscription): daily vouchers, +25% global rate, daily tasks auto-collect.
 
@@ -155,7 +157,7 @@ Portrait only. Bottom tab bar with five tabs.
 
 1. **Office.** Department chips at top. Intake queue card showing the current flavor line. Large stamp button (the primary click target) with a stamp-slam animation and floating "+N" text. Staff list with buy ×1/×10/×max, milestone progress bars, mood faces. Upgrades section. Memo ticker fixed at the bottom.
 2. **Personnel.** Pull buttons, pity counters, collection grid with rank stars, equip slots, Odds screen link.
-3. **Ledger.** Seals held, live "Audit now for +N" button, Perk Ledger tree, Cosmic panel (locked placeholder in v1.0).
+3. **Ledger.** Seals held, live "Audit now for +N" button, Perk Ledger tree, Cosmic panel — locked with a progress bar to the next threshold until the Seals are there, then the two-step Restructure confirm and the Clause list.
 4. **Tasks.** Daily tasks with progress, streak, achievements grid with badges.
 5. **Store.** Voucher packs, Remove Ads, Starter Pack, Union Membership, restore purchases.
 
@@ -203,9 +205,9 @@ src/
 
 ## 14. Release phasing
 
-- **v1.0** — everything above except weekly events, cloud sync and the Cosmic Restructuring UI. Play Games achievements and leaderboard, plus a manual export/import save code in place of cloud sync. Store-ready: privacy policy, odds disclosure, data-safety form, adaptive icon, screenshots.
-- **v1.1** — weekly events with CDN config, and Play Games Saved Games sync.
-- **v1.2** — Cosmic Restructuring UI and the Valhalla branch (new department data plus Cosmic Clauses).
+- **v1.0** — everything above except weekly events and cloud sync. That includes the Cosmic Restructuring UI and the Valhalla branch, which were planned for v1.2 and landed early. Play Games achievements and the lifetime-souls leaderboard are wired through `src/platform/gameServices.ts`, with the console ids still pending (`src/platform/gameIds.ts` holds `TODO` sentinels and every call site skips an unmapped id, so the build is shippable before the Play Games project exists — see `docs/store/ids.md`). A manual export/import save code stands in for cloud sync. Store-ready: privacy policy, odds disclosure, data-safety form, adaptive icon, screenshots.
+- **v1.1** — weekly events with CDN config, Play Games Saved Games sync, and the candidate ad-free rewards for Remove Ads owners (§9).
+- **v1.2** — whatever the events and the first month of players ask for.
 
 ## 15. Out of scope
 
