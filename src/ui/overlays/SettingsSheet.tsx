@@ -121,7 +121,6 @@ export function SettingsSheet({
         </button>
         <button
           className={'btn ' + (confirm === 'upload' ? 'btn-primary' : 'btn-ghost')}
-          aria-label="Upload this device"
           disabled={!cloudAvailable || cloudSyncing}
           onClick={() => onOverride('upload')}
         >
@@ -129,7 +128,6 @@ export function SettingsSheet({
         </button>
         <button
           className={'btn ' + (confirm === 'restore' ? 'btn-primary' : 'btn-ghost')}
-          aria-label="Restore from cloud"
           disabled={!cloudAvailable || cloudSyncing}
           onClick={() => onOverride('restore')}
         >

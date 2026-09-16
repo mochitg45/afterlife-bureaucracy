@@ -217,10 +217,15 @@ button:disabled { opacity: 0.45; cursor: default; }
 }
 
 /* Cloud save: the notice above the office, and the Settings row that drives it by hand. */
+/* Above the tab bar with the toast, not over the currency bar: a notice pinned to the top
+   would cover the gear button and the readouts for as long as it went undismissed. It sits
+   one toast-height higher than .toast so an achievement and a sync notice can share the
+   screen, and one layer under it so the toast that expires on its own stays on top. */
 .cloud-notice {
-  position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 12px); z-index: 30;
+  position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabbar-h) + 88px); z-index: 55;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
 }
+.safe-area .cloud-notice { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 88px); }
 .cloud-notice .btn { flex: 0 0 auto; }
 .cloud-row { align-items: baseline; }
 .cloud-actions { flex-wrap: wrap; justify-content: flex-start; }
@@ -228,4 +233,56 @@ button:disabled { opacity: 0.45; cursor: default; }
 
 @media (prefers-reduced-motion: reduce) {
   .pulse { animation: none; }
+}
+
+/* First-launch memos: the story parchment, with the form number stamped above the title. */
+.ob-form { display: block; margin-bottom: 6px; color: var(--green); }
+.ob-art { display: flex; justify-content: center; margin-bottom: 6px; }
+.onboarding-memo .modal-actions .btn { min-height: 44px; }
+
+/* Coach marks. The dim is one huge box-shadow spread from the hole, so there is a single
+   element to position and no seams where four edge panels would meet. The overlay takes no
+   pointer events and the card takes them back, which is how the tap the card asks for
+   reaches the real stamp or hire button underneath it. */
+/* Below every .modal-backdrop (50, and 55 for a story beat): a memo or a ceremony that
+   fires mid-walkthrough is the thing to deal with first, and a coach card floating over its
+   buttons would be one the player cannot reach. The coach mark reappears underneath it. */
+.coach-overlay { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+.coach-hole {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(42, 38, 32, 0.55);
+}
+.coach-ring {
+  position: absolute; inset: -8px;
+  border: 2px dashed var(--brass);
+  border-radius: 16px;
+  animation: coachPulse 1.6s ease-in-out infinite;
+}
+.coach-card {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 32px); max-width: 340px;
+  pointer-events: auto;
+  text-align: left;
+  animation: coachIn 220ms ease-out both;
+}
+/* No target to sit under — the recap, or a step whose control is on another screen. */
+.coach-card.centred { top: 50%; transform: translate(-50%, -50%); }
+/* Anchored by its own bottom edge, so a low target's card grows upward off the tab bar. */
+.coach-card.above { top: auto; }
+.coach-title { font-size: 18px; margin: 2px 0 4px; }
+.coach-text { margin: 0; }
+.coach-actions { display: flex; gap: 8px; margin-top: 10px; }
+.coach-actions .btn { flex: 1; min-height: 44px; }
+
+@keyframes coachPulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+/* Opacity only: the card's own transform is what centres it, and a keyframe that also set
+   transform would win over `.centred` and drop the recap card back to the middle-left. */
+@keyframes coachIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .coach-ring, .coach-card { animation: none; }
 }

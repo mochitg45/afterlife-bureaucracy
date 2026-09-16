@@ -153,8 +153,9 @@ describe('SettingsSheet', () => {
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'Restore from cloud' }));
     expect(restoreCloud).not.toHaveBeenCalled();
-    expect(screen.getByText('Confirm restore')).toBeInTheDocument();
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore from cloud' })); });
+    // The armed button renames itself, so its accessible name says what the next tap does.
+    expect(screen.queryByRole('button', { name: 'Restore from cloud' })).not.toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirm restore' })); });
     expect(restoreCloud).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('status')).toHaveTextContent('Restored this device from the cloud.');
   });
@@ -167,7 +168,7 @@ describe('SettingsSheet', () => {
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'Upload this device' }));
     expect(uploadLocal).not.toHaveBeenCalled();
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Upload this device' })); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirm upload' })); });
     expect(uploadLocal).toHaveBeenCalledTimes(1);
   });
 
@@ -178,8 +179,8 @@ describe('SettingsSheet', () => {
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'Restore from cloud' }));
     fireEvent.click(screen.getByRole('button', { name: 'Upload this device' }));
-    expect(screen.queryByText('Confirm restore')).not.toBeInTheDocument();
-    expect(screen.getByText('Confirm upload')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirm restore' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm upload' })).toBeInTheDocument();
   });
 
   it('opens the save code sheet', () => {
