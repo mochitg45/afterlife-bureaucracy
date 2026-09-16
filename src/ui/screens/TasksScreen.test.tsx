@@ -53,6 +53,22 @@ describe('TasksScreen', () => {
     expect(screen.getByText('Skip tokens: 1')).toBeInTheDocument();
   });
 
+  // Without the notice a player whose device clock was flipped just sees yesterday's tasks
+  // refusing to roll over, with nothing on screen explaining why.
+  it('explains a frozen rollover when the clock check failed', () => {
+    seed({ dailies: dailiesWith() });
+    useGame.setState({ clockSuspect: true });
+    render(<TasksScreen />);
+    expect(screen.getByText('Clock check failed — daily tasks are paused until the next launch.')).toBeInTheDocument();
+  });
+
+  it('shows no clock notice when the clock is trusted', () => {
+    seed({ dailies: dailiesWith() });
+    useGame.setState({ clockSuspect: false });
+    render(<TasksScreen />);
+    expect(screen.queryByText(/clock check failed/i)).not.toBeInTheDocument();
+  });
+
   it('disables Claim below target', () => {
     seed({
       dailies: dailiesWith(),
@@ -143,12 +159,14 @@ describe('TasksScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /settings/i }));
     expect(onSettings).toHaveBeenCalled();
   });
-  it('skips an unfinished task with a rewarded ad', () => {
+  it('skips an unfinished task with a rewarded ad', async () => {
     const watchAd = vi.fn(async () => 'rewarded' as const);
     seed({ dailies: dailiesWith({ skipTokens: 0 }) });
     useGame.setState({ adsReady: true, watchAd });
     render(<TasksScreen />);
-    fireEvent.click(screen.getByRole('button', { name: `Skip with ad: ${TASK_TEXT}` }));
+    // The button flips itself to pending and back while the ad runs, so the click and the
+    // assertion sit inside act() together.
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: `Skip with ad: ${TASK_TEXT}` })); });
     expect(watchAd).toHaveBeenCalledWith('daily-skip', TASK_ID);
   });
 

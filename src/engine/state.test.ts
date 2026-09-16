@@ -99,6 +99,12 @@ describe('state', () => {
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.activeDept).toBe('intake');
   });
+  it('drops perks the build no longer ships and de-duplicates the rest', () => {
+    const known = content.perks[0].id;
+    const raw = { saveVersion: 3, perks: [known, 'p-atlantis', known, 42] };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.perks).toEqual([known]);
+  });
   it('falls back to zero for an unparseable Decimal field', () => {
     const raw = { saveVersion: 2, kc: 'abc', soulsRun: null, soulsLifetime: '1e5' };
     const s = deserialize(JSON.stringify(raw), content);

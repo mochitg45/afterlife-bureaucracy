@@ -7,7 +7,7 @@ import { computeRates, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
 import { canAudit, fileAudit } from '../engine/prestige';
 import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/offline';
-import { assessGap, newProcessId, type GapAssessment } from '../engine/integrity';
+import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
@@ -73,6 +73,17 @@ export const BOOST_AD_DURATION_MS = 4 * 3600_000;
 export const BOOST_AD_COOLDOWN_MS = 8 * 3600_000;
 
 /**
+ * A per-process id, regenerated on every boot. Two boots of the same save must not collide,
+ * so that the forward-jump rule only ever fires on a genuine same-process resume.
+ *
+ * It lives here rather than in the engine: which process is running is the store's business,
+ * and the engine only ever compares the ids a save and a caller hand it.
+ */
+export function newProcessId(): string {
+  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2, 6);
+}
+
+/**
  * Lifetime souls are far past a 64-bit score, so the leaderboard ranks their order of
  * magnitude: log10 x 1000, which keeps three decimal places of an exponent as whole points.
  */
@@ -81,6 +92,13 @@ export function lifetimeSoulsScore(soulsLifetime: Decimal): number {
   const score = Math.round(soulsLifetime.log10() * 1000);
   return Number.isFinite(score) ? Math.max(0, score) : 0;
 }
+
+/**
+ * What a Restore Purchases tap comes back with. `'none'` and `'error'` are different
+ * answers on purpose: "this account owns nothing" and "the store did not answer" send the
+ * player to very different places.
+ */
+export type RestoreResult = 'ok' | 'none' | 'error';
 
 export interface PendingOffline {
   elapsedSec: number;
@@ -128,7 +146,6 @@ export interface GameStore {
   upgrade(upgradeId: string): void;
   setActiveDept(deptId: string): void;
   dismissOffline(): void;
-  doubleOffline(): void;
   save(): Promise<void>;
   stopLoop(): void;
   rotateQueue(): void;
@@ -149,7 +166,7 @@ export interface GameStore {
   watchAd(placement: AdPlacement, taskId?: string): Promise<AdResult>;
   canWatch(placement: AdPlacement): boolean;
   buy(id: ProductId): Promise<PurchaseResult>;
-  restorePurchases(): Promise<void>;
+  restorePurchases(): Promise<RestoreResult>;
   cosmic(): void;
   dismissCosmic(): void;
   buyClause(clauseId: string): void;
@@ -578,8 +595,11 @@ export function createGameStore(deps: StoreDeps) {
               state: r.state,
               rates: r.rates,
               ...(pendingOffline ? { pendingOffline } : {}),
-              recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
-              pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
+              // Capped exactly as on boot: a resume after a week away crosses the same pile
+              // of triggers, and the rest are already recorded as seen, so they are filed
+              // silently rather than shown one modal at a time.
+              recentAchievements: [...cur.recentAchievements, ...r.unlockedAch].slice(0, BOOT_QUEUE_CAP),
+              pendingStory: [...cur.pendingStory, ...r.unlockedStory].slice(0, BOOT_QUEUE_CAP),
               mood: moodAfterGap(pendingOffline, elapsedSec),
               clockSuspect: suspect,
             }));
@@ -607,12 +627,6 @@ export function createGameStore(deps: StoreDeps) {
         set({ state: { ...s, activeDept: deptId }, queueLine: pick(dept.queue, ''), memoLine: pick(memoPool(dept, s.fiscalYear, s.storySeen), '') });
       },
       dismissOffline() { set({ pendingOffline: null }); },
-      doubleOffline() {
-        const p = get().pendingOffline;
-        if (!p) return;
-        apply(unlockDepartments(addSouls(get().state, p.souls, p.kc), content));
-        set({ pendingOffline: null });
-      },
       async save() {
         const s = withClocks(get().state);
         set({ state: s });
@@ -637,9 +651,10 @@ export function createGameStore(deps: StoreDeps) {
         if (!canAudit(get().state)) return;
         const r = fileAudit(get().state, content);
         const dept = findDepartment(content, r.state.activeDept);
-        set({
-          state: r.state,
-          rates: computeRates(r.state, content, clock.wall()),
+        // Through `apply`, like every other write: filing the audit is what satisfies the
+        // "file N audits" achievement and the story beats keyed to the fiscal year, so they
+        // have to unlock in this same call rather than waiting for the next tick to notice.
+        apply(r.state, {
           lastAudit: { sealsGained: r.sealsGained, fiscalYear: r.fiscalYear },
           queueLine: pick(dept.queue, ''),
           memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
@@ -647,7 +662,7 @@ export function createGameStore(deps: StoreDeps) {
           // Report after the reset would offer to double income into a wiped office.
           pendingOffline: null,
         });
-        submitLifetimeScore(r.state.soulsLifetime);
+        submitLifetimeScore(get().state.soulsLifetime);
         void get().save();
       },
       dismissAudit() { set({ lastAudit: null }); },
@@ -798,23 +813,27 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       async restorePurchases() {
-        let restored;
+        let restored: Restored;
         try {
           restored = await billing.restore();
         } catch {
-          return;
+          return 'error';
         }
         mergeRestored(restored);
         await get().save();
+        // Reported on what the store said this account owns, not on whether the merge moved
+        // anything: restoring onto a device that already holds everything is still a success.
+        const owns = restored.removeAds || restored.unionUntilWall > 0 || restored.starterPackBought;
+        return owns ? 'ok' : 'none';
       },
 
       cosmic() {
         if (!canCosmic(get().state)) return;
         const r = fileCosmic(get().state, content);
         const dept = findDepartment(content, r.state.activeDept);
-        set({
-          state: r.state,
-          rates: computeRates(r.state, content, clock.wall()),
+        // Settles for the same reason the Audit does: the cosmic-count achievement belongs
+        // to the filing that earned it.
+        apply(r.state, {
           lastCosmic: { pointsGained: r.pointsGained },
           queueLine: pick(dept.queue, ''),
           memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),

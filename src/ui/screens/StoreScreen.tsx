@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useGame } from '../../store/game';
+import { useEffect, useState } from 'react';
+import { useGame, type RestoreResult } from '../../store/game';
 import { ScreenHeader } from '../components/ScreenHeader';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
 import {
@@ -21,6 +21,26 @@ const RESULT_TEXT: Record<PurchaseResult, string> = {
   cancelled: 'Purchase cancelled. Nothing was charged.',
   error: 'The requisition desk could not complete that. Nothing was charged.',
 };
+
+/**
+ * Three different answers, because "you own nothing on this account" and "the store never
+ * replied" send a player somewhere completely different — the first to the purchase they
+ * made on another account, the second back to the same button in a minute.
+ *
+ * Shared with the Settings sheet, which offers the same Restore button.
+ */
+export const RESTORE_TEXT: Record<RestoreResult, string> = {
+  ok: 'Purchases restored.',
+  none: 'Nothing to restore for this account.',
+  error: 'The store did not respond. Try again later.',
+};
+
+/**
+ * The Starter Pack window closes on a wall-clock deadline, not on anything the player does,
+ * so a screen left open would keep offering a lapsed pack. A minute is well inside the
+ * three-day window and nowhere near the ten-a-second tick.
+ */
+const WINDOW_POLL_MS = 60_000;
 
 function BuyButton({ product, primary, onResult }: { product: Product; primary?: boolean; onResult: (r: PurchaseResult) => void }) {
   const buy = useGame((s) => s.buy);
@@ -46,8 +66,14 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
   // One result line for the whole screen, so a purchase started in any section is reported
   // in the same place.
   const [result, setResult] = useState<PurchaseResult | null>(null);
+  const [restore, setRestore] = useState<RestoreResult | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
-  const now = Date.now();
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), WINDOW_POLL_MS);
+    return () => clearInterval(id);
+  }, []);
+
   const byId = new Map(products.map((p) => [p.id, p]));
   const packs = VOUCHER_PACK_IDS.flatMap((id) => {
     const p = byId.get(id);
@@ -58,7 +84,14 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
   const union = byId.get('union_monthly');
   const unionOn = unionActive({ entitlements }, now);
   const starterOn = starterPackEligible({ entitlements, firstSeenWallClock }, now);
-  const status = purchasePending ? 'Purchase pending…' : result ? RESULT_TEXT[result] : '';
+  // A purchase in flight outranks both; otherwise whichever of the two the player asked for
+  // most recently is the one being reported, and `onRestore`/`setResult` clear the other.
+  const status = purchasePending ? 'Purchase pending…' : result ? RESULT_TEXT[result] : restore ? RESTORE_TEXT[restore] : '';
+
+  const onPurchase = (r: PurchaseResult) => {
+    setRestore(null);
+    setResult(r);
+  };
 
   return (
     <section className="screen store">
@@ -74,7 +107,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
           <h3>Vouchers</h3>
           <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied.</p>
           <div className="modal-actions">
-            {packs.map((p) => <BuyButton key={p.id} product={p} onResult={setResult} />)}
+            {packs.map((p) => <BuyButton key={p.id} product={p} onResult={onPurchase} />)}
           </div>
         </div>
       )}
@@ -85,7 +118,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
           <p className="sub">Hides every ad prompt and doubles the Overnight Backlog Report, permanently. The rewarded buttons stay available.</p>
           {entitlements.removeAds
             ? <div className="mono value brass">Owned</div>
-            : <div className="modal-actions"><BuyButton product={removeAds} onResult={setResult} /></div>}
+            : <div className="modal-actions"><BuyButton product={removeAds} onResult={onPurchase} /></div>}
         </div>
       )}
 
@@ -96,7 +129,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
             {STARTER_PACK_VOUCHERS} Requisition Vouchers, Grandma Liu at one star, and Karma Credits worth{' '}
             {STARTER_PACK_KC_SECONDS / 60} minutes of your current income. Offered once, in your first three days.
           </p>
-          <div className="modal-actions"><BuyButton product={starterPack} primary onResult={setResult} /></div>
+          <div className="modal-actions"><BuyButton product={starterPack} primary onResult={onPurchase} /></div>
         </div>
       )}
 
@@ -108,12 +141,17 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
             daily tasks file themselves.
           </p>
           {unionOn && <div className="mono brass">Active until {new Date(entitlements.unionUntilWall).toLocaleDateString()}</div>}
-          <div className="modal-actions"><BuyButton product={union} primary={!unionOn} onResult={setResult} /></div>
+          <div className="modal-actions"><BuyButton product={union} primary={!unionOn} onResult={onPurchase} /></div>
         </div>
       )}
 
       <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={() => void restorePurchases()}>Restore purchases</button>
+        <button
+          className="btn btn-ghost"
+          onClick={() => void restorePurchases().then((r) => { setResult(null); setRestore(r); })}
+        >
+          Restore purchases
+        </button>
       </div>
       <p className="sub store-footnote">{STORE_FOOTNOTE}</p>
     </section>

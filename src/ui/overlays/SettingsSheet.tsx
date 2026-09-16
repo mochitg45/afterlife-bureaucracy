@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
+import { RESTORE_TEXT } from '../screens/StoreScreen';
 import { APP_VERSION, PRIVACY_URL } from '../../version';
 
 export function SettingsSheet({
@@ -25,8 +26,7 @@ export function SettingsSheet({
   const [status, setStatus] = useState('');
 
   const onRestore = async () => {
-    await restorePurchases();
-    setStatus('Purchases restored from the store.');
+    setStatus(RESTORE_TEXT[await restorePurchases()]);
   };
 
   const onSignIn = async () => {

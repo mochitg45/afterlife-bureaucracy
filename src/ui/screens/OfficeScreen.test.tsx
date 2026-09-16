@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import Decimal from 'break_infinity.js';
 import { OfficeScreen } from './OfficeScreen';
 import { useGame } from '../../store/game';
@@ -46,12 +46,13 @@ describe('OfficeScreen', () => {
     expect(screen.getByText(content.departments[0].queue[0])).toBeInTheDocument();
     expect(screen.getByText(content.departments[0].memos[0])).toBeInTheDocument();
   });
-  it('watches an ad for the Overtime Boost', () => {
+  it('watches an ad for the Overtime Boost', async () => {
     const watchAd = vi.fn(async () => 'rewarded' as const);
     seed(0);
     useGame.setState({ adsReady: true, watchAd });
     render(<OfficeScreen />);
-    fireEvent.click(screen.getByRole('button', { name: 'Overtime Boost' }));
+    // The button flips itself to pending and back while the ad runs.
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Overtime Boost' })); });
     expect(watchAd).toHaveBeenCalledWith('overtime-boost', undefined);
   });
 

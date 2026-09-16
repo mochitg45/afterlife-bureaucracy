@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Modal } from './Modal';
 
@@ -51,6 +52,32 @@ describe('Modal', () => {
     render(<Modal open title="Cosmic Restructuring"><button>One</button></Modal>);
     expect(() => fireEvent.keyDown(document, { key: 'Escape' })).not.toThrow();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  // Without this a keyboard or screen-reader user is dumped at the top of the document every
+  // time they dismiss a dialog, instead of back on the control they opened it from.
+  it('returns focus to the opener when it closes', () => {
+    function Harness() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>Opener</button>
+          <Modal open={open} title="Settings" onClose={() => setOpen(false)}><button>Inside</button></Modal>
+        </>
+      );
+    }
+    render(<Harness />);
+    const opener = screen.getByRole('button', { name: 'Opener' });
+    opener.focus();
+    fireEvent.click(opener);
+    expect(screen.getByRole('button', { name: 'Inside' })).toHaveFocus();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(opener).toHaveFocus();
+  });
+
+  it('leaves focus alone when the opener is gone by the time it closes', () => {
+    const { unmount } = render(<Modal open title="Settings"><button>Inside</button></Modal>);
+    expect(() => unmount()).not.toThrow();
   });
 
   it('puts the header above the title and applies both class names', () => {

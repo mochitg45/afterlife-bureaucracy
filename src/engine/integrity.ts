@@ -60,11 +60,3 @@ export function assessGap(saved: SavedClocks, now: NowClocks): GapAssessment {
   }
   return { creditSec: wallDelta / 1000, suspect: false, allowRollover: true, reason: 'ok' };
 }
-
-/**
- * A per-process id, regenerated on every boot. Two boots of the same save must not collide,
- * so that the forward-jump rule only ever fires on a genuine same-process resume.
- */
-export function newProcessId(): string {
-  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2, 6);
-}

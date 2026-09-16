@@ -1,7 +1,7 @@
 import { act, render, screen, fireEvent } from '@testing-library/react';
 import Decimal from 'break_infinity.js';
 import { SettingsSheet } from './SettingsSheet';
-import { useGame } from '../../store/game';
+import { useGame, type RestoreResult } from '../../store/game';
 import { createInitialState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
@@ -56,12 +56,30 @@ describe('SettingsSheet', () => {
 
   it('restores purchases', async () => {
     seed('no');
-    const restorePurchases = vi.fn(async () => {});
+    const restorePurchases = vi.fn(async (): Promise<RestoreResult> => 'ok');
     useGame.setState({ restorePurchases });
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' })); });
     expect(restorePurchases).toHaveBeenCalled();
-    expect(screen.getByRole('status')).toHaveTextContent(/restored/i);
+    expect(screen.getByRole('status')).toHaveTextContent('Purchases restored.');
+  });
+
+  // The three outcomes are deliberately different sentences: "you own nothing here" and "the
+  // store never answered" are not the same news.
+  it('says when the account owns nothing to restore', async () => {
+    seed('no');
+    useGame.setState({ restorePurchases: vi.fn(async (): Promise<RestoreResult> => 'none') });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' })); });
+    expect(screen.getByRole('status')).toHaveTextContent('Nothing to restore for this account.');
+  });
+
+  it('says when the store did not answer', async () => {
+    seed('no');
+    useGame.setState({ restorePurchases: vi.fn(async (): Promise<RestoreResult> => 'error') });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' })); });
+    expect(screen.getByRole('status')).toHaveTextContent('The store did not respond. Try again later.');
   });
 
   it('signs in to Play Games and reports the outcome', async () => {

@@ -41,12 +41,22 @@ export function Modal({
 
   // The first button, not the first focusable: a settings toggle at the top of the sheet
   // should not be one stray keypress away from being flipped by someone who only opened it.
+  //
+  // On close the focus goes back where it came from, so dismissing a dialog opened from a
+  // row leaves a keyboard or screen-reader user on that row rather than at the top of the
+  // document. `isConnected` guards the case where the opener itself was unmounted by the
+  // action that closed the dialog.
   useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
     const root = ref.current;
-    if (!root) return;
-    const target = root.querySelector<HTMLElement>('button:not([disabled])') ?? root;
-    target.focus();
+    if (root) {
+      const target = root.querySelector<HTMLElement>('button:not([disabled])') ?? root;
+      target.focus();
+    }
+    return () => {
+      if (opener && opener.isConnected && typeof opener.focus === 'function') opener.focus();
+    };
   }, [open]);
 
   useEffect(() => {

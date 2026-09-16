@@ -5,7 +5,7 @@ import { createInitialState, type GameState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
 import type { Product } from '../../platform/billing';
-import { UNION_PERIOD_MS } from '../../engine/entitlements';
+import { STARTER_PACK_WINDOW_MS, UNION_PERIOD_MS } from '../../engine/entitlements';
 
 const PRODUCTS: Product[] = [
   { id: 'vouchers_10', price: '$0.99', title: '10 Overtime Vouchers' },
@@ -83,12 +83,42 @@ describe('StoreScreen', () => {
     expect(screen.queryByRole('heading', { name: 'Starter Pack' })).not.toBeInTheDocument();
   });
 
+  // The window closes on a wall-clock deadline, not on anything the player does, so a screen
+  // left open on the Store tab must stop offering the pack by itself.
+  it('drops the Starter Pack when the window lapses while the screen is open', () => {
+    vi.useFakeTimers();
+    const opened = Date.now();
+    try {
+      seed({ firstSeenWallClock: opened - STARTER_PACK_WINDOW_MS + 30_000 });
+      render(<StoreScreen />);
+      expect(screen.getByRole('heading', { name: 'Starter Pack' })).toBeInTheDocument();
+      act(() => { vi.advanceTimersByTime(120_000); });
+      expect(screen.queryByRole('heading', { name: 'Starter Pack' })).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('shows the union benefits and its price', () => {
     seed({ firstSeenWallClock: NOW - 5 * 86_400_000 });
     render(<StoreScreen />);
     expect(screen.getByRole('heading', { name: 'Union Membership' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Buy Union Membership (monthly)' })).toHaveTextContent('$3.99');
     expect(screen.queryByText(/active until/i)).not.toBeInTheDocument();
+  });
+
+  it('reports each of the three restore outcomes', async () => {
+    for (const [result, text] of [
+      ['ok', 'Purchases restored.'],
+      ['none', 'Nothing to restore for this account.'],
+      ['error', 'The store did not respond. Try again later.'],
+    ] as const) {
+      seed({}, { restorePurchases: vi.fn(async () => result) });
+      const view = render(<StoreScreen />);
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' })); });
+      expect(screen.getByRole('status')).toHaveTextContent(text);
+      view.unmount();
+    }
   });
 
   it('shows the expiry date while the membership is active', () => {
@@ -98,11 +128,11 @@ describe('StoreScreen', () => {
     expect(screen.getByText(`Active until ${new Date(until).toLocaleDateString()}`)).toBeInTheDocument();
   });
 
-  it('restores purchases', () => {
-    const restorePurchases = vi.fn(async () => {});
+  it('restores purchases', async () => {
+    const restorePurchases = vi.fn(async () => 'ok' as const);
     seed({}, { restorePurchases });
     render(<StoreScreen />);
-    fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Restore purchases' })); });
     expect(restorePurchases).toHaveBeenCalled();
   });
 

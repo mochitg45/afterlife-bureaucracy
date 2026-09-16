@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import Decimal from 'break_infinity.js';
 import { BacklogReport } from './BacklogReport';
 import { useGame } from '../../store/game';
@@ -12,7 +12,7 @@ describe('BacklogReport', () => {
     const { container } = render(<BacklogReport />);
     expect(container).toBeEmptyDOMElement();
   });
-  it('shows earnings and doubles them with a rewarded ad', () => {
+  it('shows earnings and doubles them with a rewarded ad', async () => {
     const watchAd = vi.fn(async () => 'rewarded' as const);
     const state = createInitialState({ wall: 0, mono: 0 }, content);
     useGame.setState({
@@ -22,7 +22,8 @@ describe('BacklogReport', () => {
     render(<BacklogReport />);
     expect(screen.getByText(/2h 0m/)).toBeInTheDocument();
     expect(screen.getByText('900')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Watch ad ×2' }));
+    // The button flips itself to pending and back while the ad runs.
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Watch ad ×2' })); });
     expect(watchAd).toHaveBeenCalledWith('offline-double', undefined);
   });
 
@@ -57,8 +58,9 @@ describe('BacklogReport', () => {
     });
     render(<BacklogReport />);
     const button = screen.getByRole('button', { name: 'Watch ad ×2' });
-    fireEvent.click(button);
-    fireEvent.click(button);
+    // This ad never resolves, so the pending flip is the only state change to flush.
+    act(() => { fireEvent.click(button); });
+    act(() => { fireEvent.click(button); });
     expect(watchAd).toHaveBeenCalledTimes(1);
     expect(button).toBeDisabled();
   });

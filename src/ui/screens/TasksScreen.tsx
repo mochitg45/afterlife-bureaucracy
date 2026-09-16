@@ -76,6 +76,9 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   const dailies = useGame((s) => s.state.dailies);
   const stats = useGame((s) => s.state.stats);
   const achievements = useGame((s) => s.state.achievements);
+  // Fourth narrow subscription: a flipped device clock freezes the rollover for the rest of
+  // the session, and a player staring at yesterday's tasks deserves to know why.
+  const clockSuspect = useGame((s) => s.clockSuspect);
   const unlocked = useMemo(() => new Set(achievements), [achievements]);
   const { streak, bestStreak, skipTokens, tasks } = dailies;
   const view: DailyProgressView = { dailies, stats };
@@ -88,6 +91,9 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
         <h3>Daily tasks</h3>
         <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>
         <p className="sub">Skip tokens: {skipTokens}</p>
+        {clockSuspect && (
+          <p className="sub warn" role="status">Clock check failed — daily tasks are paused until the next launch.</p>
+        )}
       </div>
       {tasks.map((t) => <TaskRow key={t.id} taskId={t.id} view={view} />)}
 

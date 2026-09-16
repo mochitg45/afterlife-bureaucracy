@@ -5,8 +5,9 @@ import { fakeClock } from '../engine/time';
 import { content } from '../data';
 import { loadContent } from '../engine/content';
 import intake from '../data/departments/intake.json';
-import { createInitialState, serialize } from '../engine/state';
+import { createInitialState, deserialize, serialize } from '../engine/state';
 import { AUDIT_BASE, SEAL_COEFF } from '../engine/prestige';
+import type { Ads } from '../platform/ads';
 
 async function make(opts: { saved?: string } = {}) {
   const storage = memoryStorage();
@@ -71,9 +72,6 @@ describe('game store', () => {
     expect(p.creditedSec).toBe(3600);
     expect(p.souls.toNumber()).toBeCloseTo(0.5 * 3600 * 0.5);
     expect(store.getState().state.soulsRun.toNumber()).toBeCloseTo(900);
-    store.getState().doubleOffline();
-    expect(store.getState().state.soulsRun.toNumber()).toBeCloseTo(1800);
-    expect(store.getState().pendingOffline).toBeNull();
     store.getState().stopLoop();
   });
 
@@ -112,16 +110,17 @@ describe('game store', () => {
     store.getState().stopLoop();
   });
 
-  it('doubleOffline goes through addSouls and unlocks departments', async () => {
+  it('doubling the backlog with an ad goes through addSouls and unlocks departments', async () => {
     const storage = memoryStorage();
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-    const store = createGameStore({ content: twoDepartments, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    const ads: Ads = { async init() {}, isReady: () => true, async showRewarded() { return 'rewarded'; } };
+    const store = createGameStore({ content: twoDepartments, storage, clock, ads, tickMs: 1_000_000, autosaveMs: 1_000_000 });
     await store.getState().boot();
     store.setState({
       state: { ...store.getState().state, soulsRun: new Decimal(5000), soulsLifetime: new Decimal(5000) },
       pendingOffline: { elapsedSec: 7200, creditedSec: 7200, souls: new Decimal(6000), kc: new Decimal(2400), capped: false },
     });
-    store.getState().doubleOffline();
+    expect(await store.getState().watchAd('offline-double')).toBe('rewarded');
     expect(store.getState().state.soulsRun.toNumber()).toBe(11_000);
     expect(store.getState().state.soulsLifetime.toNumber()).toBe(11_000);
     expect(store.getState().state.kc.toNumber()).toBe(2400);
@@ -437,6 +436,45 @@ describe('boot queue caps', () => {
     expect(s.state.storySeen.length).toBeGreaterThan(BOOT_QUEUE_CAP);
     expect(s.state.achievements.length).toBeGreaterThan(BOOT_QUEUE_CAP);
     expect(s.state.storySeen).toEqual(expect.arrayContaining(s.pendingStory.map((m) => m.id)));
+    store.getState().stopLoop();
+  });
+
+  // A resume crosses exactly the same pile of triggers as a boot — an app left backgrounded
+  // for a week comes back through resume(), not boot() — so it needs the same cap.
+  it('caps the same queues on resume', async () => {
+    const { store, clock } = await make();
+    await store.getState().boot();
+    await store.getState().pause();
+    store.setState({
+      state: deserialize(loadedSave(), content),
+      pendingStory: [],
+      recentAchievements: [],
+    });
+    clock.advance(3600_000);
+    await store.getState().resume();
+    const s = store.getState();
+    expect(s.pendingStory.length).toBe(BOOT_QUEUE_CAP);
+    expect(s.recentAchievements.length).toBe(BOOT_QUEUE_CAP);
+    expect(s.state.storySeen.length).toBeGreaterThan(BOOT_QUEUE_CAP);
+    expect(s.state.achievements.length).toBeGreaterThan(BOOT_QUEUE_CAP);
+    store.getState().stopLoop();
+  });
+});
+
+describe('prestige filings settle', () => {
+  // fileAudit bumps stats.audits, and nothing else in the app looks at it until the next
+  // settle — so before this the "One fiscal year, closed and filed" badge waited a tick.
+  it('unlocks the audit-count achievement in the same call', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.setState({
+      state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 5 } },
+    });
+    expect(store.getState().state.achievements).not.toContain('a-audits-1');
+    store.getState().audit();
+    expect(store.getState().state.stats.audits).toBe(1);
+    expect(store.getState().state.achievements).toContain('a-audits-1');
+    expect(store.getState().recentAchievements.map((a) => a.id)).toContain('a-audits-1');
     store.getState().stopLoop();
   });
 });

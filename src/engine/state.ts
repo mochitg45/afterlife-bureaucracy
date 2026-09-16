@@ -394,7 +394,10 @@ export function deserialize(json: string, content: Content): GameState {
     seals: num(raw.seals, 0),
     vouchers: num(raw.vouchers, 0),
     voucherFraction: fraction(raw.voucherFraction),
-    perks: Array.isArray(raw.perks) ? (raw.perks as unknown[]).filter((p): p is string => typeof p === 'string') : [],
+    // Filtered against the shipped perk ids like every other collection: a perk this build
+    // does not know would otherwise sit in the tree forever, unrefundable and unpriced, and
+    // a duplicated id would apply its effect twice.
+    perks: stringIds(raw.perks, new Set(content.perks.map((p) => p.id))),
     staff: counts(raw.staff),
     upgrades: counts(raw.upgrades),
     deptsUnlocked,
