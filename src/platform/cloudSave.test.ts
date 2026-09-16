@@ -25,9 +25,12 @@ vi.mock('@capacitor/core', () => ({
 }));
 
 import { memoryCloudSave, noopCloudSave, playCloudSave, pickCloudSave, SNAPSHOT_NAME } from './cloudSave';
-import type { CloudSnapshot } from './cloudSave';
+import type { CloudLoad, CloudSnapshot } from './cloudSave';
 
 const snap = (data: string, savedAtWall: number): CloudSnapshot => ({ data, savedAtWall });
+const found = (data: string, savedAtWall: number): CloudLoad => ({ status: 'found', snapshot: snap(data, savedAtWall) });
+const EMPTY: CloudLoad = { status: 'empty' };
+const FAILED: CloudLoad = { status: 'error' };
 
 function onAndroid(): void {
   cap.native = true;
@@ -53,9 +56,9 @@ describe('memoryCloudSave', () => {
     expect(fake.signedIn).toBe(true);
     expect(await fake.isSignedIn()).toBe(true);
 
-    expect(await fake.load()).toBeNull();
+    expect(await fake.load()).toEqual(EMPTY);
     expect(await fake.save(snap('payload', 1000), 'Fiscal year 3')).toBe('ok');
-    expect(await fake.load()).toEqual(snap('payload', 1000));
+    expect(await fake.load()).toEqual(found('payload', 1000));
     expect(fake.snapshot).toEqual(snap('payload', 1000));
   });
 
@@ -63,7 +66,7 @@ describe('memoryCloudSave', () => {
     const fake = memoryCloudSave({ signedIn: true, snapshot: snap('cloud', 42) });
 
     expect(await fake.isSignedIn()).toBe(true);
-    expect(await fake.load()).toEqual(snap('cloud', 42));
+    expect(await fake.load()).toEqual(found('cloud', 42));
   });
 
   it('reports an error and keeps the old snapshot when failSave is set', async () => {
@@ -71,7 +74,14 @@ describe('memoryCloudSave', () => {
 
     expect(await fake.save(snap('new', 2), 'nope')).toBe('error');
     expect(fake.snapshot).toEqual(snap('old', 1));
-    expect(await fake.load()).toEqual(snap('old', 1));
+    expect(await fake.load()).toEqual(found('old', 1));
+  });
+
+  it('reports an unreadable slot when failLoad is set, without losing the snapshot', async () => {
+    const fake = memoryCloudSave({ signedIn: true, snapshot: snap('cloud', 7), failLoad: true });
+
+    expect(await fake.load()).toEqual(FAILED);
+    expect(fake.snapshot).toEqual(snap('cloud', 7));
   });
 
   it('refuses everything when it is not available', async () => {
@@ -81,14 +91,14 @@ describe('memoryCloudSave', () => {
     expect(await fake.signIn()).toBe('unavailable');
     expect(fake.signedIn).toBe(false);
     expect(await fake.isSignedIn()).toBe(false);
-    expect(await fake.load()).toBeNull();
+    expect(await fake.load()).toEqual(FAILED);
     expect(await fake.save(snap('x', 8), 'x')).toBe('error');
   });
 
   it('refuses load and save while signed out', async () => {
     const fake = memoryCloudSave({ snapshot: snap('cloud', 7) });
 
-    expect(await fake.load()).toBeNull();
+    expect(await fake.load()).toEqual(FAILED);
     expect(await fake.save(snap('x', 8), 'x')).toBe('error');
   });
 });
@@ -98,7 +108,7 @@ describe('noopCloudSave', () => {
     expect(noopCloudSave.available()).toBe(false);
     expect(await noopCloudSave.isSignedIn()).toBe(false);
     expect(await noopCloudSave.signIn()).toBe('unavailable');
-    expect(await noopCloudSave.load()).toBeNull();
+    expect(await noopCloudSave.load()).toEqual(EMPTY);
     expect(await noopCloudSave.save(snap('x', 1), 'x')).toBe('error');
   });
 });
@@ -141,25 +151,29 @@ describe('playCloudSave', () => {
     expect(await playCloudSave.signIn()).toBe('unavailable');
   });
 
-  it('loads a snapshot, and returns null when there is none or the call fails', async () => {
+  it('tells an empty slot apart from one it could not read', async () => {
     onAndroid();
 
     cap.plugin.loadSnapshot.mockResolvedValue({ found: true, data: 'payload', savedAtWall: 1234 });
-    expect(await playCloudSave.load()).toEqual(snap('payload', 1234));
+    expect(await playCloudSave.load()).toEqual(found('payload', 1234));
     expect(cap.plugin.loadSnapshot).toHaveBeenCalledWith({ name: SNAPSHOT_NAME });
 
     cap.plugin.loadSnapshot.mockResolvedValue({ found: false });
-    expect(await playCloudSave.load()).toBeNull();
+    expect(await playCloudSave.load()).toEqual(EMPTY);
+
+    // A snapshot that is there but came back malformed is not an invitation to overwrite it.
+    cap.plugin.loadSnapshot.mockResolvedValue({ found: true });
+    expect(await playCloudSave.load()).toEqual(FAILED);
 
     cap.plugin.loadSnapshot.mockRejectedValue(new Error('open failed'));
-    expect(await playCloudSave.load()).toBeNull();
+    expect(await playCloudSave.load()).toEqual(FAILED);
   });
 
   it('treats a found snapshot with a missing timestamp as saved at zero', async () => {
     onAndroid();
     cap.plugin.loadSnapshot.mockResolvedValue({ found: true, data: 'payload' });
 
-    expect(await playCloudSave.load()).toEqual(snap('payload', 0));
+    expect(await playCloudSave.load()).toEqual(found('payload', 0));
   });
 
   it('saves through the plugin and maps a throw to error', async () => {

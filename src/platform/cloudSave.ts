@@ -8,13 +8,22 @@ export interface CloudSnapshot {
   savedAtWall: number;
 }
 
+/**
+ * What reading the slot came back with. An empty slot and a slot that could not be read are
+ * different answers on purpose: the first invites an upload, the second must never provoke
+ * one -- a network blip is not a reason to write a fresh save over a player's real run.
+ */
+export type CloudLoad =
+  | { status: 'found'; snapshot: CloudSnapshot }
+  | { status: 'empty' }
+  | { status: 'error' };
+
 export interface CloudSave {
   /** False on web and iOS today; cloud save is a Play Games feature. */
   available(): boolean;
   isSignedIn(): Promise<boolean>;
   signIn(): Promise<SignInResult>;
-  /** `null` when the player has no snapshot yet, or when the slot could not be read. */
-  load(): Promise<CloudSnapshot | null>;
+  load(): Promise<CloudLoad>;
   save(snapshot: CloudSnapshot, description: string): Promise<'ok' | 'error'>;
 }
 
@@ -41,10 +50,18 @@ const CloudSaveNative = registerPlugin<CloudSaveNativePlugin>('CloudSave');
  * the world up without going through `signIn()`.
  */
 export function memoryCloudSave(
-  opts: { available?: boolean; signedIn?: boolean; snapshot?: CloudSnapshot | null; failSave?: boolean } = {},
+  opts: {
+    available?: boolean;
+    signedIn?: boolean;
+    snapshot?: CloudSnapshot | null;
+    failSave?: boolean;
+    /** Every read comes back as an unreadable slot, as a network blip would. */
+    failLoad?: boolean;
+  } = {},
 ): CloudSave & { snapshot: CloudSnapshot | null; signedIn: boolean } {
   const available = opts.available ?? true;
   const failSave = opts.failSave ?? false;
+  const failLoad = opts.failLoad ?? false;
 
   const fake = {
     snapshot: opts.snapshot ?? null,
@@ -64,9 +81,9 @@ export function memoryCloudSave(
       return 'ok';
     },
 
-    async load(): Promise<CloudSnapshot | null> {
-      if (!available || !fake.signedIn) return null;
-      return fake.snapshot;
+    async load(): Promise<CloudLoad> {
+      if (!available || !fake.signedIn || failLoad) return { status: 'error' };
+      return fake.snapshot ? { status: 'found', snapshot: fake.snapshot } : { status: 'empty' };
     },
 
     async save(snapshot: CloudSnapshot): Promise<'ok' | 'error'> {
@@ -90,8 +107,10 @@ export const noopCloudSave: CloudSave = {
   async signIn() {
     return 'unavailable';
   },
-  async load() {
-    return null;
+  async load(): Promise<CloudLoad> {
+    // Nothing can ever be signed in here, so a caller is refused long before this; an empty
+    // slot is the honest answer for a platform that has no slot to fail at reading.
+    return { status: 'empty' };
   },
   async save() {
     return 'error';
@@ -137,14 +156,20 @@ export const playCloudSave: CloudSave = {
     }
   },
 
-  async load() {
+  async load(): Promise<CloudLoad> {
     try {
       const r = await CloudSaveNative.loadSnapshot({ name: SNAPSHOT_NAME });
-      if (!r || r.found !== true || typeof r.data !== 'string') return null;
+      if (!r) return { status: 'error' };
+      if (r.found !== true) return { status: 'empty' };
+      // Found, but the payload did not come back as a string: the slot holds something this
+      // read could not see, which is an error, never an empty slot to write over.
+      if (typeof r.data !== 'string') return { status: 'error' };
       const savedAtWall = typeof r.savedAtWall === 'number' && Number.isFinite(r.savedAtWall) ? r.savedAtWall : 0;
-      return { data: r.data, savedAtWall };
+      return { status: 'found', snapshot: { data: r.data, savedAtWall } };
     } catch {
-      return null; // treated as "no snapshot": the local save stands
+      // A failed read is not an empty slot: the caller must keep the local save and try
+      // again later, never overwrite a cloud copy it could not see.
+      return { status: 'error' };
     }
   },
 

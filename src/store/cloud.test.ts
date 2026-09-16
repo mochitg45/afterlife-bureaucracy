@@ -171,6 +171,62 @@ describe('cloud sync on boot', () => {
     store.getState().stopLoop();
   });
 
+  it('says nothing about the copy this device pushed itself', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(100), soulsRun: new Decimal(100) });
+    const { store, clock } = await make({ saved: local, cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    // The autosave re-stamps savedAtWall every few seconds, so the stamps no longer match.
+    clock.advance(10_000);
+    await store.getState().save();
+    expect(await store.getState().syncCloud('auto')).toBe('kept-local');
+    expect(store.getState().cloudNotice).toBeNull();
+    store.getState().stopLoop();
+  });
+
+  it('does speak up when another writer has touched the slot', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(100), soulsRun: new Decimal(100) });
+    const { store, cloud, clock } = await make({ saved: local, cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    const other = saveState({ soulsLifetime: new Decimal(5), soulsRun: new Decimal(5), savedAtWall: T0 - 500 });
+    cloud.snapshot = snapshotOf(other);
+    clock.advance(10_000);
+    expect(await store.getState().syncCloud('manual')).toBe('kept-local');
+    expect(store.getState().cloudNotice!.kind).toBe('kept-local');
+    expect(store.getState().cloudNotice!.summary!.soulsLifetime.toNumber()).toBe(5);
+    store.getState().stopLoop();
+  });
+
+  it('uploads nothing when the slot could not be read', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(64), soulsRun: new Decimal(64) });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: true, failLoad: true } });
+    await bootSynced(store, 'error');
+    // A read that never landed is not an empty slot: nothing is written over what might be
+    // a real run, and a passing blip raises no notice.
+    expect(cloud.snapshot).toBeNull();
+    expect(store.getState().state.soulsLifetime.toNumber()).toBe(64);
+    expect(store.getState().cloudNotice).toBeNull();
+    store.getState().stopLoop();
+  });
+
+  it('reports a failed upload into an empty slot as an error', async () => {
+    const { store } = await make({ cloud: { signedIn: true, failSave: true } });
+    await bootSynced(store, 'error');
+    store.getState().stopLoop();
+  });
+
+  it('still reports kept-local when the losing cloud copy could not be replaced', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(9_000), soulsRun: new Decimal(9_000) });
+    const remote = saveState({ soulsLifetime: new Decimal(3), soulsRun: new Decimal(3), savedAtWall: T0 - 900 });
+    const { store, cloud } = await make({
+      saved: local,
+      cloud: { signedIn: true, snapshot: snapshotOf(remote), failSave: true },
+    });
+    await bootSynced(store, 'kept-local');
+    expect(cloud.snapshot!.data).toBe(snapshotOf(remote).data);
+    expect(store.getState().cloudNotice!.kind).toBe('kept-local');
+    store.getState().stopLoop();
+  });
+
   it('carries onboarding progress with whichever save wins', async () => {
     const remote = saveState({
       soulsLifetime: new Decimal(4_000), soulsRun: new Decimal(4_000), savedAtWall: T0 - 1_000,
@@ -266,6 +322,30 @@ describe('cloud sign-in and overrides', () => {
     store.getState().stopLoop();
   });
 
+  it('stamps an unavailable sync without touching the save', async () => {
+    const { store } = await make({ cloud: { available: false } });
+    await store.getState().boot();
+    expect(await store.getState().syncCloud('manual')).toBe('unavailable');
+    expect(store.getState().state.cloud.lastResult).toBe('unavailable');
+    expect(store.getState().state.cloud.lastSyncWall).toBe(T0);
+    expect(store.getState().cloud.syncing).toBe(false);
+    store.getState().stopLoop();
+  });
+
+  it('a cloud call that throws does not wedge every later sync', async () => {
+    const { store, cloud } = await make({ cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    cloud.snapshot = null;
+    const broken = vi.spyOn(cloud, 'available').mockImplementationOnce(() => {
+      throw new Error('the plugin is gone');
+    });
+    await expect(store.getState().syncCloud('manual')).resolves.toBe('unavailable');
+    broken.mockRestore();
+    expect(await store.getState().syncCloud('manual')).toBe('uploaded');
+    expect(cloud.snapshot).not.toBeNull();
+    store.getState().stopLoop();
+  });
+
   it('runs one sync at a time', async () => {
     const { store, cloud } = await make({ cloud: { signedIn: true } });
     await store.getState().boot();
@@ -287,6 +367,20 @@ describe('cloud sync timing', () => {
     await store.getState().pause();
     await vi.waitFor(() => expect(cloud.snapshot).not.toBeNull());
     store.getState().stopLoop();
+  });
+
+  it('a download that lands during pause leaves the office closed', async () => {
+    vi.useFakeTimers();
+    const local = saveState({ soulsLifetime: new Decimal(1), soulsRun: new Decimal(1) });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    const other = saveState({ soulsLifetime: new Decimal(50_000), soulsRun: new Decimal(50_000), savedAtWall: T0 + 1 });
+    cloud.snapshot = snapshotOf(other);
+    await store.getState().pause();
+    await vi.waitFor(() => expect(store.getState().state.soulsLifetime.toNumber()).toBe(50_000));
+    // Neither the tick nor the autosave came back: only a resume reopens the office.
+    expect(vi.getTimerCount()).toBe(0);
+    vi.useRealTimers();
   });
 
   it('syncs on every fifth autosave', async () => {
@@ -350,11 +444,24 @@ describe('onboarding progress', () => {
   });
 
   it('markMemosSeen records the first-launch memos', async () => {
-    const { store } = await make();
+    const { store, storage } = await make();
     await store.getState().boot();
     expect(store.getState().state.onboarding.memosSeen).toBe(false);
     store.getState().markMemosSeen();
     expect(store.getState().state.onboarding.memosSeen).toBe(true);
     store.getState().stopLoop();
+    // Written straight away: a player who closes the app after reading them must not be
+    // shown the same memos on the next launch.
+    await vi.waitFor(async () =>
+      expect(deserialize((await storage.get(SAVE_KEY))!, content).onboarding.memosSeen).toBe(true));
+  });
+
+  it('training progress reaches the save without waiting for the autosave', async () => {
+    const { store, storage } = await make();
+    await store.getState().boot();
+    store.getState().skipTraining();
+    store.getState().stopLoop();
+    await vi.waitFor(async () =>
+      expect(deserialize((await storage.get(SAVE_KEY))!, content).onboarding.trainingStep).toBe(3));
   });
 });

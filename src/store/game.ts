@@ -20,7 +20,7 @@ import { applyPurchase, starterPackEligible, unionActive } from '../engine/entit
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
 import { pickBilling, type Billing, type Product, type ProductId, type PurchaseResult, type Restored } from '../platform/billing';
 import { pickGameServices, type GameServices } from '../platform/gameServices';
-import { pickCloudSave, type CloudSave, type SignInResult } from '../platform/cloudSave';
+import { pickCloudSave, type CloudLoad, type CloudSave, type SignInResult } from '../platform/cloudSave';
 import { pickWinner, summarize, type CloudSyncResult, type SaveSummary } from '../engine/cloudSync';
 import { formatNumber } from '../engine/format';
 import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
@@ -280,6 +280,13 @@ export function createGameStore(deps: StoreDeps) {
   /** The cloud operation in flight, so a second one joins it or queues behind it. */
   let cloudOp: Promise<CloudSyncResult> | null = null;
   let cloudSeq = 0;
+  /**
+   * The `savedAtWall` of the last payload this device put in the slot. Every autosave
+   * re-stamps the local save, so without this the local and cloud stamps differ within
+   * seconds and ordinary single-device play would raise a "kept your local save" notice
+   * about once a minute. A notice is only news when some other writer touched the slot.
+   */
+  let lastPushedWall = 0;
   /**
    * This process parked an unreadable save and started a fresh file. Uploading that fresh
    * file would finish the job the corruption started, so nothing leaves this device until
@@ -573,29 +580,39 @@ export function createGameStore(deps: StoreDeps) {
         { data: serialize(s), savedAtWall: s.savedAtWall },
         syncDescription(s),
       );
-      return r === 'ok' ? 'uploaded' : 'error';
+      if (r !== 'ok') return 'error';
+      lastPushedWall = s.savedAtWall;
+      return 'uploaded';
     };
 
     /**
-     * Reads the cloud slot. Three answers, not two: `undefined` for an empty slot (nothing to
-     * weigh the local save against), `null` for a payload that is there but unreadable, which
-     * must never be overwritten -- a build that cannot parse it may itself be the bug.
+     * Reads the cloud slot. Four answers, because three of them must not lead to an upload:
+     * only `empty` is an invitation to write. `unreachable` is a read that failed (a network
+     * blip, a signed-out client) and `unreadable` is a payload that is there but this build
+     * cannot parse -- which may mean this build is the bug, so it is never overwritten.
      */
-    const readCloud = async (): Promise<GameState | null | undefined> => {
-      let snapshot;
+    type CloudRead =
+      | { status: 'found'; state: GameState }
+      | { status: 'empty' }
+      | { status: 'unreadable' }
+      | { status: 'unreachable' };
+
+    const readCloud = async (): Promise<CloudRead> => {
+      let load: CloudLoad;
       try {
-        snapshot = await cloudSave.load();
+        load = await cloudSave.load();
       } catch {
-        return undefined; // the platform layer already swallows its own failures
+        return { status: 'unreachable' }; // the platform layer swallows its own failures too
       }
-      if (!snapshot) return undefined;
+      if (load.status === 'error') return { status: 'unreachable' };
+      if (load.status === 'empty') return { status: 'empty' };
       try {
         // The payload's own savedAtWall is what the winner rule reads, not the slot's
         // metadata: a save written before the field existed arrives as 0 and, by the rule,
         // never wins a tie -- and the notice repeats that 0 so the UI can say "date unknown".
-        return deserialize(snapshot.data, content);
+        return { status: 'found', state: deserialize(load.snapshot.data, content) };
       } catch {
-        return null;
+        return { status: 'unreadable' };
       }
     };
 
@@ -615,18 +632,26 @@ export function createGameStore(deps: StoreDeps) {
 
     /** The winner rule: whichever save is further along wins, and the other is replaced. */
     const syncOnce = async (): Promise<CloudSyncResult> => {
-      const cloudState = await readCloud();
-      if (cloudState === null) {
+      const read = await readCloud();
+      // A read that never landed says nothing about the slot, so it changes nothing here: no
+      // upload over a copy we could not see, and no notice for what is usually a passing
+      // blip on a background sync.
+      if (read.status === 'unreachable') return 'error';
+      if (read.status === 'unreadable') {
         set({ cloudNotice: { kind: 'error' } });
         return 'error';
       }
-      if (cloudState === undefined) return pushLocal();
+      if (read.status === 'empty') return pushLocal();
+      const cloudState = read.state;
       const local = get().state;
       if (pickWinner(local, cloudState) === 'cloud') return takeCloud(cloudState);
-      // Only a cloud copy that was actually a different save is worth a notice: re-uploading
-      // the same run over itself is housekeeping, not news.
+      // Only a cloud copy some other writer left is worth a notice. The copy this device
+      // pushed last is not news, however far the local save has moved on since: the autosave
+      // re-stamps `savedAtWall` every few seconds, so comparing stamps alone would nag.
+      const ours = lastPushedWall !== 0 && cloudState.savedAtWall === lastPushedWall;
       const differed =
-        !cloudState.soulsLifetime.eq(local.soulsLifetime) || cloudState.savedAtWall !== local.savedAtWall;
+        !ours &&
+        (!cloudState.soulsLifetime.eq(local.soulsLifetime) || cloudState.savedAtWall !== local.savedAtWall);
       await pushLocal();
       if (differed) set({ cloudNotice: { kind: 'kept-local', summary: summarize(cloudState) } });
       return 'kept-local';
@@ -638,7 +663,12 @@ export function createGameStore(deps: StoreDeps) {
      * rejects -- a cloud failure is a result, not an exception a caller has to catch.
      */
     const runCloud = async (op: () => Promise<CloudSyncResult>): Promise<CloudSyncResult> => {
-      const available = cloudSave.available();
+      let available = false;
+      try {
+        available = cloudSave.available();
+      } catch {
+        available = false; // a plugin that is not there is a cloud that is not there
+      }
       if (!available) {
         set((cur) => ({ cloud: { ...cur.cloud, available, signedIn: false } }));
         return stampSync('unavailable');
@@ -672,7 +702,9 @@ export function createGameStore(deps: StoreDeps) {
       const prior = cloudOp;
       const seq = ++cloudSeq;
       const run = (async (): Promise<CloudSyncResult> => {
-        if (prior) await prior;
+        // Waited on, never trusted: a predecessor that rejected is its own caller's problem,
+        // and must not wedge every later sync for the rest of the process.
+        if (prior) await prior.catch(() => {});
         try {
           return await runCloud(op);
         } finally {
@@ -1156,6 +1188,9 @@ export function createGameStore(deps: StoreDeps) {
         try {
           result = await cloudSave.signIn();
         } catch {
+          // A plugin that throws is a cloud that is not there, and the slice has to say so
+          // exactly as the branch above does -- the title screen reads it, not the result.
+          set((cur) => ({ cloud: { ...cur.cloud, available: false, signedIn: false } }));
           return 'unavailable';
         }
         if (result !== 'ok') return result;
@@ -1195,13 +1230,14 @@ export function createGameStore(deps: StoreDeps) {
 
       restoreCloud() {
         return exclusive(async () => {
-          const cloudState = await readCloud();
-          if (cloudState === null) {
+          const read = await readCloud();
+          if (read.status === 'unreachable') return 'error';
+          if (read.status === 'unreadable') {
             set({ cloudNotice: { kind: 'error' } });
             return 'error';
           }
-          if (cloudState === undefined) return 'none';
-          return takeCloud(cloudState);
+          if (read.status === 'empty') return 'none';
+          return takeCloud(read.state);
         });
       },
 
@@ -1211,12 +1247,17 @@ export function createGameStore(deps: StoreDeps) {
         const s = get().state;
         if (s.onboarding.memosSeen) return;
         set({ state: { ...s, onboarding: { ...s.onboarding, memosSeen: true } } });
+        // Saved rather than left to the autosave: a player who reads the opening memos and
+        // closes the app inside ten seconds must not be shown them again on the next launch.
+        void get().save();
       },
 
       advanceTraining(step) {
         const state = get().state;
         const next = withTraining(state, step);
-        if (next !== state) set({ state: next });
+        if (next === state) return;
+        set({ state: next });
+        void get().save();
       },
 
       skipTraining() { get().advanceTraining(TRAINING_DONE); },
