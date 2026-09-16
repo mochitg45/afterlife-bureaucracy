@@ -21,8 +21,18 @@ export const YEAR_GROWTH = 1.5;
  * further still — the simulator showed the loop collapsing to three-second fiscal years
  * inside a week. The cap keeps the compounding on the perk tree, where the player chooses it,
  * rather than on the payout.
+ *
+ * The ceiling scales with the Clause Seal multiplier (`sealCap` below): a Clause that promises
+ * "Audits pay double" has to mean it, and a flat cap silently cancelled the whole purchase for
+ * any run already at the ceiling. The multiplier is bounded at ×2 and gated behind Cosmic
+ * Restructuring, so the runaway stays shut.
  */
 export const SEAL_CAP_PER_AUDIT = 150;
+
+/** The ceiling in force for a given Clause Seal multiplier. */
+export function sealCap(sealMult = 1): number {
+  return SEAL_CAP_PER_AUDIT * (Number.isFinite(sealMult) && sealMult > 0 ? sealMult : 1);
+}
 
 /** The Audit threshold for a given fiscal year: AUDIT_BASE × YEAR_GROWTH^(year − 1). */
 export function auditThreshold(fiscalYear: number): Decimal {
@@ -33,13 +43,14 @@ export function auditThreshold(fiscalYear: number): Decimal {
 /**
  * Seals for closing a run. Measured against AUDIT_BASE rather than the year's own threshold,
  * so a late fiscal year still pays more for the same effort; the sub-sqrt exponent softens a
- * hugely overshot run and SEAL_CAP_PER_AUDIT is the hard ceiling above it.
+ * hugely overshot run and `sealCap(sealMult)` is the hard ceiling above it.
  */
 export function sealsForRun(soulsRun: Decimal, fiscalYear: number, sealMult = 1): number {
   if (soulsRun.lt(auditThreshold(fiscalYear))) return 0;
+  const cap = sealCap(sealMult);
   const raw = soulsRun.div(AUDIT_BASE).pow(SEAL_EXP).mul(SEAL_COEFF).mul(sealMult).toNumber();
-  if (!Number.isFinite(raw)) return SEAL_CAP_PER_AUDIT;
-  return Math.min(SEAL_CAP_PER_AUDIT, Math.floor(raw));
+  if (!Number.isFinite(raw)) return cap;
+  return Math.min(cap, Math.floor(raw));
 }
 
 export function canAudit(state: { soulsRun: Decimal; fiscalYear: number }): boolean {

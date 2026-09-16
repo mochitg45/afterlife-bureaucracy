@@ -17,8 +17,14 @@ function table(label: string, r: SimResult) {
   const ratios = r.auditReadySecByRun.slice(1, 5).map((sec, i) => (sec / r.auditReadySecByRun[i]).toFixed(3));
   console.log('run N+1 / run N (first five runs):', ratios.join(', '), '(target <= 0.850)');
   console.log('seals per audit:', r.sealsPerAudit.join(', '));
-  console.log('max seals per audit:', maxSealsPerAudit(r), `(target <= ${SEAL_CAP_PER_AUDIT})`);
-  console.log('cosmic filed on days:', r.cosmicDays.join(', ') || 'never', '(target: first between day 8 and 30)');
+  const caps = r.sealMultPerAudit.map((m) => SEAL_CAP_PER_AUDIT * m);
+  const over = r.sealsPerAudit.filter((n, i) => n > caps[i]).length;
+  console.log('cap in force per audit:', caps.join(', '));
+  console.log('max seals per audit:', maxSealsPerAudit(r), '| audits over their own cap:', over, '(target 0)');
+  console.log(
+    'cosmic filed on days:', r.cosmicDays.join(', ') || 'never',
+    `(${r.cosmicDays.length} filings; target 2-5 in 30 days, first between day 8 and 30)`,
+  );
   console.log(
     'vouchers/day, days 3-14: faucet', vouchersPerDay(r, 3, 14, 'tasks').toFixed(2), '(target 2-4)',
     '| achievements', vouchersPerDay(r, 3, 14, 'achievements').toFixed(2),

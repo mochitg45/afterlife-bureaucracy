@@ -4,16 +4,35 @@ import type { ClauseDef, Content } from './content';
 import { findClause } from './content';
 import { resetRun } from './prestige';
 
-/** Seals needed before the Bureau will entertain a Cosmic Restructuring. */
+/** Seals needed before the Bureau will entertain a first Cosmic Restructuring. */
 export const COSMIC_THRESHOLD = 100;
+/**
+ * What each further filing multiplies the requirement by. A flat 100 Seals was a one-off gate
+ * that turned into a treadmill: once the Perk Ledger and the Seal cap were doing their work, a
+ * late run banked a hundred Seals in a couple of days and the simulator filed eight
+ * Restructurings inside the first month, which is neither ceremonious nor paced. Growth keeps
+ * the first filing where it was and pushes each next one a real distance further out.
+ */
+export const COSMIC_THRESHOLD_GROWTH = 1.5;
 /** Every Clause costs the same: one Cosmic Point. The tree is gated by prerequisites, not price. */
 export const CLAUSE_COST = 1;
 
-/** Only the field the check reads, so a React caller can subscribe to Seals alone. */
-export type CosmicWallet = Pick<GameState, 'seals'>;
+/**
+ * Seals the next Cosmic Restructuring asks for, after `cosmics` of them have been filed:
+ * 100, 150, 225, 338, 506, … Every reader — the engine, the store, the Ledger's Cosmic panel
+ * and the ceremony — goes through this, so the number on screen is always the one the filing
+ * will actually check.
+ */
+export function cosmicThreshold(cosmics: number): number {
+  const filed = Number.isFinite(cosmics) ? Math.max(0, Math.floor(cosmics)) : 0;
+  return Math.round(COSMIC_THRESHOLD * Math.pow(COSMIC_THRESHOLD_GROWTH, filed));
+}
+
+/** Only the fields the check reads, so a React caller can subscribe to those alone. */
+export type CosmicWallet = Pick<GameState, 'seals'> & { stats: Pick<GameState['stats'], 'cosmics'> };
 
 export function canCosmic(state: CosmicWallet): boolean {
-  return state.seals >= COSMIC_THRESHOLD;
+  return state.seals >= cosmicThreshold(state.stats.cosmics);
 }
 
 export interface CosmicResult { state: GameState; pointsGained: number }

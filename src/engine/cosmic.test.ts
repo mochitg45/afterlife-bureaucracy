@@ -6,7 +6,8 @@ import intake from '../data/departments/intake.json';
 import valhalla from '../data/departments/valhalla.json';
 import clauses from '../data/cosmic.json';
 import {
-  COSMIC_THRESHOLD, CLAUSE_COST, canCosmic, fileCosmic, canBuyClause, buyClause,
+  COSMIC_THRESHOLD, COSMIC_THRESHOLD_GROWTH, CLAUSE_COST, cosmicThreshold, canCosmic, fileCosmic,
+  canBuyClause, buyClause,
   clauseGlobalMult, clauseSealMult, clauseOfflineCapHours, clauseVoucherMult,
 } from './cosmic';
 import { unlockDepartments } from './actions';
@@ -17,12 +18,15 @@ import { sealsForRun, fileAudit, auditThreshold, AUDIT_BASE, SEAL_COEFF } from '
 
 const now = { wall: 0, mono: 0 };
 
-/** A state that has already earned its way to the Cosmic threshold, with things to lose. */
+/**
+ * A state that has already earned its way to the Cosmic threshold, with things to lose. Four
+ * Restructurings are already filed, so the Seals here have to clear `cosmicThreshold(4)`.
+ */
 function loaded(): GameState {
   const base = createInitialState(now, content);
   return {
     ...base,
-    seals: 150,
+    seals: cosmicThreshold(4),
     perks: ['throughput-1', 'requisition-1', 'requisition-3'],
     kc: new Decimal('1e20'),
     soulsRun: new Decimal('5e20'),
@@ -40,18 +44,39 @@ function loaded(): GameState {
   };
 }
 
-describe('canCosmic', () => {
-  it('opens at exactly COSMIC_THRESHOLD seals', () => {
+describe('cosmicThreshold', () => {
+  it('starts at COSMIC_THRESHOLD and grows by COSMIC_THRESHOLD_GROWTH per filing', () => {
     expect(COSMIC_THRESHOLD).toBe(100);
-    expect(canCosmic({ seals: COSMIC_THRESHOLD - 1 })).toBe(false);
-    expect(canCosmic({ seals: COSMIC_THRESHOLD })).toBe(true);
-    expect(canCosmic({ seals: COSMIC_THRESHOLD + 500 })).toBe(true);
+    expect(COSMIC_THRESHOLD_GROWTH).toBe(1.5);
+    expect([0, 1, 2, 3, 4].map(cosmicThreshold)).toEqual([100, 150, 225, 338, 506]);
+  });
+  it('treats a missing or nonsense filing count as none filed', () => {
+    expect(cosmicThreshold(-3)).toBe(100);
+    expect(cosmicThreshold(Number.NaN)).toBe(100);
+    expect(cosmicThreshold(2.9)).toBe(225);
+  });
+});
+
+describe('canCosmic', () => {
+  const wallet = (seals: number, cosmics: number) => ({ seals, stats: { cosmics } });
+
+  it('opens at exactly the threshold for the first filing', () => {
+    expect(canCosmic(wallet(COSMIC_THRESHOLD - 1, 0))).toBe(false);
+    expect(canCosmic(wallet(COSMIC_THRESHOLD, 0))).toBe(true);
+    expect(canCosmic(wallet(COSMIC_THRESHOLD + 500, 0))).toBe(true);
+  });
+  it('asks for more after every filing', () => {
+    expect(canCosmic(wallet(100, 1))).toBe(false);
+    expect(canCosmic(wallet(149, 1))).toBe(false);
+    expect(canCosmic(wallet(150, 1))).toBe(true);
+    expect(canCosmic(wallet(224, 2))).toBe(false);
+    expect(canCosmic(wallet(225, 2))).toBe(true);
   });
 });
 
 describe('fileCosmic', () => {
   it('is a no-op below the threshold, handing back the very same state', () => {
-    const s = { ...loaded(), seals: 99 };
+    const s = { ...loaded(), seals: cosmicThreshold(4) - 1 };
     const r = fileCosmic(s, content);
     expect(r.state).toBe(s);
     expect(r.pointsGained).toBe(0);

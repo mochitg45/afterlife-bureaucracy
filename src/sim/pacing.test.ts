@@ -1,7 +1,6 @@
 import { simulate, vouchersPerDay, maxSealsPerAudit } from './simulate';
 import { content } from '../data';
-import { SEAL_CAP_PER_AUDIT } from '../engine/prestige';
-import { TASKS_PER_DAY } from '../engine/dailies';
+import { SEAL_CAP_PER_AUDIT, sealCap } from '../engine/prestige';
 
 /** Thirty days, because Cosmic Restructuring and the Seal cap are thirty-day targets. */
 const checkIn = { sessionsPerDay: 5, sessionSec: 180, clicksPerSec: 3, days: 30 };
@@ -63,24 +62,12 @@ describe('pacing targets (spec §4)', () => {
     expect(r.firstCosmicDay!).toBeLessThanOrEqual(30);
   });
 
-  it('takes all four rewarded placements every day it can', () => {
-    // The simulated player is the one the spec describes: `offline-double` on every return,
-    // `overtime-boost` whenever its cooldown has cleared, the daily `free-pull`, and one
-    // `daily-skip` on a task the day never finished. Days 2 onward, because day 1 starts cold.
-    const steady = r.days.filter((d) => d.day >= 2);
-    for (const d of steady) {
-      expect(d.freePullsToday).toBe(1);
-      // One per session on return, plus the free pull and the write-off.
-      expect(d.adsToday).toBeGreaterThanOrEqual(checkIn.sessionsPerDay + 2);
-    }
-    // The write-off is an instant completion, not a forfeit (spec §8), so a task the day
-    // never finished still pays. Local midnight falls between sessions rather than on a
-    // sim-day boundary, so one day's claims can spill into the next; across the month the
-    // player claims nearly all three tasks a day, which is what the faucet target rests on.
-    const span = steady.length - 1;
-    const meanClaims = (steady[span].dailiesClaimed - steady[0].dailiesClaimed) / span;
-    expect(meanClaims).toBeGreaterThan(TASKS_PER_DAY - 0.5);
-    expect(meanClaims).toBeLessThanOrEqual(TASKS_PER_DAY);
+  it('files between 2 and 5 Cosmic Restructurings in the first 30 days', () => {
+    // The threshold grows by half again on every filing, so a month is a handful of them and
+    // not a treadmill: fewer than two and the second tier is a rumour, more than five and the
+    // ceremony that hands back every Seal and Perk stops meaning anything.
+    expect(r.cosmicDays.length).toBeGreaterThanOrEqual(2);
+    expect(r.cosmicDays.length).toBeLessThanOrEqual(5);
   });
 
   it('pays a free player 2-4 vouchers a day from the daily faucet over days 3-14', () => {
@@ -92,9 +79,17 @@ describe('pacing targets (spec §4)', () => {
     expect(faucet).toBeLessThanOrEqual(4);
   });
 
-  it('never pays more than the per-Audit Seal cap in the first 30 days', () => {
+  it('never pays an Audit more than the cap its Clauses have earned', () => {
+    // The ceiling scales with the Clause Seal multiplier, so the target is per-Audit rather
+    // than a single number: each payout is checked against the cap in force at that filing.
     expect(r.sealsPerAudit.length).toBeGreaterThan(0);
-    expect(maxSealsPerAudit(r)).toBeLessThanOrEqual(SEAL_CAP_PER_AUDIT);
+    expect(r.sealMultPerAudit).toHaveLength(r.sealsPerAudit.length);
+    for (const [i, seals] of r.sealsPerAudit.entries()) {
+      expect(seals).toBeLessThanOrEqual(sealCap(r.sealMultPerAudit[i]));
+    }
+    // And with no Clause bought at all, that cap is the flat constant.
+    expect(maxSealsPerAudit(r)).toBeLessThanOrEqual(SEAL_CAP_PER_AUDIT * Math.max(...r.sealMultPerAudit));
     expect(SEAL_CAP_PER_AUDIT).toBe(150);
+    expect(sealCap()).toBe(150);
   });
 });

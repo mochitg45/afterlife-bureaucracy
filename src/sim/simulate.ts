@@ -11,7 +11,7 @@ import { canAudit, fileAudit } from '../engine/prestige';
 import { canBuyPerk, headStart } from '../engine/perks';
 import { rollover, claimDaily, skipDailyFree, isDone, dayKey } from '../engine/dailies';
 import { pull, equipCard, unequipCard, equipSlots, TEN_PULL_COST, PULL_COST } from '../engine/gacha';
-import { canCosmic, fileCosmic, buyClause, canBuyClause } from '../engine/cosmic';
+import { canCosmic, fileCosmic, buyClause, canBuyClause, clauseSealMult } from '../engine/cosmic';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
 
@@ -73,6 +73,8 @@ export interface SimResult {
   auditReadySecByRun: number[];
   /** Seals paid out by each Audit, in order. */
   sealsPerAudit: number[];
+  /** The Clause Seal multiplier in force at each Audit, in the same order — the cap scales with it. */
+  sealMultPerAudit: number[];
   /** Sim day each Cosmic Restructuring was filed on. */
   cosmicDays: number[];
   firstCosmicDay: number | null;
@@ -230,6 +232,7 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
   let firstAuditReadySec: number | null = null;
   const auditReadySecByRun: number[] = [];
   const sealsPerAudit: number[] = [];
+  const sealMultPerAudit: number[] = [];
   const cosmicDays: number[] = [];
   let runStartSec = 0;
   let runReady = false;
@@ -289,6 +292,9 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       // File the Audit as soon as it is available, spend the Seals on the cheapest affordable
       // perks, and restructure once the Bureau will hear it.
       if (canAudit(state)) {
+        // Read before the filing: fileAudit pays the multiplier the run held, and Cosmic
+        // Clauses survive an Audit, so this is also the multiplier the cap scales by.
+        sealMultPerAudit.push(clauseSealMult(state, content));
         const audit = fileAudit(state, content);
         state = audit.state;
         sealsPerAudit.push(audit.sealsGained);
@@ -370,6 +376,7 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
     firstAuditReadySec,
     auditReadySecByRun,
     sealsPerAudit,
+    sealMultPerAudit,
     cosmicDays,
     firstCosmicDay: cosmicDays.length ? cosmicDays[0] : null,
     secondsPlayed: played,

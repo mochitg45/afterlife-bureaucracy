@@ -3,7 +3,7 @@ import { createInitialState } from './state';
 import { content } from '../data';
 import {
   sealsForRun, canAudit, fileAudit, resetRun, auditThreshold,
-  AUDIT_BASE, SEAL_COEFF, SEAL_CAP_PER_AUDIT, YEAR_GROWTH,
+  AUDIT_BASE, SEAL_COEFF, SEAL_CAP_PER_AUDIT, YEAR_GROWTH, sealCap,
 } from './prestige';
 
 const now = { wall: 0, mono: 0 };
@@ -47,6 +47,21 @@ describe('sealsForRun', () => {
     const uncapped = Math.floor(SEAL_COEFF * 1e6 ** 0.4);
     expect(uncapped).toBeGreaterThan(SEAL_CAP_PER_AUDIT);
     expect(sealsForRun(new Decimal(AUDIT_BASE).mul(1e6), 1)).toBe(SEAL_CAP_PER_AUDIT);
+  });
+
+  it('raises the cap by the Clause Seal multiplier, so the Clause is never cancelled out', () => {
+    // A run already at the ceiling is exactly the run that bought "Audits pay double"; a flat
+    // cap would have taken the whole purchase back.
+    expect(sealCap()).toBe(SEAL_CAP_PER_AUDIT);
+    expect(sealCap(1.5)).toBe(SEAL_CAP_PER_AUDIT * 1.5);
+    expect(sealCap(3)).toBe(SEAL_CAP_PER_AUDIT * 3);
+    const huge = new Decimal('1e100');
+    expect(sealsForRun(huge, 1)).toBe(SEAL_CAP_PER_AUDIT);
+    expect(sealsForRun(huge, 1, 1.5)).toBe(SEAL_CAP_PER_AUDIT * 1.5);
+    expect(sealsForRun(huge, 1, 3)).toBe(SEAL_CAP_PER_AUDIT * 3);
+    // A nonsense multiplier falls back to the flat cap rather than erasing it.
+    expect(sealCap(0)).toBe(SEAL_CAP_PER_AUDIT);
+    expect(sealCap(Number.NaN)).toBe(SEAL_CAP_PER_AUDIT);
   });
 });
 

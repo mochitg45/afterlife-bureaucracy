@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
-import { canBuyClause, canCosmic, CLAUSE_COST, COSMIC_THRESHOLD } from '../../engine/cosmic';
+import { canBuyClause, canCosmic, CLAUSE_COST, cosmicThreshold } from '../../engine/cosmic';
 import type { ClauseDef } from '../../engine/content';
 
 function clauseName(id: string): string {
@@ -42,11 +42,15 @@ const ClauseNode = memo(function ClauseNode({ clause }: { clause: ClauseDef }) {
  */
 export function CosmicPanel() {
   const seals = useGame((s) => s.state.seals);
+  // The threshold grows with every filing, so the panel has to know how many have been filed
+  // to show the number the engine will actually check. One more narrow number subscription.
+  const cosmics = useGame((s) => s.state.stats.cosmics);
   const cosmicPoints = useGame((s) => s.state.cosmicPoints);
   const restructure = useGame((s) => s.cosmic);
   const [confirming, setConfirming] = useState(false);
-  const ready = canCosmic({ seals });
-  const pct = Math.min(100, (seals / COSMIC_THRESHOLD) * 100);
+  const threshold = cosmicThreshold(cosmics);
+  const ready = canCosmic({ seals, stats: { cosmics } });
+  const pct = Math.min(100, (seals / threshold) * 100);
 
   const onRestructure = () => {
     if (!confirming) { setConfirming(true); return; }
@@ -80,9 +84,12 @@ export function CosmicPanel() {
           </>
         ) : (
           <>
-            <p className="sub">Unlocks at 100 Seals. The Auditor has been asking questions.</p>
+            <p className="sub">
+              {cosmics === 0 ? 'Unlocks at' : 'The next one is filed at'} {threshold} Seals. The Auditor has been
+              asking questions.
+            </p>
             <div className="bar"><div className="bar-fill" style={{ width: pct + '%' }} /></div>
-            <div className="mono sub">{seals} / {COSMIC_THRESHOLD} Seals</div>
+            <div className="mono sub">{seals} / {threshold} Seals</div>
           </>
         )}
       </div>

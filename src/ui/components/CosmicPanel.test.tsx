@@ -4,7 +4,7 @@ import { useGame } from '../../store/game';
 import { createInitialState, type GameState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
-import { COSMIC_THRESHOLD } from '../../engine/cosmic';
+import { COSMIC_THRESHOLD, cosmicThreshold } from '../../engine/cosmic';
 
 const ROOT = content.clauses[0];              // clause-throughput-1, no prerequisites
 const GATED = content.clauses.find((c) => c.requires.length > 0)!;
@@ -20,6 +20,15 @@ describe('CosmicPanel', () => {
     render(<CosmicPanel />);
     expect(screen.getByText(/unlocks at 100 seals/i)).toBeInTheDocument();
     expect(screen.getByText(`40 / ${COSMIC_THRESHOLD} Seals`)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /restructure/i })).not.toBeInTheDocument();
+  });
+
+  it('asks for more Seals once Restructurings have been filed', () => {
+    const base = createInitialState({ wall: 0, mono: 0 }, content);
+    seed({ seals: 200, stats: { ...base.stats, cosmics: 2 } });
+    render(<CosmicPanel />);
+    expect(screen.getByText(/the next one is filed at 225 seals/i)).toBeInTheDocument();
+    expect(screen.getByText(`200 / ${cosmicThreshold(2)} Seals`)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /restructure/i })).not.toBeInTheDocument();
   });
 
