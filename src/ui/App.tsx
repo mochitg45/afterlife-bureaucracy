@@ -13,6 +13,8 @@ import { AuditCeremony } from './overlays/AuditCeremony';
 import { CosmicCeremony } from './overlays/CosmicCeremony';
 import { PullReveal } from './overlays/PullReveal';
 import { StoryMemo } from './overlays/StoryMemo';
+import { OnboardingMemos } from './overlays/OnboardingMemos';
+import { Training } from './overlays/Training';
 import { AchievementToast } from './components/AchievementToast';
 import { SettingsSheet } from './overlays/SettingsSheet';
 import { NotifPrompt } from './overlays/NotifPrompt';
@@ -43,6 +45,7 @@ export function App() {
   const resume = useGame((s) => s.resume);
   const stopLoop = useGame((s) => s.stopLoop);
   const ready = useGame((s) => s.ready);
+  const memosSeen = useGame((s) => s.state.onboarding.memosSeen);
 
   useEffect(() => { void boot(); }, [boot]);
 
@@ -87,10 +90,14 @@ export function App() {
           <CosmicCeremony />
           <PullReveal />
           <StoryMemo />
+          <OnboardingMemos />
+          <Training />
           <AchievementToast />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
           <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
-          {!settingsOpen && !saveCodeOpen && <NotifPrompt />}
+          {/* The first-launch memos are the one overlay allowed to be the first thing a new
+              player reads; a permission prompt on top of them would be the second. */}
+          {memosSeen && !settingsOpen && !saveCodeOpen && <NotifPrompt />}
           <TabBar active={tab} onChange={setTab} />
         </>
       )}

@@ -1,0 +1,11 @@
+{
+  "memos": [
+    { "id": "ob-decease", "form": "FORM 1-A · NOTICE OF DECEASE", "title": "You have died.", "text": "Do not be alarmed; it is quite common. Your file has been forwarded to Intake. Please proceed to the counter and wait to be called.", "character": "dave", "cta": "Proceed to Intake" },
+    { "id": "ob-offer", "form": "FORM 2-C · OFFER OF EMPLOYMENT", "title": "Congratulations, Clerk.", "text": "Position: Intake Clerk (Temporary); duties: stamp; benefits: none. Your predecessor is currently being processed.", "character": "seraphine", "cta": "Accept position" }
+  ],
+  "training": [
+    { "step": 0, "target": "stamp", "title": "Stamp the soul.", "text": "Then stamp the next one. Souls are the currency here." },
+    { "step": 1, "target": "hire", "title": "Hire Dave.", "text": "Karma Credits pay the staff who stamp for you while you are away." },
+    { "step": 2, "target": "none", "title": "That is the job.", "text": "Souls pay Karma Credits; Karma hires staff; the Backlog Report pays you when you come back." }
+  ]
+}

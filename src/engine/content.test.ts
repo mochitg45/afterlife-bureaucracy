@@ -4,6 +4,7 @@ import intake from '../data/departments/intake.json';
 import cards from '../data/cards.json';
 import dailies from '../data/dailies.json';
 import achievements from '../data/achievements.json';
+import onboarding from '../data/onboarding.json';
 
 describe('content', () => {
   it('loads the intake department', () => {
@@ -144,5 +145,34 @@ describe('retention content', () => {
       const sentences = body.split(/[.!?]+['")\]]*\s/);
       expect(sentences.length, s.id).toBeLessThanOrEqual(3);
     }
+  });
+});
+
+describe('onboarding content', () => {
+  it('ships the two first-launch memos and the three training steps', () => {
+    expect(content.onboarding.memos.map((m) => m.id)).toEqual(['ob-decease', 'ob-offer']);
+    expect(content.onboarding.training.map((t) => t.step)).toEqual([0, 1, 2]);
+    expect(content.onboarding.training.map((t) => t.target)).toEqual(['stamp', 'hire', 'none']);
+    for (const m of content.onboarding.memos) expect(m.cta.length).toBeGreaterThan(0);
+  });
+  it('keeps every onboarding memo to at most three sentences', () => {
+    for (const m of content.onboarding.memos) {
+      expect(m.text.split(/[.!?]+['")\]]*\s/).length, m.id).toBeLessThanOrEqual(3);
+    }
+  });
+  it('rejects a memo of four sentences', () => {
+    const bad = { ...onboarding, memos: [{ ...onboarding.memos[0], text: 'One thing. Two things. Three things. Four things.' }] };
+    expect(() => loadContent([intake], [], { onboarding: bad })).toThrow(/three sentences/i);
+  });
+  it('rejects a memo whose character is not one of the four clerks', () => {
+    const bad = { ...onboarding, memos: [{ ...onboarding.memos[0], character: 'nobody' }] };
+    expect(() => loadContent([intake], [], { onboarding: bad })).toThrow();
+  });
+  it('rejects a training step with an unknown coach target', () => {
+    const bad = { ...onboarding, training: [{ ...onboarding.training[0], target: 'elsewhere' }] };
+    expect(() => loadContent([intake], [], { onboarding: bad })).toThrow();
+  });
+  it('defaults to no onboarding when the content set ships none', () => {
+    expect(loadContent([intake]).onboarding).toEqual({ memos: [], training: [] });
   });
 });

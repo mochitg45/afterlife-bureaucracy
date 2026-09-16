@@ -248,6 +248,7 @@ button:disabled { opacity: 0.45; cursor: default; }
    fires mid-walkthrough is the thing to deal with first, and a coach card floating over its
    buttons would be one the player cannot reach. The coach mark reappears underneath it. */
 .coach-overlay { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+.coach-dim { position: absolute; inset: 0; background: rgba(42, 38, 32, 0.55); }
 .coach-hole {
   position: absolute;
   border-radius: 12px;

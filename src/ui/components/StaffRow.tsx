@@ -29,7 +29,15 @@ export function StaffRow({ staff, mode }: { staff: StaffDef; mode: BuyMode }) {
         <div className="mono sub">{formatNumber(rate)}/s · next ×2 at {next}</div>
         <div className="bar"><div className="bar-fill" style={{ width: progress * 100 + '%' }} /></div>
       </div>
-      <button className="btn hire" disabled={!affordable} onClick={() => hire(staff.id, mode)} aria-label={`Hire ${staff.name}`}>
+      {/* The training's step 1 points at Dave and only Dave: he is the one hire a new
+          clerk can afford, and the only row guaranteed to be on the Personnel screen. */}
+      <button
+        className="btn hire"
+        disabled={!affordable}
+        onClick={() => hire(staff.id, mode)}
+        aria-label={`Hire ${staff.name}`}
+        {...(staff.id === 'dave' ? { 'data-coach': 'hire' } : {})}
+      >
         <span>Hire {mode === 'max' ? (count || 1) : mode}</span>
         <span className="mono">{formatNumber(cost)}</span>
       </button>

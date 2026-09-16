@@ -39,7 +39,7 @@ export function StampButton() {
   return (
     <div className="stamp-wrap">
       {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>{f.text}</span>)}
-      <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label="Stamp soul">
+      <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label="Stamp soul" data-coach="stamp">
         <StampSeal />
       </button>
       <div className="mono sub">+{formatNumber(clickPower)} per stamp</div>

@@ -11,6 +11,7 @@ import dailies from './dailies.json';
 import achievements from './achievements.json';
 import story from './story.json';
 import clauses from './cosmic.json';
+import onboarding from './onboarding.json';
 
 export const content = loadContent([intake, heaven, hell, reincarnation, limbo, valhalla], perks, {
   clauses,
@@ -18,4 +19,5 @@ export const content = loadContent([intake, heaven, hell, reincarnation, limbo, 
   dailies,
   achievements,
   story,
+  onboarding,
 });

@@ -154,6 +154,39 @@ const storySchema = z.object({
   text: z.string().min(1),
 });
 
+/**
+ * The story memo house rule: three sentences is as much prose as a parchment overlay gets
+ * before the player starts skipping it. Counted the way `content.test.ts` counts a story
+ * beat — a terminator, optional closing quote or bracket, then whitespace.
+ */
+const SENTENCE_BREAK = /[.!?]+['")\]]*\s/;
+function atMostThreeSentences(text: string): boolean {
+  return text.trim().split(SENTENCE_BREAK).length <= 3;
+}
+
+const onboardingMemoSchema = z.object({
+  id: z.string().min(1),
+  /** The form number stamped above the title — it is also the dialog's accessible name. */
+  form: z.string().min(1),
+  title: z.string().min(1),
+  text: z.string().min(1).refine(atMostThreeSentences, { message: 'Memo text must be at most three sentences' }),
+  character: z.enum(['dave', 'seraphine', 'gary', 'auditor']),
+  cta: z.string().min(1),
+});
+
+/** `target` names the `[data-coach]` attribute the coach mark spotlights; `none` centres the card. */
+const trainingStepSchema = z.object({
+  step: z.number().int().nonnegative(),
+  target: z.enum(['stamp', 'hire', 'none']),
+  title: z.string().min(1),
+  text: z.string().min(1),
+});
+
+const onboardingSchema = z.object({
+  memos: z.array(onboardingMemoSchema).min(1),
+  training: z.array(trainingStepSchema).min(1),
+});
+
 export type UpgradeEffect = z.infer<typeof upgradeEffectSchema>;
 export type StaffDef = z.infer<typeof staffSchema>;
 export type UpgradeDef = z.infer<typeof upgradeSchema>;
@@ -172,6 +205,10 @@ export type AchievementCondition = z.infer<typeof achievementConditionSchema>;
 export type AchievementDef = z.infer<typeof achievementSchema>;
 export type StoryTrigger = z.infer<typeof storyTriggerSchema>;
 export type StoryDef = z.infer<typeof storySchema>;
+export type OnboardingMemoDef = z.infer<typeof onboardingMemoSchema>;
+export type TrainingStepDef = z.infer<typeof trainingStepSchema>;
+export type CoachTarget = TrainingStepDef['target'];
+export type OnboardingContent = z.infer<typeof onboardingSchema>;
 export interface Content {
   departments: DepartmentDef[];
   perks: PerkDef[];
@@ -180,6 +217,7 @@ export interface Content {
   dailies: DailyDef[];
   achievements: AchievementDef[];
   story: StoryDef[];
+  onboarding: OnboardingContent;
 }
 export interface ContentExtras {
   clauses?: unknown[];
@@ -187,6 +225,7 @@ export interface ContentExtras {
   dailies?: unknown[];
   achievements?: unknown[];
   story?: unknown[];
+  onboarding?: unknown;
 }
 
 /** Daily kinds every player can make progress on from the first minute, whatever they own. */
@@ -276,7 +315,15 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   const story = (extras.story ?? []).map((r) => storySchema.parse(r));
   assertUnique(story.map((s) => s.id), 'story');
 
-  return { departments, perks, clauses, cards, dailies, achievements, story };
+  // A content set without onboarding is a valid one — most tests load a bare department —
+  // so the absent case is an empty walkthrough rather than a parse error.
+  const onboarding = extras.onboarding === undefined ? { memos: [], training: [] } : onboardingSchema.parse(extras.onboarding);
+  assertUnique(onboarding.memos.map((m) => m.id), 'onboarding memo');
+  // Training() looks a step up by its number; two rows claiming step 1 would make which
+  // card the player sees depend on array order.
+  assertUnique(onboarding.training.map((t) => String(t.step)), 'training step');
+
+  return { departments, perks, clauses, cards, dailies, achievements, story, onboarding };
 }
 
 export function findCard(content: Content, cardId: string): CardDef {
