@@ -9,6 +9,7 @@ import saveV3 from './fixtures/save-v3.json';
 import saveV4 from './fixtures/save-v4.json';
 import saveV5 from './fixtures/save-v5.json';
 import saveV6 from './fixtures/save-v6.json';
+import saveV7 from './fixtures/save-v7.json';
 
 const now = { wall: 1_700_000_000_000, mono: 5_000 };
 
@@ -285,6 +286,48 @@ describe('save v6', () => {
   });
 });
 
+describe('save v7', () => {
+  it('initial state carries the v7 defaults', () => {
+    const s = createInitialState(now, content);
+    expect(s.onboarding).toEqual({ memosSeen: false, trainingStep: 0 });
+    expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
+    expect(s.savedAtWall).toBe(0);
+  });
+  it('migrates a v6 save to v7 with defaults, keeping the rest of it', () => {
+    const s = deserialize(JSON.stringify(saveV6), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.onboarding).toEqual({ memosSeen: false, trainingStep: 0 });
+    expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
+    expect(s.savedAtWall).toBe(0);
+    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true });
+    expect(s.voucherFraction).toBeCloseTo(0.4);
+  });
+  it('loads the v7 fixture', () => {
+    const s = deserialize(JSON.stringify(saveV7), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
+    expect(s.cloud).toEqual({ lastSyncWall: 1700000001000, lastResult: 'uploaded' });
+    expect(s.savedAtWall).toBe(1700000002000);
+  });
+  it('clamps trainingStep to 0..3, whitelists lastResult, and defaults a non-number savedAtWall', () => {
+    const raw = {
+      ...saveV7,
+      onboarding: { memosSeen: true, trainingStep: 99 },
+      cloud: { lastSyncWall: 5, lastResult: 'bogus' },
+      savedAtWall: 'nope',
+    };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
+    expect(s.cloud).toEqual({ lastSyncWall: 5, lastResult: 'none' });
+    expect(s.savedAtWall).toBe(0);
+  });
+  it('clamps a negative trainingStep up to 0', () => {
+    const raw = { ...saveV7, onboarding: { memosSeen: false, trainingStep: -5 } };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.onboarding.trainingStep).toBe(0);
+  });
+});
+
 describe('exhaustive save round-trip', () => {
   it('carries every field of a fully non-default state through serialize/deserialize', () => {
     const s: GameState = {
@@ -331,6 +374,9 @@ describe('exhaustive save round-trip', () => {
       cosmicClauses: ['clause-throughput-1', 'clause-seals-1'],
       branchesUnlocked: ['valhalla'],
       processId: 'k3f9zq',
+      onboarding: { memosSeen: true, trainingStep: 2 },
+      cloud: { lastSyncWall: 1_700_000_444_000, lastResult: 'downloaded' },
+      savedAtWall: 1_700_000_888_000,
     };
     const back = deserialize(serialize(s), content);
     expect(Object.keys(back).sort()).toEqual(Object.keys(s).sort());

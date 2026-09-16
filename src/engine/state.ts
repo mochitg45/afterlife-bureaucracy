@@ -2,6 +2,7 @@ import Decimal from 'break_infinity.js';
 import { migrate, SAVE_VERSION } from './migrations';
 import { clampEquipped } from './gacha';
 import type { Content } from './content';
+import type { CloudSyncResult } from './cloudSync';
 
 export { SAVE_VERSION };
 
@@ -76,6 +77,18 @@ export interface Settings {
   notifsSent: number;
 }
 
+/** First-launch onboarding progress. trainingStep: 0 = stamp, 1 = hire, 2 = recap, 3 = done. */
+export interface Onboarding {
+  memosSeen: boolean;
+  trainingStep: number;
+}
+
+/** Cloud-save bookkeeping the title screen and sync notice read. */
+export interface CloudMeta {
+  lastSyncWall: number;
+  lastResult: CloudSyncResult;
+}
+
 export interface GameState {
   saveVersion: number;
   kc: Decimal;
@@ -113,6 +126,10 @@ export interface GameState {
   branchesUnlocked: string[];
   /** The process that last wrote this save; see engine/integrity.ts. */
   processId: string;
+  onboarding: Onboarding;
+  cloud: CloudMeta;
+  /** Wall-clock ms-epoch of the last save() call; 0 until the store stamps it. */
+  savedAtWall: number;
 }
 
 export interface Now { wall: number; mono: number }
@@ -172,6 +189,9 @@ export function createInitialState(now: Now, content: Content): GameState {
     cosmicClauses: [],
     branchesUnlocked: [],
     processId: '',
+    onboarding: { memosSeen: false, trainingStep: 0 },
+    cloud: { lastSyncWall: 0, lastResult: 'none' },
+    savedAtWall: 0,
   };
 }
 
@@ -357,6 +377,26 @@ function fraction(v: unknown): number {
   return n >= 0 && n < 1 ? n : 0;
 }
 
+const CLOUD_SYNC_RESULTS: CloudSyncResult[] = ['none', 'uploaded', 'downloaded', 'kept-local', 'unavailable', 'error'];
+
+/** trainingStep: 0 = stamp, 1 = hire, 2 = recap, 3 = done; clamp anything else into range. */
+function sanitizeOnboarding(v: unknown): Onboarding {
+  const raw = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  const step = Math.round(num(raw.trainingStep, 0));
+  return {
+    memosSeen: bool(raw.memosSeen, false),
+    trainingStep: Math.min(3, Math.max(0, Number.isFinite(step) ? step : 0)),
+  };
+}
+
+function sanitizeCloud(v: unknown): CloudMeta {
+  const raw = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  const lastResult = CLOUD_SYNC_RESULTS.includes(raw.lastResult as CloudSyncResult)
+    ? (raw.lastResult as CloudSyncResult)
+    : 'none';
+  return { lastSyncWall: nonNeg(raw.lastSyncWall), lastResult };
+}
+
 export function deserialize(json: string, content: Content): GameState {
   const raw = migrate(JSON.parse(json) as Record<string, unknown>);
   const base = createInitialState({ wall: 0, mono: 0 }, content);
@@ -440,5 +480,8 @@ export function deserialize(json: string, content: Content): GameState {
     cosmicClauses: stringIds(raw.cosmicClauses, new Set(content.clauses.map((c) => c.id))),
     branchesUnlocked,
     processId: str(raw.processId),
+    onboarding: sanitizeOnboarding(raw.onboarding),
+    cloud: sanitizeCloud(raw.cloud),
+    savedAtWall: nonNeg(raw.savedAtWall),
   }, content);
 }

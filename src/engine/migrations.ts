@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 type Raw = Record<string, unknown>;
 
@@ -71,6 +71,15 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
     branchesUnlocked: [],
     processId: '',
     stats: { ...((raw.stats as object) ?? {}), cosmics: 0, purchases: 0 },
+  }),
+  // 6 -> 7: first-launch onboarding progress, and the cloud-sync bookkeeping the title
+  // screen and winner rule read. savedAtWall starts at 0: the store stamps it on the next
+  // save() call, and an old save was never given a wall-clock save timestamp to backfill.
+  (raw) => ({
+    ...raw,
+    onboarding: { memosSeen: false, trainingStep: 0 },
+    cloud: { lastSyncWall: 0, lastResult: 'none' },
+    savedAtWall: 0,
   }),
 ];
 
