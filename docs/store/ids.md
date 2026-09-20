@@ -20,7 +20,7 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 (public keys only; never commit secret keys)
 
 ## Play Games Services
-- Project / app id (numeric, e.g. `123456789012`): `TODO`
+- Project / app id (numeric): `1035420780939` (in `AndroidManifest.xml` as `com.google.android.gms.games.APP_ID`)
 - Achievement ids: map in `src/platform/gameIds.ts` (`PLAY_ACHIEVEMENT_IDS`) — all `TODO` until the Play Games project is created
 - Leaderboard `lifetime-souls`: map in `src/platform/gameIds.ts` (`LEADERBOARD_LIFETIME_SOULS`) — `TODO`
 
