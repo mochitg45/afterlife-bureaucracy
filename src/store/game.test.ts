@@ -17,6 +17,24 @@ async function make(opts: { saved?: string } = {}) {
   return { store, storage, clock };
 }
 
+function fakeAudio() {
+  const played: string[] = [];
+  const enabled: { sfx: boolean; music: boolean }[] = [];
+  return {
+    played, enabled,
+    play: (n: string) => { played.push(n); },
+    setEnabled: (f: { sfx: boolean; music: boolean }) => { enabled.push(f); },
+    unlock: vi.fn(), suspend: vi.fn(), resume: vi.fn(),
+  };
+}
+
+async function makeWithAudio(wall = 1_000_000) {
+  const audio = fakeAudio();
+  const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, audio });
+  await store.getState().boot();
+  return { store, audio };
+}
+
 /** A second department that opens at 10 000 souls this run. */
 const twoDepartments = loadContent([
   intake,
@@ -137,6 +155,38 @@ describe('game store', () => {
     expect(store.getState().state.kc.toNumber()).toBe(2400);
     expect(store.getState().state.deptsUnlocked).toContain('heaven');
     expect(store.getState().pendingOffline).toBeNull();
+    store.getState().stopLoop();
+  });
+
+  it('plays a sound for each action that deserves one', async () => {
+    const { store, audio } = await makeWithAudio();
+    expect(audio.enabled[audio.enabled.length - 1]).toEqual({ sfx: true, music: true });
+    store.getState().stamp();
+    expect(audio.played).toContain('stamp');
+    for (let i = 0; i < 20; i++) store.getState().stamp();
+    store.getState().hire('dave', 1);
+    expect(audio.played).toContain('hire');
+    store.getState().hire('dave', 10); // unaffordable: no sound
+    expect(audio.played.filter((n) => n === 'hire')).toHaveLength(1);
+    store.getState().setSound({ sfx: false });
+    expect(store.getState().state.settings.sfx).toBe(false);
+    expect(audio.enabled[audio.enabled.length - 1]).toEqual({ sfx: false, music: true });
+    store.getState().stopLoop();
+  });
+
+  it('plays the achievement bell when an achievement settles', async () => {
+    const { store, audio } = await makeWithAudio();
+    for (let i = 0; i < 1000; i++) store.getState().stamp(); // "First Thousand" (a-souls-1)
+    expect(audio.played).toContain('achievement');
+    store.getState().stopLoop();
+  });
+
+  it('plays the reveal sting for the best rarity in a pull', async () => {
+    const { store, audio } = await makeWithAudio(0); // wall 0 seeds an executive in the ten-pull (see PersonnelScreen.test)
+    store.setState({ state: { ...store.getState().state, vouchers: 90 } });
+    store.getState().pull(10);
+    expect(audio.played).toContain('pull');
+    expect(audio.played).toContain('reveal-executive');
     store.getState().stopLoop();
   });
 });

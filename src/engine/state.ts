@@ -78,6 +78,9 @@ export interface Settings {
   /** Notifications already scheduled today, so a chatty app cannot spam the tray. */
   notifsSent: number;
   theme: 'light' | 'dark' | 'system';
+  /** Sound effects and the office ambience loop; both travel with the save like the theme. */
+  sfx: boolean;
+  music: boolean;
 }
 
 /** First-launch onboarding progress. trainingStep: 0 = stamp, 1 = hire, 2 = recap, 3 = done. */
@@ -187,7 +190,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     },
     achievements: [],
     storySeen: [],
-    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light' },
+    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light', sfx: true, music: true },
     firstSeenWallClock: now.wall,
     entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} },
     adState: { freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 },
@@ -392,11 +395,15 @@ function sanitizeSettings(v: unknown): Settings {
     ? (raw.notifOptIn as Settings['notifOptIn'])
     : 'unasked';
   const theme = THEMES.includes(raw.theme as Settings['theme']) ? (raw.theme as Settings['theme']) : 'light';
+  // Missing means a save written before sound existed, and sound is on by default.
+  const flag = (v: unknown) => (v === undefined ? true : Boolean(v));
   return {
     notifOptIn,
     notifDate: typeof raw.notifDate === 'string' ? raw.notifDate : '',
     notifsSent: Math.max(0, Math.floor(num(raw.notifsSent, 0))),
     theme,
+    sfx: flag(raw.sfx),
+    music: flag(raw.music),
   };
 }
 

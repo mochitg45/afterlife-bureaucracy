@@ -25,6 +25,7 @@ import { pickWinner, summarize, type CloudSyncResult, type SaveSummary } from '.
 import { formatNumber } from '../engine/format';
 import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
+import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { content as defaultContent } from '../data';
 
 /** Where an unreadable save is parked so a bad release cannot erase a player's run. */
@@ -224,6 +225,8 @@ export interface GameStore {
   clearAchievementToast(): void;
   setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
   setTheme(theme: Settings['theme']): void;
+  audio: Audio;
+  setSound(flags: Partial<{ sfx: boolean; music: boolean }>): void;
   shouldAskNotifications(): boolean;
   watchAd(placement: AdPlacement, taskId?: string): Promise<AdResult>;
   canWatch(placement: AdPlacement): boolean;
@@ -260,6 +263,7 @@ export interface StoreDeps {
   billing?: Billing;
   gameServices?: GameServices;
   cloudSave?: CloudSave;
+  audio?: Audio;
 }
 
 function pick(lines: string[], avoid: string): string {
@@ -278,6 +282,8 @@ export function createGameStore(deps: StoreDeps) {
   const billing = deps.billing ?? pickBilling();
   const gameServices = deps.gameServices ?? pickGameServices();
   const cloudSave = deps.cloudSave ?? pickCloudSave();
+  const audio = deps.audio ?? pickAudio();
+  const sfx = (name: SfxName) => audio.play(name);
   const tickMs = deps.tickMs ?? 100;
   const autosaveMs = deps.autosaveMs ?? 10_000;
   const maxTickSec = (MAX_TICKS_PER_FIRE * tickMs) / 1000;
@@ -404,7 +410,10 @@ export function createGameStore(deps: StoreDeps) {
         pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
         ...extra,
       }));
+      if (r.unlockedAch.length) sfx('achievement');
     };
+
+    const applySoundSettings = (s: GameState) => audio.setEnabled({ sfx: s.settings.sfx, music: s.settings.music });
 
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
@@ -574,6 +583,7 @@ export function createGameStore(deps: StoreDeps) {
         pendingStory: r.unlockedStory.slice(0, BOOT_QUEUE_CAP),
       });
       if (restartLoop) startTimers();
+      applySoundSettings(r.state);
       await get().save();
     };
 
@@ -772,6 +782,7 @@ export function createGameStore(deps: StoreDeps) {
       state: createInitialState({ wall: clock.wall(), mono: clock.mono() }, content),
       rates: computeRates(createInitialState({ wall: 0, mono: 0 }, content), content, 0),
       ready: false,
+      audio,
       pendingOffline: null,
       queueLine: '',
       memoLine: '',
@@ -882,6 +893,9 @@ export function createGameStore(deps: StoreDeps) {
             // was before this boot's own sync has answered.
             cloud: { ...cur.cloud, lastSyncWall: r.state.cloud.lastSyncWall, lastResult: r.state.cloud.lastResult },
           }));
+          // Before the unlock gesture, so this one is silent in practice; the resume path is
+          // where a Backlog Report is actually heard.
+          if (pendingOffline) sfx('report');
           booted = true;
           // Ahead of `ready`: a player who is already signed in must not be handed the local
           // save, play a minute of it, and then watch the cloud copy replace what they just
@@ -923,6 +937,7 @@ export function createGameStore(deps: StoreDeps) {
           // that has not started yet.
           startTimers();
           set({ ready: true });
+          applySoundSettings(get().state);
           notifications.cancelAll().catch(() => {});
         })();
         return booting;
@@ -933,6 +948,7 @@ export function createGameStore(deps: StoreDeps) {
         const s = get().state;
         // Fire-and-forget on both paths: backgrounding must not wait on a network round-trip,
         // and a sync that does not finish before the process is frozen costs nothing.
+        audio.suspend();
         if (s.settings.notifOptIn !== 'yes') {
           await get().save();
           void get().syncCloud('pause').catch(() => {});
@@ -996,6 +1012,8 @@ export function createGameStore(deps: StoreDeps) {
               clockSuspect: suspect,
             }));
             notifications.cancelAll().catch(() => {});
+            audio.resume();
+            if (pendingOffline) sfx('report');
             set({ adsReady: ads.isReady() });
             refreshDailiesForAds();
             startTimers();
@@ -1016,6 +1034,7 @@ export function createGameStore(deps: StoreDeps) {
         const next = click(s, content, clock.wall());
         const canHire = canAfford(staffBulkCost(content.departments[0].staff[0], 0, 1), next.kc);
         apply(withTraining(next, s.onboarding.trainingStep === 0 && canHire ? 1 : 0), { mood: 'ok' });
+        sfx('stamp');
       },
       hire(staffId, mode) {
         const s = get().state;
@@ -1023,8 +1042,14 @@ export function createGameStore(deps: StoreDeps) {
         // Only a hire that actually happened counts: an unaffordable tap leaves the state
         // untouched, and training with it.
         apply(withTraining(next, next !== s && s.onboarding.trainingStep === 1 ? 2 : 0));
+        if (next !== s) sfx('hire');
       },
-      upgrade(upgradeId) { apply(buyUpgrade(get().state, content, upgradeId)); },
+      upgrade(upgradeId) {
+        const s = get().state;
+        const next = buyUpgrade(s, content, upgradeId);
+        apply(next);
+        if (next !== s) sfx('upgrade');
+      },
       setActiveDept(deptId) {
         const s = get().state;
         if (!s.deptsUnlocked.includes(deptId)) return;
@@ -1070,6 +1095,7 @@ export function createGameStore(deps: StoreDeps) {
           // Report after the reset would offer to double income into a wiped office.
           pendingOffline: null,
         });
+        sfx('audit');
         submitLifetimeScore(get().state.soulsLifetime);
         void get().save();
       },
@@ -1079,10 +1105,18 @@ export function createGameStore(deps: StoreDeps) {
         const r = pullEngine(get().state, content, count, get().rates.kcPerSec);
         if (r.results.length) {
           apply(r.state, { pendingPull: r.results });
+          sfx('pull');
+          const best = (['executive', 'senior', 'fulltime', 'temp'] as const).find((rar) => r.results.some((x) => x.rarity === rar)) ?? 'temp';
+          sfx(('reveal-' + best) as SfxName);
         }
       },
       dismissPull() { set({ pendingPull: null }); },
-      equip(cardId) { apply(equipCard(get().state, content, cardId)); },
+      equip(cardId) {
+        const s = get().state;
+        const next = equipCard(s, content, cardId);
+        apply(next);
+        if (next !== s) sfx('equip');
+      },
       unequip(cardId) { apply(unequipCard(get().state, cardId)); },
       claimDaily(taskId) {
         const r = claimDailyEngine(get().state, content, taskId, get().rates.kcPerSec);
@@ -1102,6 +1136,12 @@ export function createGameStore(deps: StoreDeps) {
       },
       setTheme(theme) {
         apply({ ...get().state, settings: { ...get().state.settings, theme } });
+        void get().save();
+      },
+      setSound(flags) {
+        const settings = { ...get().state.settings, ...flags };
+        apply({ ...get().state, settings });
+        applySoundSettings(get().state);
         void get().save();
       },
       shouldAskNotifications() {

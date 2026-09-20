@@ -194,14 +194,14 @@ describe('save v5', () => {
     expect(s.voucherFraction).toBe(0);
     expect(s.dailies.soulsPerSecSnapshot).toBe('0');
     expect(s.dailies.streak).toBe(3);
-    expect(s.settings).toEqual({ notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light' });
+    expect(s.settings).toEqual({ notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light', sfx: true, music: true });
   });
   it('loads the v5 fixture', () => {
     const s = deserialize(JSON.stringify(saveV5), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.voucherFraction).toBeCloseTo(0.4);
     expect(s.dailies.soulsPerSecSnapshot).toBe('42');
-    expect(s.settings).toEqual({ notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'light' });
+    expect(s.settings).toEqual({ notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'light', sfx: true, music: true });
   });
   it('drops an out-of-range voucher remainder and a negative notification count', () => {
     const raw = { ...saveV5, voucherFraction: 3.5, settings: { ...saveV5.settings, notifsSent: -4, notifDate: 7 } };
@@ -209,6 +209,12 @@ describe('save v5', () => {
     expect(s.voucherFraction).toBe(0);
     expect(s.settings.notifsSent).toBe(0);
     expect(s.settings.notifDate).toBe('');
+  });
+  it('defaults sfx and music to on and coerces garbage to booleans', () => {
+    const raw = { ...saveV5, settings: { ...saveV5.settings, sfx: 'nope', music: 0 } };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.settings.sfx).toBe(true);
+    expect(s.settings.music).toBe(false);
   });
   it('defaults theme to light and rejects a garbage value', () => {
     const raw = { ...saveV5, settings: { ...saveV5.settings, theme: 'nope' } };
@@ -414,7 +420,7 @@ describe('exhaustive save round-trip', () => {
       },
       achievements: ['a-souls-1', 'a-clicks-1'],
       storySeen: ['s-first-stamp', 's-deja-vu'],
-      settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'dark' },
+      settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'dark', sfx: true, music: true },
       firstSeenWallClock: 1_699_000_000_000,
       entitlements: { removeAds: true, unionUntilWall: 1_700_000_999_000, starterPackBought: true, firstBuyUsed: { vouchers_10: true } },
       adState: { freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1_700_000_555_000 },
