@@ -123,10 +123,10 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
       o1.start(); o2.start();
       hum = { stop() { o1.stop(); o2.stop(); } };
     } catch {
-      // a closed context is silence, not a crash: leave ambience/hum unset so a later
-      // unlock/resume/setEnabled call can retry once the context is alive again.
-      ambience = null;
-      hum = null;
+      // a closed context is silence, not a crash: stop any hum this call already started
+      // (or a stale one from before) and clear both fields so a later unlock/resume/
+      // setEnabled call can retry once the context is alive again.
+      stopAmbience();
       return;
     }
     const clack = () => {
@@ -136,8 +136,10 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
         for (let i = 0; i < burst; i++) noise(music!, 0.03, { cutoff: 3500, gain: 0.35, at: i * (0.09 + Math.random() * 0.06) });
         if (Math.random() < 0.06) tone(music!, 1760, 0.5, { gain: 0.12 });
       } catch {
-        ambience = null;
-        hum = null;
+        // the hum's oscillators are still live (started by an earlier successful
+        // startAmbience) — stop them via stopAmbience rather than just dropping the
+        // reference, or they'd play on orphaned while a later start stacks a second hum.
+        stopAmbience();
         return;
       }
       ambience = setTimeout(clack, 600 + Math.random() * 2400);
@@ -148,7 +150,7 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
   const stopAmbience = () => {
     if (ambience) clearTimeout(ambience);
     ambience = null;
-    hum?.stop();
+    try { hum?.stop(); } catch { /* a dead context can't stop what it already dropped */ }
     hum = null;
   };
 

@@ -98,4 +98,38 @@ describe('audio', () => {
     expect(ctx.started.length).toBeGreaterThan(0);
     vi.useRealTimers();
   });
+
+  it('stops the orphaned hum when a clack throws, and starts exactly one new hum after recovery', () => {
+    vi.useFakeTimers();
+    const ctx = fakeContext();
+    const oscStops: string[] = [];
+    const workingCreateOscillator = ctx.createOscillator;
+    ctx.createOscillator = () => {
+      const n = workingCreateOscillator();
+      const origStop = n.stop;
+      n.stop = () => { oscStops.push('osc'); origStop(); };
+      return n;
+    };
+    const audio = createAudio(() => ctx as unknown as AudioContext);
+
+    // Hum starts cleanly: two live oscillators, nothing stopped yet.
+    audio.unlock();
+    expect(ctx.started.filter((k) => k === 'osc')).toHaveLength(2);
+    expect(oscStops).toHaveLength(0);
+
+    // Now the context breaks mid-ambience: the next clack's noise() throws.
+    const workingCreateBufferSource = ctx.createBufferSource;
+    ctx.createBufferSource = () => { throw new Error('context closed'); };
+    vi.advanceTimersByTime(1000); // past the 400ms initial clack delay
+    // The orphaned hum's two oscillators must have been stopped, not just dropped.
+    expect(oscStops).toHaveLength(2);
+
+    // Recovery: restore the fake, and a later setEnabled restarts exactly one new hum.
+    ctx.createBufferSource = workingCreateBufferSource;
+    audio.setEnabled({ sfx: true, music: true });
+    vi.advanceTimersByTime(1000);
+    const oscStarts = ctx.started.filter((k) => k === 'osc').length;
+    expect(oscStarts - oscStops.length).toBe(2);
+    vi.useRealTimers();
+  });
 });
