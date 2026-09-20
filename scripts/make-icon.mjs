@@ -114,9 +114,10 @@ function sealFaceInside(S, cx, cy, r, backing = PAPER) {
   return seal(cx, cy, r, INK_RED, { backing, check: false }) + daveHead(cx, cy - s, s, S);
 }
 
-/** Parchment with the faint ruling of a form nobody reads. */
-function parchment(size, { dark = false } = {}) {
+/** Parchment with the faint ruling of a form nobody reads (`ruled: false` for a flat fill). */
+function parchment(size, { dark = false, ruled = true } = {}) {
   const base = dark ? '#1B1915' : PAPER;
+  if (!ruled) return `<rect width="${size}" height="${size}" fill="${base}" />`;
   const rule = dark ? '#4A4238' : LINE;
   const step = size / 16;
   const lines = [];
@@ -125,6 +126,57 @@ function parchment(size, { dark = false } = {}) {
   }
   return `<rect width="${size}" height="${size}" fill="${base}" />
     <g stroke="${rule}" stroke-width="${(size / 512).toFixed(2)}" opacity="0.35">${lines.join('')}</g>`;
+}
+
+/**
+ * The in-game stamp seal (src/ui/components/StampButton.tsx `StampSeal`): a solid red disc with
+ * an ink outline and a cream dashed ring inside, tilted like a stamp pressed by a bored hand.
+ * `R` is the outer radius; the ink outline is held at a fixed 5px-at-1024 (like the seal itself
+ * on the button, which doesn't get thicker just because the icon canvas is bigger), the dashed
+ * ring scales with `R` to match the button's own 54:42:3 ratio.
+ */
+function stampSeal(cx, cy, R, S, tilt = -8) {
+  const outlineSW = 5 * (S / 1024);
+  const ringR = R * (42 / 54);
+  const ringSW = R * (3 / 54);
+  const dashOn = (R * (6 / 54)).toFixed(2);
+  const dashOff = (R * (5 / 54)).toFixed(2);
+  return `
+  <g transform="rotate(${tilt} ${cx} ${cy})">
+    <circle cx="${cx}" cy="${cy}" r="${R.toFixed(2)}" fill="${INK_RED}" stroke="${INK}" stroke-width="${outlineSW.toFixed(3)}" />
+    <circle cx="${cx}" cy="${cy}" r="${ringR.toFixed(2)}" fill="none" stroke="${DAVE_CREAM}" stroke-width="${ringSW.toFixed(3)}" stroke-dasharray="${dashOn} ${dashOff}" />
+  </g>`;
+}
+
+/**
+ * Full Dave (src/ui/characters/Character.tsx `Dave` + `Face` mood 'ok'): hood, cream face, eyes
+ * and a smile — everything except the scythe/collar, which don't read at icon scale. `s` is
+ * grid-to-pixel scale (Dave's source art is a 64-unit grid) and outlines stay at the source's own
+ * 2.5/64 ratio, scaled up by the group transform exactly like the shipped component does.
+ * `(faceCx, faceCy)` is where the face circle's centre — grid (32, 27) — lands.
+ */
+function daveIcon(faceCx, faceCy, s) {
+  const headCy = faceCy + s; // face sits 1 grid unit above the hood's own (32, 28) origin
+  const tx = (faceCx - 32 * s).toFixed(2);
+  const ty = (headCy - 28 * s).toFixed(2);
+  return `
+  <g transform="translate(${tx} ${ty}) scale(${s.toFixed(4)})">
+    <path d="M32 6 C18 6 14 20 14 30 L14 50 L50 50 L50 30 C50 20 46 6 32 6 Z"
+          fill="${DAVE_GREEN}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round" />
+    <circle cx="32" cy="27" r="11" fill="${DAVE_CREAM}" stroke="${INK}" stroke-width="2.5" />
+    <g stroke="${INK}" stroke-width="2.5" stroke-linecap="round" fill="${INK}">
+      <circle cx="27" cy="26" r="1.6" />
+      <circle cx="37" cy="26" r="1.6" />
+      <path d="M28 33 Q32 36 36 33" fill="none" />
+    </g>
+  </g>`;
+}
+
+/** The chosen mark: Dave centred inside the stamp seal, face at ~35% of the canvas. */
+function daveOnSeal(S, cx, cy, R) {
+  const faceR = R * 0.4375; // R*0.4375 = 0.35*S/2 when R = 0.4*S (seal at 80% canvas)
+  const s = faceR / 11;
+  return stampSeal(cx, cy, R, S) + daveIcon(cx, cy, s);
 }
 
 const svg = (size, body) =>
@@ -148,7 +200,7 @@ async function main() {
   const candidates = {
     A: parchment(CS) + seal(CS / 2, CS / 2, CS * 0.35),
     B: parchment(CS) + sealWithDave(CS, CS / 2, CS / 2, CS * 0.35),
-    C: parchment(CS) + sealFaceInside(CS, CS / 2, CS / 2, CS * 0.35),
+    C: parchment(CS, { ruled: false }) + daveOnSeal(CS, CS / 2, CS / 2, CS * 0.4),
   };
   for (const [name, body] of Object.entries(candidates)) {
     const buf = Buffer.from(svg(CS, body));
@@ -156,17 +208,15 @@ async function main() {
     await sharp(buf).resize(48, 48).png({ compressionLevel: 9 }).toFile(path.join(candidatesDir, `${name}-48.png`));
   }
 
-  // Pick: C (Dave's face inside the seal), not B — at 48px B's peeking head collapses to a
-  // barely-visible dark nub above the ring (see icon-candidates/B-48.png vs C-48.png); C keeps
-  // Dave's whole silhouette inside the seal's own footprint, so it stays legible small.
-  // Square icon: the seal fills the tile, the way a stamp lands on a form.
-  const square = parchment(S) + sealFaceInside(S, S / 2, S / 2, S * 0.35);
+  // Pick: C — Dave centred inside the in-game stamp seal. Square icon: the seal fills the tile,
+  // the way a stamp lands on a form.
+  const square = parchment(S, { ruled: false }) + daveOnSeal(S, S / 2, S / 2, S * 0.4);
   // Adaptive foreground: `@capacitor/assets` writes the XML with `android:inset="16.7%"`, so
   // this whole square is scaled down into the 72dp safe zone for us. The art therefore fills
   // its own canvas edge to edge — shrinking it here too would inset it twice and leave a
   // postage stamp floating in the middle of the launcher tile.
-  const foreground = sealFaceInside(S, S / 2, S / 2, S * 0.47);
-  const background = parchment(S);
+  const foreground = daveOnSeal(S, S / 2, S / 2, S * 0.47);
+  const background = parchment(S, { ruled: false });
 
   await png(S, square, path.join(assetsDir, 'icon.png'));
   await png(S, foreground, path.join(assetsDir, 'icon-foreground.png'));
