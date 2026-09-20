@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CoachMark } from './CoachMark';
 
 /**
@@ -63,6 +63,18 @@ describe('CoachMark', () => {
     const hole = container.querySelector('.coach-hole') as HTMLElement;
     expect(hole.style.left).toBe('12px');
     expect(hole.style.width).toBe('60px');
+  });
+
+  it('falls back to the centred card when the target leaves the page', async () => {
+    const button = withTarget({ top: 100, left: 40, width: 120, height: 120, bottom: 220, right: 160 });
+    const { container } = render(
+      <CoachMark target="stamp" title="Stamp the soul." text="X" stepIndex={0} total={3} onSkip={() => {}} />,
+    );
+    expect(container.querySelector('.coach-hole')).not.toBeNull();
+    // Nothing announces a removed target, so the per-frame re-measure is what notices.
+    button.remove();
+    await waitFor(() => expect(container.querySelector('.coach-card')).toHaveClass('centred'));
+    expect(container.querySelector('.coach-hole')).toBeNull();
   });
 
   it('sits under a target near the top of the screen', () => {

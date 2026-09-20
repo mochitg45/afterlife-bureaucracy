@@ -5,6 +5,8 @@ import type { CloudNotice as Notice } from '../../store/game';
 
 function line(notice: Notice): string {
   if (notice.kind === 'error') return 'Cloud sync failed. Your desk is safe on this device.';
+  // This device would not vouch for its own save, so it was not allowed over the cloud's.
+  if (notice.kind === 'refused') return 'Not uploaded: clock check failed.';
   // A conflict resolved for the local save ends the same way an empty cloud slot does: this
   // device's desk is now the one in the cloud, so it is one sentence, not two.
   if (notice.kind !== 'downloaded') return 'This device had the newer desk; uploaded it.';

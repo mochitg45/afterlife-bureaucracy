@@ -79,6 +79,10 @@ export function SettingsSheet({
     })();
   };
 
+  // Every sync action needs an account behind it: without one they can only come back with
+  // "Cloud saves are not available here", which is not what is wrong.
+  const syncDisabled = !cloudAvailable || !cloudSignedIn || cloudSyncing;
+
   const cloudStatus = !cloudAvailable
     ? 'Not available on this platform'
     : !cloudSignedIn
@@ -116,24 +120,27 @@ export function SettingsSheet({
         {cloudAvailable && !cloudSignedIn && (
           <button className="btn btn-ghost" onClick={() => void onSignIn()}>Sign in</button>
         )}
-        <button className="btn btn-ghost" disabled={!cloudAvailable || cloudSyncing} onClick={() => void onSync()}>
+        <button className="btn btn-ghost" disabled={syncDisabled} onClick={() => void onSync()}>
           Sync now
         </button>
         <button
           className={'btn ' + (confirm === 'upload' ? 'btn-primary' : 'btn-ghost')}
-          disabled={!cloudAvailable || cloudSyncing}
+          disabled={syncDisabled}
           onClick={() => onOverride('upload')}
         >
           {confirm === 'upload' ? 'Confirm upload' : 'Upload this device'}
         </button>
         <button
           className={'btn ' + (confirm === 'restore' ? 'btn-primary' : 'btn-ghost')}
-          disabled={!cloudAvailable || cloudSyncing}
+          disabled={syncDisabled}
           onClick={() => onOverride('restore')}
         >
           {confirm === 'restore' ? 'Confirm restore' : 'Restore from cloud'}
         </button>
       </div>
+      {/* Three buttons that can only answer "not signed in" are three dead ends; the one
+          button that does something is the Sign in above, so say so. */}
+      {cloudAvailable && !cloudSignedIn && <p className="sub">Sign in to sync.</p>}
       {confirm && (
         <p className="sub warn">
           {confirm === 'upload'

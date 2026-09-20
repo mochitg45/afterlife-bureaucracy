@@ -53,38 +53,53 @@ export function CoachMark({
 }) {
   const [hole, setHole] = useState<Hole | null>(null);
 
-  // Re-measured on resize because a rotation or a keyboard moves the target out from under
-  // a hole that was measured against the old viewport.
+  // Re-measured every frame while this step is up, because the target moves for reasons no
+  // event announces: a list that finishes laying out, a scroll, a row that appears above it.
+  // Re-measured on resize too, which is the one case that must not wait for a frame.
   useEffect(() => {
     if (target === 'none') {
       setHole(null);
       return;
     }
     const find = () => document.querySelector<HTMLElement>(`[data-coach="${target}"]`);
+    /**
+     * Decided once per target and then kept: the card is anchored to whichever edge faces
+     * the target, so re-deciding it as the page settles would flip the card over the
+     * spotlight and back while the player is reading it.
+     */
+    let above: boolean | null = null;
+    let frame = 0;
     const measure = () => {
       const el = find();
-      if (!el) {
+      // A target that is gone, or one the player cannot see, is no target: centre the card
+      // rather than cut a hole in a part of the page that is not on screen.
+      const r = el?.getBoundingClientRect();
+      if (!r || !onScreen(r)) {
         setHole(null);
         return;
       }
-      const r = el.getBoundingClientRect();
-      // Nothing to spotlight that the player can see: centre the card instead of cutting a
-      // hole in a part of the page that is not on screen.
-      if (!onScreen(r)) {
-        setHole(null);
-        return;
-      }
-      const above = window.innerHeight - r.bottom < ROOM_BELOW;
-      setHole({
-        top: r.top,
-        left: r.left,
-        width: r.width,
-        height: r.height,
-        above,
-        // Anchored by whichever edge faces the target, so the card sizes itself to its copy
-        // without anyone having to measure it first.
-        card: above ? { bottom: window.innerHeight - r.top + GAP + 'px' } : { top: r.bottom + GAP + 'px' },
-      });
+      if (above === null) above = window.innerHeight - r.bottom < ROOM_BELOW;
+      const anchored = above;
+      // Returned by identity when nothing moved, so a per-frame measurement costs a
+      // measurement and not a re-render.
+      setHole((prev) =>
+        prev && prev.top === r.top && prev.left === r.left && prev.width === r.width && prev.height === r.height
+          ? prev
+          : {
+              top: r.top,
+              left: r.left,
+              width: r.width,
+              height: r.height,
+              above: anchored,
+              // Anchored by whichever edge faces the target, so the card sizes itself to its
+              // copy without anyone having to measure it first.
+              card: anchored ? { bottom: window.innerHeight - r.top + GAP + 'px' } : { top: r.bottom + GAP + 'px' },
+            },
+      );
+    };
+    const onFrame = () => {
+      measure();
+      frame = requestAnimationFrame(onFrame);
     };
     // Bring the target into view before the first measurement, so a step whose control has
     // been scrolled past gets a real spotlight rather than the centred fallback. Only here,
@@ -93,8 +108,12 @@ export function CoachMark({
     // does not implement it.
     find()?.scrollIntoView?.({ block: 'center', behavior: 'auto' });
     measure();
+    frame = requestAnimationFrame(onFrame);
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', measure);
+    };
   }, [target]);
 
   return (

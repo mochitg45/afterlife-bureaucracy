@@ -222,7 +222,7 @@ button:disabled { opacity: 0.45; cursor: default; }
    one toast-height higher than .toast so an achievement and a sync notice can share the
    screen, and one layer under it so the toast that expires on its own stays on top. */
 .cloud-notice {
-  position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabbar-h) + 88px); z-index: 55;
+  position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabbar-h) + 88px); z-index: 44;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
 }
 .safe-area .cloud-notice { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 88px); }

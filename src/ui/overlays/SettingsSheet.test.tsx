@@ -110,6 +110,17 @@ describe('SettingsSheet', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/signed in to play games/i);
   });
 
+  it('leaves every sync action closed until someone is signed in', () => {
+    seed('no');
+    seedCloud({ available: true });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    // Each would only come back with "not available here", which is not what is wrong.
+    expect(screen.getByRole('button', { name: 'Sync now' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Upload this device' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Restore from cloud' })).toBeDisabled();
+    expect(screen.getByText('Sign in to sync.')).toBeInTheDocument();
+  });
+
   it('says when Play Games will not sign in', async () => {
     seed('no');
     seedCloud({ available: true });
