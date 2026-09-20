@@ -26,7 +26,7 @@ function table(label: string, r: SimResult) {
     `(${r.cosmicDays.length} filings; target 2-5 in 30 days, first between day 8 and 30)`,
   );
   console.log(
-    'vouchers/day, days 3-14: faucet', vouchersPerDay(r, 3, 14, 'tasks').toFixed(2), '(target 2-4)',
+    'vouchers/day, days 3-14: faucet', vouchersPerDay(r, 3, 14, 'tasks').toFixed(2), '(target 20-40)',
     '| achievements', vouchersPerDay(r, 3, 14, 'achievements').toFixed(2),
     '| all sources', vouchersPerDay(r, 3, 14).toFixed(2),
   );

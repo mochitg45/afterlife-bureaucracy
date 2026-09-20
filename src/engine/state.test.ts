@@ -10,6 +10,7 @@ import saveV4 from './fixtures/save-v4.json';
 import saveV5 from './fixtures/save-v5.json';
 import saveV6 from './fixtures/save-v6.json';
 import saveV7 from './fixtures/save-v7.json';
+import saveV8 from './fixtures/save-v8.json';
 
 const now = { wall: 1_700_000_000_000, mono: 5_000 };
 
@@ -327,6 +328,23 @@ describe('save v7', () => {
     const raw = { ...saveV7, onboarding: { memosSeen: false, trainingStep: -5 } };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.onboarding.trainingStep).toBe(0);
+  });
+});
+
+describe('save v8 (playtest round 1: vouchers x10)', () => {
+  it('migrates a v7 save to v8, scaling the voucher balance by ten', () => {
+    const raw = { ...saveV7, vouchers: 5 };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.vouchers).toBe(50);
+    // The carried sub-voucher remainder is not itself a "voucher amount": it is always < 1
+    // regardless of grant size, so it survives the migration unscaled.
+    expect(s.voucherFraction).toBeCloseTo(0.4);
+  });
+  it('loads the v8 fixture', () => {
+    const s = deserialize(JSON.stringify(saveV8), content);
+    expect(s.saveVersion).toBe(SAVE_VERSION);
+    expect(s.vouchers).toBe(50);
   });
 });
 

@@ -137,10 +137,10 @@ describe('claim and skip', () => {
     let s = ready();
     const ids = s.dailies.tasks.map((t) => t.id);
     const r1 = claimDaily(s, content, ids[0], new Decimal(2));
-    expect(r1.vouchers).toBe(1);
+    expect(r1.vouchers).toBe(10);
     expect(r1.kc.toNumber()).toBe(600);
     s = r1.state;
-    expect(s.vouchers).toBe(1);
+    expect(s.vouchers).toBe(10);
     expect(s.stats.dailiesClaimed).toBe(1);
     expect(claimDaily(s, content, ids[0], new Decimal(2)).state).toBe(s);
     s = claimDaily(s, content, ids[1], new Decimal(0)).state;
@@ -154,7 +154,7 @@ describe('claim and skip', () => {
     expect(claimDaily(s0, content, id, new Decimal(1)).state).toBe(s0);
     const s1 = skipDaily(s0, content, id);
     expect(s1.dailies.skipTokens).toBe(0);
-    expect(claimDaily(s1, content, id, new Decimal(1)).vouchers).toBe(1);
+    expect(claimDaily(s1, content, id, new Decimal(1)).vouchers).toBe(10);
     expect(skipDaily(s1, content, s1.dailies.tasks[1].id)).toBe(s1);
   });
   it('writes a task off without a token for the rewarded-ad skip', () => {
@@ -172,7 +172,7 @@ describe('claim and skip', () => {
     // its vouchers and KC like any other (spec §8).
     expect(isDone(s1, content.dailies.find((d) => d.id === id)!)).toBe(true);
     const claim = claimDaily(s1, content, id, new Decimal(1));
-    expect(claim.vouchers).toBe(1);
+    expect(claim.vouchers).toBe(10);
     expect(claim.state.dailies.tasks.find((t) => t.id === id)!.claimed).toBe(true);
   });
   it('grants two exact vouchers on a rollover for a union member', () => {
@@ -184,7 +184,7 @@ describe('claim and skip', () => {
     let s = { ...ready() };
     s = { ...s, dailies: { ...s.dailies, streak: 6 } };
     for (const t of s.dailies.tasks) s = claimDaily(s, content, t.id, new Decimal(0)).state;
-    expect(s.vouchers).toBe(3 + 3);
+    expect(s.vouchers).toBe(30 + 30);
   });
   it('carries the sub-voucher remainder instead of rounding every grant up', () => {
     const s = { ...fresh(), perks: ['requisition-1'] };

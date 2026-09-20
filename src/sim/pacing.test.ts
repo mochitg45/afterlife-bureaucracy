@@ -70,13 +70,13 @@ describe('pacing targets (spec §4)', () => {
     expect(r.cosmicDays.length).toBeLessThanOrEqual(5);
   });
 
-  it('pays a free player 2-4 vouchers a day from the daily faucet over days 3-14', () => {
+  it('pays a free player 20-40 vouchers a day from the daily faucet over days 3-14', () => {
     // The recurring faucet — three daily tasks plus the seven-day streak pack — is the income
-    // the spec's target describes. Achievement grants are a separate one-off budget (170
+    // the spec's target describes. Achievement grants are a separate one-off budget (1,700
     // vouchers across 80 unlocks) that lands mostly in the first fortnight on top of this.
     const faucet = vouchersPerDay(r, 3, 14, 'tasks');
-    expect(faucet).toBeGreaterThanOrEqual(2);
-    expect(faucet).toBeLessThanOrEqual(4);
+    expect(faucet).toBeGreaterThanOrEqual(20);
+    expect(faucet).toBeLessThanOrEqual(40);
   });
 
   it('never pays an Audit more than the cap its Clauses have earned', () => {

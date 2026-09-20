@@ -68,7 +68,7 @@ describe('applyPurchase', () => {
       expect(next.voucherFraction, id).toBe(0.9);
       expect(next.stats.purchases, id).toBe(1);
     }
-    expect(VOUCHER_PACKS).toEqual({ vouchers_10: 10, vouchers_55: 55, vouchers_120: 120, vouchers_300: 300 });
+    expect(VOUCHER_PACKS).toEqual({ vouchers_10: 100, vouchers_55: 550, vouchers_120: 1200, vouchers_300: 3000 });
   });
 
   it('remove_ads sets the permanent entitlement', () => {

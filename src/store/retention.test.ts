@@ -45,7 +45,7 @@ describe('retention store', () => {
   });
   it('pulls, reveals, equips', async () => {
     const { store } = await make();
-    store.setState({ state: { ...store.getState().state, vouchers: 9 } });
+    store.setState({ state: { ...store.getState().state, vouchers: 90 } });
     store.getState().pull(10);
     expect(store.getState().pendingPull).toHaveLength(10);
     expect(store.getState().state.vouchers).toBe(0);
@@ -85,7 +85,7 @@ describe('retention store', () => {
     store.getState().claimDaily(def.id);
     const after = store.getState().state;
     expect(after.dailies.tasks.find((t) => t.id === def.id)!.claimed).toBe(true);
-    expect(after.vouchers).toBe(1);
+    expect(after.vouchers).toBe(10);
     expect(after.kc.gt(0)).toBe(true);
     expect(after.stats.dailiesClaimed).toBe(1);
     store.getState().stopLoop();

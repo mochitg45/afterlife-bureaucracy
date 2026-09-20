@@ -13,7 +13,7 @@ const NO_LANYARD_MS = 2000;
 
 const RARITY_ORDER: Rarity[] = ['temp', 'fulltime', 'senior', 'executive'];
 
-/** ODDS is a fraction (0.065); the odds card needs "6.5%" without float noise (0.065 * 100 !== 6.5 exactly). */
+/** ODDS is a fraction (0.245); the odds card needs "24.5%" without float noise (0.245 * 100 !== 24.5 exactly). */
 function pct(value: number): string {
   const tenths = Math.round(value * 1000) / 10;
   return (Number.isInteger(tenths) ? tenths.toString() : tenths.toFixed(1)) + '%';

@@ -349,7 +349,7 @@ describe('purchases', () => {
     seed({ perks: ['requisition-1'], staff: { dave: 20 } });
     expect(await store.getState().buy('vouchers_55')).toBe('ok');
     expect(billing.bought).toEqual(['vouchers_55']);
-    expect(store.getState().state.vouchers).toBe(55);
+    expect(store.getState().state.vouchers).toBe(550);
     expect(store.getState().state.stats.purchases).toBe(1);
 
     expect(await store.getState().buy('remove_ads')).toBe('ok');
@@ -359,7 +359,7 @@ describe('purchases', () => {
     const kcPerSec = store.getState().rates.kcPerSec;
     expect(await store.getState().buy('starter_pack')).toBe('ok');
     const afterPack = store.getState().state;
-    expect(afterPack.vouchers).toBe(55 + STARTER_PACK_VOUCHERS);
+    expect(afterPack.vouchers).toBe(550 + STARTER_PACK_VOUCHERS);
     expect(afterPack.cards[STARTER_PACK_CARD]).toBe(1);
     expect(afterPack.kc.sub(kcBefore).eq(kcPerSec.mul(STARTER_PACK_KC_SECONDS))).toBe(true);
 
@@ -529,7 +529,7 @@ describe('union membership in the store', () => {
     const after = store.getState().state;
     expect(after.dailies.tasks[0].claimed).toBe(true);
     expect(after.stats.dailiesClaimed).toBe(1);
-    expect(after.vouchers).toBe(1);
+    expect(after.vouchers).toBe(10);
     store.getState().stopLoop();
   });
 

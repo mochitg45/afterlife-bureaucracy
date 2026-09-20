@@ -17,17 +17,17 @@ describe('PersonnelScreen', () => {
     render(<PersonnelScreen />);
     expect(screen.getByRole('button', { name: /draw one requisition/i })).toBeDisabled();
     expect(screen.getByText(/70%/)).toBeInTheDocument();
-    expect(screen.getByText(/1\.5%/)).toBeInTheDocument();
+    expect(screen.getByText(/0\.5%/)).toBeInTheDocument();
   });
   it('pulls ten and opens the reveal', () => {
-    seed({ vouchers: 9 });
+    seed({ vouchers: 90 });
     render(<PersonnelScreen />);
     fireEvent.click(screen.getByRole('button', { name: /draw ten requisitions/i }));
     expect(useGame.getState().pendingPull).toHaveLength(10);
-    // Spends the 9-voucher cost, but with this fixed rngSeed (wall: 0) the ten pulls always land
+    // Spends the 90-voucher cost, but with this fixed rngSeed (wall: 0) the ten pulls always land
     // an executive card, which settles the pre-existing "First Executive Card" achievement and
-    // its +1 voucher reward in the same apply() call.
-    expect(useGame.getState().state.vouchers).toBe(1);
+    // its +10 voucher reward in the same apply() call.
+    expect(useGame.getState().state.vouchers).toBe(10);
   });
   it('equips and unequips from the collection', () => {
     seed({ cards: { 'c-dave-overtime': 1 } });

@@ -77,7 +77,7 @@ describe('StoreScreen', () => {
     seed({ firstSeenWallClock: NOW });
     render(<StoreScreen />);
     expect(screen.getByRole('heading', { name: 'Starter Pack' })).toBeInTheDocument();
-    expect(screen.getByText(/20 Requisition Vouchers/i)).toBeInTheDocument();
+    expect(screen.getByText(/200 Requisition Vouchers/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Buy New Clerk Starter Pack' })).toBeInTheDocument();
   });
 

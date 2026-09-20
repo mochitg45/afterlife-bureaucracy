@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 type Raw = Record<string, unknown>;
 
@@ -98,7 +98,21 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
       savedAtWall: 0,
     };
   },
+  // 7 -> 8 (Playtest round 1): every voucher amount in the game was scaled ×10 so the
+  // numbers read as a currency. Only the stored balance is scaled so an existing tester's
+  // balance keeps its value under the new prices; voucherFraction is the sub-voucher
+  // remainder toward the next whole grant (always < 1, independent of grant size), so
+  // scaling it would push it past the valid range and have it sanitized back to 0.
+  (raw) => ({
+    ...raw,
+    vouchers: num(raw.vouchers) * 10,
+  }),
 ];
+
+function num(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
 /**
  * A hand-edited or re-encoded save can arrive with saveVersion as a numeric string, which

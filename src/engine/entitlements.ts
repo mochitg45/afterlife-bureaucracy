@@ -16,17 +16,17 @@ export const UNION_PERIOD_MS = 30 * 86_400_000;
 export const REMOVE_ADS_OFFLINE_MULT = 2;
 /** The Starter Pack is only offered to a clerk who joined within this window. */
 export const STARTER_PACK_WINDOW_MS = 3 * 86_400_000;
-export const STARTER_PACK_VOUCHERS = 20;
+export const STARTER_PACK_VOUCHERS = 200;
 export const STARTER_PACK_CARD = 'c-grandma-liu';
 /** KC equal to half an hour of the player's current income. */
 export const STARTER_PACK_KC_SECONDS = 1800;
 
 /** Voucher packs and what each one pays out. Everything else is an entitlement, not a quantity. */
 export const VOUCHER_PACKS: Partial<Record<ProductId, number>> = {
-  vouchers_10: 10,
-  vouchers_55: 55,
-  vouchers_120: 120,
-  vouchers_300: 300,
+  vouchers_10: 100,
+  vouchers_55: 550,
+  vouchers_120: 1200,
+  vouchers_300: 3000,
 };
 
 /** Only the field every check below reads, so a React caller can subscribe to it alone. */

@@ -4,8 +4,8 @@ import type { Content, CardDef, Rarity } from './content';
 import { nextFloat } from './rng';
 import { perkSum } from './perks';
 
-export const PULL_COST = 1;
-export const TEN_PULL_COST = 9;
+export const PULL_COST = 10;
+export const TEN_PULL_COST = 90;
 export const MAX_STARS = 5;
 export const BASE_EQUIP_SLOTS = 3;
 export const MAX_EQUIP_SLOTS = 8;
@@ -13,7 +13,7 @@ export const PITY_SENIOR = 10;
 export const PITY_EXECUTIVE = 60;
 export const DUPLICATE_KC_SECONDS = 600;
 export const DUPLICATE_KC_MIN = 100;
-export const ODDS: Record<Rarity, number> = { temp: 0.7, fulltime: 0.22, senior: 0.065, executive: 0.015 };
+export const ODDS: Record<Rarity, number> = { temp: 0.7, fulltime: 0.245, senior: 0.05, executive: 0.005 };
 const ROLL_ORDER: Rarity[] = ['executive', 'senior', 'fulltime', 'temp'];
 
 export interface PullResult {

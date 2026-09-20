@@ -14,11 +14,23 @@ import {
   ODDS,
   PITY_SENIOR,
   PITY_EXECUTIVE,
+  PULL_COST,
+  TEN_PULL_COST,
 } from './gacha';
 
 const now = { wall: 0, mono: 0 };
 const base = () => ({ ...createInitialState(now, content), vouchers: 100, rngSeed: 7 });
 const rate = new Decimal(10);
+
+describe('economy constants (playtest round 1)', () => {
+  it('prices pulls at 10 / 90 and sums the new odds to 1', () => {
+    expect(PULL_COST).toBe(10);
+    expect(TEN_PULL_COST).toBe(90);
+    expect(ODDS).toEqual({ temp: 0.7, fulltime: 0.245, senior: 0.05, executive: 0.005 });
+    const sum = Object.values(ODDS).reduce((a, b) => a + b, 0);
+    expect(sum).toBeCloseTo(1, 10);
+  });
+});
 
 describe('rollRarity', () => {
   it('matches published odds over 100k rolls (no pity)', () => {
@@ -46,15 +58,15 @@ describe('rollRarity', () => {
 });
 
 describe('pull', () => {
-  it('charges 1 per single and 9 per ten, advances the seed, records stats, never mutates', () => {
+  it('charges 10 per single and 90 per ten, advances the seed, records stats, never mutates', () => {
     const s0 = base();
     const one = pull(s0, content, 1, rate);
-    expect(one.state.vouchers).toBe(99);
+    expect(one.state.vouchers).toBe(90);
     expect(one.results).toHaveLength(1);
     expect(one.state.rngSeed).not.toBe(s0.rngSeed);
     expect(one.state.stats.pulls).toBe(1);
     const ten = pull(s0, content, 10, rate);
-    expect(ten.state.vouchers).toBe(91);
+    expect(ten.state.vouchers).toBe(10);
     expect(ten.results).toHaveLength(10);
     expect(s0.vouchers).toBe(100);
   });
@@ -92,7 +104,7 @@ describe('pull', () => {
   });
   it('raises stars on duplicates and converts past five stars to KC', () => {
     const one = { ...content, cards: [content.cards[0]] };
-    let s = { ...base(), vouchers: 50 };
+    let s = { ...base(), vouchers: 60 };
     for (let i = 0; i < 5; i++) s = pull(s, one, 1, rate).state;
     expect(s.cards[content.cards[0].id]).toBe(5);
     const r = pull(s, one, 1, rate);

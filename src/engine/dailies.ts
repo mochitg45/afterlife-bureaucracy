@@ -9,9 +9,9 @@ import { canBuyPerk } from './perks';
 
 export const TASKS_PER_DAY = 3;
 export const STREAK_BONUS_EVERY = 7;
-export const STREAK_BONUS_VOUCHERS = 3;
+export const STREAK_BONUS_VOUCHERS = 30;
 export const TOKEN_EVERY_DAYS = 7;
-export const DAILY_VOUCHERS = 1;
+export const DAILY_VOUCHERS = 10;
 export const DAILY_KC_SECONDS = 300;
 export const DAILY_KC_MIN = 50;
 
