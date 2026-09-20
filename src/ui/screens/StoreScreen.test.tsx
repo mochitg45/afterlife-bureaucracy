@@ -155,6 +155,15 @@ describe('StoreScreen', () => {
     expect(screen.getByText(/requisition desk is closed/i)).toBeInTheDocument();
   });
 
+  it('shows one product art per visible product', () => {
+    seed({ firstSeenWallClock: NOW });
+    const { container } = render(<StoreScreen />);
+    const shown = ['vouchers_120', 'remove_ads', 'starter_pack', 'union_monthly'];
+    for (const id of shown) {
+      expect(container.querySelectorAll(`svg[data-product="${id}"]`)).toHaveLength(1);
+    }
+  });
+
   it('shows the settings gear', () => {
     const onSettings = vi.fn();
     seed();

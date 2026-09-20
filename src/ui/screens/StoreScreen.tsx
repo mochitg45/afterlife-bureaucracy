@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame, type RestoreResult } from '../../store/game';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { StoreArt } from '../components/StoreArt';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
 import {
   STARTER_PACK_VOUCHERS,
@@ -104,8 +105,13 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
 
       {packs.length > 0 && (
         <div className="card store-section">
-          <h3>Vouchers</h3>
-          <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied.</p>
+          <div className="store-row">
+            <StoreArt productId="vouchers_120" />
+            <div>
+              <h3>Vouchers</h3>
+              <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied.</p>
+            </div>
+          </div>
           <div className="modal-actions">
             {packs.map((p) => <BuyButton key={p.id} product={p} onResult={onPurchase} />)}
           </div>
@@ -114,11 +120,16 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
 
       {removeAds && (
         <div className="card store-section">
-          <h3>Remove Ads</h3>
-          <p className="sub">
-            Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on you — the rewarded buttons
-            stay optional either way.
-          </p>
+          <div className="store-row">
+            <StoreArt productId="remove_ads" />
+            <div>
+              <h3>Remove Ads</h3>
+              <p className="sub">
+                Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on you — the rewarded buttons
+                stay optional either way.
+              </p>
+            </div>
+          </div>
           {entitlements.removeAds
             ? <div className="mono value brass">Owned</div>
             : <div className="modal-actions"><BuyButton product={removeAds} onResult={onPurchase} /></div>}
@@ -127,22 +138,32 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
 
       {starterPack && starterOn && (
         <div className="card store-section">
-          <h3>Starter Pack</h3>
-          <p className="sub">
-            {STARTER_PACK_VOUCHERS} Requisition Vouchers, Grandma Liu at one star, and Karma Credits worth{' '}
-            {STARTER_PACK_KC_SECONDS / 60} minutes of your current income. Offered once, in your first three days.
-          </p>
+          <div className="store-row">
+            <StoreArt productId="starter_pack" />
+            <div>
+              <h3>Starter Pack</h3>
+              <p className="sub">
+                {STARTER_PACK_VOUCHERS} Requisition Vouchers, Grandma Liu at one star, and Karma Credits worth{' '}
+                {STARTER_PACK_KC_SECONDS / 60} minutes of your current income. Offered once, in your first three days.
+              </p>
+            </div>
+          </div>
           <div className="modal-actions"><BuyButton product={starterPack} primary onResult={onPurchase} /></div>
         </div>
       )}
 
       {union && (
         <div className="card store-section">
-          <h3>Union Membership</h3>
-          <p className="sub">
-            +25% to everything the office earns, {UNION_ROLLOVER_VOUCHERS} vouchers on every daily rollover, and finished
-            daily tasks file themselves.
-          </p>
+          <div className="store-row">
+            <StoreArt productId="union_monthly" />
+            <div>
+              <h3>Union Membership</h3>
+              <p className="sub">
+                +25% to everything the office earns, {UNION_ROLLOVER_VOUCHERS} vouchers on every daily rollover, and finished
+                daily tasks file themselves.
+              </p>
+            </div>
+          </div>
           {unionOn && <div className="mono brass">Active until {new Date(entitlements.unionUntilWall).toLocaleDateString()}</div>}
           <div className="modal-actions"><BuyButton product={union} primary={!unionOn} onResult={onPurchase} /></div>
         </div>
