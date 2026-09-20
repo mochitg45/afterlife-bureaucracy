@@ -49,6 +49,15 @@ describe('App shell', () => {
     expect(shell.closest('.app')).toHaveClass('safe-area');
   });
 
+  it('unlocks audio on the first pointer down, once', () => {
+    const unlock = vi.fn();
+    useGame.setState({ audio: { unlock, play: () => {}, setEnabled: () => {}, suspend: () => {}, resume: () => {} } });
+    render(<App />);
+    fireEvent.pointerDown(document.body);
+    fireEvent.pointerDown(document.body);
+    expect(unlock).toHaveBeenCalledTimes(1);
+  });
+
   it('opens the settings sheet from the gear button', async () => {
     render(<App />);
     await clockIn();

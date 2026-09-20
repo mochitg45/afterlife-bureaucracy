@@ -57,6 +57,14 @@ export function App() {
     else document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Web Audio may only start from a user gesture; the first tap anywhere is that gesture.
+  useEffect(() => {
+    const unlock = () => { useGame.getState().audio.unlock(); };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => { window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
+  }, []);
+
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') void pause();

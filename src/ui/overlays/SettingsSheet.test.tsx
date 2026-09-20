@@ -60,6 +60,19 @@ describe('SettingsSheet', () => {
     expect(setTheme).toHaveBeenCalledWith('dark');
   });
 
+  it('renders sound toggles and calls setSound', () => {
+    seed('no');
+    const setSound = vi.fn();
+    useGame.setState({ setSound });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    const sfx = screen.getByRole('checkbox', { name: 'Sound effects' });
+    const music = screen.getByRole('checkbox', { name: 'Music' });
+    expect(sfx).toBeChecked();
+    expect(music).toBeChecked();
+    fireEvent.click(music);
+    expect(setSound).toHaveBeenCalledWith({ music: false });
+  });
+
   it('shows save, version and calls onGoToOdds / onClose', () => {
     seed('no');
     const onGoToOdds = vi.fn();

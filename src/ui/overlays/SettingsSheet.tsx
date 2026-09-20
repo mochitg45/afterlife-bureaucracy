@@ -29,6 +29,9 @@ export function SettingsSheet({
   onSaveCode: () => void;
 }) {
   const notifOptIn = useGame((s) => s.state.settings.notifOptIn);
+  const sfx = useGame((s) => s.state.settings.sfx);
+  const music = useGame((s) => s.state.settings.music);
+  const setSound = useGame((s) => s.setSound);
   const theme = useGame((s) => s.state.settings.theme);
   const setTheme = useGame((s) => s.setTheme);
   const saveVersion = useGame((s) => s.state.saveVersion);
@@ -121,6 +124,14 @@ export function SettingsSheet({
             </button>
           ))}
         </div>
+      </div>
+      <div className="settings-row">
+        <span>Sound effects</span>
+        <input type="checkbox" aria-label="Sound effects" checked={sfx} onChange={(e) => setSound({ sfx: e.target.checked })} />
+      </div>
+      <div className="settings-row">
+        <span>Music</span>
+        <input type="checkbox" aria-label="Music" checked={music} onChange={(e) => setSound({ music: e.target.checked })} />
       </div>
       <div className="settings-row">
         <button className="btn btn-ghost" onClick={onGoToOdds}>See requisition odds</button>
