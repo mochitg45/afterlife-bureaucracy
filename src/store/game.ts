@@ -938,6 +938,9 @@ export function createGameStore(deps: StoreDeps) {
           startTimers();
           set({ ready: true });
           applySoundSettings(get().state);
+          // A boot that follows a resume() (the app came back before it had finished booting)
+          // finds a suspended context: nothing else would rearm it until the next gesture.
+          audio.resume();
           notifications.cancelAll().catch(() => {});
         })();
         return booting;

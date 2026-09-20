@@ -158,6 +158,13 @@ describe('game store', () => {
     store.getState().stopLoop();
   });
 
+  it('rearms the audio context once the boot settles', async () => {
+    // resume() before the store had booted had nothing to resume; the boot has to do it.
+    const { store, audio } = await makeWithAudio();
+    expect(audio.resume).toHaveBeenCalled();
+    store.getState().stopLoop();
+  });
+
   it('plays a sound for each action that deserves one', async () => {
     const { store, audio } = await makeWithAudio();
     expect(audio.enabled[audio.enabled.length - 1]).toEqual({ sfx: true, music: true });

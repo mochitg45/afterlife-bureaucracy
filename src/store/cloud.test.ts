@@ -32,20 +32,32 @@ function snapshotOf(s: GameState): CloudSnapshot {
 
 type CloudOpts = Parameters<typeof memoryCloudSave>[0];
 
+/** Records the flags the store pushes at the audio layer; see game.test.ts for the fuller fake. */
+function fakeAudio() {
+  const enabled: { sfx: boolean; music: boolean }[] = [];
+  return {
+    enabled,
+    play: () => {}, setEnabled: (f: { sfx: boolean; music: boolean }) => { enabled.push(f); },
+    unlock: () => {}, suspend: () => {}, resume: () => {}, isRunning: () => true,
+  };
+}
+
 async function make(opts: { saved?: GameState; cloud?: CloudOpts; autosaveMs?: number } = {}) {
   const storage = memoryStorage();
   if (opts.saved) await storage.set(SAVE_KEY, serialize(opts.saved));
   const clock = fakeClock({ wall: T0, mono: 0 });
   const cloud = memoryCloudSave(opts.cloud);
   const services = fakeServices();
+  const audio = fakeAudio();
   const store = createGameStore({
     content, storage, clock,
     tickMs: 1_000_000,
     autosaveMs: opts.autosaveMs ?? 1_000_000,
     cloudSave: cloud,
     gameServices: services.services,
+    audio,
   });
-  return { store, storage, clock, cloud, services };
+  return { store, storage, clock, cloud, services, audio };
 }
 
 /** The boot cloud sync runs behind the boot itself, like the billing sync does. */
@@ -339,6 +351,19 @@ describe('cloud sign-in and overrides', () => {
     expect(await store.getState().restoreCloud()).toBe('downloaded');
     expect(store.getState().state.soulsLifetime.toNumber()).toBe(7);
     expect(store.getState().cloudNotice!.kind).toBe('downloaded');
+    store.getState().stopLoop();
+  });
+
+  it('applies the sound settings of the adopted save after a cloud takeover', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(1e6), soulsRun: new Decimal(1e6) });
+    const remote = saveState({ soulsLifetime: new Decimal(7), soulsRun: new Decimal(7), savedAtWall: T0 - 1_000 });
+    remote.settings = { ...remote.settings, sfx: false, music: false };
+    const { store, cloud, audio } = await make({ saved: local, cloud: { signedIn: false, snapshot: snapshotOf(remote) } });
+    await store.getState().boot();
+    cloud.signedIn = true;
+    expect(await store.getState().restoreCloud()).toBe('downloaded');
+    // The adopted file is muted: the audio layer must hear about it, not keep the old flags.
+    expect(audio.enabled[audio.enabled.length - 1]).toEqual({ sfx: false, music: false });
     store.getState().stopLoop();
   });
 
