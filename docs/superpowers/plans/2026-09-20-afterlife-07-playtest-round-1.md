@@ -73,6 +73,32 @@ Brief: a bolder mark that reads at 48 px: the red PROCESSED seal, large and tilt
 
 ---
 
+### Task 5: Unique card portraits
+
+**Files:**
+- Modify: `src/ui/characters/Character.tsx` (+ test), `src/data/cards.json` (`character` per card), `src/engine/content.ts` only if the schema restricts `character` values.
+
+Every one of the 30 cards gets its own portrait, drawn in the shipped ink-outline style (64-grid, 2.5 px `var(--ink)` outline, flat brand fills, ok/cooked faces). Build a small parts kit inside `Character.tsx` — body (hood, blazer, robe, sheet, cloud), hair (bun, grey, spiky, none), headwear (halo, horns, cap, crown, hard hat, headset), face extras (glasses, shades, moustache, blush), one prop (scythe, coffee, clipboard, keys, snack tray, stapler, receipts, pitchfork, harp, wheel, cabinet, briefcase, box, hymn sheet) — and a `PORTRAITS: Record<cardId, Parts>` table so each card is one line of parts and colours. `Character` resolves `id` first through `PORTRAITS`, then the existing staff/archetype/soul path, so old ids keep working. Cards whose `character` is `soul` today get a real portrait (Grandma Liu: grey bun, cardigan, snack tray). Test: every card id in `cards.json` renders a portrait whose `data-character` is not `soul`, and no two cards produce identical SVG markup.
+
+- [ ] Step 1: failing tests as above.
+- [ ] Step 2: parts kit + table; visual check of the Personnel grid at 390 px (all 30 owned via a seeded save).
+- [ ] Step 3: commit `feat(art): a portrait for every card`; push.
+
+---
+
+### Task 6: Star-up needs several duplicates
+
+**Files:**
+- Modify: `src/engine/gacha.ts` (`DUPES_PER_STAR = [1, 2, 3, 5]` for ★2..★5; `cardShards: Record<cardId, number>` in state; `pull()` adds a shard per duplicate and promotes when `shards >= DUPES_PER_STAR[stars - 1]`, resetting shards; past ★5 duplicates still pay KC), `src/engine/state.ts` (`cardShards`, sanitised), `src/engine/migrations.ts` (fold into the v8 step: `cardShards: {}`), `src/engine/fixtures/save-v8.json`, `src/sim/simulate.ts` if it reads stars, `src/ui/components/CardTile.tsx` (small "3/5" progress under the stars), spec §7, tests.
+
+- [ ] Step 1: failing tests: five copies of one card end at ★2 with 3 shards toward ★3; eleven copies reach ★5; the twelfth pays KC; round-trip carries `cardShards`.
+- [ ] Step 2: implement; `npm test`; `npm run sim` stays green (retune within the Plan 4 list only if a target moves).
+- [ ] Step 3: commit `feat(gacha): star-ups cost 1/2/3/5 duplicates`; push.
+
+Task 3 (card sheet) runs after Task 6 and shows the shard progress ("3 of 5 duplicates to ★5").
+
+---
+
 ## Self-review
 
 Spec coverage: §7 odds/costs → Task 1; §8/§9 voucher amounts → Task 1; §10 theme → Task 2; card sheet is new UI under §10 Personnel → Task 3; icon → Task 4. Placeholder scan: constants and copy are exact; Task 3 names the reuse rule for the effect function. Types: `settings.theme` union is the same in Task 2's store, App and Settings.
