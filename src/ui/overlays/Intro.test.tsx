@@ -64,10 +64,10 @@ describe('Intro', () => {
     expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
   });
 
-  it('advances one scene per tap even though the Next click also reaches the stage', () => {
+  it('advances one scene per tap, on the button or the stage', () => {
     seed(false);
     render(<Intro />);
-    next();
+    fireEvent.click(screen.getByRole('dialog'));
     expect(screen.getByText(/forwarded to Intake/)).toBeInTheDocument();
     expect(screen.queryByText('FORM 2-C · OFFER OF EMPLOYMENT')).not.toBeInTheDocument();
   });

@@ -23,25 +23,30 @@
   --shadow: 0 1px 0 rgba(42, 38, 32, 0.12), 0 2px 6px rgba(42, 38, 32, 0.08);
   --tabbar-h: 64px;
   color-scheme: light dark;
+}
 
-  /* The dark palette, written once. `light-dark()` picks the second value whenever the
+@supports (color: light-dark(#fff, #000)) {
+  :root {
+    /* The dark palette, written once. `light-dark()` picks the second value whenever the
      resolved `color-scheme` is dark — system preference by default, or the explicit choice
      the two rules below make — which replaces the pair of identical dark token blocks this
      file used to carry.
-     ponytail: light-dark() needs WebView 123+; the plain light values above are the
-     fallback an older one keeps, so it renders light rather than unstyled. Bring the
-     @media (prefers-color-scheme: dark) block back if that floor ever bites. */
-  --paper: light-dark(#EDE7D4, #1B1915);
-  --surface: light-dark(#F7F2E4, #26221D);
-  --surface-2: light-dark(#E4DCC6, #322D26);
-  --ink: light-dark(#2A2620, #EDE7D4);
-  --ink-muted: light-dark(#6E675C, #A8A091);
-  --line: light-dark(#C9BFA6, #4A4238);
-  --green: light-dark(#1F3B33, #4E8C7A);
-  --red: light-dark(#A6402B, #D9634A);
-  --teal: light-dark(#3E9C93, #5FC4BA);
-  --brass: light-dark(#A8823C, #D4A950);
-  --violet: light-dark(#6B6478, #9A92AC);
+     A custom property accepts any token stream, so a WebView older than 123 would keep the
+     unusable light-dark() value and paint the page transparent; the @supports gate leaves
+     such a WebView on the plain light values above instead.
+     ponytail: those WebViews get light only; bring the @media block back if that bites. */
+    --paper: light-dark(#EDE7D4, #1B1915);
+    --surface: light-dark(#F7F2E4, #26221D);
+    --surface-2: light-dark(#E4DCC6, #322D26);
+    --ink: light-dark(#2A2620, #EDE7D4);
+    --ink-muted: light-dark(#6E675C, #A8A091);
+    --line: light-dark(#C9BFA6, #4A4238);
+    --green: light-dark(#1F3B33, #4E8C7A);
+    --red: light-dark(#A6402B, #D9634A);
+    --teal: light-dark(#3E9C93, #5FC4BA);
+    --brass: light-dark(#A8823C, #D4A950);
+    --violet: light-dark(#6B6478, #9A92AC);
+  }
 }
 
 /* The explicit choices from Settings; "System" removes the attribute and leaves the pair above. */
