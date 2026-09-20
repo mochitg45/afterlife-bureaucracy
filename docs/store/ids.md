@@ -21,7 +21,7 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
 
 ## Play Games Services
 - Project / app id (numeric): `1035420780939` (in `AndroidManifest.xml` as `com.google.android.gms.games.APP_ID`)
-- Achievement ids: 20 of the 80 local achievements are mirrored to Play Games; the map is `PLAY_ACHIEVEMENT_IDS` in `src/platform/gameIds.ts` (created 2026-09-20 by ZIP import, ids `CgkIi5ONn5EeEAIQ…`)
+- Achievement ids: 20 of the 80 local achievements are mirrored to Play Games; the map is `PLAY_ACHIEVEMENT_IDS` in `src/platform/gameIds.ts` (re-imported with icons 2026-09-20; ids `CgkIi5ONn5EeEAIQ…`, from the console's Get resources XML)
 - Leaderboard `Lifetime souls`: `CgkIi5ONn5EeEAIQAQ` (`LEADERBOARD_LIFETIME_SOULS`)
 - OAuth clients: one Android client per signing fingerprint (debug, upload key, Play app-signing key); the credential on the Configuration page currently carries only one
 
