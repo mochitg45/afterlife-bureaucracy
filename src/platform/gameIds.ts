@@ -13,12 +13,31 @@ export const TODO_ID = 'TODO';
 
 /** Local achievement id (`src/data/achievements.json`) → Play Games achievement id. */
 export const PLAY_ACHIEVEMENT_IDS: Record<string, string> = {
-  // TODO: fill in once the Play Games project exists. Example:
-  // 'a-souls-1': 'CgkIxxxxxxxxxxxxEAIQAQ',
+  // 20 of the 80 local achievements are mirrored to Play Games (docs/store/ids.md).
+  'a-souls-1': 'CgkIi5ONn5EeEAIQBw',
+  'a-souls-2': 'CgkIi5ONn5EeEAIQDA',
+  'a-souls-4': 'CgkIi5ONn5EeEAIQBA',
+  'a-souls-6': 'CgkIi5ONn5EeEAIQAw',
+  'a-souls-8': 'CgkIi5ONn5EeEAIQCQ',
+  'a-clicks-2': 'CgkIi5ONn5EeEAIQEQ',
+  'a-staff-2': 'CgkIi5ONn5EeEAIQDg',
+  'a-staff-4': 'CgkIi5ONn5EeEAIQDw',
+  'a-depts-2': 'CgkIi5ONn5EeEAIQBQ',
+  'a-depts-4': 'CgkIi5ONn5EeEAIQEg',
+  'a-audits-1': 'CgkIi5ONn5EeEAIQDQ',
+  'a-audits-3': 'CgkIi5ONn5EeEAIQBg',
+  'a-seals-2': 'CgkIi5ONn5EeEAIQEw',
+  'a-cards-2': 'CgkIi5ONn5EeEAIQCw',
+  'a-cards-5': 'CgkIi5ONn5EeEAIQFQ',
+  'a-execs-1': 'CgkIi5ONn5EeEAIQCg',
+  'a-fivestar-1': 'CgkIi5ONn5EeEAIQEA',
+  'a-dailies-2': 'CgkIi5ONn5EeEAIQFg',
+  'a-streak-2': 'CgkIi5ONn5EeEAIQFA',
+  'a-streak-3': 'CgkIi5ONn5EeEAIQCA',
 };
 
 /** Play Games leaderboard for lifetime souls filed. */
-export const LEADERBOARD_LIFETIME_SOULS: string = TODO_ID;
+export const LEADERBOARD_LIFETIME_SOULS: string = 'CgkIi5ONn5EeEAIQAQ';
 
 function resolved(id: string | undefined): string | null {
   return id && id !== TODO_ID ? id : null;
