@@ -18,54 +18,52 @@ submission; they are marked `[… — fill before publishing]` and tracked in `i
 ## Title (30 characters max)
 
 ```
-Afterlife Bureaucracy
+Afterlife Bureaucracy: Idle
 ```
 
-21 characters.
+27 characters. Brand plus the category keyword; Google indexes the title hardest.
 
 ## Short description (80 characters max)
 
 ```
-Stamp souls. Chase quotas. Climb the org chart of the hereafter. An idle game.
+Idle clicker tycoon of the afterlife. Stamp souls, hire reapers, earn offline.
 ```
 
-77 characters.
+78 characters. Indexed: "idle clicker", "tycoon", "afterlife", "offline" in one line.
 
 ## Full description (4000 characters max)
 
+Indexed by Google Play. Keywords ("idle", "clicker", "incremental", "tycoon", "offline") sit at
+1–2% each, in sentences, no stuffing; no "best", "free" or "#1" anywhere (Play policy).
+
 ```
-Death is not the end. It is an intake form.
+Death is not the end. It is an intake form. Afterlife Bureaucracy is an idle clicker game where you run the celestial civil service: stamp souls, hire staff, unlock departments and grow an office empire that keeps earning while you are away.
 
-You are the newest clerk at the Afterlife Bureau, and the queue is out of the door. Stamp
-souls, hire staff who stamp for you, and discover that the celestial civil service runs on
-exactly the same logic as every office you ever left.
+TAP, THEN LET THE OFFICE WORK
+Tap the stamp to process souls by hand and earn Karma Credits. Hire Dave the overtime reaper, Seraphine the temp angel and Gary the unionised demon intern, and they keep stamping for you. Buy upgrades nobody approved. Watch the numbers climb from thousands to quadrillions, the way a good incremental game should.
 
-STAMP, THEN STOP STAMPING
-Tap the stamp to process souls by hand. Then hire Dave the overtime reaper, Seraphine the
-temp angel and Gary the unionised demon intern to do it while you are gone. Buy upgrades
-nobody approved. Watch the numbers get silly.
+SIX DEPARTMENTS TO UNLOCK
+Intake, Heaven Admissions, Hell Compliance, the Reincarnation Desk, Limbo Records and one annex the org chart does not admit to. Each department has its own staff, its own upgrades and its own opinion of the others. Unlock them all and manage the whole afterlife from one desk, idle or hands-on.
 
-FIVE DEPARTMENTS, ONE ORG CHART
-Intake, Limbo Records, Heaven Admissions, Hell Compliance and the Reincarnation Desk. Each
-has its own staff, its own upgrades and its own opinions about the others.
+PRESTIGE: FILE AN AUDIT, START FASTER
+When the fiscal year closes, file an Audit. The office resets, you bank Departmental Seals, and you spend them in the Perk Ledger on permanent bonuses. Every run is quicker than the last, and the idle loop stays fresh. Later, Cosmic Restructuring rewrites the rules of the game itself.
 
-FILE AN AUDIT, START AGAIN, GET FASTER
-When the fiscal year closes, file an Audit: reset the office, bank Departmental Seals and
-spend them in the Perk Ledger on permanent bonuses. Every year is quicker than the last.
+COLLECT 30 PERSONNEL CARDS
+Spend Requisition Vouchers on staff cards from Temp to Executive. Every card has its own bonus. Duplicates promote a card up to five stars, and your equipped staff multiply everything you earn. One free pull every day. Full odds are published in the app.
 
-THE PERSONNEL REQUISITION LOTTERY
-Spend Requisition Vouchers on staff cards, from Temps to Executives. Duplicates promote a card
-up to five stars. Equip your best and let them multiply everything. Full odds are published
-in the app, on the Odds screen, and in this listing.
+EARN OFFLINE, EVEN WHILE YOU SLEEP
+Close the app and the staff keep working offline. Come back to the Overnight Backlog Report, a pile of processed souls and an optional ad to double it. Daily tasks, login streaks and 80 achievements keep the paperwork coming.
 
-THE OFFICE RUNS WITHOUT YOU
-Close the app and your staff keep working. Come back to the Overnight Backlog Report and a
-pile of souls processed in your absence. Daily tasks, streaks and eighty achievements keep
-the paperwork coming.
+PLAY YOUR WAY
+- Idle game pacing that respects your time: a few minutes a day is enough
+- Offline earnings with an upgradeable cap
+- Optional Google sign-in with cloud save, so your desk follows you to a new phone
+- Play Games achievements and a lifetime souls leaderboard
+- Light and dark theme
+- Rewarded ads only. No banners, no interstitials, nothing that interrupts a stamp
+- Optional purchases; everything in the game can be earned by playing
 
-NO ACCOUNT, NO NONSENSE
-Plays offline. No sign-up, no login, nothing collected about you. Optional rewarded ads only
-- no banners, no interstitials, nothing that interrupts a stamp.
+A satirical office tycoon for fans of idle games, clicker games and incremental games. The queue is out of the door and eternity is on the clock. Take a number, clock in, and start stamping.
 ```
 
 ## Graphics checklist
