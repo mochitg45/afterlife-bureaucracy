@@ -104,12 +104,14 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
   // remainder toward the next whole grant (always < 1, independent of grant size), so
   // scaling it would push it past the valid range and have it sanitized back to 0.
   // Same step: star-ups now cost 1/2/3/5 duplicates instead of 1 each, tracked as banked
-  // shards per card. No tester device has shipped save v8 yet, so this folds into the step
-  // rather than adding v9.
+  // shards per card. Same step again: the first purchase of each voucher pack now pays
+  // double, tracked per product id in entitlements.firstBuyUsed. No tester device has
+  // shipped save v8 yet, so all three fold into this step rather than adding v9.
   (raw) => ({
     ...raw,
     vouchers: num(raw.vouchers) * 10,
     cardShards: {},
+    entitlements: { ...(raw.entitlements as Raw | undefined), firstBuyUsed: {} },
   }),
 ];
 

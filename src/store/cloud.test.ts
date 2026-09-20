@@ -158,7 +158,7 @@ describe('cloud sync on boot', () => {
   it('keeps entitlements bought on this device through a download', async () => {
     const local = saveState({
       soulsLifetime: new Decimal(1), soulsRun: new Decimal(1),
-      entitlements: { removeAds: true, unionUntilWall: T0 + 86_400_000, starterPackBought: true },
+      entitlements: { removeAds: true, unionUntilWall: T0 + 86_400_000, starterPackBought: true, firstBuyUsed: { vouchers_10: true } },
     });
     const remote = saveState({
       soulsLifetime: new Decimal(80_000), soulsRun: new Decimal(80_000), savedAtWall: T0 - 1_000,
@@ -169,6 +169,9 @@ describe('cloud sync on boot', () => {
     expect(store.getState().state.entitlements.removeAds).toBe(true);
     expect(store.getState().state.entitlements.starterPackBought).toBe(true);
     expect(store.getState().state.entitlements.unionUntilWall).toBe(T0 + 86_400_000);
+    // The first-buy flag is a purchase record too: a cloud save written before it happened
+    // must not erase it.
+    expect(store.getState().state.entitlements.firstBuyUsed).toEqual({ vouchers_10: true });
     store.getState().stopLoop();
   });
 

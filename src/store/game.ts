@@ -447,17 +447,23 @@ export function createGameStore(deps: StoreDeps) {
      *
      * Returns whether anything moved, so the caller can skip a pointless write.
      */
-    const mergeRestored = (restored: Restored): boolean => {
+    const mergeRestored = (restored: Restored & { firstBuyUsed?: Record<string, boolean> }): boolean => {
       const held = get().state.entitlements;
       const merged = {
         removeAds: held.removeAds || restored.removeAds,
         unionUntilWall: Math.max(held.unionUntilWall, restored.unionUntilWall),
         starterPackBought: held.starterPackBought || restored.starterPackBought,
+        // Never-take-away per product id too: only RevenueCat entitlements go through this
+        // path with no firstBuyUsed of their own (union of nothing changes nothing), while
+        // takeCloud passes this device's own flags so a purchase already made here survives
+        // a cloud save written before it happened.
+        firstBuyUsed: { ...held.firstBuyUsed, ...restored.firstBuyUsed },
       };
       const changed =
         merged.removeAds !== held.removeAds ||
         merged.unionUntilWall !== held.unionUntilWall ||
-        merged.starterPackBought !== held.starterPackBought;
+        merged.starterPackBought !== held.starterPackBought ||
+        Object.keys(merged.firstBuyUsed).length !== Object.keys(held.firstBuyUsed).length;
       if (!changed) return false;
       apply({ ...get().state, entitlements: merged });
       return true;
@@ -1346,7 +1352,7 @@ export function createGameStore(deps: StoreDeps) {
         return encodeSave(
           serialize({
             ...s,
-            entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false },
+            entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} },
             stats: { ...s.stats, purchases: 0 },
           }),
         );

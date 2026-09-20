@@ -68,10 +68,25 @@ const ART: Record<ProductId, ReactElement> = {
   ),
 };
 
-export function StoreArt({ productId, size = 56 }: { productId: ProductId; size?: number }): ReactElement {
+/**
+ * Badge for a pack whose first purchase pays double: a red disc about 45% of the art's width,
+ * overlapping the top-right corner, with a thick cream "2x" drawn as paths (no <text>).
+ */
+function DoubleBadge() {
+  return (
+    <g data-first-buy-badge="true">
+      <circle cx={47} cy={15} r={14.5} fill="var(--red)" stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M39 12 Q39 8 43 8 Q47 8 47 11.5 Q47 14.5 43 18.5 L39 22.5 L47 22.5" fill="none" stroke="#F7F2E4" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M50 9 L58 22.5 M58 9 L50 22.5" fill="none" stroke="#F7F2E4" strokeWidth={5} strokeLinecap="round" />
+    </g>
+  );
+}
+
+export function StoreArt({ productId, size = 56, firstBuy = false }: { productId: ProductId; size?: number; firstBuy?: boolean }): ReactElement {
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} data-product={productId} aria-hidden="true">
       {ART[productId]}
+      {firstBuy && <DoubleBadge />}
     </svg>
   );
 }

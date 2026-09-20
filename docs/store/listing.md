@@ -102,6 +102,8 @@ runtime (the app always displays the store's own localised price, never these).
 | `remove_ads` | Exempt From Advertising | $4.99 | Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on the player — the rewarded buttons stay optional either way, and there are no other ad prompts to remove |
 | `starter_pack` | New Clerk Starter Pack | $2.99 | Offered once, only while days since first launch ≤ 3: 200 vouchers, the Senior Staff card Grandma Liu at 1 star, and Karma Credits equal to 30 minutes of current income |
 
+The first purchase of each voucher pack pays double (e.g. `vouchers_10` grants 200, not 100); every purchase after that pays the listed amount.
+
 ### Subscription
 
 | Product ID | Base plan | Price (US, confirm in Play Console) | What the player gets |

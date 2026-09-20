@@ -232,7 +232,7 @@ describe('save v5', () => {
 describe('save v6', () => {
   it('initial state carries the v6 defaults', () => {
     const s = createInitialState(now, content);
-    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} });
     expect(s.adState).toEqual({ freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 });
     expect(s.cosmicPoints).toBe(0);
     expect(s.cosmicClauses).toEqual([]);
@@ -244,7 +244,7 @@ describe('save v6', () => {
   it('migrates a v5 save to v6 with defaults, keeping the rest of it', () => {
     const s = deserialize(JSON.stringify(saveV5), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
-    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} });
     expect(s.adState).toEqual({ freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 });
     expect(s.cosmicPoints).toBe(0);
     expect(s.cosmicClauses).toEqual([]);
@@ -258,7 +258,7 @@ describe('save v6', () => {
   it('loads the v6 fixture', () => {
     const s = deserialize(JSON.stringify(saveV6), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
-    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true });
+    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true, firstBuyUsed: {} });
     expect(s.adState).toEqual({ freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1700000300000 });
     expect(s.cosmicPoints).toBe(2);
     expect(s.cosmicClauses).toEqual(['clause-throughput-1']);
@@ -270,13 +270,13 @@ describe('save v6', () => {
   it('sanitises the entitlement and ad-state fields', () => {
     const raw = {
       ...saveV6,
-      entitlements: { removeAds: 'yes', unionUntilWall: -5, starterPackBought: 1 },
+      entitlements: { removeAds: 'yes', unionUntilWall: -5, starterPackBought: 1, firstBuyUsed: { vouchers_10: 'yes' } },
       adState: { freePullDate: 7, dailySkipDate: null, boostCooldownUntilWall: -200 },
       cosmicPoints: -3,
       stats: { ...saveV6.stats, cosmics: -1, purchases: 'x' },
     };
     const s = deserialize(JSON.stringify(raw), content);
-    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(s.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} });
     expect(s.adState).toEqual({ freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 });
     expect(s.cosmicPoints).toBe(0);
     expect(s.stats.cosmics).toBe(0);
@@ -312,7 +312,7 @@ describe('save v7', () => {
     expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
     expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
     expect(s.savedAtWall).toBe(0);
-    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true });
+    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true, firstBuyUsed: {} });
     expect(s.voucherFraction).toBeCloseTo(0.4);
   });
   it('loads the v7 fixture', () => {
@@ -355,6 +355,12 @@ describe('save v8 (playtest round 1: vouchers x10)', () => {
     const s = deserialize(JSON.stringify(saveV8), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.vouchers).toBe(50);
+    expect(s.entitlements.firstBuyUsed).toEqual({});
+  });
+  it('folds an empty firstBuyUsed map into a v7 save migrated to v8, keeping the rest of entitlements', () => {
+    const raw = { ...saveV7 };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true, firstBuyUsed: {} });
   });
 });
 
@@ -399,7 +405,7 @@ describe('exhaustive save round-trip', () => {
       storySeen: ['s-first-stamp', 's-deja-vu'],
       settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'dark' },
       firstSeenWallClock: 1_699_000_000_000,
-      entitlements: { removeAds: true, unionUntilWall: 1_700_000_999_000, starterPackBought: true },
+      entitlements: { removeAds: true, unionUntilWall: 1_700_000_999_000, starterPackBought: true, firstBuyUsed: { vouchers_10: true } },
       adState: { freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1_700_000_555_000 },
       cosmicPoints: 3,
       cosmicClauses: ['clause-throughput-1', 'clause-seals-1'],

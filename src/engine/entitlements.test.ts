@@ -59,16 +59,28 @@ describe('starter pack eligibility', () => {
 });
 
 describe('applyPurchase', () => {
-  it('grants each voucher pack exactly, ignoring the voucher multiplier', () => {
+  it('grants each voucher pack double on the first buy, ignoring the voucher multiplier', () => {
     // A requisition perk and a carried remainder would both inflate a multiplied grant.
     const s: GameState = { ...fresh(), perks: ['requisition-1'], voucherFraction: 0.9 };
     for (const [id, amount] of Object.entries(VOUCHER_PACKS)) {
       const next = applyPurchase(s, content, id as keyof typeof VOUCHER_PACKS, now.wall, rate);
-      expect(next.vouchers, id).toBe(amount);
+      expect(next.vouchers, id).toBe(amount * 2);
+      expect(next.entitlements.firstBuyUsed[id], id).toBe(true);
       expect(next.voucherFraction, id).toBe(0.9);
       expect(next.stats.purchases, id).toBe(1);
     }
     expect(VOUCHER_PACKS).toEqual({ vouchers_10: 100, vouchers_55: 550, vouchers_120: 1200, vouchers_300: 3000 });
+  });
+
+  it('pays the listed amount, not double, from the second purchase of a pack id on', () => {
+    const first = applyPurchase(fresh(), content, 'vouchers_10', now.wall, rate);
+    expect(first.vouchers).toBe(200);
+    const second = applyPurchase(first, content, 'vouchers_10', now.wall, rate);
+    expect(second.vouchers).toBe(300);
+    // Buying a different pack id first is still that id's own first buy.
+    const other = applyPurchase(first, content, 'vouchers_55', now.wall, rate);
+    expect(other.vouchers).toBe(200 + 1100);
+    expect(other.entitlements.firstBuyUsed).toEqual({ vouchers_10: true, vouchers_55: true });
   });
 
   it('remove_ads sets the permanent entitlement', () => {

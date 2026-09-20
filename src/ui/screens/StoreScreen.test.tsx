@@ -62,7 +62,7 @@ describe('StoreScreen', () => {
   });
 
   it('marks Remove Ads as owned instead of offering it again', () => {
-    seed({ entitlements: { removeAds: true, unionUntilWall: 0, starterPackBought: false } });
+    seed({ entitlements: { removeAds: true, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} } });
     render(<StoreScreen />);
     expect(screen.queryByRole('button', { name: 'Buy Exempt From Advertising' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Remove Ads' })).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('StoreScreen', () => {
 
   it('shows the expiry date while the membership is active', () => {
     const until = NOW + UNION_PERIOD_MS;
-    seed({ entitlements: { removeAds: false, unionUntilWall: until, starterPackBought: false } });
+    seed({ entitlements: { removeAds: false, unionUntilWall: until, starterPackBought: false, firstBuyUsed: {} } });
     render(<StoreScreen />);
     expect(screen.getByText(`Active until ${new Date(until).toLocaleDateString()}`)).toBeInTheDocument();
   });
@@ -174,6 +174,26 @@ describe('StoreScreen', () => {
       return el!.innerHTML;
     });
     expect(new Set(arts).size).toBe(voucherIds.length);
+  });
+
+  it('flags the first-purchase-pays-double copy, pill and badge, then hides all three once used', () => {
+    seed({ firstSeenWallClock: NOW });
+    const { container, rerender } = render(<StoreScreen />);
+    expect(screen.getByText('First purchase pays double: 200 vouchers')).toBeInTheDocument();
+    expect(screen.getAllByText(/first purchase pays double/i)).toHaveLength(4);
+    expect(screen.getAllByText('2× FIRST PURCHASE')).toHaveLength(4);
+    expect(container.querySelector('svg[data-product="vouchers_10"] [data-first-buy-badge]')).toBeInTheDocument();
+
+    seed({ firstSeenWallClock: NOW, entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: { vouchers_10: true } } });
+    rerender(<StoreScreen />);
+    // vouchers_10's own line, pill and badge are gone; the other three packs are untouched.
+    expect(screen.queryByText('First purchase pays double: 200 vouchers')).not.toBeInTheDocument();
+    expect(screen.getAllByText(/first purchase pays double/i)).toHaveLength(3);
+    expect(screen.getAllByText('2× FIRST PURCHASE')).toHaveLength(3);
+    expect(container.querySelector('svg[data-product="vouchers_10"] [data-first-buy-badge]')).not.toBeInTheDocument();
+    for (const id of ['vouchers_55', 'vouchers_120', 'vouchers_300']) {
+      expect(container.querySelector(`svg[data-product="${id}"] [data-first-buy-badge]`)).toBeInTheDocument();
+    }
   });
 
   it('shows the settings gear', () => {

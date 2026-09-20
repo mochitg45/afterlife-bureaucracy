@@ -71,7 +71,13 @@ export function applyPurchase(
 ): GameState {
   const next: GameState = { ...state, stats: { ...state.stats, purchases: state.stats.purchases + 1 } };
   const pack = VOUCHER_PACKS[id];
-  if (pack) return grantVouchersExact(next, pack);
+  if (pack) {
+    const firstBuy = !next.entitlements.firstBuyUsed[id];
+    const withVouchers = grantVouchersExact(next, firstBuy ? pack * 2 : pack);
+    return firstBuy
+      ? { ...withVouchers, entitlements: { ...withVouchers.entitlements, firstBuyUsed: { ...withVouchers.entitlements.firstBuyUsed, [id]: true } } }
+      : withVouchers;
+  }
   switch (id) {
     case 'remove_ads':
       return { ...next, entitlements: { ...next.entitlements, removeAds: true } };

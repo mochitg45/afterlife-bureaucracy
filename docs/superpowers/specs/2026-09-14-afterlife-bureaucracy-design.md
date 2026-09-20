@@ -146,7 +146,7 @@ A Restructuring also opens a **new fiscal calendar**: the fiscal year goes back 
 - Skip one daily task.
 
 **In-app purchases** (Google Play Billing 8+, via RevenueCat or the Capacitor community billing plugin; decide at implementation time based on plugin health).
-- Voucher packs: 10, 55, 120, 300.
+- Voucher packs: 10, 55, 120, 300. The first purchase of each pack id pays double; every purchase after that pays the listed amount.
 - Remove Ads (one-time, about $4.99): a permanent ×2 on the Overnight Backlog Report. The name is the joke, not the promise — v1 shows no interstitials, banners or forced prompts to anybody, so there is nothing for it to remove, and the store copy, the privacy policy and the Play listing all say plainly that the rewarded buttons stay optional either way. Making the rewarded rewards free for owners (an ad-free ×2 Backlog Report, a free pull without the ad) is a v1.1 candidate; it is deliberately not v1.0, because it would turn every rewarded placement into a second price list.
 - Starter Pack: offered once, days 1–3: vouchers, one Senior Staff card, KC.
 - Union Membership (monthly subscription): daily vouchers, +25% global rate, daily tasks auto-collect.

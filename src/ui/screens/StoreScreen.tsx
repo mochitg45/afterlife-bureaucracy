@@ -7,6 +7,7 @@ import {
   STARTER_PACK_VOUCHERS,
   STARTER_PACK_KC_SECONDS,
   UNION_ROLLOVER_VOUCHERS,
+  VOUCHER_PACKS,
   starterPackEligible,
   unionActive,
 } from '../../engine/entitlements';
@@ -42,6 +43,27 @@ export const RESTORE_TEXT: Record<RestoreResult, string> = {
  * three-day window and nowhere near the ten-a-second tick.
  */
 const WINDOW_POLL_MS = 60_000;
+
+/** One voucher-pack row. A narrow selector on just this id's flag: a purchase of one pack
+ *  must not re-render every other pack's row. */
+function PackRow({ product, onResult }: { product: Product; onResult: (r: PurchaseResult) => void }) {
+  const firstBuyUsed = useGame((s) => s.state.entitlements.firstBuyUsed[product.id] ?? false);
+  const doubleAmount = (VOUCHER_PACKS[product.id] ?? 0) * 2;
+  return (
+    <div className="card store-section store-row">
+      <StoreArt productId={product.id} firstBuy={!firstBuyUsed} />
+      <div>
+        {!firstBuyUsed && (
+          <span style={{ display: 'inline-block', background: 'var(--red)', color: '#F7F2E4', fontSize: '0.7em', fontWeight: 700, letterSpacing: '0.04em', borderRadius: 999, padding: '2px 8px', marginBottom: 4 }}>
+            2× FIRST PURCHASE
+          </span>
+        )}
+        <BuyButton product={product} onResult={onResult} />
+        {!firstBuyUsed && <p className="sub">First purchase pays double: {doubleAmount} vouchers</p>}
+      </div>
+    </div>
+  );
+}
 
 function BuyButton({ product, primary, onResult }: { product: Product; primary?: boolean; onResult: (r: PurchaseResult) => void }) {
   const buy = useGame((s) => s.buy);
@@ -107,12 +129,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
         <>
           <h3>Vouchers</h3>
           <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied.</p>
-          {packs.map((p) => (
-            <div className="card store-section store-row" key={p.id}>
-              <StoreArt productId={p.id} />
-              <BuyButton product={p} onResult={onPurchase} />
-            </div>
-          ))}
+          {packs.map((p) => <PackRow product={p} onResult={onPurchase} key={p.id} />)}
         </>
       )}
 

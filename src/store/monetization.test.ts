@@ -349,7 +349,8 @@ describe('purchases', () => {
     seed({ perks: ['requisition-1'], staff: { dave: 20 } });
     expect(await store.getState().buy('vouchers_55')).toBe('ok');
     expect(billing.bought).toEqual(['vouchers_55']);
-    expect(store.getState().state.vouchers).toBe(550);
+    // The first purchase of a pack id pays double.
+    expect(store.getState().state.vouchers).toBe(1100);
     expect(store.getState().state.stats.purchases).toBe(1);
 
     expect(await store.getState().buy('remove_ads')).toBe('ok');
@@ -359,7 +360,7 @@ describe('purchases', () => {
     const kcPerSec = store.getState().rates.kcPerSec;
     expect(await store.getState().buy('starter_pack')).toBe('ok');
     const afterPack = store.getState().state;
-    expect(afterPack.vouchers).toBe(550 + STARTER_PACK_VOUCHERS);
+    expect(afterPack.vouchers).toBe(1100 + STARTER_PACK_VOUCHERS);
     expect(afterPack.cards[STARTER_PACK_CARD]).toBe(1);
     expect(afterPack.kc.sub(kcBefore).eq(kcPerSec.mul(STARTER_PACK_KC_SECONDS))).toBe(true);
 
@@ -402,13 +403,14 @@ describe('purchases', () => {
 
   it('restores entitlements without downgrading the ones already held', async () => {
     const { store, billing, seed } = await make();
-    seed({ entitlements: { removeAds: true, unionUntilWall: T0 + 10_000, starterPackBought: false } });
+    seed({ entitlements: { removeAds: true, unionUntilWall: T0 + 10_000, starterPackBought: false, firstBuyUsed: {} } });
     billing.setRestored({ removeAds: false, unionUntilWall: T0 + 5_000, starterPackBought: true });
     await store.getState().restorePurchases();
     expect(store.getState().state.entitlements).toEqual({
       removeAds: true,
       unionUntilWall: T0 + 10_000,
       starterPackBought: true,
+      firstBuyUsed: {},
     });
     store.getState().stopLoop();
   });
@@ -435,7 +437,7 @@ describe('entitlement sync', () => {
   it('sync never takes an entitlement away', async () => {
     const { store, billing, seed, clock } = await make();
     await vi.waitFor(() => expect(billing.syncCount()).toBeGreaterThan(0));
-    seed({ entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true } });
+    seed({ entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true, firstBuyUsed: {} } });
     billing.setSynced({ ...NOTHING });
     await store.getState().pause();
     clock.advance(1000);
@@ -444,6 +446,7 @@ describe('entitlement sync', () => {
       removeAds: true,
       unionUntilWall: T0 + UNION_PERIOD_MS,
       starterPackBought: true,
+      firstBuyUsed: {},
     });
     store.getState().stopLoop();
   });
@@ -666,12 +669,12 @@ describe('game services and the save code', () => {
     const { store, seed } = await make();
     seed({
       vouchers: 7,
-      entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true },
+      entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: true, firstBuyUsed: {} },
       stats: { ...store.getState().state.stats, purchases: 4 },
     });
     const exported = JSON.parse(decodeSave(store.getState().exportSaveCode()));
     expect(exported.vouchers).toBe(7);
-    expect(exported.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false });
+    expect(exported.entitlements).toEqual({ removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} });
     expect(exported.stats.purchases).toBe(0);
     // The running save keeps everything it had.
     expect(store.getState().state.entitlements.removeAds).toBe(true);
@@ -681,14 +684,14 @@ describe('game services and the save code', () => {
   it('keeps the importer\'s own entitlements, whatever the code claims', async () => {
     const { store, seed } = await make();
     const mine = seed({
-      entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: false },
+      entitlements: { removeAds: true, unionUntilWall: T0 + UNION_PERIOD_MS, starterPackBought: false, firstBuyUsed: {} },
       stats: { ...store.getState().state.stats, purchases: 2 },
     });
     // A code from an older build, or a hand-edited one, that does carry entitlements.
     const foreign = {
       ...mine,
       vouchers: 42,
-      entitlements: { removeAds: false, unionUntilWall: T0 + 10 * UNION_PERIOD_MS, starterPackBought: true },
+      entitlements: { removeAds: false, unionUntilWall: T0 + 10 * UNION_PERIOD_MS, starterPackBought: true, firstBuyUsed: {} },
       stats: { ...mine.stats, purchases: 99 },
     };
     expect(await store.getState().importSaveCode(encodeSave(serialize(foreign)))).toBe('ok');
@@ -697,6 +700,7 @@ describe('game services and the save code', () => {
       removeAds: true,
       unionUntilWall: T0 + UNION_PERIOD_MS,
       starterPackBought: false,
+      firstBuyUsed: {},
     });
     expect(store.getState().state.stats.purchases).toBe(2);
     store.getState().stopLoop();

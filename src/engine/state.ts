@@ -26,6 +26,8 @@ export interface Entitlements {
   /** Wall-clock ms-epoch the Union Membership runs to; 0 when not subscribed. */
   unionUntilWall: number;
   starterPackBought: boolean;
+  /** Product ids whose first purchase (paid double) has already happened. */
+  firstBuyUsed: Record<string, boolean>;
 }
 
 /** Per-day and per-cooldown bookkeeping for the rewarded-ad placements. */
@@ -187,7 +189,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     storySeen: [],
     settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light' },
     firstSeenWallClock: now.wall,
-    entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false },
+    entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} },
     adState: { freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 },
     cosmicPoints: 0,
     cosmicClauses: [],
@@ -234,6 +236,16 @@ function counts(v: unknown): Record<string, number> {
   for (const [key, raw] of Object.entries(v as Record<string, unknown>)) {
     const n = num(raw, -1);
     if (n >= 0) out[key] = n;
+  }
+  return out;
+}
+
+/** Flag maps (e.g. first-buy-used): keep only entries that are actually true. */
+function boolFlags(v: unknown): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return out;
+  for (const [key, raw] of Object.entries(v as Record<string, unknown>)) {
+    if (raw === true) out[key] = true;
   }
   return out;
 }
@@ -317,6 +329,7 @@ function sanitizeEntitlements(v: unknown): Entitlements {
     removeAds: bool(raw.removeAds, false),
     unionUntilWall: nonNeg(raw.unionUntilWall),
     starterPackBought: bool(raw.starterPackBought, false),
+    firstBuyUsed: boolFlags(raw.firstBuyUsed),
   };
 }
 

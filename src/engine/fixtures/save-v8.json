@@ -26,7 +26,7 @@
   "storySeen": ["s-first-stamp"],
   "settings": { "notifOptIn": "yes", "notifDate": "2026-09-14", "notifsSent": 1 },
   "firstSeenWallClock": 1700000000000,
-  "entitlements": { "removeAds": true, "unionUntilWall": 1700000600000, "starterPackBought": true },
+  "entitlements": { "removeAds": true, "unionUntilWall": 1700000600000, "starterPackBought": true, "firstBuyUsed": {} },
   "adState": { "freePullDate": "2026-09-14", "dailySkipDate": "2026-09-13", "boostCooldownUntilWall": 1700000300000 },
   "cosmicPoints": 2,
   "cosmicClauses": ["clause-throughput-1"],
