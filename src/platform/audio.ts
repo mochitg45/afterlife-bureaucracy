@@ -112,20 +112,34 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
   const startAmbience = () => {
     if (!ctx || !music || ambience || !musicOn) return;
     const c = ctx;
-    const o1 = c.createOscillator();
-    const o2 = c.createOscillator();
-    const g = c.createGain();
-    o1.frequency.value = 55;
-    o2.frequency.value = 110.5; // the half-cycle offset makes the hum breathe
-    g.gain.value = 0.12;
-    o1.connect(g); o2.connect(g); g.connect(music);
-    o1.start(); o2.start();
-    hum = { stop() { o1.stop(); o2.stop(); } };
+    try {
+      const o1 = c.createOscillator();
+      const o2 = c.createOscillator();
+      const g = c.createGain();
+      o1.frequency.value = 55;
+      o2.frequency.value = 110.5; // the half-cycle offset makes the hum breathe
+      g.gain.value = 0.12;
+      o1.connect(g); o2.connect(g); g.connect(music);
+      o1.start(); o2.start();
+      hum = { stop() { o1.stop(); o2.stop(); } };
+    } catch {
+      // a closed context is silence, not a crash: leave ambience/hum unset so a later
+      // unlock/resume/setEnabled call can retry once the context is alive again.
+      ambience = null;
+      hum = null;
+      return;
+    }
     const clack = () => {
       if (!ambience) return;
-      const burst = 1 + Math.floor(Math.random() * 4);
-      for (let i = 0; i < burst; i++) noise(music!, 0.03, { cutoff: 3500, gain: 0.35, at: i * (0.09 + Math.random() * 0.06) });
-      if (Math.random() < 0.06) tone(music!, 1760, 0.5, { gain: 0.12 });
+      try {
+        const burst = 1 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < burst; i++) noise(music!, 0.03, { cutoff: 3500, gain: 0.35, at: i * (0.09 + Math.random() * 0.06) });
+        if (Math.random() < 0.06) tone(music!, 1760, 0.5, { gain: 0.12 });
+      } catch {
+        ambience = null;
+        hum = null;
+        return;
+      }
       ambience = setTimeout(clack, 600 + Math.random() * 2400);
     };
     ambience = setTimeout(clack, 400);

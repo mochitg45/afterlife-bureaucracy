@@ -82,4 +82,20 @@ describe('audio', () => {
       expect(ctx.started.length, n).toBeGreaterThan(before);
     }
   });
+
+  it('recovers ambience after a closed-context throw during unlock', () => {
+    vi.useFakeTimers();
+    const ctx = fakeContext();
+    const workingCreateOscillator = ctx.createOscillator;
+    ctx.createOscillator = () => { throw new DOMException('closed', 'InvalidStateError'); };
+    const audio = createAudio(() => ctx as unknown as AudioContext);
+    expect(() => audio.unlock()).not.toThrow();
+    expect(ctx.started).toHaveLength(0);
+
+    ctx.createOscillator = workingCreateOscillator;
+    audio.setEnabled({ sfx: true, music: true });
+    vi.advanceTimersByTime(4000);
+    expect(ctx.started.length).toBeGreaterThan(0);
+    vi.useRealTimers();
+  });
 });
