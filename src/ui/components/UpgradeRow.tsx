@@ -1,6 +1,6 @@
 import { useGame } from '../../store/game';
 import type { UpgradeDef } from '../../engine/content';
-import { upgradeCost } from '../../engine/economy';
+import { upgradeCost, canAfford } from '../../engine/economy';
 import { formatNumber } from '../../engine/format';
 
 export function UpgradeRow({ upgrade }: { upgrade: UpgradeDef }) {
@@ -10,7 +10,7 @@ export function UpgradeRow({ upgrade }: { upgrade: UpgradeDef }) {
   const maxed = level >= upgrade.maxLevel;
   const cost = upgradeCost(upgrade, level);
   return (
-    <button className="card upgrade-row" disabled={maxed || cost.gt(kc)} onClick={() => buy(upgrade.id)} aria-label={upgrade.name}>
+    <button className="card upgrade-row" disabled={maxed || !canAfford(cost, kc)} onClick={() => buy(upgrade.id)} aria-label={upgrade.name}>
       <div>
         <div className="staff-name">{upgrade.name} <span className="mono owned">{level}/{upgrade.maxLevel}</span></div>
         <div className="sub">{upgrade.desc}</div>

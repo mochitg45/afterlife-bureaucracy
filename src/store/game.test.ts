@@ -53,6 +53,17 @@ describe('game store', () => {
     store.getState().stopLoop();
   });
 
+  it('moves training to the hire step only once Dave is affordable', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.getState().stamp();
+    expect(store.getState().state.onboarding.trainingStep).toBe(0);
+    for (let i = 0; i < 14; i++) store.getState().stamp();
+    expect(store.getState().state.kc.toNumber()).toBe(15);
+    expect(store.getState().state.onboarding.trainingStep).toBe(1);
+    store.getState().stopLoop();
+  });
+
   it('hire and upgrade go through the engine', async () => {
     const { store } = await make();
     await store.getState().boot();

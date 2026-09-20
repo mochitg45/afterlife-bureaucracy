@@ -2,7 +2,7 @@ import Decimal from 'break_infinity.js';
 import { useGame } from '../../store/game';
 import type { StaffDef } from '../../engine/content';
 import type { BuyMode } from '../../engine/actions';
-import { staffBulkCost, maxAffordable, nextMilestone, prevMilestone } from '../../engine/economy';
+import { staffBulkCost, maxAffordable, nextMilestone, prevMilestone, canAfford } from '../../engine/economy';
 import { formatNumber } from '../../engine/format';
 import { Character } from '../characters/Character';
 
@@ -16,7 +16,7 @@ export function StaffRow({ staff, mode }: { staff: StaffDef; mode: BuyMode }) {
   const mood = useGame((s) => s.mood);
   const count = mode === 'max' ? maxAffordable(staff, owned, kc) : mode;
   const cost = staffBulkCost(staff, owned, Math.max(count, 1));
-  const affordable = count > 0 && cost.lte(kc);
+  const affordable = count > 0 && canAfford(cost, kc);
   const next = nextMilestone(owned);
   const prev = prevMilestone(owned);
   const progress = Math.min(1, (owned - prev) / (next - prev));

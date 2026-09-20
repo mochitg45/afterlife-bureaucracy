@@ -587,6 +587,8 @@ describe('onboarding progress', () => {
     await store.getState().boot();
     expect(store.getState().state.onboarding.trainingStep).toBe(0);
     store.getState().stamp();
+    expect(store.getState().state.onboarding.trainingStep).toBe(0); // Dave costs 15; one stamp is not a hire
+    for (let i = 0; i < 14; i++) store.getState().stamp();
     expect(store.getState().state.onboarding.trainingStep).toBe(1);
     store.getState().stamp();
     expect(store.getState().state.onboarding.trainingStep).toBe(1);
@@ -606,8 +608,9 @@ describe('onboarding progress', () => {
   it('a hire that cannot be afforded does not move training on', async () => {
     const { store } = await make();
     await store.getState().boot();
-    store.getState().stamp();
-    store.getState().hire('dave', 1);
+    for (let i = 0; i < 15; i++) store.getState().stamp();
+    expect(store.getState().state.onboarding.trainingStep).toBe(1);
+    store.getState().hire('dave', 10); // ten Daves cost far more than 15
     expect(store.getState().state.staff.dave).toBeUndefined();
     expect(store.getState().state.onboarding.trainingStep).toBe(1);
     store.getState().stopLoop();

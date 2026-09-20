@@ -27,8 +27,18 @@ export function staffUnitCost(def: StaffDef, owned: number): Decimal {
   return new Decimal(def.baseCost).mul(Decimal.pow(COST_GROWTH, owned));
 }
 
+/**
+ * Affordability with a hair of tolerance. The geometric cost series and the tick's rate maths
+ * both leave float residue, so "15 Karma" on screen can sit at 14.999999999999998 underneath
+ * and refuse a 15-Karma hire; a first-launch player stuck on "Hire Dave" was how it surfaced.
+ */
+export function canAfford(cost: Decimal, kc: Decimal): boolean {
+  return cost.lte(kc.mul(1 + 1e-9));
+}
+
 export function staffBulkCost(def: StaffDef, owned: number, count: number): Decimal {
   if (count <= 0) return new Decimal(0);
+  if (count === 1) return staffUnitCost(def, owned); // exact: the series form leaves residue
   // geometric series: unit × (r^count − 1) / (r − 1)
   const first = staffUnitCost(def, owned);
   return first.mul(Decimal.pow(COST_GROWTH, count).sub(1)).div(COST_GROWTH - 1);
@@ -41,8 +51,8 @@ export function maxAffordable(def: StaffDef, owned: number, kc: Decimal): number
   const inner = kc.mul(COST_GROWTH - 1).div(first).add(1);
   let n = Math.floor(inner.log10() / Math.log10(COST_GROWTH));
   // guard against floating error on the boundary
-  while (n > 0 && staffBulkCost(def, owned, n).gt(kc)) n--;
-  while (staffBulkCost(def, owned, n + 1).lte(kc)) n++;
+  while (n > 0 && !canAfford(staffBulkCost(def, owned, n), kc)) n--;
+  while (canAfford(staffBulkCost(def, owned, n + 1), kc)) n++;
   return n;
 }
 

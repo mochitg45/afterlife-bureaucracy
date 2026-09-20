@@ -2,7 +2,7 @@ import Decimal from 'break_infinity.js';
 import type { GameState } from './state';
 import type { Content } from './content';
 import { findStaff, findUpgrade, findPerk } from './content';
-import { computeRates, staffBulkCost, maxAffordable, upgradeCost, upgradeLevel, type Rates } from './economy';
+import { computeRates, staffBulkCost, maxAffordable, upgradeCost, upgradeLevel, type Rates, canAfford } from './economy';
 import { canBuyPerk } from './perks';
 
 export type BuyMode = 1 | 10 | 'max';
@@ -57,7 +57,7 @@ export function buyStaff(state: GameState, content: Content, staffId: string, mo
   const count = mode === 'max' ? maxAffordable(staff, owned, state.kc) : mode;
   if (count <= 0) return state;
   const cost = staffBulkCost(staff, owned, count);
-  if (cost.gt(state.kc)) return state;
+  if (!canAfford(cost, state.kc)) return state;
   return {
     ...state,
     kc: state.kc.sub(cost),
@@ -71,7 +71,7 @@ export function buyUpgrade(state: GameState, content: Content, upgradeId: string
   const level = upgradeLevel(state, upgradeId);
   if (level >= upgrade.maxLevel) return state;
   const cost = upgradeCost(upgrade, level);
-  if (cost.gt(state.kc)) return state;
+  if (!canAfford(cost, state.kc)) return state;
   return {
     ...state,
     kc: state.kc.sub(cost),

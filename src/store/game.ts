@@ -3,7 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional';
 import type { Content, DepartmentDef, AchievementDef, StoryDef } from '../engine/content';
 import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, type GameState, type Settings } from '../engine/state';
-import { computeRates, BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS, type Rates } from '../engine/economy';
+import { staffBulkCost, canAfford, computeRates, BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
 import { canAudit, fileAudit } from '../engine/prestige';
 import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/offline';
@@ -1011,9 +1011,11 @@ export function createGameStore(deps: StoreDeps) {
 
       stamp() {
         const s = get().state;
-        // The first stamp is the first training step, folded into the same write rather than
-        // a second one: one action, one settle.
-        apply(withTraining(click(s, content, clock.wall()), s.onboarding.trainingStep === 0 ? 1 : 0), { mood: 'ok' });
+        // The stamp step hands over to "hire Dave" only once Dave is affordable; asking for a
+        // hire the button refuses left first-launch players with nothing to do but Skip.
+        const next = click(s, content, clock.wall());
+        const canHire = canAfford(staffBulkCost(content.departments[0].staff[0], 0, 1), next.kc);
+        apply(withTraining(next, s.onboarding.trainingStep === 0 && canHire ? 1 : 0), { mood: 'ok' });
       },
       hire(staffId, mode) {
         const s = get().state;
