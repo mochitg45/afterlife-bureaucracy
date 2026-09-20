@@ -9,6 +9,7 @@
  * the real app: everything on them comes from the engine rendering a seeded save.
  */
 import { mkdir, readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { build, preview } from 'vite';
@@ -16,6 +17,8 @@ import { chromium } from 'playwright';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(root, 'docs', 'store', 'screenshots');
+const rawDir = path.join(tmpdir(), 'afterlife-shots-raw');
+const fontFile = path.join(root, 'node_modules/@fontsource/special-elite/files/special-elite-latin-400-normal.woff2');
 const PORT = 4317;
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -112,8 +115,10 @@ const STILL_CSS = `
 
 async function shoot(browser, url, { file, save, tab, waitFor }) {
   const context = await browser.newContext({
-    viewport: { width: WIDTH, height: HEIGHT },
-    deviceScaleFactor: 1,
+    // A phone-shaped frame at 2×: the bezel in compose() is 768 px wide inside, so the app lays
+    // out as it does on a real handset instead of stretching to the listing's 1080 px.
+    viewport: { width: 400, height: 890 },
+    deviceScaleFactor: 2,
     colorScheme: 'light',
     reducedMotion: 'reduce',
   });
@@ -126,19 +131,51 @@ async function shoot(browser, url, { file, save, tab, waitFor }) {
   const page = await context.newPage();
   await page.goto(url, { waitUntil: 'load' });
   await page.addStyleTag({ content: STILL_CSS });
+  // STILL_CSS also freezes the splash, whose animationend never fires; a tap skips it.
+  await page.getByTestId('splash').click({ timeout: 5000 }).catch(() => {});
   // Every cold boot opens on the title screen, so the office is one tap behind it.
   await page.getByRole('button', { name: 'Clock in' }).click();
   if (tab) await page.getByRole('tab', { name: tab }).click();
   await page.waitForSelector(waitFor, { state: 'visible', timeout: 15000 });
   // The store's tick writes numbers a frame or two after mount; one settle beats a flaky race.
   await page.waitForTimeout(600);
-  await page.screenshot({ path: path.join(outDir, file) });
+  await page.screenshot({ path: path.join(rawDir, file) });
   await context.close();
+}
+
+/**
+ * The marketing frame: the raw shot inside a phone bezel on ruled parchment, under a headline.
+ * Same 1080×1920 the listing asks for; the bezel is drawn, so there is no device art to license.
+ */
+async function compose(browser, { file, headline, sub, chips }) {
+  const font = (await readFile(fontFile)).toString('base64');
+  const shot = (await readFile(path.join(rawDir, file))).toString('base64');
+  const html = `<!doctype html><style>
+    @font-face { font-family: 'Special Elite'; src: url('data:font/woff2;base64,${font}') format('woff2'); }
+    html, body { margin: 0; } body { width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; background: #EDE7D4;
+      background-image: repeating-linear-gradient(to bottom, transparent 0 59px, #C9BFA6 59px 60px); font-family: 'Special Elite', serif; color: #1F3B33; text-align: center; }
+    h1 { font-size: 74px; line-height: 1.1; margin: 0; padding: 96px 70px 0; text-wrap: balance; }
+    p { font-size: 32px; margin: 18px 80px 0; color: #2A2620; opacity: .75; }
+    .chips { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin: 30px 60px 0; }
+    .chip { font-size: 26px; padding: 12px 24px; border: 3px solid #1F3B33; border-radius: 999px; background: #F7F2E4; color: #1F3B33; white-space: nowrap; }
+    .chip.red { border-color: #A6402B; color: #A6402B; }
+    .phone { position: absolute; left: 50%; bottom: -260px; transform: translateX(-50%); width: 820px; height: 1700px; border-radius: 96px; background: #2A2620; padding: 26px; box-sizing: border-box; box-shadow: 0 40px 80px rgba(42,38,32,.35); }
+    .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 72px; display: block; }
+    .notch { position: absolute; top: 44px; left: 50%; transform: translateX(-50%); width: 130px; height: 34px; border-radius: 17px; background: #2A2620; }
+  </style><body><h1>${headline}</h1><p>${sub}</p>
+  <div class="chips">${chips.map((c, i) => `<span class="chip${i === 0 ? ' red' : ''}">${c}</span>`).join('')}</div>
+  <div class="phone"><img src="data:image/png;base64,${shot}"><span class="notch"></span></div></body>`;
+  const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
+  await page.setContent(html);
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: path.join(outDir, file) });
+  await page.close();
   console.log('  ' + file);
 }
 
 async function main() {
   await mkdir(outDir, { recursive: true });
+  await mkdir(rawDir, { recursive: true });
   console.log('Building…');
   await build({ root, logLevel: 'warn' });
 
@@ -150,18 +187,23 @@ async function main() {
     const base = await seedSave(now);
     console.log('Shooting…');
     const shots = [
-      { file: '01-office.png', save: base, tab: 'Office', waitFor: '.tabbar' },
-      { file: '02-personnel.png', save: base, tab: 'Personnel', waitFor: '.tabbar' },
-      { file: '03-ledger.png', save: base, tab: 'Ledger', waitFor: '.tabbar' },
-      { file: '04-tasks.png', save: base, tab: 'Tasks', waitFor: '.tabbar' },
+      { file: '01-office.png', save: base, tab: 'Office', waitFor: '.tabbar', headline: 'Stamp souls. Meet quota.', sub: 'Every soul is a form. Every form needs a stamp.', chips: ['Idle clicker', '6 departments to unlock', 'Staff earn while you tap'] },
+      { file: '02-personnel.png', save: base, tab: 'Personnel', waitFor: '.tabbar', headline: 'Recruit the damned and the blessed.', sub: 'Thirty personnel cards, each with its own bonus.', chips: ['30 collectible cards', 'Star up with duplicates', 'Free daily pull'] },
+      { file: '03-ledger.png', save: base, tab: 'Ledger', waitFor: '.tabbar', headline: 'Close the books. Earn Seals.', sub: 'Every fiscal year makes the next one faster.', chips: ['Prestige system', 'Seals boost everything, forever', 'Cosmic Clauses rewrite the rules'] },
+      { file: '04-tasks.png', save: base, tab: 'Tasks', waitFor: '.tabbar', headline: 'Daily forms. Daily rewards.', sub: 'Vouchers for showing up. Bureaucracy rewards loyalty.', chips: ['Daily tasks', 'Login streaks', '80 achievements'] },
       {
         file: '05-backlog-report.png',
+        headline: 'The in-tray fills while you sleep.',
+        sub: 'Come back to a backlog report and a bigger stamp.',
+        chips: ['Earn offline', 'Double it with one ad', 'Cloud save with Google'],
         // Seven hours of absence: enough to fill the in-tray and raise the report on boot.
         save: { ...base, lastSeenWallClock: now - 7 * 3600_000 },
         waitFor: '[role="dialog"]',
       },
     ];
     for (const shot of shots) await shoot(browser, url, shot);
+    console.log('Composing…');
+    for (const shot of shots) await compose(browser, shot);
   } finally {
     await browser.close();
     await server.close();
