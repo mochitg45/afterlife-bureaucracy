@@ -4,8 +4,8 @@ const config: CapacitorConfig = {
   appId: 'com.afterlifebureaucracy.game',
   appName: 'Afterlife Bureaucracy',
   webDir: 'dist',
-  android: { backgroundColor: '#1B1915', adjustMarginsForEdgeToEdge: 'force' },
-  ios: { contentInset: 'never', backgroundColor: '#1B1915' },
+  android: { backgroundColor: '#EDE7D4', adjustMarginsForEdgeToEdge: 'force' },
+  ios: { contentInset: 'never', backgroundColor: '#EDE7D4' },
 };
 
 export default config;
