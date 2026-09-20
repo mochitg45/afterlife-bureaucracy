@@ -128,7 +128,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
       {packs.length > 0 && (
         <>
           <h3>Vouchers</h3>
-          <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied.</p>
+          <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied by perks or bonuses; the first purchase of each pack pays double.</p>
           {packs.map((p) => <PackRow product={p} onResult={onPurchase} key={p.id} />)}
         </>
       )}

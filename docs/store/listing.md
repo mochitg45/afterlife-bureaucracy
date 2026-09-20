@@ -95,7 +95,7 @@ runtime (the app always displays the store's own localised price, never these).
 
 | Product ID | Name | Price (US, confirm in Play Console) | What the player gets |
 |---|---|---|---|
-| `vouchers_10` | 100 Overtime Vouchers | $0.99 | 100 vouchers, granted exactly (purchases are never multiplied) |
+| `vouchers_10` | 100 Overtime Vouchers | $0.99 | 100 vouchers |
 | `vouchers_55` | 550 Overtime Vouchers | $4.99 | 550 vouchers |
 | `vouchers_120` | 1200 Overtime Vouchers | $9.99 | 1200 vouchers |
 | `vouchers_300` | 3000 Overtime Vouchers | $19.99 | 3000 vouchers |
