@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Intro } from './Intro';
 import { useGame } from '../../store/game';
 import { createInitialState } from '../../engine/state';
@@ -43,7 +43,7 @@ describe('Intro', () => {
     expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
   });
 
-  it('auto-advances when a scene is left alone, and ends after the last one', () => {
+  it('auto-advances when a scene is left alone, up to the last one', () => {
     seed(false);
     render(<Intro />);
     pace();
@@ -51,8 +51,33 @@ describe('Intro', () => {
     pace();
     pace();
     expect(screen.getByRole('button', { name: 'Clock in' })).toBeInTheDocument();
-    pace();
-    expect(useGame.getState().state.onboarding.memosSeen).toBe(true);
+    expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
+  });
+
+  it('never self-dismisses on the last scene: the pacer is not mounted there', () => {
+    seed(false);
+    render(<Intro />);
+    next();
+    next();
+    next();
+    expect(screen.queryByTestId('intro-timer')).not.toBeInTheDocument();
+    expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
+  });
+
+  it('advances one scene per tap even though the Next click also reaches the stage', () => {
+    seed(false);
+    render(<Intro />);
+    next();
+    expect(screen.getByText(/forwarded to Intake/)).toBeInTheDocument();
+    expect(screen.queryByText('FORM 2-C · OFFER OF EMPLOYMENT')).not.toBeInTheDocument();
+  });
+
+  it('unmounts cleanly when memosSeen flips mid-intro', () => {
+    seed(false);
+    const { container } = render(<Intro />);
+    next();
+    act(() => useGame.getState().markMemosSeen());
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('advances on a tap anywhere on the stage', () => {

@@ -130,8 +130,10 @@ export function Intro() {
         <button className="btn btn-primary intro-cta" onClick={(e) => { e.stopPropagation(); advance(); }}>
           {scene.cta ?? 'Next'}
         </button>
-        {/* The pacer. Its delay covers the scene animation, its duration is the 2.5s hold. */}
-        <span className="intro-timer" data-testid="intro-timer" onAnimationEnd={advance} />
+        {/* The pacer. Its delay covers the scene animation, its duration is the 2.5s hold.
+            Never mounted on the last scene: the intro must end on a deliberate press, not on
+            a hold running out while the player reads the CTA. */}
+        {!last && <span className="intro-timer" data-testid="intro-timer" onAnimationEnd={advance} />}
       </div>
     </div>
   );

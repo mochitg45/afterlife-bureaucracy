@@ -22,41 +22,31 @@
   --radius: 10px;
   --shadow: 0 1px 0 rgba(42, 38, 32, 0.12), 0 2px 6px rgba(42, 38, 32, 0.08);
   --tabbar-h: 64px;
-  color-scheme: light;
+  color-scheme: light dark;
+
+  /* The dark palette, written once. `light-dark()` picks the second value whenever the
+     resolved `color-scheme` is dark — system preference by default, or the explicit choice
+     the two rules below make — which replaces the pair of identical dark token blocks this
+     file used to carry.
+     ponytail: light-dark() needs WebView 123+; the plain light values above are the
+     fallback an older one keeps, so it renders light rather than unstyled. Bring the
+     @media (prefers-color-scheme: dark) block back if that floor ever bites. */
+  --paper: light-dark(#EDE7D4, #1B1915);
+  --surface: light-dark(#F7F2E4, #26221D);
+  --surface-2: light-dark(#E4DCC6, #322D26);
+  --ink: light-dark(#2A2620, #EDE7D4);
+  --ink-muted: light-dark(#6E675C, #A8A091);
+  --line: light-dark(#C9BFA6, #4A4238);
+  --green: light-dark(#1F3B33, #4E8C7A);
+  --red: light-dark(#A6402B, #D9634A);
+  --teal: light-dark(#3E9C93, #5FC4BA);
+  --brass: light-dark(#A8823C, #D4A950);
+  --violet: light-dark(#6B6478, #9A92AC);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --paper: #1B1915;
-    --surface: #26221D;
-    --surface-2: #322D26;
-    --ink: #EDE7D4;
-    --ink-muted: #A8A091;
-    --line: #4A4238;
-    --green: #4E8C7A;
-    --red: #D9634A;
-    --teal: #5FC4BA;
-    --brass: #D4A950;
-    --violet: #9A92AC;
-    color-scheme: dark;
-  }
-}
-
-/* Explicit "Dark" choice: applies even on a light-system phone, unlike the media query above. */
-:root[data-theme='dark'] {
-  --paper: #1B1915;
-  --surface: #26221D;
-  --surface-2: #322D26;
-  --ink: #EDE7D4;
-  --ink-muted: #A8A091;
-  --line: #4A4238;
-  --green: #4E8C7A;
-  --red: #D9634A;
-  --teal: #5FC4BA;
-  --brass: #D4A950;
-  --violet: #9A92AC;
-  color-scheme: dark;
-}
+/* The explicit choices from Settings; "System" removes the attribute and leaves the pair above. */
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
@@ -340,7 +330,9 @@ button:disabled { opacity: 0.45; cursor: default; }
   display: flex; gap: 2px; align-items: flex-end;
   animation: introShuffle 1000ms ease-in-out both;
 }
-.intro-ticker { position: absolute; right: 5%; top: 6%; display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; }
+/* Left, not right: the INTAKE sign owns the top-right corner of the 200x140 stage and the
+   two collided at 375px. */
+.intro-ticker { position: absolute; left: 5%; top: 6%; display: flex; flex-direction: column; align-items: flex-start; font-size: 11px; }
 .intro-roll { display: block; height: 1.2em; line-height: 1.2em; overflow: hidden; }
 .intro-roll b { display: block; font-weight: 600; }
 .intro-roll b:first-child { margin-top: -1.2em; animation: introRoll 900ms 200ms ease-out both; }
