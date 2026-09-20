@@ -9,7 +9,7 @@ import { clauseSealMult } from './cosmic';
 /** Souls-this-run needed to close the books in fiscal year 1; puts the check-in player's first Audit on day 2. */
 export const AUDIT_BASE = 8e15;
 /** Seals granted for a run that lands exactly on the year-1 threshold. */
-export const SEAL_COEFF = 40;
+export const SEAL_COEFF = 60;
 /** Below 0.5 so a run that overshoots by orders of magnitude does not explode the Seal count. */
 export const SEAL_EXP = 0.4;
 /** The threshold multiplies by this every fiscal year, so each run has to out-earn the last. */

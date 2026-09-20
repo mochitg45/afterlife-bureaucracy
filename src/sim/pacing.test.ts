@@ -44,6 +44,15 @@ describe('pacing targets (spec §4)', () => {
     }
   });
 
+  it('never makes an active player’s run slower than the one before it', () => {
+    // The second profile the simulator runs (2 x 30 min a day). Its payouts sit below the Seal
+    // cap for the first few runs, so it compounds more slowly than the check-in player and is
+    // held to the weaker target: no run slower than its predecessor, rather than 15% faster.
+    const t = simulate({ sessionsPerDay: 2, sessionSec: 1800, clicksPerSec: 5, days: 14 }, content).auditReadySecByRun;
+    expect(t.length).toBeGreaterThanOrEqual(5);
+    for (let i = 0; i < 4; i++) expect(t[i + 1]).toBeLessThanOrEqual(t[i]);
+  });
+
   it('a 20-seal, four-perk run reaches the audit threshold at least 1.3x faster', () => {
     // Only the first Audit matters here, and the target puts it inside day 3; simulating the
     // remaining days would just be an expensive way to reach the same number.
