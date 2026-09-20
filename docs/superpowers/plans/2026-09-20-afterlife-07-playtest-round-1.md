@@ -140,6 +140,18 @@ All art inline SVG in the shipped ink-outline style, reusing `Character`, `Stamp
 
 ---
 
+### Task 10: Inata Sun Soft splash
+
+**Files:**
+- Create: `src/ui/screens/Splash.tsx` (+ test)
+- Modify: `src/ui/App.tsx` (phase `'splash' | 'title' | 'game'`; splash first on every cold boot, then title), `src/ui/theme.css`.
+
+Port the approved mockup (`%TEMP%\claude\...\scratchpad\inata-sun-soft-splash.html`, the Version 2 layout: name arc above the ray tips) to React: the SVG geometry is computed once with `useMemo` (28 rays, 12-point faceted disc, arc text "INATA SUN SOFT" in Nunito 900 → use the bundled font stack: add `@fontsource/nunito/900.css` or fall back to `'Nunito', 'Baloo 2', sans-serif` if Nunito is not bundled — bundle it, no network fonts), white `#ffffff` background regardless of theme, keyframes from the mockup in `theme.css` with a `prefers-reduced-motion` block that shows the finished frame. Duration 3.4 s then `onDone`; a tap or key anywhere ends it early; `onDone` moves the phase to `'title'`. Boot runs underneath (the splash is a pure overlay; do not delay `boot()`). Tests: renders the arc text; calls `onDone` on click; calls `onDone` on its own via the `animationend` of the stage (fire the event in jsdom); App shows the splash before the title and the title after `onDone`.
+
+- [ ] Step 1: failing tests; Step 2: implement; Step 3: commit `feat(ui): Inata Sun Soft splash before the title`; push.
+
+---
+
 ## Self-review
 
 Spec coverage: §7 odds/costs → Task 1; §8/§9 voucher amounts → Task 1; §10 theme → Task 2; card sheet is new UI under §10 Personnel → Task 3; icon → Task 4. Placeholder scan: constants and copy are exact; Task 3 names the reuse rule for the effect function. Types: `settings.theme` union is the same in Task 2's store, App and Settings.
