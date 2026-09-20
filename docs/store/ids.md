@@ -58,8 +58,8 @@ leaderboard id, which look like `CgkI…`). Copy it into:
 - `AndroidManifest.xml` — uncomment the `com.google.android.gms.games.APP_ID` meta-data and set
   `android:value` to the numeric id (see the comment there for why it stays commented out until
   then).
-- Alternative to hardcoding it in the manifest: put the id in
-  `android/app/src/main/res/values/games-ids.xml` as
+- Alternative to hardcoding it in the manifest: create
+  `android/app/src/main/res/values/games-ids.xml` (the file does not exist yet) with
   `<string name="game_services_project_id">…</string>` and point the meta-data at
   `android:value="@string/game_services_project_id"` instead. Either works; a string resource is
   easier to swap per build variant if one is ever added.

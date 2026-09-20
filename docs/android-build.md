@@ -34,7 +34,7 @@ is invisible to the web layer — and reached from TypeScript with `registerPlug
 |---|---|---|
 | `CloudSave` | `android/app/src/main/java/com/afterlifebureaucracy/game/CloudSavePlugin.java` | `src/platform/cloudSave.ts` |
 
-`CloudSave` is Play Games Services saved games: `isAuthenticated`, `signIn`, `loadSnapshot`
+`CloudSave` is Play Games Services saved games: `isConfigured`, `isAuthenticated`, `signIn`, `loadSnapshot`
 and `saveSnapshot` over a single snapshot slot named `afterlife-main`, opened with
 `RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED` so the SDK resolves conflicts itself. It signs in
 through the same `GamesSignInClient` as `@openforge/capacitor-game-connect`, so the player is
@@ -61,8 +61,11 @@ upgrades it to whatever the `+` resolves to — so check with
 whenever the resolved version moves.
 
 Cloud save stays dark until the Play Games project exists: with `gameIds.ts` unmapped and the
-`com.google.android.gms.games.APP_ID` meta-data absent from the manifest, sign-in fails, the
-TypeScript wrapper reports `unavailable`, and the game runs on its local save alone. Even once
+`com.google.android.gms.games.APP_ID` meta-data absent from the manifest, the plugin's
+`isConfigured()` answers `false`, the store records the slot as unavailable for the session
+and the game runs on its local save alone. `available()` cannot answer this on its own -- it
+only knows the build is Android -- so the store resolves it once at boot and every caller
+reads that answer. Even once
 the project exists and the meta-data is in place, cloud save specifically also needs the Saved
 Games toggle above — achievements and the leaderboard do not.
 
