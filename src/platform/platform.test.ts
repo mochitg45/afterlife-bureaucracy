@@ -51,12 +51,13 @@ describe('billing keys', () => {
 });
 
 describe('gameIds', () => {
-  it('is still unmapped and resolves placeholders to null rather than sending them to the SDK', () => {
-    expect(LEADERBOARD_LIFETIME_SOULS).toBe('TODO');
-    expect(lifetimeSoulsLeaderboardId()).toBeNull();
-    expect(playAchievementId('a-souls-1')).toBeNull();
+  it('resolves mapped ids and drops unmapped ones rather than sending placeholders to the SDK', () => {
+    expect(LEADERBOARD_LIFETIME_SOULS).toMatch(/^CgkI/);
+    expect(lifetimeSoulsLeaderboardId()).toBe(LEADERBOARD_LIFETIME_SOULS);
+    expect(playAchievementId('a-souls-1')).toMatch(/^CgkI/);
+    expect(playAchievementId('a-clicks-1')).toBeNull(); // in-app only, not mirrored
     expect(playAchievementId('does-not-exist')).toBeNull();
-    expect(playAchievementIds(['a-souls-1', 'a-clicks-1'])).toEqual([]);
+    expect(playAchievementIds(['a-souls-1', 'a-clicks-1'])).toEqual([playAchievementId('a-souls-1')]);
   });
 });
 
