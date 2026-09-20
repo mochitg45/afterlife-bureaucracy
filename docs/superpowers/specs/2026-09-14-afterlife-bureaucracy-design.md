@@ -119,7 +119,7 @@ A Restructuring also opens a **new fiscal calendar**: the fiscal year goes back 
 - Duplicates raise the card's rank from 1 to 5 stars; each star scales the bonus. Each star-up costs more duplicates than the last — 1/2/3/5 to go ★1→★2/★2→★3/★3→★4/★4→★5 — banked as shards shown alongside the card ("2/3") until the threshold is met. Extra duplicates past 5 stars convert to KC.
 - Equip slots: 3 at start, up to 8 through Perk Ledger. Only equipped cards apply their bonus.
 - Reveal animation: filing drawer slides open, envelope rises, a stamp reveals the rarity colour; Executive pulls get a gold-foil shake and confetti of forms.
-- Free-to-play voucher income target: 20–40 per day (was 2–4 before the ×10 scaling) from the recurring faucet (the three daily tasks and the seven-day streak pack), so a free single pull every day or so and a 10-pull roughly monthly. Achievement unlocks pay a separate one-off 170 vouchers across the 80 badges; the simulator shows roughly half of that arriving inside the first fortnight, which is an onboarding bulge rather than sustained income.
+- Free-to-play voucher income target: 20–40 per day (was 2–4 before the ×10 scaling) from the recurring faucet (the three daily tasks and the seven-day streak pack), so a free single pull every day or so and a 10-pull roughly monthly. Achievement unlocks pay a separate one-off 1,700 vouchers across the 80 badges; the simulator shows roughly half of that arriving inside the first fortnight, which is an onboarding bulge rather than sustained income.
 - RNG: seeded xorshift so unit tests can verify odds and pity deterministically.
 
 ## 8. Retention systems
@@ -147,7 +147,7 @@ A Restructuring also opens a **new fiscal calendar**: the fiscal year goes back 
 - Skip one daily task.
 
 **In-app purchases** (Google Play Billing 8+, via RevenueCat or the Capacitor community billing plugin; decide at implementation time based on plugin health).
-- Voucher packs: 10, 55, 120, 300. The first purchase of each pack id pays double; every purchase after that pays the listed amount.
+- Voucher packs: 100, 550, 1,200, 3,000 (the product ids keep their pre-×10 names: `vouchers_10`, `vouchers_55`, `vouchers_120`, `vouchers_300`). The first purchase of each pack id pays double; every purchase after that pays the listed amount.
 - Remove Ads (one-time, about $4.99): a permanent ×2 on the Overnight Backlog Report. The name is the joke, not the promise — v1 shows no interstitials, banners or forced prompts to anybody, so there is nothing for it to remove, and the store copy, the privacy policy and the Play listing all say plainly that the rewarded buttons stay optional either way. Making the rewarded rewards free for owners (an ad-free ×2 Backlog Report, a free pull without the ad) is a v1.1 candidate; it is deliberately not v1.0, because it would turn every rewarded placement into a second price list.
 - Starter Pack: offered once, days 1–3: vouchers, one Senior Staff card, KC.
 - Union Membership (monthly subscription): daily vouchers, +25% global rate, daily tasks auto-collect.
