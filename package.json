@@ -25,6 +25,7 @@
     "@capacitor/ios": "^7.6.9",
     "@capacitor/local-notifications": "^7.0.7",
     "@capacitor/preferences": "^7.0.4",
+    "@fontsource/nunito": "^5.3.0",
     "@openforge/capacitor-game-connect": "^5.0.2",
     "@revenuecat/purchases-capacitor": "^11.3.2",
     "break_infinity.js": "^2.0.0",

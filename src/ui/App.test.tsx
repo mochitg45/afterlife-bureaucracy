@@ -3,14 +3,30 @@ import { App } from './App';
 import { useGame } from '../store/game';
 import { content } from '../data';
 
-/** Every cold boot opens on the title screen, so the office is one tap away in every test. */
+/** Every cold boot opens on the splash, then the title, so both are one tap away in every test. */
+async function dismissSplash() {
+  const splash = await screen.findByTestId('splash');
+  fireEvent.click(splash);
+}
 async function clockIn() {
+  const splash = screen.queryByTestId('splash');
+  if (splash) fireEvent.click(splash);
   fireEvent.click(await screen.findByRole('button', { name: 'Clock in' }));
 }
 
 describe('App shell', () => {
+  it('shows the splash before the title, then the title after the splash ends', async () => {
+    render(<App />);
+    expect(screen.getByTestId('splash')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clock in' })).not.toBeInTheDocument();
+    await dismissSplash();
+    expect(screen.queryByTestId('splash')).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Clock in' })).toBeInTheDocument();
+  });
+
   it('opens on the title screen and only shows the office after clocking in', async () => {
     render(<App />);
+    await dismissSplash();
     expect(await screen.findByRole('button', { name: 'Clock in' })).toBeInTheDocument();
     expect(screen.queryByRole('tablist', { name: /main/i })).not.toBeInTheDocument();
     await clockIn();
@@ -77,6 +93,7 @@ describe('App shell', () => {
 
   it('reaches the requisition odds from the title screen footer', async () => {
     render(<App />);
+    await dismissSplash();
     fireEvent.click(await screen.findByRole('button', { name: 'Odds' }));
     expect(await screen.findByRole('tab', { name: /personnel/i })).toHaveAttribute('aria-selected', 'true');
   });
@@ -106,6 +123,7 @@ describe('App onboarding', () => {
 
   it('shows neither intro nor training on a save that has been through both', async () => {
     render(<App />);
+    await dismissSplash();
     await screen.findByRole('button', { name: 'Clock in' });
     const state = useGame.getState().state;
     useGame.setState({ state: { ...state, onboarding: { memosSeen: true, trainingStep: 3 } } });

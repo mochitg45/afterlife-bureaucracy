@@ -21,12 +21,14 @@ import { NotifPrompt } from './overlays/NotifPrompt';
 import { SaveCodeSheet } from './overlays/SaveCodeSheet';
 import { CloudNotice } from './components/CloudNotice';
 import { TitleScreen } from './screens/TitleScreen';
+import { Splash } from './screens/Splash';
 
 export function App() {
   const [tab, setTab] = useState<TabId>('office');
-  // Every cold boot opens on the title screen: it is where the Play Games sign-in lives, and
-  // the sync it runs has to finish before the office shows a desk that may be about to change.
-  const [phase, setPhase] = useState<'title' | 'game'>('title');
+  // Every cold boot opens on the Inata Sun Soft splash, then the title screen: the title is
+  // where the Play Games sign-in lives, and the sync it runs has to finish before the office
+  // shows a desk that may be about to change.
+  const [phase, setPhase] = useState<'splash' | 'title' | 'game'>('splash');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saveCodeOpen, setSaveCodeOpen] = useState(false);
   const openSettings = () => setSettingsOpen(true);
@@ -79,8 +81,10 @@ export function App() {
 
   return (
     <div className="app safe-area">
-      {!ready && <section className="screen"><h2>Opening the office…</h2></section>}
-      {ready && phase === 'title' && <TitleScreen onEnter={() => setPhase('game')} onGoToOdds={onGoToOdds} />}
+      {/* boot() runs underneath regardless of phase; the splash is a pure overlay, not a gate on it. */}
+      {phase === 'splash' && <Splash onDone={() => setPhase('title')} />}
+      {phase !== 'splash' && !ready && <section className="screen"><h2>Opening the office…</h2></section>}
+      {phase !== 'splash' && ready && phase === 'title' && <TitleScreen onEnter={() => setPhase('game')} onGoToOdds={onGoToOdds} />}
       {/* The whole office, overlays included: a ceremony or a prompt over the title screen
           would be a dialog about a desk the player has not sat down at yet. */}
       {ready && phase === 'game' && (

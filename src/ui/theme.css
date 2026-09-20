@@ -2,6 +2,7 @@
 @import '@fontsource/ibm-plex-sans/400.css';
 @import '@fontsource/ibm-plex-sans/600.css';
 @import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/nunito/900.css';
 
 :root {
   --paper: #EDE7D4;
@@ -383,4 +384,52 @@ button:disabled { opacity: 0.45; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .intro-stage, .intro-rise, .intro-queue, .intro-roll b:first-child, .intro-form-2c,
   .intro-slide, .intro-jolt, .intro-slam, .intro-splat, .intro-timer { animation: none; }
+}
+
+/* ---- Inata Sun Soft splash ----------------------------------------------------------
+   White regardless of theme: this is the studio mark, not office decor. `.splash-stage`
+   carries no visual animation of its own — it is just the 3.4s clock that drives onDone via
+   animationend, the same no-JS-timer trick as the intro's pacer above. */
+.splash {
+  position: fixed; inset: 0; z-index: 90;
+  background: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+}
+.splash-stage {
+  position: relative;
+  width: min(92vw, 420px); aspect-ratio: 1;
+  animation: splashHold 3400ms linear both;
+}
+.splash-stage svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.splash-ray {
+  stroke: #f9b322; stroke-width: 10; stroke-linecap: round;
+  stroke-dasharray: 60; stroke-dashoffset: 60; opacity: 0;
+  animation: splashRay 550ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+.splash-facet {
+  transform-box: fill-box; transform-origin: center; transform: scale(0); opacity: 0;
+  animation: splashFacet 450ms cubic-bezier(.2,.9,.2,1.2) forwards;
+}
+.splash-glow {
+  fill: #ffcf33; opacity: 0; transform-box: fill-box; transform-origin: center;
+  animation: splashGlow 1400ms ease-out forwards; animation-delay: 1500ms;
+}
+.splash-word {
+  font-family: 'Nunito', 'IBM Plex Sans', sans-serif; font-weight: 900;
+  font-size: 50px; letter-spacing: 7px; fill: #3f6e96; opacity: 0;
+  animation: splashWord 800ms ease-out forwards; animation-delay: 1700ms;
+}
+
+@keyframes splashHold { from { opacity: 1; } to { opacity: 1; } }
+@keyframes splashRay { to { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes splashFacet { to { transform: scale(1); opacity: 1; } }
+@keyframes splashGlow { 0% { opacity: 0; transform: scale(.6); } 40% { opacity: .35; } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes splashWord { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Still an animation, not `none`: a 0-duration one, so animationend keeps firing and
+     onDone still runs the same way, just with the finished frame already showing. */
+  .splash-stage { animation-duration: 10ms; }
+  .splash-ray, .splash-facet, .splash-word { animation: none; opacity: 1; stroke-dashoffset: 0; transform: none; }
+  .splash-glow { display: none; }
 }
