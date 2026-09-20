@@ -125,10 +125,12 @@ button:disabled { opacity: 0.45; cursor: default; }
 .warn { color: var(--red); }
 .dept-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
 .dept-chips::-webkit-scrollbar { display: none; }
-.chip { flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px; min-width: 112px; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 12px; font-weight: 600; color: var(--ink-muted); text-align: left; }
+.chip { flex: 0 0 auto; display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: center; min-width: 132px; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 12px; font-weight: 600; color: var(--ink-muted); text-align: left; }
 .chip.active { border-color: var(--accent); color: var(--accent); }
 .chip.locked { opacity: 0.7; }
-.chip .bar { display: block; width: 100%; }
+.chip .bar { display: block; grid-column: 1 / -1; width: 100%; }
+.chip-text { display: flex; flex-direction: column; gap: 2px; }
+.chip-icon { flex: 0 0 auto; }
 .ceremony .modal { text-align: center; }
 .slam { display: block; margin: 0 auto 8px; animation: slam 420ms cubic-bezier(.2,1.4,.4,1) both; }
 @keyframes slam { 0% { transform: scale(2.4) rotate(-10deg); opacity: 0; } 60% { transform: scale(0.96); opacity: 1; } 100% { transform: scale(1); } }
