@@ -9,6 +9,7 @@ const cap = vi.hoisted(() => ({
   native: false,
   platform: 'web',
   plugin: {
+    isConfigured: vi.fn(),
     isAuthenticated: vi.fn(),
     signIn: vi.fn(),
     loadSnapshot: vi.fn(),
@@ -24,7 +25,7 @@ vi.mock('@capacitor/core', () => ({
   registerPlugin: () => cap.plugin,
 }));
 
-import { memoryCloudSave, noopCloudSave, playCloudSave, pickCloudSave, SNAPSHOT_NAME } from './cloudSave';
+import { memoryCloudSave, noopCloudSave, playCloudSave, pickCloudSave, SNAPSHOT_NAME, CLOUD_TIMEOUT_MS } from './cloudSave';
 import type { CloudLoad, CloudSnapshot } from './cloudSave';
 
 const snap = (data: string, savedAtWall: number): CloudSnapshot => ({ data, savedAtWall });
@@ -40,6 +41,7 @@ function onAndroid(): void {
 beforeEach(() => {
   cap.native = false;
   cap.platform = 'web';
+  cap.plugin.isConfigured.mockReset();
   cap.plugin.isAuthenticated.mockReset();
   cap.plugin.signIn.mockReset();
   cap.plugin.loadSnapshot.mockReset();
@@ -190,6 +192,35 @@ describe('playCloudSave', () => {
 
     cap.plugin.saveSnapshot.mockRejectedValue(new Error('commit failed'));
     expect(await playCloudSave.save(snap('payload', 99), 'Fiscal year 3')).toBe('error');
+  });
+});
+
+describe('playCloudSave availability and timeouts', () => {
+  it('asks the plugin whether this build has a Play Games app id', async () => {
+    onAndroid();
+    cap.plugin.isConfigured.mockResolvedValue({ value: true });
+    expect(await playCloudSave.isConfigured()).toBe(true);
+    // A build with the APP_ID meta-data left out is on Android and still has no cloud slot,
+    // which `available()` alone cannot see.
+    cap.plugin.isConfigured.mockResolvedValue({ value: false });
+    expect(await playCloudSave.isConfigured()).toBe(false);
+    cap.plugin.isConfigured.mockRejectedValue(new Error('no plugin'));
+    expect(await playCloudSave.isConfigured()).toBe(false);
+  });
+
+  it('gives up on a snapshot call that never answers', async () => {
+    vi.useFakeTimers();
+    try {
+      onAndroid();
+      // A Play Games call that never settles would otherwise leave the store's `syncing`
+      // flag on for the rest of the session.
+      cap.plugin.loadSnapshot.mockReturnValue(new Promise(() => {}));
+      const pending = playCloudSave.load();
+      await vi.advanceTimersByTimeAsync(CLOUD_TIMEOUT_MS);
+      expect(await pending).toEqual(FAILED);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

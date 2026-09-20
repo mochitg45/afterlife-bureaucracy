@@ -21,6 +21,12 @@ export type CloudLoad =
 export interface CloudSave {
   /** False on web and iOS today; cloud save is a Play Games feature. */
   available(): boolean;
+  /**
+   * Whether this build actually has a cloud slot. `available()` is a platform probe and
+   * cannot see whether the Play Games app id was ever put in the manifest, so the store
+   * resolves this once at boot and the UI reads that answer instead.
+   */
+  isConfigured(): Promise<boolean>;
   isSignedIn(): Promise<boolean>;
   signIn(): Promise<SignInResult>;
   load(): Promise<CloudLoad>;
@@ -35,6 +41,7 @@ export const SNAPSHOT_NAME = 'afterlife-main';
 
 /** The in-repo Android plugin, `android/app/src/main/java/.../CloudSavePlugin.java`. */
 interface CloudSaveNativePlugin {
+  isConfigured(): Promise<{ value: boolean }>;
   isAuthenticated(): Promise<{ value: boolean }>;
   signIn(): Promise<{ value: boolean }>;
   loadSnapshot(options: { name: string }): Promise<{ found: boolean; data?: string; savedAtWall?: number }>;
@@ -71,6 +78,10 @@ export function memoryCloudSave(
       return available;
     },
 
+    async isConfigured() {
+      return available;
+    },
+
     async isSignedIn() {
       return available && fake.signedIn;
     },
@@ -101,6 +112,9 @@ export const noopCloudSave: CloudSave = {
   available() {
     return false;
   },
+  async isConfigured() {
+    return false;
+  },
   async isSignedIn() {
     return false;
   },
@@ -116,6 +130,19 @@ export const noopCloudSave: CloudSave = {
     return 'error';
   },
 };
+
+/**
+ * How long a snapshot call may hang before it is treated as a failure. A Play Games call
+ * that never settles would leave the store's `syncing` flag on for the rest of the session,
+ * so every non-interactive call resolves one way or the other within this.
+ */
+export const CLOUD_TIMEOUT_MS = 15_000;
+
+// ponytail: the loser's timer is left to fire rather than cleared -- a 15 s no-op per cloud
+// call. Clear it with a handle if a profiler ever shows the timers mattering.
+function withTimeout<T>(p: Promise<T>, onTimeout: T): Promise<T> {
+  return Promise.race([p, new Promise<T>((resolve) => setTimeout(() => resolve(onTimeout), CLOUD_TIMEOUT_MS))]);
+}
 
 /**
  * Play Games Services snapshots, through the in-repo `CloudSave` Capacitor plugin.
@@ -137,9 +164,18 @@ export const playCloudSave: CloudSave = {
     }
   },
 
+  async isConfigured() {
+    try {
+      const r = await withTimeout(CloudSaveNative.isConfigured(), { value: false });
+      return r?.value === true;
+    } catch {
+      return false; // an older build of the plugin, or none at all
+    }
+  },
+
   async isSignedIn() {
     try {
-      const r = await CloudSaveNative.isAuthenticated();
+      const r = await withTimeout(CloudSaveNative.isAuthenticated(), { value: false });
       return r?.value === true;
     } catch {
       return false;
@@ -158,7 +194,10 @@ export const playCloudSave: CloudSave = {
 
   async load(): Promise<CloudLoad> {
     try {
-      const r = await CloudSaveNative.loadSnapshot({ name: SNAPSHOT_NAME });
+      const r = await withTimeout<Awaited<ReturnType<CloudSaveNativePlugin['loadSnapshot']>> | null>(
+        CloudSaveNative.loadSnapshot({ name: SNAPSHOT_NAME }),
+        null,
+      );
       if (!r) return { status: 'error' };
       if (r.found !== true) return { status: 'empty' };
       // Found, but the payload did not come back as a string: the slot holds something this
@@ -175,13 +214,15 @@ export const playCloudSave: CloudSave = {
 
   async save(snapshot, description) {
     try {
-      await CloudSaveNative.saveSnapshot({
-        name: SNAPSHOT_NAME,
-        data: snapshot.data,
-        description,
-        savedAtWall: snapshot.savedAtWall,
-      });
-      return 'ok';
+      return await withTimeout(
+        CloudSaveNative.saveSnapshot({
+          name: SNAPSHOT_NAME,
+          data: snapshot.data,
+          description,
+          savedAtWall: snapshot.savedAtWall,
+        }).then((): 'ok' | 'error' => 'ok'),
+        'error',
+      );
     } catch {
       return 'error';
     }

@@ -11,6 +11,16 @@ function seedFrom(lastSeenWallClock: unknown): number {
   return (n % 2147483647) || 1;
 }
 
+/**
+ * Whether a pre-onboarding save had ever been played. `soulsLifetime` is a Decimal string on
+ * a raw save, so it is read as text: anything that is not zero (or absent) counts.
+ */
+function hasProgress(raw: Raw): boolean {
+  const souls = Number(raw.soulsLifetime);
+  const clicks = Number((raw.stats as Raw | undefined)?.clicks);
+  return (Number.isFinite(souls) && souls > 0) || (Number.isFinite(clicks) && clicks > 0);
+}
+
 // steps[v] upgrades a save from version v to v+1. Version 0 never shipped, so
 // steps[0] is deliberately absent and such a save is rejected rather than wiped.
 const steps: Array<((raw: Raw) => Raw) | undefined> = [
@@ -75,12 +85,19 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
   // 6 -> 7: first-launch onboarding progress, and the cloud-sync bookkeeping the title
   // screen and winner rule read. savedAtWall starts at 0: the store stamps it on the next
   // save() call, and an old save was never given a wall-clock save timestamp to backfill.
-  (raw) => ({
-    ...raw,
-    onboarding: { memosSeen: false, trainingStep: 0 },
-    cloud: { lastSyncWall: 0, lastResult: 'none' },
-    savedAtWall: 0,
-  }),
+  //
+  // A save that has already produced a soul or taken a click belongs to a player who has
+  // been playing for versions: the opening memos and the three-step walkthrough are behind
+  // them, so they are marked done rather than replayed at someone who knows the office.
+  (raw) => {
+    const started = hasProgress(raw);
+    return {
+      ...raw,
+      onboarding: { memosSeen: started, trainingStep: started ? 3 : 0 },
+      cloud: { lastSyncWall: 0, lastResult: 'none' },
+      savedAtWall: 0,
+    };
+  },
 ];
 
 /**

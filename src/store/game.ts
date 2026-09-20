@@ -154,7 +154,8 @@ export interface CloudState {
  * the local save's favour, or a cloud copy that could not be read. Silent syncs raise none.
  */
 export interface CloudNotice {
-  kind: 'downloaded' | 'uploaded' | 'kept-local' | 'error';
+  /** `refused`: an override this device would not run, because its own save is not trusted. */
+  kind: 'downloaded' | 'uploaded' | 'kept-local' | 'error' | 'refused';
   /** What the cloud copy held. Absent on an error, where nothing could be read. */
   summary?: SaveSummary;
 }
@@ -544,6 +545,12 @@ export function createGameStore(deps: StoreDeps) {
         lastCosmic: null,
         queueLine: pick(dept.queue, ''),
         memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
+        // The queues belong to the file that was running, not the one being adopted: a toast
+        // for an achievement the incoming save never earned would be a lie. Replaced, not
+        // appended to, and then filled from the adopted save's own settle exactly as boot
+        // does -- same fold, same cap.
+        recentAchievements: r.unlockedAch.slice(0, BOOT_QUEUE_CAP),
+        pendingStory: r.unlockedStory.slice(0, BOOT_QUEUE_CAP),
       });
       if (restartLoop) startTimers();
       await get().save();
@@ -551,8 +558,11 @@ export function createGameStore(deps: StoreDeps) {
 
     /**
      * Records the outcome in both places: the store slice the UI reads, and the save itself,
-     * so the title screen can still say when the last sync happened after a cold start. The
-     * write rides the next save rather than forcing one of its own.
+     * so the title screen can still say when the last sync happened after a cold start.
+     *
+     * Saved rather than left to ride the next autosave: the sync that matters most runs on
+     * pause, and the process that follows may be frozen and never resumed -- which is
+     * exactly the cold start the title screen has to answer for.
      */
     const stampSync = (result: CloudSyncResult): CloudSyncResult => {
       const lastSyncWall = clock.wall();
@@ -560,6 +570,9 @@ export function createGameStore(deps: StoreDeps) {
         state: { ...cur.state, cloud: { lastSyncWall, lastResult: result } },
         cloud: { ...cur.cloud, lastSyncWall, lastResult: result },
       }));
+      // Except where there is nothing to remember: a device with no cloud slot re-stamps
+      // 'unavailable' on every pause, and none of it is ever read back.
+      if (result !== 'unavailable') void get().save();
       return result;
     };
 
@@ -626,12 +639,22 @@ export function createGameStore(deps: StoreDeps) {
       // The same never-take-away merge the billing sync uses: a purchase made on this device
       // survives a save that was written before the receipt landed.
       if (mergeRestored(mine)) await get().save();
+      // The slot now holds a payload this device is in step with, so the next sync must not
+      // report it as a stranger's copy: without this, every download is followed by a
+      // "kept your local save" notice on the very next auto sync.
+      lastPushedWall = cloudState.savedAtWall;
       set({ cloudNotice: { kind: 'downloaded', summary: summarize(cloudState) } });
       return 'downloaded';
     };
 
     /** The winner rule: whichever save is further along wins, and the other is replaced. */
     const syncOnce = async (): Promise<CloudSyncResult> => {
+      // A download replaces the running file, and each of these four holds a payload that
+      // belongs to the file being replaced -- an unclaimed offline report, an unopened
+      // requisition, an audit or a cosmic ceremony. Nothing happens and nothing is said; the
+      // next auto sync tries again once the player has dealt with what is on screen.
+      const cur = get();
+      if (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline) return 'none';
       const read = await readCloud();
       // A read that never landed says nothing about the slot, so it changes nothing here: no
       // upload over a copy we could not see, and no notice for what is usually a passing
@@ -652,7 +675,10 @@ export function createGameStore(deps: StoreDeps) {
       const differed =
         !ours &&
         (!cloudState.soulsLifetime.eq(local.soulsLifetime) || cloudState.savedAtWall !== local.savedAtWall);
-      await pushLocal();
+      const pushed = await pushLocal();
+      // The local save won the rule but never reached the slot, so the two are still out of
+      // step: reporting 'kept-local' here would tell the player a sync succeeded.
+      if (pushed === 'error') return 'error';
       if (differed) set({ cloudNotice: { kind: 'kept-local', summary: summarize(cloudState) } });
       return 'kept-local';
     };
@@ -663,12 +689,10 @@ export function createGameStore(deps: StoreDeps) {
      * rejects -- a cloud failure is a result, not an exception a caller has to catch.
      */
     const runCloud = async (op: () => Promise<CloudSyncResult>): Promise<CloudSyncResult> => {
-      let available = false;
-      try {
-        available = cloudSave.available();
-      } catch {
-        available = false; // a plugin that is not there is a cloud that is not there
-      }
+      // Resolved once at boot from the plugin's own `isConfigured()`, because the platform
+      // probe only ever answers "this is Android" -- it cannot see a build with no Play
+      // Games app id, where there is no slot to sync with at all.
+      const available = get().cloud.available;
       if (!available) {
         set((cur) => ({ cloud: { ...cur.cloud, available, signedIn: false } }));
         return stampSync('unavailable');
@@ -781,14 +805,6 @@ export function createGameStore(deps: StoreDeps) {
             // started a fresh file: Remove Ads and a running membership belong to the
             // account, not to the file that was lost.
             await syncEntitlements();
-            // Last of the background work, and only for a player who is already signed in:
-            // the sign-in prompt belongs to a tap on the title screen, never to a boot.
-            try {
-              if (await cloudSave.isSignedIn()) await get().syncCloud('boot');
-              else set((cur) => ({ cloud: { ...cur.cloud, signedIn: false } }));
-            } catch {
-              /* no cloud, no sync: the local save is the save */
-            }
           })();
           // A fresh id per boot: the forward-jump rule must only ever fire on a resume within
           // this same process, never across a restart where uptime legitimately starts over.
@@ -821,12 +837,20 @@ export function createGameStore(deps: StoreDeps) {
             }
           }
           state = { ...state, processId };
+          // The platform probe only says "Android"; whether this build has a Play Games app
+          // id at all is a question only the plugin can answer, and the answer is fixed for
+          // the process, so it is asked once here and read from the slice everywhere else.
+          let cloudAvailable = false;
+          try {
+            cloudAvailable = await cloudSave.isConfigured();
+          } catch {
+            cloudAvailable = false;
+          }
           const r = settle(state, allowRollover);
           const dept = findDepartment(content, r.state.activeDept);
           set((cur) => ({
             state: r.state,
             rates: r.rates,
-            ready: true,
             pendingOffline,
             queueLine: pick(dept.queue, ''),
             memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
@@ -836,10 +860,31 @@ export function createGameStore(deps: StoreDeps) {
             clockSuspect: suspect,
             // What the save remembers of the last sync, so the title screen can say when it
             // was before this boot's own sync has answered.
-            cloud: { ...cur.cloud, lastSyncWall: r.state.cloud.lastSyncWall, lastResult: r.state.cloud.lastResult },
+            cloud: {
+              ...cur.cloud,
+              available: cloudAvailable,
+              lastSyncWall: r.state.cloud.lastSyncWall,
+              lastResult: r.state.cloud.lastResult,
+            },
           }));
           booted = true;
+          // Ahead of `ready`, and only where there is a slot: a player who is already signed
+          // in must not be handed the local save, play a minute of it, and then watch the
+          // cloud copy replace what they just did. The sign-in *prompt* still belongs to a
+          // tap on the title screen, never to a boot.
+          if (cloudAvailable) {
+            try {
+              if (await cloudSave.isSignedIn()) await get().syncCloud('boot');
+              else set((cur) => ({ cloud: { ...cur.cloud, signedIn: false } }));
+            } catch {
+              /* no cloud, no sync: the local save is the save */
+            }
+          }
+          // After the sync, so the loop's tick baseline and autosave belong to whichever
+          // file is now running -- a download during boot adopts without restarting a loop
+          // that has not started yet.
           startTimers();
+          set({ ready: true });
           notifications.cancelAll().catch(() => {});
         })();
         return booting;
@@ -1171,7 +1216,7 @@ export function createGameStore(deps: StoreDeps) {
       async signInGameServices() {
         // One prompt, one sign-in: where there is a cloud slot, the cloud sign-in owns the
         // Play Games dialog and mirrors it into the achievement client itself.
-        if (cloudSave.available()) return (await get().signInCloud()) === 'ok';
+        if (get().cloud.available) return (await get().signInCloud()) === 'ok';
         try {
           return await gameServices.signIn();
         } catch {
@@ -1180,7 +1225,7 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       async signInCloud() {
-        if (!cloudSave.available()) {
+        if (!get().cloud.available) {
           set((cur) => ({ cloud: { ...cur.cloud, available: false, signedIn: false } }));
           return 'unavailable';
         }
@@ -1222,8 +1267,11 @@ export function createGameStore(deps: StoreDeps) {
         return exclusive(async () => {
           const result = await pushLocal();
           // The one place an upload is worth a notice: the player asked for it, so they are
-          // owed a receipt. Every other upload is background housekeeping.
+          // owed a receipt -- including when the answer is no. Every other upload is
+          // background housekeeping. Here 'none' can only be a refusal: an override has no
+          // winner rule to decline.
           if (result === 'uploaded') set({ cloudNotice: { kind: 'uploaded', summary: summarize(get().state) } });
+          if (result === 'none') set({ cloudNotice: { kind: 'refused' } });
           return result;
         });
       },
@@ -1293,6 +1341,10 @@ export function createGameStore(deps: StoreDeps) {
           entitlements: mine.entitlements,
           stats: { ...imported.stats, purchases: mine.stats.purchases },
         });
+        // The import overrides this device's save, so it overrides the cloud's too: without
+        // this the next sync reads the old cloud copy, finds it further along than the
+        // freshly imported one, and undoes the import.
+        if (get().cloud.signedIn) void get().uploadLocal().catch(() => {});
         return 'ok';
       },
     };

@@ -293,10 +293,12 @@ describe('save v7', () => {
     expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
     expect(s.savedAtWall).toBe(0);
   });
-  it('migrates a v6 save to v7 with defaults, keeping the rest of it', () => {
+  it('migrates a played v6 save to v7 with its onboarding already behind it', () => {
     const s = deserialize(JSON.stringify(saveV6), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
-    expect(s.onboarding).toEqual({ memosSeen: false, trainingStep: 0 });
+    // A save with souls on it belongs to a player who has been here for versions: the memos
+    // and the walkthrough are not replayed at them.
+    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
     expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
     expect(s.savedAtWall).toBe(0);
     expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true });

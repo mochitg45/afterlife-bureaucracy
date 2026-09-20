@@ -134,6 +134,7 @@ describe('cloud sync on boot', () => {
     const { store, cloud } = await make({ cloud: { signedIn: true } });
     await store.getState().boot();
     store.setState({ clockSuspect: true });
+    cloud.snapshot = null; // the boot sync has already run; this is the next one
     expect(await store.getState().syncCloud('manual')).toBe('none');
     expect(cloud.snapshot).toBeNull();
     store.getState().stopLoop();
@@ -214,16 +215,17 @@ describe('cloud sync on boot', () => {
     store.getState().stopLoop();
   });
 
-  it('still reports kept-local when the losing cloud copy could not be replaced', async () => {
+  it('reports an error when the losing cloud copy could not be replaced', async () => {
     const local = saveState({ soulsLifetime: new Decimal(9_000), soulsRun: new Decimal(9_000) });
     const remote = saveState({ soulsLifetime: new Decimal(3), soulsRun: new Decimal(3), savedAtWall: T0 - 900 });
     const { store, cloud } = await make({
       saved: local,
       cloud: { signedIn: true, snapshot: snapshotOf(remote), failSave: true },
     });
-    await bootSynced(store, 'kept-local');
+    // The local save won the rule but never reached the slot, so the two are still out of
+    // step: calling that 'kept-local' would report a sync that did not happen.
+    await bootSynced(store, 'error');
     expect(cloud.snapshot!.data).toBe(snapshotOf(remote).data);
-    expect(store.getState().cloudNotice!.kind).toBe('kept-local');
     store.getState().stopLoop();
   });
 
@@ -282,8 +284,9 @@ describe('cloud sign-in and overrides', () => {
   it('uploadLocal overwrites a richer cloud save', async () => {
     const local = saveState({ soulsLifetime: new Decimal(5), soulsRun: new Decimal(5) });
     const remote = saveState({ soulsLifetime: new Decimal(1e6), soulsRun: new Decimal(1e6), savedAtWall: T0 - 1_000 });
-    const { store, cloud } = await make({ saved: local, cloud: { signedIn: true, snapshot: snapshotOf(remote) } });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: false, snapshot: snapshotOf(remote) } });
     await store.getState().boot();
+    cloud.signedIn = true; // signed in after the boot sync, so no winner rule has run yet
     expect(await store.getState().uploadLocal()).toBe('uploaded');
     expect(deserialize(cloud.snapshot!.data, content).soulsLifetime.toNumber()).toBe(5);
     expect(store.getState().state.cloud.lastResult).toBe('uploaded');
@@ -305,8 +308,9 @@ describe('cloud sign-in and overrides', () => {
   it('restoreCloud takes a poorer cloud save', async () => {
     const local = saveState({ soulsLifetime: new Decimal(1e6), soulsRun: new Decimal(1e6) });
     const remote = saveState({ soulsLifetime: new Decimal(7), soulsRun: new Decimal(7), savedAtWall: T0 - 1_000 });
-    const { store } = await make({ saved: local, cloud: { signedIn: true, snapshot: snapshotOf(remote) } });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: false, snapshot: snapshotOf(remote) } });
     await store.getState().boot();
+    cloud.signedIn = true; // signed in after the boot sync, so no winner rule has run yet
     expect(await store.getState().restoreCloud()).toBe('downloaded');
     expect(store.getState().state.soulsLifetime.toNumber()).toBe(7);
     expect(store.getState().cloudNotice!.kind).toBe('downloaded');
@@ -315,8 +319,9 @@ describe('cloud sign-in and overrides', () => {
 
   it('restoreCloud reports an empty slot without touching the local save', async () => {
     const local = saveState({ soulsLifetime: new Decimal(3), soulsRun: new Decimal(3) });
-    const { store } = await make({ saved: local, cloud: { signedIn: true } });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: false } });
     await store.getState().boot();
+    cloud.signedIn = true; // signed in after the boot sync, so the slot is still empty
     expect(await store.getState().restoreCloud()).toBe('none');
     expect(store.getState().state.soulsLifetime.toNumber()).toBe(3);
     store.getState().stopLoop();
@@ -336,7 +341,7 @@ describe('cloud sign-in and overrides', () => {
     const { store, cloud } = await make({ cloud: { signedIn: true } });
     await bootSynced(store, 'uploaded');
     cloud.snapshot = null;
-    const broken = vi.spyOn(cloud, 'available').mockImplementationOnce(() => {
+    const broken = vi.spyOn(cloud, 'isSignedIn').mockImplementationOnce(() => {
       throw new Error('the plugin is gone');
     });
     await expect(store.getState().syncCloud('manual')).resolves.toBe('unavailable');
@@ -349,12 +354,104 @@ describe('cloud sign-in and overrides', () => {
   it('runs one sync at a time', async () => {
     const { store, cloud } = await make({ cloud: { signedIn: true } });
     await store.getState().boot();
+    cloud.snapshot = null; // the boot sync has already run; these two are the next ones
     const loads = vi.spyOn(cloud, 'load');
     const [a, b] = await Promise.all([store.getState().syncCloud('manual'), store.getState().syncCloud('auto')]);
     expect(a).toBe('uploaded');
     expect(b).toBe('uploaded');
     expect(loads).toHaveBeenCalledTimes(1);
     loads.mockRestore();
+    store.getState().stopLoop();
+  });
+});
+
+describe('fix wave', () => {
+  it('D1: the boot sync has already run by the time the office opens', async () => {
+    const cloudState = saveState({
+      soulsLifetime: new Decimal(8_000), soulsRun: new Decimal(8_000), savedAtWall: T0 - 60_000,
+    });
+    const { store } = await make({ cloud: { signedIn: true, snapshot: snapshotOf(cloudState) } });
+    await store.getState().boot();
+    // No waitFor: a player must never be handed the local save, play a minute of it and then
+    // watch the cloud copy replace what they just did.
+    expect(store.getState().ready).toBe(true);
+    expect(store.getState().state.soulsLifetime.toNumber()).toBe(8_000);
+    store.getState().stopLoop();
+  });
+
+  it('I1: a save this device just downloaded is not news on the next sync', async () => {
+    const cloudState = saveState({
+      soulsLifetime: new Decimal(6_000), soulsRun: new Decimal(6_000), savedAtWall: T0 - 60_000,
+    });
+    const { store, clock } = await make({ cloud: { signedIn: true, snapshot: snapshotOf(cloudState) } });
+    await bootSynced(store, 'downloaded');
+    store.getState().dismissCloudNotice();
+    clock.advance(10_000);
+    await store.getState().syncCloud('auto');
+    expect(store.getState().cloudNotice).toBeNull();
+    store.getState().stopLoop();
+  });
+
+  it('I2: an imported save code is pushed over the cloud copy', async () => {
+    const other = saveState({ soulsLifetime: new Decimal(4_242), soulsRun: new Decimal(4_242) });
+    const code = createGameStore({
+      content, storage: memoryStorage(), clock: fakeClock({ wall: T0, mono: 0 }), tickMs: 1e6, autosaveMs: 1e6,
+    });
+    code.setState({ state: other });
+    const saveCode = code.getState().exportSaveCode();
+    const { store, cloud } = await make({ cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    expect(await store.getState().importSaveCode(saveCode)).toBe('ok');
+    await vi.waitFor(() =>
+      expect(deserialize(cloud.snapshot!.data, content).soulsLifetime.toNumber()).toBe(4_242),
+    );
+    store.getState().stopLoop();
+  });
+
+  it('I3: says nothing and changes nothing while a ceremony is on screen', async () => {
+    const { store, cloud } = await make({ cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    const loads = vi.spyOn(cloud, 'load');
+    store.setState({ lastAudit: { sealsGained: 2, fiscalYear: 2 } });
+    expect(await store.getState().syncCloud('auto')).toBe('none');
+    expect(loads).not.toHaveBeenCalled();
+    expect(store.getState().cloudNotice).toBeNull();
+    loads.mockRestore();
+    store.getState().stopLoop();
+  });
+
+  it('I4: a download replaces the toast queues rather than adding to them', async () => {
+    const cloudState = saveState({
+      soulsLifetime: new Decimal(9_999), soulsRun: new Decimal(9_999), savedAtWall: T0 - 60_000,
+    });
+    const { store, cloud } = await make({ cloud: { signedIn: false, snapshot: snapshotOf(cloudState) } });
+    await store.getState().boot();
+    cloud.signedIn = true;
+    const ghost = { id: 'ghost' } as unknown as (typeof content.achievements)[number];
+    store.setState({ recentAchievements: [ghost] });
+    expect(await store.getState().restoreCloud()).toBe('downloaded');
+    // The toast belonged to the file that was replaced; whatever the adopted save earns is
+    // folded in by its own settle, exactly as on boot.
+    expect(store.getState().recentAchievements).not.toContain(ghost);
+    store.getState().stopLoop();
+  });
+
+  it('M4: an override this device refuses says why', async () => {
+    const { store } = await make({ cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    store.setState({ clockSuspect: true });
+    expect(await store.getState().uploadLocal()).toBe('none');
+    expect(store.getState().cloudNotice).toEqual({ kind: 'refused' });
+    store.getState().stopLoop();
+  });
+
+  it('M10: the sync stamp reaches storage without waiting for the next autosave', async () => {
+    const { store, storage } = await make({ cloud: { signedIn: true } });
+    await bootSynced(store, 'uploaded');
+    await vi.waitFor(async () => {
+      const raw = await storage.get(SAVE_KEY);
+      expect(deserialize(raw!, content).cloud.lastResult).toBe('uploaded');
+    });
     store.getState().stopLoop();
   });
 });
