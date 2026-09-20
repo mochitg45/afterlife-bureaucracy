@@ -379,6 +379,41 @@ describe('fix wave', () => {
     store.getState().stopLoop();
   });
 
+  it('D1: the boot sync ignores the Backlog Report that boot itself just queued', async () => {
+    // An hour away is the exact case a cloud save exists for, and it is also the case that
+    // queues an offline report -- which the ceremony guard would otherwise refuse the sync on.
+    const local = saveState({
+      soulsLifetime: new Decimal(10), soulsRun: new Decimal(10),
+      lastSeenWallClock: T0 - 3_600_000, savedAtWall: T0 - 3_600_000,
+    });
+    const remote = saveState({
+      soulsLifetime: new Decimal(9e6), soulsRun: new Decimal(9e6), savedAtWall: T0 - 60_000,
+    });
+    const { store } = await make({ saved: local, cloud: { signedIn: true, snapshot: snapshotOf(remote) } });
+    await store.getState().boot();
+    expect(store.getState().cloud.lastResult).toBe('downloaded');
+    expect(store.getState().state.soulsLifetime.toNumber()).toBe(9e6);
+    expect(store.getState().cloudNotice!.kind).toBe('downloaded');
+    store.getState().stopLoop();
+  });
+
+  it('D1: opens on the local save when the cloud does not answer in time', async () => {
+    vi.useFakeTimers();
+    try {
+      const { store, cloud } = await make({ cloud: { signedIn: true } });
+      // A plugin call that never settles: without a budget over the whole block this is four
+      // serial 15 s call timeouts of blank screen.
+      vi.spyOn(cloud, 'isSignedIn').mockImplementation(() => new Promise<boolean>(() => {}));
+      const booting = store.getState().boot();
+      await vi.advanceTimersByTimeAsync(3_000);
+      await booting;
+      expect(store.getState().ready).toBe(true);
+      store.getState().stopLoop();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('I1: a save this device just downloaded is not news on the next sync', async () => {
     const cloudState = saveState({
       soulsLifetime: new Decimal(6_000), soulsRun: new Decimal(6_000), savedAtWall: T0 - 60_000,

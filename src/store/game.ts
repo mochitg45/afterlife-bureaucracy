@@ -41,6 +41,13 @@ const MAX_TICKS_PER_FIRE = 5;
 /** How many times pick() re-draws before accepting a repeat. */
 const PICK_ATTEMPTS = 8;
 
+/**
+ * How long the whole pre-`ready` cloud round-trip may take before the office opens anyway.
+ * Small on purpose: this is blank screen, and the fallback is the local save plus the first
+ * auto sync a few seconds later.
+ */
+const BOOT_CLOUD_BUDGET_MS = 3_000;
+
 /** The tick loop settles (dailies rollover, achievements, story) only on every Nth fire. */
 const SETTLE_EVERY_FIRES = 10;
 
@@ -648,13 +655,17 @@ export function createGameStore(deps: StoreDeps) {
     };
 
     /** The winner rule: whichever save is further along wins, and the other is replaced. */
-    const syncOnce = async (): Promise<CloudSyncResult> => {
+    const syncOnce = async (atBoot = false): Promise<CloudSyncResult> => {
       // A download replaces the running file, and each of these four holds a payload that
       // belongs to the file being replaced -- an unclaimed offline report, an unopened
       // requisition, an audit or a cosmic ceremony. Nothing happens and nothing is said; the
       // next auto sync tries again once the player has dealt with what is on screen.
+      //
+      // Except at boot, where none of it is on screen yet: the office has not opened, and the
+      // Backlog Report boot itself just queued would otherwise refuse every cold start after
+      // a gap -- the exact case a cloud save exists for.
       const cur = get();
-      if (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline) return 'none';
+      if (!atBoot && (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline)) return 'none';
       const read = await readCloud();
       // A read that never landed says nothing about the slot, so it changes nothing here: no
       // upload over a copy we could not see, and no notice for what is usually a passing
@@ -837,15 +848,6 @@ export function createGameStore(deps: StoreDeps) {
             }
           }
           state = { ...state, processId };
-          // The platform probe only says "Android"; whether this build has a Play Games app
-          // id at all is a question only the plugin can answer, and the answer is fixed for
-          // the process, so it is asked once here and read from the slice everywhere else.
-          let cloudAvailable = false;
-          try {
-            cloudAvailable = await cloudSave.isConfigured();
-          } catch {
-            cloudAvailable = false;
-          }
           const r = settle(state, allowRollover);
           const dept = findDepartment(content, r.state.activeDept);
           set((cur) => ({
@@ -860,26 +862,44 @@ export function createGameStore(deps: StoreDeps) {
             clockSuspect: suspect,
             // What the save remembers of the last sync, so the title screen can say when it
             // was before this boot's own sync has answered.
-            cloud: {
-              ...cur.cloud,
-              available: cloudAvailable,
-              lastSyncWall: r.state.cloud.lastSyncWall,
-              lastResult: r.state.cloud.lastResult,
-            },
+            cloud: { ...cur.cloud, lastSyncWall: r.state.cloud.lastSyncWall, lastResult: r.state.cloud.lastResult },
           }));
           booted = true;
-          // Ahead of `ready`, and only where there is a slot: a player who is already signed
-          // in must not be handed the local save, play a minute of it, and then watch the
-          // cloud copy replace what they just did. The sign-in *prompt* still belongs to a
-          // tap on the title screen, never to a boot.
-          if (cloudAvailable) {
-            try {
-              if (await cloudSave.isSignedIn()) await get().syncCloud('boot');
-              else set((cur) => ({ cloud: { ...cur.cloud, signedIn: false } }));
-            } catch {
-              /* no cloud, no sync: the local save is the save */
-            }
-          }
+          // Ahead of `ready`: a player who is already signed in must not be handed the local
+          // save, play a minute of it, and then watch the cloud copy replace what they just
+          // did. The sign-in *prompt* still belongs to a tap on the title screen, never to a
+          // boot.
+          //
+          // One budget for the whole round-trip, not one per call: four serial 15 s call
+          // timeouts would be a minute of blank screen. A boot that runs out opens on the
+          // local save and lets the first auto sync do the adoption.
+          let budget: ReturnType<typeof setTimeout>;
+          await Promise.race([
+            (async () => {
+              // The platform probe only says "Android"; whether this build has a Play Games
+              // app id at all is a question only the plugin can answer, and the answer is
+              // fixed for the process, so it is asked once and read from the slice after.
+              let available = false;
+              try {
+                available = await cloudSave.isConfigured();
+              } catch {
+                available = false;
+              }
+              set((cur) => ({ cloud: { ...cur.cloud, available } }));
+              if (!available) return;
+              try {
+                if (await cloudSave.isSignedIn()) await get().syncCloud('boot');
+                else set((cur) => ({ cloud: { ...cur.cloud, signedIn: false } }));
+              } catch {
+                /* no cloud, no sync: the local save is the save */
+              }
+            })(),
+            new Promise<void>((resolve) => {
+              budget = setTimeout(resolve, BOOT_CLOUD_BUDGET_MS);
+            }),
+            // Cleared when the cloud wins the race, so a boot leaves no timer of its own
+            // behind -- a paused app must settle to no pending work at all.
+          ]).finally(() => clearTimeout(budget));
           // After the sync, so the loop's tick baseline and autosave belong to whichever
           // file is now running -- a download during boot adopts without restarting a loop
           // that has not started yet.
@@ -1251,13 +1271,14 @@ export function createGameStore(deps: StoreDeps) {
         return 'ok';
       },
 
-      syncCloud() {
-        // The reason a caller gives is not acted on -- every sync runs the same winner rule.
-        // It names the call site at the boundary, which is where a diagnostic would read it.
+      syncCloud(reason) {
+        // The reason is acted on in exactly one place: a boot sync runs before the office
+        // opens, so the ceremony guard has nothing to protect and would only refuse it.
+        // Otherwise it names the call site, which is where a diagnostic would read it.
         // A second sync joins the one already running rather than queueing behind it: both
         // callers want the same answer.
         if (cloudOp) return cloudOp;
-        return exclusive(syncOnce);
+        return exclusive(() => syncOnce(reason === 'boot'));
       },
 
       uploadLocal() {

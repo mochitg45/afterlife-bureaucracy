@@ -138,10 +138,14 @@ export const noopCloudSave: CloudSave = {
  */
 export const CLOUD_TIMEOUT_MS = 15_000;
 
-// ponytail: the loser's timer is left to fire rather than cleared -- a 15 s no-op per cloud
-// call. Clear it with a handle if a profiler ever shows the timers mattering.
 function withTimeout<T>(p: Promise<T>, onTimeout: T): Promise<T> {
-  return Promise.race([p, new Promise<T>((resolve) => setTimeout(() => resolve(onTimeout), CLOUD_TIMEOUT_MS))]);
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    p,
+    new Promise<T>((resolve) => {
+      timer = setTimeout(() => resolve(onTimeout), CLOUD_TIMEOUT_MS);
+    }),
+  ]).finally(() => clearTimeout(timer));
 }
 
 /**
