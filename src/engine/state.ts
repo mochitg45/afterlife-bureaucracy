@@ -112,6 +112,8 @@ export interface GameState {
   stats: Stats;
   /** Owned personnel cards, keyed by card id, valued at star rank 1-5. */
   cards: Record<string, number>;
+  /** Duplicate shards banked toward each card's next star; resets to 0 on star-up, unused at ★5. */
+  cardShards: Record<string, number>;
   equipped: string[];
   pity: { senior: number; executive: number };
   rngSeed: number;
@@ -165,6 +167,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     uptimeAtSave: now.mono,
     stats: { clicks: 0, staffHired: 0, upgradesBought: 0, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0, cosmics: 0, purchases: 0 },
     cards: {},
+    cardShards: {},
     equipped: [],
     pity: { senior: 0, executive: 0 },
     rngSeed: (now.wall % 2147483647) || 1,
@@ -242,6 +245,15 @@ function cardCounts(v: unknown, knownCardIds: Set<string>): Record<string, numbe
     if (!knownCardIds.has(id)) continue;
     const stars = Math.min(5, Math.max(0, Math.round(n)));
     if (stars >= 1) out[id] = stars;
+  }
+  return out;
+}
+
+/** Duplicate shards per card: counts, filtered to cards this build ships, like `cardCounts`. */
+function cardShardCounts(v: unknown, knownCardIds: Set<string>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [id, n] of Object.entries(counts(v))) {
+    if (knownCardIds.has(id)) out[id] = Math.round(n);
   }
   return out;
 }
@@ -464,6 +476,7 @@ export function deserialize(json: string, content: Content): GameState {
       purchases: nonNeg(rawStats.purchases),
     },
     cards,
+    cardShards: cardShardCounts(raw.cardShards, knownCardIds),
     equipped: equippedCards(raw.equipped, cards),
     pity: { senior: nonNegInt(rawPity.senior, 0), executive: nonNegInt(rawPity.executive, 0) },
     rngSeed: (() => {

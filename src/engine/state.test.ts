@@ -379,6 +379,7 @@ describe('exhaustive save round-trip', () => {
       uptimeAtSave: 98_765,
       stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5, pulls: 9, equips: 2, dailiesClaimed: 4, adsWatched: 1, perksBought: 3, cosmics: 2, purchases: 4 },
       cards: { 'c-dave-overtime': 3, 'c-seraphine-chipper': 1 },
+      cardShards: { 'c-dave-overtime': 2 },
       equipped: ['c-dave-overtime'],
       pity: { senior: 4, executive: 12 },
       rngSeed: 987654321,

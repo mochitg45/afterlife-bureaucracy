@@ -25,10 +25,12 @@ function pct(value: number): string {
  */
 const Collection = memo(function Collection({
   cards,
+  cardShards,
   equipped,
   onCardClick,
 }: {
   cards: Record<string, number>;
+  cardShards: Record<string, number>;
   equipped: string[];
   onCardClick: (cardId: string) => void;
 }) {
@@ -44,6 +46,7 @@ const Collection = memo(function Collection({
             owned={owned}
             equipped={equipped.includes(card.id)}
             onClick={owned ? () => onCardClick(card.id) : undefined}
+            shards={cardShards[card.id] ?? 0}
           />
         );
       })}
@@ -57,6 +60,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   const vouchers = useGame((s) => s.state.vouchers);
   const pity = useGame((s) => s.state.pity);
   const cards = useGame((s) => s.state.cards);
+  const cardShards = useGame((s) => s.state.cardShards);
   const equipped = useGame((s) => s.state.equipped);
   const perks = useGame((s) => s.state.perks);
   const pull = useGame((s) => s.pull);
@@ -114,7 +118,15 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
       <div className="tile-grid">
         {Array.from({ length: slots }, (_, i) => equipped[i]).map((cardId, i) =>
           cardId ? (
-            <CardTile key={cardId} card={findCard(content, cardId)} stars={cards[cardId] ?? 1} owned equipped onClick={() => unequip(cardId)} />
+            <CardTile
+              key={cardId}
+              card={findCard(content, cardId)}
+              stars={cards[cardId] ?? 1}
+              owned
+              equipped
+              onClick={() => unequip(cardId)}
+              shards={cardShards[cardId] ?? 0}
+            />
           ) : (
             <div key={`empty-${i}`} className="tile empty sub">Empty slot</div>
           ),
@@ -125,7 +137,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
         <h3>Collection</h3>
         {showNoLanyard && <span className="sub warn">No free lanyard</span>}
       </div>
-      <Collection cards={cards} equipped={equipped} onCardClick={onCollectionClick} />
+      <Collection cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
 
       <div className="card odds" ref={oddsRef}>
         <h3>Odds</h3>

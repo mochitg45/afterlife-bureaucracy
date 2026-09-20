@@ -102,13 +102,50 @@ describe('pull', () => {
       expect(sinceExec).toBeLessThan(PITY_EXECUTIVE);
     }
   });
-  it('raises stars on duplicates and converts past five stars to KC', () => {
+  it('star-ups cost 1/2/3/5 duplicates, banking shards between promotions', () => {
     const one = { ...content, cards: [content.cards[0]] };
-    let s = { ...base(), vouchers: 60 };
-    for (let i = 0; i < 5; i++) s = pull(s, one, 1, rate).state;
-    expect(s.cards[content.cards[0].id]).toBe(5);
-    const r = pull(s, one, 1, rate);
-    expect(r.state.cards[content.cards[0].id]).toBe(5);
+    const id = content.cards[0].id;
+    let s = { ...base(), vouchers: 1000 };
+    // 1st pull: first copy, straight to ★1, no shard spent.
+    let r = pull(s, one, 1, rate);
+    s = r.state;
+    expect(s.cards[id]).toBe(1);
+    expect(r.results[0]).toMatchObject({ starsAfter: 1, shards: 0, shardsNeeded: 1 });
+    // 2nd pull: 1 duplicate is enough to reach ★2 (DUPES_PER_STAR[0] = 1).
+    r = pull(s, one, 1, rate);
+    s = r.state;
+    expect(s.cards[id]).toBe(2);
+    expect(r.results[0]).toMatchObject({ starsAfter: 2, shards: 0, shardsNeeded: 2 });
+    // Pulls 3-4: ★2→★3 needs 2 duplicates; the first only banks a shard.
+    r = pull(s, one, 1, rate);
+    s = r.state;
+    expect(s.cards[id]).toBe(2);
+    expect(r.results[0]).toMatchObject({ starsAfter: 2, shards: 1, shardsNeeded: 2 });
+    r = pull(s, one, 1, rate);
+    s = r.state;
+    expect(s.cards[id]).toBe(3);
+    expect(r.results[0]).toMatchObject({ starsAfter: 3, shards: 0, shardsNeeded: 3 });
+    expect(s.cardShards[id]).toBe(0);
+  });
+
+  it('reaches ★5 after 1+2+3+5 = 11 duplicates; the 12th pays KC instead', () => {
+    const one = { ...content, cards: [content.cards[0]] };
+    const id = content.cards[0].id;
+    let s = { ...base(), vouchers: 1000 };
+    // 1 pull for the first copy, then 10 more duplicates: 1+2+3+4 = 10 consumed by
+    // ★1→★2 (1), ★2→★3 (2), ★3→★4 (3), leaving 4 of the 5 needed for ★4→★5.
+    for (let i = 0; i < 11; i++) s = pull(s, one, 1, rate).state;
+    expect(s.cards[id]).toBe(4);
+    expect(s.cardShards[id]).toBe(4);
+    // The 11th duplicate (12th pull overall) completes ★4→★5.
+    let r = pull(s, one, 1, rate);
+    s = r.state;
+    expect(s.cards[id]).toBe(5);
+    expect(r.results[0]).toMatchObject({ starsAfter: 5, shards: 0, shardsNeeded: 0 });
+    // Any further duplicate pays KC and leaves stars/shards untouched.
+    r = pull(s, one, 1, rate);
+    expect(r.state.cards[id]).toBe(5);
+    expect(r.state.cardShards[id]).toBe(0);
     expect(r.results[0].duplicateKc?.toNumber()).toBe(6000);
     expect(r.state.kc.toNumber()).toBe(6000);
     expect(pull({ ...s, kc: new Decimal(0) }, one, 1, new Decimal(0.01)).results[0].duplicateKc?.toNumber()).toBe(100);

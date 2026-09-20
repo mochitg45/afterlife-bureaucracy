@@ -6,11 +6,12 @@ import type { PullResult } from '../../engine/gacha';
 import { CardTile } from '../components/CardTile';
 import { Modal } from '../components/Modal';
 
-/** New card (first copy) vs. a star-up vs. a duplicate converted to Karma Coins. */
+/** New card (first copy) vs. a star-up vs. a banked shard vs. a duplicate converted to Karma Coins. */
 function resultLabel(r: PullResult): string {
   if (r.duplicateKc) return `+${formatNumber(r.duplicateKc)} KC`;
   if (r.starsAfter === 1) return 'NEW';
-  return `★ ${r.starsAfter}`;
+  if (r.shards === 0) return `★ ${r.starsAfter}`;
+  return `+1 (${r.shards}/${r.shardsNeeded})`;
 }
 
 export function PullReveal() {
@@ -23,7 +24,7 @@ export function PullReveal() {
       <div className="reveal-list">
         {pendingPull.map((r, i) => (
           <div key={i} className={'reveal-row' + (r.rarity === 'executive' ? ' foil' : '')}>
-            <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} />
+            <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} />
             <span className="mono">{resultLabel(r)}</span>
             {r.pityTriggered && <span className="sub brass">Guaranteed</span>}
           </div>

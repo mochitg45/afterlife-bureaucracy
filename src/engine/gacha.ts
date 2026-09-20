@@ -7,6 +7,8 @@ import { perkSum } from './perks';
 export const PULL_COST = 10;
 export const TEN_PULL_COST = 90;
 export const MAX_STARS = 5;
+/** Duplicates needed to go ★1→★2, ★2→★3, ★3→★4, ★4→★5. */
+export const DUPES_PER_STAR = [1, 2, 3, 5];
 export const BASE_EQUIP_SLOTS = 3;
 export const MAX_EQUIP_SLOTS = 8;
 export const PITY_SENIOR = 10;
@@ -22,6 +24,10 @@ export interface PullResult {
   starsAfter: number;
   duplicateKc: Decimal | null;
   pityTriggered: 'senior' | 'executive' | null;
+  /** Shards banked toward the next star (0 once ★5 is reached). */
+  shards: number;
+  /** Shards required for the next star; 0 at ★5. */
+  shardsNeeded: number;
 }
 
 /** Rolls a rarity from a seed, applying pity: forced senior+ at PITY_SENIOR, forced executive at PITY_EXECUTIVE. */
@@ -71,6 +77,7 @@ export function pull(
   let seed = state.rngSeed;
   let pity = { ...state.pity };
   const cards = { ...state.cards };
+  const cardShards = { ...state.cardShards };
   let kc = state.kc;
   const results: PullResult[] = [];
   for (let i = 0; i < count; i++) {
@@ -82,18 +89,45 @@ export function pull(
     const id = picked.card.id;
     const stars = cards[id] ?? 0;
     let duplicateKc: Decimal | null = null;
-    if (stars >= MAX_STARS) {
+    if (stars === 0) {
+      cards[id] = 1;
+    } else if (stars >= MAX_STARS) {
       duplicateKc = Decimal.max(new Decimal(DUPLICATE_KC_MIN), kcPerSec.mul(DUPLICATE_KC_SECONDS));
       kc = kc.add(duplicateKc);
     } else {
-      cards[id] = stars + 1;
+      const needed = DUPES_PER_STAR[stars - 1];
+      const shards = (cardShards[id] ?? 0) + 1;
+      if (shards >= needed) {
+        cards[id] = stars + 1;
+        cardShards[id] = 0;
+      } else {
+        cardShards[id] = shards;
+      }
     }
     const gotSenior = roll.rarity === 'senior' || roll.rarity === 'executive';
     pity = { senior: gotSenior ? 0 : pity.senior + 1, executive: roll.rarity === 'executive' ? 0 : pity.executive + 1 };
-    results.push({ cardId: id, rarity: roll.rarity, starsAfter: cards[id] ?? MAX_STARS, duplicateKc, pityTriggered: roll.pityTriggered });
+    const starsAfter = cards[id] ?? MAX_STARS;
+    results.push({
+      cardId: id,
+      rarity: roll.rarity,
+      starsAfter,
+      duplicateKc,
+      pityTriggered: roll.pityTriggered,
+      shards: cardShards[id] ?? 0,
+      shardsNeeded: starsAfter >= MAX_STARS ? 0 : DUPES_PER_STAR[starsAfter - 1],
+    });
   }
   return {
-    state: { ...state, vouchers: state.vouchers - cost, rngSeed: seed, pity, cards, kc, stats: { ...state.stats, pulls: state.stats.pulls + count } },
+    state: {
+      ...state,
+      vouchers: state.vouchers - cost,
+      rngSeed: seed,
+      pity,
+      cards,
+      cardShards,
+      kc,
+      stats: { ...state.stats, pulls: state.stats.pulls + count },
+    },
     results,
   };
 }

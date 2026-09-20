@@ -17,6 +17,7 @@
   "stats": { "clicks": 240, "staffHired": 15, "upgradesBought": 2, "audits": 0, "pulls": 3, "equips": 1, "dailiesClaimed": 4, "adsWatched": 2, "perksBought": 1, "cosmics": 1, "purchases": 3 },
   "perks": ["throughput-1"],
   "cards": { "c-dave-overtime": 2 },
+  "cardShards": { "c-dave-overtime": 1 },
   "equipped": ["c-dave-overtime"],
   "pity": { "senior": 4, "executive": 12 },
   "rngSeed": 123456789,

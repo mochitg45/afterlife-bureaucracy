@@ -21,8 +21,8 @@ describe('PullReveal', () => {
 
   it('shows NEW, duplicate KC, foil executives and guaranteed pity, and dismisses on Back to Personnel', () => {
     seed([
-      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null },
-      { cardId: 'c-keeper', rarity: 'executive', starsAfter: 5, duplicateKc: new Decimal(6000), pityTriggered: 'executive' },
+      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 1 },
+      { cardId: 'c-keeper', rarity: 'executive', starsAfter: 5, duplicateKc: new Decimal(6000), pityTriggered: 'executive', shards: 0, shardsNeeded: 0 },
     ]);
     render(<PullReveal />);
     const dialog = screen.getByRole('dialog', { name: /requisition results/i });

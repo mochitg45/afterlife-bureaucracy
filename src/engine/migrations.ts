@@ -103,9 +103,13 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
   // balance keeps its value under the new prices; voucherFraction is the sub-voucher
   // remainder toward the next whole grant (always < 1, independent of grant size), so
   // scaling it would push it past the valid range and have it sanitized back to 0.
+  // Same step: star-ups now cost 1/2/3/5 duplicates instead of 1 each, tracked as banked
+  // shards per card. No tester device has shipped save v8 yet, so this folds into the step
+  // rather than adding v9.
   (raw) => ({
     ...raw,
     vouchers: num(raw.vouchers) * 10,
+    cardShards: {},
   }),
 ];
 
