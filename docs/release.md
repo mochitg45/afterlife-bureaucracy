@@ -88,7 +88,8 @@ machine without the key (and CI) is not broken by its absence.
   achievement IDs and the `lifetime-souls` leaderboard ID into `docs/store/ids.md` and
   `src/platform/gameIds.ts`, and add the `com.google.android.gms.games.APP_ID` meta-data to
   `AndroidManifest.xml` (it is commented out there on purpose — a placeholder value crashes the
-  app at startup). Full console walkthrough in `docs/store/ids.md`.
+  app at startup). Full console walkthrough in `docs/store/ids.md`; field-level checklist for
+  products, RevenueCat, policy forms and the closed track in `docs/store/play-console-next.md`.
 
 ---
 
