@@ -123,6 +123,23 @@ Rule: the first successful purchase of each voucher pack id grants `2 × pack am
 
 ---
 
+### Task 9: Animated introduction
+
+**Files:**
+- Create: `src/ui/overlays/Intro.tsx` (+ test), `src/data/onboarding.json` gains `intro: [{ id, caption, cta? }]` (4 scenes; the two memo texts become captions of scenes 1 and 3)
+- Modify: `src/ui/App.tsx` (mount `Intro` where `OnboardingMemos` was; `OnboardingMemos` stays in the tree only if `Intro` reuses it, otherwise delete it and its test), `src/engine/content.ts` (schema), `src/ui/theme.css`, `src/ui/overlays/OnboardingMemos.tsx` (removed or reduced).
+
+Shown once when `!onboarding.memosSeen` and phase is `'game'`; finishing or Skip calls `markMemosSeen()`; training then starts as today. Full-screen parchment stage, portrait, CSS keyframes only (no timers beyond one `setTimeout`-free `animationend` listener per scene), `prefers-reduced-motion` shows the scenes static. Tap anywhere or "Next" advances; "Skip" top-right at every scene; each scene auto-advances after its animation ends plus 2.5 s if untouched. Scenes:
+1. **The end** — a mortal-world skyline at dusk (flat ink shapes), a small soul (the shipped `soul` art) rises from a bed and floats up; caption "FORM 1-A · NOTICE OF DECEASE — You have died. Do not be alarmed; it is quite common."
+2. **Take a number** — the afterlife counter: a long queue of souls stretching off the left edge shuffling forward one step, a "NOW SERVING 0000000" ticker that rolls, the counter sign; caption "Your file has been forwarded to Intake. Please proceed to the counter and wait to be called."
+3. **The offer** — Dave behind the counter slides a stamp across the desk toward the player; Seraphine holds up FORM 2-C; caption "FORM 2-C · OFFER OF EMPLOYMENT — Position: Intake Clerk (Temporary); duties: stamp; benefits: none."
+4. **First stamp** — the red PROCESSED seal slams down (scale + rotate + a paper-jolt), ink splatter dots, the stage fades into the Office; CTA "Clock in".
+All art inline SVG in the shipped ink-outline style, reusing `Character`, `StampSeal` and the soul. Tests: renders scene 1 caption; Next reaches scene 4; Skip on scene 2 calls `markMemosSeen`; `Clock in` on scene 4 calls `markMemosSeen`; content schema requires exactly 4 scenes with captions ≤ 3 sentences.
+
+- [ ] Step 1: failing tests; Step 2: implement; visual check at 390 px; Step 3: commit `feat(ui): animated introduction`; push.
+
+---
+
 ## Self-review
 
 Spec coverage: §7 odds/costs → Task 1; §8/§9 voucher amounts → Task 1; §10 theme → Task 2; card sheet is new UI under §10 Personnel → Task 3; icon → Task 4. Placeholder scan: constants and copy are exact; Task 3 names the reuse rule for the effect function. Types: `settings.theme` union is the same in Task 2's store, App and Settings.
