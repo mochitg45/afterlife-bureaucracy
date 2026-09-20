@@ -57,12 +57,18 @@ export function App() {
     else document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // Web Audio may only start from a user gesture; the first tap anywhere is that gesture.
+  // Web Audio may only start from a user gesture, and a gesture the WebView does not count
+  // leaves the context suspended -- so every gesture keeps trying until the context says it
+  // is running, and only then do the listeners come off.
   useEffect(() => {
-    const unlock = () => { useGame.getState().audio.unlock(); };
-    window.addEventListener('pointerdown', unlock, { once: true });
-    window.addEventListener('keydown', unlock, { once: true });
-    return () => { window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
+    const events = ['pointerdown', 'touchend', 'click', 'keydown'] as const;
+    const unlock = () => {
+      const { audio } = useGame.getState();
+      audio.unlock();
+      if (audio.isRunning()) events.forEach((e) => window.removeEventListener(e, unlock));
+    };
+    events.forEach((e) => window.addEventListener(e, unlock));
+    return () => events.forEach((e) => window.removeEventListener(e, unlock));
   }, []);
 
   useEffect(() => {

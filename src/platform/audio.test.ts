@@ -4,13 +4,13 @@ import { createAudio } from './audio';
 function fakeContext() {
   const started: string[] = [];
   const node = (kind: string) => ({
-    kind, connect: () => {}, start: () => started.push(kind), stop: () => {},
+    kind, connect: (_to?: { kind?: string }) => {}, start: () => started.push(kind), stop: () => {},
     frequency: { value: 0, setValueAtTime: () => {}, exponentialRampToValueAtTime: () => {} },
     gain: { value: 0, setValueAtTime: () => {}, linearRampToValueAtTime: () => {}, exponentialRampToValueAtTime: () => {} },
     type: 'sine', buffer: null, loop: false, Q: { value: 0 },
   });
   const ctx = {
-    state: 'suspended' as 'suspended' | 'running',
+    state: 'suspended' as 'suspended' | 'running' | 'closed',
     currentTime: 0,
     destination: {},
     sampleRate: 44100,
@@ -19,7 +19,7 @@ function fakeContext() {
     createOscillator: () => node('osc'),
     createGain: () => node('gain'),
     createBiquadFilter: () => node('filter'),
-    createBuffer: () => ({ getChannelData: () => new Float32Array(4410) }),
+    createBuffer: (_channels: number, length: number) => ({ getChannelData: () => new Float32Array(length) }),
     createBufferSource: () => node('noise'),
     started,
   };
@@ -50,8 +50,8 @@ describe('audio', () => {
     audio.unlock();
     audio.play('hire');
     expect(ctx.started.filter((k) => k === 'osc')).toHaveLength(2); // the ambience hum's two oscillators only
-    // The ambience scheduler is running: within 4 s at least one typewriter clack (noise) fires.
-    vi.advanceTimersByTime(4000);
+    // The ambience scheduler is running: within 9 s (the widest clack gap) at least one clack fires.
+    vi.advanceTimersByTime(9000);
     expect(ctx.started.filter((k) => k === 'noise').length).toBeGreaterThan(0);
     audio.setEnabled({ sfx: false, music: false });
     const before = ctx.started.length;
@@ -75,7 +75,7 @@ describe('audio', () => {
     const audio = createAudio(() => ctx as unknown as AudioContext);
     audio.setEnabled({ sfx: true, music: false });
     audio.unlock();
-    const names = ['stamp', 'hire', 'upgrade', 'pull', 'reveal-temp', 'reveal-fulltime', 'reveal-senior', 'reveal-executive', 'equip', 'achievement', 'audit', 'report', 'tick'] as const;
+    const names = ['stamp', 'hire', 'upgrade', 'pull', 'reveal-temp', 'reveal-fulltime', 'reveal-senior', 'reveal-executive', 'equip', 'achievement', 'audit', 'report'] as const;
     for (const n of names) {
       const before = ctx.started.length;
       audio.play(n);
@@ -94,7 +94,7 @@ describe('audio', () => {
 
     ctx.createOscillator = workingCreateOscillator;
     audio.setEnabled({ sfx: true, music: true });
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(9000);
     expect(ctx.started.length).toBeGreaterThan(0);
     vi.useRealTimers();
   });
@@ -131,5 +131,46 @@ describe('audio', () => {
     const oscStarts = ctx.started.filter((k) => k === 'osc').length;
     expect(oscStarts - oscStops.length).toBe(2);
     vi.useRealTimers();
+  });
+
+  it('resumes again on every play while the context is still not running', () => {
+    const ctx = fakeContext();
+    ctx.resume = vi.fn(async () => { /* the WebView refuses: state stays suspended */ });
+    const audio = createAudio(() => ctx as unknown as AudioContext);
+    audio.unlock();
+    expect(ctx.resume).toHaveBeenCalledTimes(1);
+    audio.play('stamp');
+    expect(ctx.resume).toHaveBeenCalledTimes(2);
+    expect(audio.isRunning()).toBe(false);
+  });
+
+  it('builds a fresh context after the old one closes', () => {
+    const made: ReturnType<typeof fakeContext>[] = [];
+    const audio = createAudio(() => { const c = fakeContext(); made.push(c); return c as unknown as AudioContext; });
+    audio.unlock();
+    expect(made).toHaveLength(1);
+    made[0].state = 'closed';
+    audio.play('stamp');
+    expect(made).toHaveLength(2);
+  });
+
+  it('runs the master through a limiter when the context has one', () => {
+    const ctx = fakeContext();
+    const connections: string[] = [];
+    const workingCreateGain = ctx.createGain;
+    ctx.createGain = () => {
+      const n = workingCreateGain();
+      n.connect = (to?: { kind?: string }) => { connections.push(`${n.kind}->${to?.kind ?? 'destination'}`); };
+      return n;
+    };
+    (ctx as Record<string, unknown>).createDynamicsCompressor = () => ({
+      kind: 'limiter', connect: () => { connections.push('limiter->destination'); },
+      threshold: { value: 0 }, ratio: { value: 0 }, attack: { value: 0 }, release: { value: 0 },
+    });
+    const audio = createAudio(() => ctx as unknown as AudioContext);
+    audio.unlock();
+    expect(connections).toContain('gain->limiter');
+    expect(connections).toContain('limiter->destination');
+    expect(connections).not.toContain('gain->destination');
   });
 });

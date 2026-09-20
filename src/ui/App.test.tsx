@@ -49,13 +49,22 @@ describe('App shell', () => {
     expect(shell.closest('.app')).toHaveClass('safe-area');
   });
 
-  it('unlocks audio on the first pointer down, once', () => {
+  it('keeps trying to unlock audio until the context is running', () => {
     const unlock = vi.fn();
-    useGame.setState({ audio: { unlock, play: () => {}, setEnabled: () => {}, suspend: () => {}, resume: () => {} } });
+    let running = false;
+    useGame.setState({ audio: { unlock, play: () => {}, setEnabled: () => {}, suspend: () => {}, resume: () => {}, isRunning: () => running } });
     render(<App />);
+    // A gesture the WebView refused: the context is still not running, so the listeners stay armed.
     fireEvent.pointerDown(document.body);
     fireEvent.pointerDown(document.body);
-    expect(unlock).toHaveBeenCalledTimes(1);
+    expect(unlock).toHaveBeenCalledTimes(2);
+    // The gesture that takes: the listeners come off and later gestures cost nothing.
+    running = true;
+    fireEvent.pointerDown(document.body);
+    expect(unlock).toHaveBeenCalledTimes(3);
+    fireEvent.pointerDown(document.body);
+    fireEvent.keyDown(document.body);
+    expect(unlock).toHaveBeenCalledTimes(3);
   });
 
   it('opens the settings sheet from the gear button', async () => {

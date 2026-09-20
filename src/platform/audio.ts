@@ -9,7 +9,7 @@
 export type SfxName =
   | 'stamp' | 'hire' | 'upgrade' | 'pull'
   | 'reveal-temp' | 'reveal-fulltime' | 'reveal-senior' | 'reveal-executive'
-  | 'equip' | 'achievement' | 'audit' | 'report' | 'tick';
+  | 'equip' | 'achievement' | 'audit' | 'report';
 
 export interface Audio {
   play(name: SfxName): void;
@@ -17,6 +17,8 @@ export interface Audio {
   unlock(): void;
   suspend(): void;
   resume(): void;
+  /** Whether the context is actually running -- the only proof a gesture unlocked it. */
+  isRunning(): boolean;
 }
 
 const MASTER = 0.5;
@@ -33,17 +35,43 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
   let hum: { stop(): void } | null = null;
 
   const ensure = (): AudioContext | null => {
+    // A closed context never comes back: drop the whole graph and build a fresh one, which
+    // starts locked again because a new context needs its own gesture.
+    if (ctx?.state === 'closed') {
+      stopAmbience();
+      ctx = null;
+      master = null;
+      music = null;
+      unlocked = false;
+    }
     if (ctx) return ctx;
     const made = ctxFactory ? ctxFactory() : null;
     if (!made) return null;
     ctx = made;
     master = ctx.createGain();
     master.gain.value = MASTER;
-    master.connect(ctx.destination);
+    // A limiter so a stamp during the reveal fanfare cannot clip; older WebViews without
+    // DynamicsCompressor just get the master straight through.
+    if (typeof ctx.createDynamicsCompressor === 'function') {
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -12;
+      limiter.ratio.value = 6;
+      limiter.attack.value = 0.003;
+      limiter.release.value = 0.15;
+      master.connect(limiter);
+      limiter.connect(ctx.destination);
+    } else {
+      master.connect(ctx.destination);
+    }
     music = ctx.createGain();
     music.gain.value = MUSIC;
     music.connect(master);
     return ctx;
+  };
+
+  /** The WebView can suspend a context behind our back; every path that makes sound rearms it. */
+  const wake = (c: AudioContext) => {
+    if (c.state !== 'running') void c.resume().catch(() => {});
   };
 
   /** A decaying tone: `freq` Hz (optionally sliding to `to`), `dur` seconds, into `out`. */
@@ -105,7 +133,6 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
     audit: (o) => { noise(o, 0.12, { cutoff: 500, gain: 0.9 }); tone(o, 80, 0.3, { to: 40, gain: 0.9 }); tone(o, 196, 1.2, { type: 'sine', gain: 0.35, at: 0.15 }); },
     // Paper shuffle for the backlog report.
     report: (o) => { noise(o, 0.12, { type: 'bandpass', cutoff: 1800, gain: 0.4 }); noise(o, 0.14, { type: 'bandpass', cutoff: 2200, gain: 0.35, at: 0.12 }); },
-    tick: (o) => { noise(o, 0.03, { cutoff: 4000, gain: 0.25 }); },
   };
 
   /** Office ambience: a soft hum plus typewriter clacks at random, a desk bell now and then. */
@@ -117,7 +144,7 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
       const o2 = c.createOscillator();
       const g = c.createGain();
       o1.frequency.value = 55;
-      o2.frequency.value = 110.5; // the half-cycle offset makes the hum breathe
+      o2.frequency.value = 110.5; // 110.5 Hz against 2x55 beats at 0.5 Hz so the hum breathes
       g.gain.value = 0.12;
       o1.connect(g); o2.connect(g); g.connect(music);
       o1.start(); o2.start();
@@ -132,9 +159,10 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
     const clack = () => {
       if (!ambience) return;
       try {
-        const burst = 1 + Math.floor(Math.random() * 4);
+        const burst = 1 + Math.floor(Math.random() * 3);
         for (let i = 0; i < burst; i++) noise(music!, 0.03, { cutoff: 3500, gain: 0.35, at: i * (0.09 + Math.random() * 0.06) });
-        if (Math.random() < 0.06) tone(music!, 1760, 0.5, { gain: 0.12 });
+        // 1319 Hz (E6), well clear of the 1760 Hz achievement bell: ambience must never sound like a reward.
+        if (Math.random() < 0.02) tone(music!, 1319, 0.5, { gain: 0.12 });
       } catch {
         // the hum's oscillators are still live (started by an earlier successful
         // startAmbience) — stop them via stopAmbience rather than just dropping the
@@ -142,7 +170,7 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
         stopAmbience();
         return;
       }
-      ambience = setTimeout(clack, 600 + Math.random() * 2400);
+      ambience = setTimeout(clack, 2000 + Math.random() * 6000);
     };
     ambience = setTimeout(clack, 400);
   };
@@ -159,6 +187,7 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
       if (!unlocked || !sfxOn) return;
       const c = ensure();
       if (!c || !master) return;
+      wake(c);
       try { RECIPES[name](master); } catch { /* a dead context is silence, not a crash */ }
     },
     setEnabled({ sfx, music: m }) {
@@ -168,11 +197,10 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
       else if (unlocked) startAmbience();
     },
     unlock() {
-      if (unlocked) return;
       const c = ensure();
       if (!c) return;
       unlocked = true;
-      void c.resume().catch(() => {});
+      wake(c);
       startAmbience();
     },
     suspend() {
@@ -181,9 +209,10 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
     },
     resume() {
       if (!ctx || !unlocked) return;
-      void ctx.resume().catch(() => {});
+      wake(ctx);
       startAmbience();
     },
+    isRunning: () => ctx?.state === 'running',
   };
 }
 
