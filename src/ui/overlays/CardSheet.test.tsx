@@ -1,9 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { CardSheet } from './CardSheet';
 import { useGame } from '../../store/game';
 import { createInitialState, type GameState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
+import { cardGlobalMult, cardDeptMult, cardClickMult, cardOfflineCapHours, cardVoucherMult } from '../../engine/gacha';
 
 const CARD = 'c-dave-overtime'; // deptMult 0.05 on intake
 
@@ -58,5 +59,33 @@ describe('CardSheet', () => {
     seed({ cards: { [CARD]: 5 } });
     render(<CardSheet cardId={CARD} onClose={() => {}} />);
     expect(screen.getByText(/max stars/i)).toBeInTheDocument();
+  });
+
+  it('prints the bonus the engine would actually apply, for every card at every star', () => {
+    // The sheet's bonusLine() re-does the `value * stars` maths that gacha.ts's multipliers
+    // do, and the two were only kept in step by inspection. This walks all 30 cards at stars
+    // 1-5 and checks the printed number against what equipping that card really pays.
+    for (const card of content.cards) {
+      for (let stars = 1; stars <= 5; stars++) {
+        seed({ cards: { [card.id]: stars }, equipped: [card.id] });
+        const state = useGame.getState().state;
+        const e = card.effect;
+        const amount =
+          e.type === 'globalMult' ? cardGlobalMult(state, content).toNumber() - 1
+          : e.type === 'deptMult' ? cardDeptMult(state, content, e.dept).toNumber() - 1
+          : e.type === 'clickMult' ? cardClickMult(state, content)
+          : e.type === 'offlineCapHours' ? cardOfflineCapHours(state, content)
+          : cardVoucherMult(state, content);
+        const tenths = Math.round(amount * 1000) / 10;
+        const shown = e.type === 'offlineCapHours'
+          ? `+${amount}h`
+          : '+' + (Number.isInteger(tenths) ? tenths.toString() : tenths.toFixed(1)) + '%';
+        render(<CardSheet cardId={card.id} onClose={() => {}} />);
+        expect(
+          screen.getByText((_, el) => el?.textContent?.startsWith(`Bonus now: ${shown}`) === true, { selector: 'p' }),
+        ).toBeInTheDocument();
+        cleanup();
+      }
+    }
   });
 });

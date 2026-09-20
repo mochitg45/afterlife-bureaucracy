@@ -355,7 +355,18 @@ describe('save v8 (playtest round 1: vouchers x10)', () => {
     const s = deserialize(JSON.stringify(saveV8), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.vouchers).toBe(50);
-    expect(s.entitlements.firstBuyUsed).toEqual({});
+    // The two fields v8 saves that nothing else in the fixture exercised: the chosen theme
+    // travels with the save, and a pack whose first-purchase bonus is already spent stays spent.
+    expect(s.settings.theme).toBe('dark');
+    expect(s.entitlements.firstBuyUsed).toEqual({ vouchers_10: true });
+  });
+  it('gives a v7 save an empty shard bank and keeps only shards for cards this build ships', () => {
+    // The migration banks no shards for an old save -- there was no way to earn one -- and a
+    // hand-edited save naming a card that no longer exists must not smuggle the id through.
+    const migrated = deserialize(JSON.stringify({ ...saveV7, cardShards: { 'c-dave-overtime': 3 } }), content);
+    expect(migrated.cardShards).toEqual({});
+    const v8 = deserialize(JSON.stringify({ ...saveV8, cardShards: { 'c-dave-overtime': 2, 'c-nobody': 9 } }), content);
+    expect(v8.cardShards).toEqual({ 'c-dave-overtime': 2 });
   });
   it('folds an empty firstBuyUsed map into a v7 save migrated to v8, keeping the rest of entitlements', () => {
     const raw = { ...saveV7 };
