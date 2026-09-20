@@ -175,6 +175,28 @@ describe('cloud sync on boot', () => {
     store.getState().stopLoop();
   });
 
+  it('folds in a first-buy flag the cloud save already had an entry for', async () => {
+    // The merge compares flags by value, not by how many ids each side lists: this device
+    // holds vouchers_10 as unused, the downloaded save records the purchase under that same
+    // id, and the two sets are the same size. A key count cannot see the difference.
+    const local = saveState({ soulsLifetime: new Decimal(1), soulsRun: new Decimal(1) });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: true } });
+    await store.getState().boot();
+    store.setState({
+      state: {
+        ...store.getState().state,
+        entitlements: { ...store.getState().state.entitlements, firstBuyUsed: { vouchers_10: false } },
+      },
+    });
+    cloud.snapshot = snapshotOf(saveState({
+      soulsLifetime: new Decimal(80_000), soulsRun: new Decimal(80_000), savedAtWall: T0 + 60_000,
+      entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: { vouchers_10: true } },
+    }, T0 + 60_000));
+    expect(await store.getState().syncCloud('manual')).toBe('downloaded');
+    expect(store.getState().state.entitlements.firstBuyUsed).toEqual({ vouchers_10: true });
+    store.getState().stopLoop();
+  });
+
   it('says nothing about the copy this device pushed itself', async () => {
     const local = saveState({ soulsLifetime: new Decimal(100), soulsRun: new Decimal(100) });
     const { store, clock } = await make({ saved: local, cloud: { signedIn: true } });

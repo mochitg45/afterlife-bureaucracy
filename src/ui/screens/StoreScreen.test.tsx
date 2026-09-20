@@ -8,10 +8,10 @@ import type { Product } from '../../platform/billing';
 import { STARTER_PACK_WINDOW_MS, UNION_PERIOD_MS } from '../../engine/entitlements';
 
 const PRODUCTS: Product[] = [
-  { id: 'vouchers_10', price: '$0.99', title: '10 Overtime Vouchers' },
-  { id: 'vouchers_55', price: '$4.99', title: '55 Overtime Vouchers' },
-  { id: 'vouchers_120', price: '$9.99', title: '120 Overtime Vouchers' },
-  { id: 'vouchers_300', price: '$19.99', title: '300 Overtime Vouchers' },
+  { id: 'vouchers_10', price: '$0.99', title: '10 Requisition Vouchers' },
+  { id: 'vouchers_55', price: '$4.99', title: '55 Requisition Vouchers' },
+  { id: 'vouchers_120', price: '$9.99', title: '120 Requisition Vouchers' },
+  { id: 'vouchers_300', price: '$19.99', title: '300 Requisition Vouchers' },
   { id: 'remove_ads', price: '$4.99', title: 'Exempt From Advertising' },
   { id: 'starter_pack', price: '$2.99', title: 'New Clerk Starter Pack' },
   { id: 'union_monthly', price: '$3.99', title: 'Union Membership (monthly)' },
@@ -41,7 +41,7 @@ describe('StoreScreen', () => {
     for (const p of PRODUCTS.slice(0, 4)) {
       expect(screen.getByRole('button', { name: `Buy ${p.title}` })).toHaveTextContent(p.price);
     }
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Buy 55 Overtime Vouchers' })); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Buy 55 Requisition Vouchers' })); });
     expect(buy).toHaveBeenCalledWith('vouchers_55');
     expect(screen.getByRole('status')).toHaveTextContent(/filed/i);
   });
@@ -49,14 +49,14 @@ describe('StoreScreen', () => {
   it('reports a cancelled purchase', async () => {
     seed({}, { buy: vi.fn(async () => 'cancelled' as const) });
     render(<StoreScreen />);
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Buy 10 Overtime Vouchers' })); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Buy 10 Requisition Vouchers' })); });
     expect(screen.getByRole('status')).toHaveTextContent(/cancelled/i);
   });
 
   it('disables every buy button while a purchase is pending', () => {
     seed({}, { purchasePending: 'vouchers_10' });
     render(<StoreScreen />);
-    expect(screen.getByRole('button', { name: 'Buy 10 Overtime Vouchers' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Buy 10 Requisition Vouchers' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Buy Exempt From Advertising' })).toBeDisabled();
     expect(screen.getByRole('status')).toHaveTextContent('Purchase pending…');
   });

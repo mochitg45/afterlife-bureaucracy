@@ -84,10 +84,10 @@ const NOTHING_RESTORED: Restored = { removeAds: false, unionUntilWall: 0, starte
 export const WEB_PURCHASE_DURATION_MS = 300;
 
 const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
-  vouchers_10: { price: '$0.99', title: '100 Overtime Vouchers' },
-  vouchers_55: { price: '$4.99', title: '550 Overtime Vouchers' },
-  vouchers_120: { price: '$9.99', title: '1200 Overtime Vouchers' },
-  vouchers_300: { price: '$19.99', title: '3000 Overtime Vouchers' },
+  vouchers_10: { price: '$0.99', title: '100 Requisition Vouchers' },
+  vouchers_55: { price: '$4.99', title: '550 Requisition Vouchers' },
+  vouchers_120: { price: '$9.99', title: '1200 Requisition Vouchers' },
+  vouchers_300: { price: '$19.99', title: '3000 Requisition Vouchers' },
   remove_ads: { price: '$4.99', title: 'Exempt From Advertising' },
   starter_pack: { price: '$2.99', title: 'New Clerk Starter Pack' },
   union_monthly: { price: '$3.99', title: 'Union Membership (monthly)' },

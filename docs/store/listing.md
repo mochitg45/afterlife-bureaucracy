@@ -54,7 +54,7 @@ When the fiscal year closes, file an Audit: reset the office, bank Departmental 
 spend them in the Perk Ledger on permanent bonuses. Every year is quicker than the last.
 
 THE PERSONNEL REQUISITION LOTTERY
-Spend Overtime Vouchers on staff cards, from Temps to Executives. Duplicates promote a card
+Spend Requisition Vouchers on staff cards, from Temps to Executives. Duplicates promote a card
 up to five stars. Equip your best and let them multiply everything. Full odds are published
 in the app, on the Odds screen, and in this listing.
 
@@ -95,10 +95,10 @@ runtime (the app always displays the store's own localised price, never these).
 
 | Product ID | Name | Price (US, confirm in Play Console) | What the player gets |
 |---|---|---|---|
-| `vouchers_10` | 100 Overtime Vouchers | $0.99 | 100 vouchers |
-| `vouchers_55` | 550 Overtime Vouchers | $4.99 | 550 vouchers |
-| `vouchers_120` | 1200 Overtime Vouchers | $9.99 | 1200 vouchers |
-| `vouchers_300` | 3000 Overtime Vouchers | $19.99 | 3000 vouchers |
+| `vouchers_10` | 100 Requisition Vouchers | $0.99 | 100 vouchers |
+| `vouchers_55` | 550 Requisition Vouchers | $4.99 | 550 vouchers |
+| `vouchers_120` | 1200 Requisition Vouchers | $9.99 | 1200 vouchers |
+| `vouchers_300` | 3000 Requisition Vouchers | $19.99 | 3000 vouchers |
 | `remove_ads` | Exempt From Advertising | $4.99 | Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on the player — the rewarded buttons stay optional either way, and there are no other ad prompts to remove |
 | `starter_pack` | New Clerk Starter Pack | $2.99 | Offered once, only while days since first launch ≤ 3: 200 vouchers, the Senior Staff card Grandma Liu at 1 star, and Karma Credits equal to 30 minutes of current income |
 
@@ -121,7 +121,7 @@ Play policy and App Store Review Guideline 3.1.1 both require the odds to be dis
 purchase. The numbers below are the constants in `src/engine/gacha.ts` and are the same ones
 the in-app Odds screen renders (Personnel tab). If one changes, all three must.
 
-**Personnel Requisition Lottery.** Ten Overtime Vouchers per single draw, ninety per ten-draw.
+**Personnel Requisition Lottery.** Ten Requisition Vouchers per single draw, ninety per ten-draw.
 Vouchers are earned through daily tasks, streaks and achievements, and may also be bought.
 
 | Rarity | Probability per draw |
@@ -137,7 +137,7 @@ Audits. A draw of a card already at five stars converts to Karma Credits instead
 
 Copy for the store description and the IARC questionnaire:
 
-> This game contains randomised paid items. Overtime Vouchers can be purchased and spent on the
+> This game contains randomised paid items. Requisition Vouchers can be purchased and spent on the
 > Personnel Requisition Lottery. The chance of each rarity is Temp 70%, Full-Time 24.5%,
 > Senior Staff 5%, Executive 0.5%, with a Senior Staff or better guaranteed within every 10
 > draws and an Executive within every 60.

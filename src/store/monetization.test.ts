@@ -70,7 +70,7 @@ function fakeBilling() {
   let syncs = 0;
   let restoreThrows = false;
   let push: ((r: Restored) => void) | null = null;
-  const catalogue: Product[] = [{ id: 'vouchers_10', price: '$0.99', title: '10 Overtime Vouchers' }];
+  const catalogue: Product[] = [{ id: 'vouchers_10', price: '$0.99', title: '10 Requisition Vouchers' }];
   const billing: Billing = {
     async init() {},
     async products() { return catalogue; },

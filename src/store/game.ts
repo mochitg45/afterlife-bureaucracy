@@ -449,21 +449,28 @@ export function createGameStore(deps: StoreDeps) {
      */
     const mergeRestored = (restored: Restored & { firstBuyUsed?: Record<string, boolean> }): boolean => {
       const held = get().state.entitlements;
+      // Never-take-away per product id too: only RevenueCat entitlements go through this
+      // path with no firstBuyUsed of their own (union of nothing changes nothing), while
+      // takeCloud passes this device's own flags so a purchase already made here survives
+      // a cloud save written before it happened. ORed per id rather than spread, so a flag
+      // that arrives explicitly false cannot switch a held one off.
+      const firstBuyUsed = { ...held.firstBuyUsed };
+      for (const [id, used] of Object.entries(restored.firstBuyUsed ?? {})) {
+        firstBuyUsed[id] = firstBuyUsed[id] || used;
+      }
       const merged = {
         removeAds: held.removeAds || restored.removeAds,
         unionUntilWall: Math.max(held.unionUntilWall, restored.unionUntilWall),
         starterPackBought: held.starterPackBought || restored.starterPackBought,
-        // Never-take-away per product id too: only RevenueCat entitlements go through this
-        // path with no firstBuyUsed of their own (union of nothing changes nothing), while
-        // takeCloud passes this device's own flags so a purchase already made here survives
-        // a cloud save written before it happened.
-        firstBuyUsed: { ...held.firstBuyUsed, ...restored.firstBuyUsed },
+        firstBuyUsed,
       };
       const changed =
         merged.removeAds !== held.removeAds ||
         merged.unionUntilWall !== held.unionUntilWall ||
         merged.starterPackBought !== held.starterPackBought ||
-        Object.keys(merged.firstBuyUsed).length !== Object.keys(held.firstBuyUsed).length;
+        // By value, not by key count: a flag flipping true under an id the save already
+        // carries leaves the count untouched and used to be dropped on the floor.
+        Object.keys(merged.firstBuyUsed).some((id) => merged.firstBuyUsed[id] !== held.firstBuyUsed[id]);
       if (!changed) return false;
       apply({ ...get().state, entitlements: merged });
       return true;

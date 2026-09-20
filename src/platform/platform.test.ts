@@ -98,6 +98,14 @@ describe('webBilling', () => {
     }
   });
 
+  it('names the voucher packs after the currency itself', async () => {
+    // "Requisition Vouchers" is what the spec, the pull screen and the gambling footnote all
+    // call it; the packs used to be sold as "Overtime Vouchers", which is a different thing.
+    const packs = (await webBilling.products()).filter((p) => p.id.startsWith('vouchers_'));
+    expect(packs).toHaveLength(4);
+    for (const p of packs) expect(p.title).toMatch(/ Requisition Vouchers$/);
+  });
+
   it('resolves purchase with ok after 300 ms, not before', async () => {
     vi.useFakeTimers();
     let settled: string | undefined;
