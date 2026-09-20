@@ -75,6 +75,7 @@ export interface Settings {
   notifDate: string;
   /** Notifications already scheduled today, so a chatty app cannot spam the tray. */
   notifsSent: number;
+  theme: 'light' | 'dark' | 'system';
 }
 
 /** First-launch onboarding progress. trainingStep: 0 = stamp, 1 = hire, 2 = recap, 3 = done. */
@@ -181,7 +182,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     },
     achievements: [],
     storySeen: [],
-    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0 },
+    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light' },
     firstSeenWallClock: now.wall,
     entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false },
     adState: { freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 },
@@ -358,16 +359,19 @@ function sanitizeDailies(v: unknown, knownDailyIds: Set<string>, fallback: Daili
 }
 
 const NOTIF_OPT_INS: Settings['notifOptIn'][] = ['unasked', 'yes', 'no'];
+const THEMES: Settings['theme'][] = ['light', 'dark', 'system'];
 
 function sanitizeSettings(v: unknown): Settings {
   const raw = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
   const notifOptIn = NOTIF_OPT_INS.includes(raw.notifOptIn as Settings['notifOptIn'])
     ? (raw.notifOptIn as Settings['notifOptIn'])
     : 'unasked';
+  const theme = THEMES.includes(raw.theme as Settings['theme']) ? (raw.theme as Settings['theme']) : 'light';
   return {
     notifOptIn,
     notifDate: typeof raw.notifDate === 'string' ? raw.notifDate : '',
     notifsSent: Math.max(0, Math.floor(num(raw.notifsSent, 0))),
+    theme,
   };
 }
 

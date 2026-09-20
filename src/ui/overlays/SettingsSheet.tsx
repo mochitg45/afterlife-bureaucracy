@@ -29,6 +29,8 @@ export function SettingsSheet({
   onSaveCode: () => void;
 }) {
   const notifOptIn = useGame((s) => s.state.settings.notifOptIn);
+  const theme = useGame((s) => s.state.settings.theme);
+  const setTheme = useGame((s) => s.setTheme);
   const saveVersion = useGame((s) => s.state.saveVersion);
   const fiscalYear = useGame((s) => s.state.fiscalYear);
   const soulsLifetime = useGame((s) => s.state.soulsLifetime);
@@ -105,6 +107,20 @@ export function SettingsSheet({
           checked={notifOptIn === 'yes'}
           onChange={(e) => void setNotifOptIn(e.target.checked ? 'yes' : 'no')}
         />
+      </div>
+      <div className="settings-row">
+        <span>Theme</span>
+        <div className="mode-switch">
+          {(['light', 'dark', 'system'] as const).map((t) => (
+            <button
+              key={t}
+              className={'btn ' + (theme === t ? 'active' : '')}
+              onClick={() => setTheme(t)}
+            >
+              {t === 'light' ? 'Light' : t === 'dark' ? 'Dark' : 'System'}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="settings-row">
         <button className="btn btn-ghost" onClick={onGoToOdds}>See requisition odds</button>

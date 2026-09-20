@@ -461,6 +461,19 @@ describe('boot queue caps', () => {
   });
 });
 
+describe('theme setting', () => {
+  it('setTheme writes settings and persists across a reload', async () => {
+    const { store, storage } = await make();
+    await store.getState().boot();
+    store.getState().setTheme('dark');
+    expect(store.getState().state.settings.theme).toBe('dark');
+    await Promise.resolve();
+    const reloaded = deserialize((await storage.get(SAVE_KEY)) as string, content);
+    expect(reloaded.settings.theme).toBe('dark');
+    store.getState().stopLoop();
+  });
+});
+
 describe('prestige filings settle', () => {
   // fileAudit bumps stats.audits, and nothing else in the app looks at it until the next
   // settle — so before this the "One fiscal year, closed and filed" badge waited a tick.

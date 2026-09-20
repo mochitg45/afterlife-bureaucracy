@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { App } from './App';
 import { useGame } from '../store/game';
 import { content } from '../data';
@@ -62,6 +62,17 @@ describe('App shell', () => {
     fireEvent.click(await screen.findByRole('tab', { name: /tasks/i }));
     fireEvent.click(await screen.findByRole('button', { name: /settings/i }));
     expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('applies data-theme from settings and removes it for system', async () => {
+    render(<App />);
+    await clockIn();
+    act(() => { useGame.getState().setTheme('dark'); });
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    act(() => { useGame.getState().setTheme('system'); });
+    expect(document.documentElement).not.toHaveAttribute('data-theme');
+    act(() => { useGame.getState().setTheme('light'); });
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
   });
 
   it('reaches the requisition odds from the title screen footer', async () => {

@@ -194,14 +194,14 @@ describe('save v5', () => {
     expect(s.voucherFraction).toBe(0);
     expect(s.dailies.soulsPerSecSnapshot).toBe('0');
     expect(s.dailies.streak).toBe(3);
-    expect(s.settings).toEqual({ notifOptIn: 'unasked', notifDate: '', notifsSent: 0 });
+    expect(s.settings).toEqual({ notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light' });
   });
   it('loads the v5 fixture', () => {
     const s = deserialize(JSON.stringify(saveV5), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.voucherFraction).toBeCloseTo(0.4);
     expect(s.dailies.soulsPerSecSnapshot).toBe('42');
-    expect(s.settings).toEqual({ notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1 });
+    expect(s.settings).toEqual({ notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'light' });
   });
   it('drops an out-of-range voucher remainder and a negative notification count', () => {
     const raw = { ...saveV5, voucherFraction: 3.5, settings: { ...saveV5.settings, notifsSent: -4, notifDate: 7 } };
@@ -209,6 +209,16 @@ describe('save v5', () => {
     expect(s.voucherFraction).toBe(0);
     expect(s.settings.notifsSent).toBe(0);
     expect(s.settings.notifDate).toBe('');
+  });
+  it('defaults theme to light and rejects a garbage value', () => {
+    const raw = { ...saveV5, settings: { ...saveV5.settings, theme: 'nope' } };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.settings.theme).toBe('light');
+  });
+  it('carries a saved dark theme through deserialize', () => {
+    const raw = { ...saveV5, settings: { ...saveV5.settings, theme: 'dark' } };
+    const s = deserialize(JSON.stringify(raw), content);
+    expect(s.settings.theme).toBe('dark');
   });
   it('clamps a save carrying more equipped cards than the state has slots', () => {
     const five = ['c-dave-overtime', 'c-seraphine-chipper', 'c-gary-break', 'c-cherub-choir', 'c-imp-qa'];
@@ -386,7 +396,7 @@ describe('exhaustive save round-trip', () => {
       },
       achievements: ['a-souls-1', 'a-clicks-1'],
       storySeen: ['s-first-stamp', 's-deja-vu'],
-      settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1 },
+      settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'dark' },
       firstSeenWallClock: 1_699_000_000_000,
       entitlements: { removeAds: true, unionUntilWall: 1_700_000_999_000, starterPackBought: true },
       adState: { freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1_700_000_555_000 },

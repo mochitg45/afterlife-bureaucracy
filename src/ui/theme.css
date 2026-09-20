@@ -41,6 +41,22 @@
   }
 }
 
+/* Explicit "Dark" choice: applies even on a light-system phone, unlike the media query above. */
+:root[data-theme='dark'] {
+  --paper: #1B1915;
+  --surface: #26221D;
+  --surface-2: #322D26;
+  --ink: #EDE7D4;
+  --ink-muted: #A8A091;
+  --line: #4A4238;
+  --green: #4E8C7A;
+  --red: #D9634A;
+  --teal: #5FC4BA;
+  --brass: #D4A950;
+  --violet: #9A92AC;
+  color-scheme: dark;
+}
+
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {

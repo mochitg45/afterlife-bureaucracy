@@ -223,6 +223,7 @@ export interface GameStore {
   dismissStory(): void;
   clearAchievementToast(): void;
   setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
+  setTheme(theme: Settings['theme']): void;
   shouldAskNotifications(): boolean;
   watchAd(placement: AdPlacement, taskId?: string): Promise<AdResult>;
   canWatch(placement: AdPlacement): boolean;
@@ -1083,6 +1084,10 @@ export function createGameStore(deps: StoreDeps) {
         }
         apply({ ...get().state, settings: { ...get().state.settings, notifOptIn } });
         await get().save();
+      },
+      setTheme(theme) {
+        apply({ ...get().state, settings: { ...get().state.settings, theme } });
+        void get().save();
       },
       shouldAskNotifications() {
         const s = get().state;

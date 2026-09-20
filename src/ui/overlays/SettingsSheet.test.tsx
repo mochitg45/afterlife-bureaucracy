@@ -49,6 +49,17 @@ describe('SettingsSheet', () => {
     expect(checkbox.checked).toBe(true);
   });
 
+  it('renders the theme row with the active toggle and calls setTheme', () => {
+    seed('no');
+    const setTheme = vi.fn();
+    useGame.setState({ setTheme });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Light' })).toHaveClass('active');
+    expect(screen.getByRole('button', { name: 'Dark' })).not.toHaveClass('active');
+    fireEvent.click(screen.getByRole('button', { name: 'Dark' }));
+    expect(setTheme).toHaveBeenCalledWith('dark');
+  });
+
   it('shows save, version and calls onGoToOdds / onClose', () => {
     seed('no');
     const onGoToOdds = vi.fn();
