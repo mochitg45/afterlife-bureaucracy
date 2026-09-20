@@ -111,6 +111,18 @@ Task 3 (card sheet) runs after Task 6 and shows the shard progress ("3 of 5 dupl
 
 ---
 
+### Task 8: First purchase pays double
+
+**Files:**
+- Modify: `src/engine/entitlements.ts` (+ test), `src/engine/state.ts` (`entitlements.firstBuyUsed: Record<string, boolean>`, sanitised; folded into the v8 migration step + fixture — v8 is on no tester device), `src/store/game.ts` (`mergeRestored` treats `firstBuyUsed` as never-take-away: once true stays true from either side), `src/ui/components/StoreArt.tsx` (a `firstBuy` prop adds a red "2×" ribbon across the top-left corner of the four voucher drawings), `src/ui/screens/StoreScreen.tsx` (pack row shows "200 vouchers · first purchase 2×" style copy and the ribbon while unused; plain copy and art after), `docs/store/listing.md` (disclose "first purchase of each pack pays double"), spec §9, tests.
+
+Rule: the first successful purchase of each voucher pack id grants `2 × pack amount` through `grantVouchersExact`; later purchases grant the pack amount. Restore never re-grants (restoring only merges entitlements; it does not run `applyPurchase` for consumables — confirm and keep). A cloud download merges the flags with never-take-away.
+
+- [ ] Step 1: failing tests: first `buy('vouchers_10')` grants 200 and sets the flag; second grants 100; flags survive round-trip and merge; StoreScreen shows the ribbon then hides it.
+- [ ] Step 2: implement; visual check; Step 3: commit `feat(store): first purchase of each pack pays double`; push.
+
+---
+
 ## Self-review
 
 Spec coverage: §7 odds/costs → Task 1; §8/§9 voucher amounts → Task 1; §10 theme → Task 2; card sheet is new UI under §10 Personnel → Task 3; icon → Task 4. Placeholder scan: constants and copy are exact; Task 3 names the reuse rule for the effect function. Types: `settings.theme` union is the same in Task 2's store, App and Settings.
