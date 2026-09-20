@@ -1,5 +1,8 @@
 package com.afterlifebureaucracy.game;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -39,11 +42,36 @@ public class CloudSavePlugin extends Plugin {
    */
   private static final Executor IO = Executors.newSingleThreadExecutor();
 
+  /**
+   * Whether this build has a Play Games app id at all. `Capacitor.getPlatform()` only says
+   * "Android"; a build with the `APP_ID` meta-data commented out has no cloud slot, and the
+   * web layer has to be able to tell the two apart -- "not available here" and "not signed
+   * in" send a player to very different places.
+   */
+  @PluginMethod
+  public void isConfigured(PluginCall call) {
+    boolean configured = false;
+    try {
+      Context ctx = getContext();
+      Bundle meta = ctx.getPackageManager()
+        .getApplicationInfo(ctx.getPackageName(), PackageManager.GET_META_DATA).metaData;
+      configured = meta != null && meta.containsKey("com.google.android.gms.games.APP_ID");
+    } catch (Exception e) {
+      configured = false;
+    }
+    JSObject r = new JSObject();
+    r.put("value", configured);
+    call.resolve(r);
+  }
+
   @PluginMethod
   public void isAuthenticated(PluginCall call) {
     PlayGames.getGamesSignInClient(getActivity()).isAuthenticated().addOnCompleteListener(t -> {
+      // A task that failed is not a signed-out player: it is a question that was never
+      // answered, and the wrapper must be free to treat the two differently.
+      if (!t.isSuccessful()) { call.reject("auth check failed", t.getException()); return; }
       JSObject r = new JSObject();
-      r.put("value", t.isSuccessful() && t.getResult().isAuthenticated());
+      r.put("value", t.getResult().isAuthenticated());
       call.resolve(r);
     });
   }
@@ -51,8 +79,11 @@ public class CloudSavePlugin extends Plugin {
   @PluginMethod
   public void signIn(PluginCall call) {
     PlayGames.getGamesSignInClient(getActivity()).signIn().addOnCompleteListener(t -> {
+      // Backing out of the prompt succeeds with `isAuthenticated() == false` (a cancel); a
+      // failed task means the prompt could not run at all, which is 'unavailable'.
+      if (!t.isSuccessful()) { call.reject("sign-in failed", t.getException()); return; }
       JSObject r = new JSObject();
-      r.put("value", t.isSuccessful() && t.getResult().isAuthenticated());
+      r.put("value", t.getResult().isAuthenticated());
       call.resolve(r);
     });
   }
@@ -65,7 +96,10 @@ public class CloudSavePlugin extends Plugin {
       try {
         if (!t.isSuccessful()) { call.reject("open failed", t.getException()); return; }
         Snapshot snap = t.getResult().getData();
-        byte[] bytes = snap == null ? null : snap.getSnapshotContents().readFully();
+        // A slot that opened without data is a read that did not happen, never an empty slot:
+        // reporting "empty" here would invite an upload over a cloud copy nobody could see.
+        if (snap == null) { call.reject("no snapshot"); return; }
+        byte[] bytes = snap.getSnapshotContents().readFully();
         JSObject r = new JSObject();
         if (bytes == null || bytes.length == 0) { r.put("found", false); }
         else {
@@ -73,7 +107,7 @@ public class CloudSavePlugin extends Plugin {
           r.put("data", new String(bytes, StandardCharsets.UTF_8));
           r.put("savedAtWall", snap.getMetadata().getLastModifiedTimestamp());
         }
-        if (snap != null) client.discardAndClose(snap);
+        client.discardAndClose(snap);
         call.resolve(r);
       } catch (Exception e) { call.reject("read failed", e); }
     });
@@ -88,14 +122,21 @@ public class CloudSavePlugin extends Plugin {
     // SDK stamps its own last-modified time on commit, and that is what loadSnapshot reads back.
     SnapshotsClient client = PlayGames.getSnapshotsClient(getActivity());
     client.open(name, true, POLICY).addOnCompleteListener(IO, t -> {
-      if (!t.isSuccessful()) { call.reject("open failed", t.getException()); return; }
-      Snapshot snap = t.getResult().getData();
-      if (snap == null) { call.reject("no snapshot"); return; }
-      snap.getSnapshotContents().writeBytes(data.getBytes(StandardCharsets.UTF_8));
-      SnapshotMetadataChange change = new SnapshotMetadataChange.Builder().setDescription(description).build();
-      client.commitAndClose(snap, change).addOnCompleteListener(IO, c -> {
-        if (c.isSuccessful()) call.resolve(); else call.reject("commit failed", c.getException());
-      });
+      // Everything below can throw -- writeBytes on a closed snapshot, a commit the SDK
+      // refuses to start -- and a throw on this executor would leave the call unanswered and
+      // the store's `syncing` flag stuck on for the rest of the session.
+      try {
+        if (!t.isSuccessful()) { call.reject("open failed", t.getException()); return; }
+        Snapshot snap = t.getResult().getData();
+        if (snap == null) { call.reject("no snapshot"); return; }
+        snap.getSnapshotContents().writeBytes(data.getBytes(StandardCharsets.UTF_8));
+        SnapshotMetadataChange change = new SnapshotMetadataChange.Builder().setDescription(description).build();
+        client.commitAndClose(snap, change).addOnCompleteListener(IO, c -> {
+          try {
+            if (c.isSuccessful()) call.resolve(); else call.reject("commit failed", c.getException());
+          } catch (Exception e) { call.reject("commit failed", e); }
+        });
+      } catch (Exception e) { call.reject("write failed", e); }
     });
   }
 }
