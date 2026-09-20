@@ -414,6 +414,33 @@ describe('fix wave', () => {
     }
   });
 
+  it('D1: a boot sync that outlived the budget obeys the ceremony guard', async () => {
+    vi.useFakeTimers();
+    try {
+      const local = saveState({ soulsLifetime: new Decimal(10), soulsRun: new Decimal(10) });
+      const remote = saveState({
+        soulsLifetime: new Decimal(9e6), soulsRun: new Decimal(9e6), savedAtWall: T0 - 60_000,
+      });
+      const { store, cloud } = await make({ saved: local, cloud: { signedIn: true, snapshot: snapshotOf(remote) } });
+      // Answers a second after the boot budget gave up, so the sync lands in an office that
+      // is already open -- and, by then, with a requisition on screen.
+      vi.spyOn(cloud, 'isSignedIn').mockImplementation(
+        () => new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 4_000)),
+      );
+      const booting = store.getState().boot();
+      await vi.advanceTimersByTimeAsync(3_000);
+      await booting;
+      expect(store.getState().ready).toBe(true);
+      store.setState({ pendingPull: [] }); // a requisition is now open on screen
+      await vi.advanceTimersByTimeAsync(2_000);
+      expect(store.getState().cloud.lastResult).toBe('none');
+      expect(store.getState().state.soulsLifetime.toNumber()).toBe(10);
+      store.getState().stopLoop();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('I1: a save this device just downloaded is not news on the next sync', async () => {
     const cloudState = saveState({
       soulsLifetime: new Decimal(6_000), soulsRun: new Decimal(6_000), savedAtWall: T0 - 60_000,

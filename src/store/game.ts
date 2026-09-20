@@ -655,17 +655,21 @@ export function createGameStore(deps: StoreDeps) {
     };
 
     /** The winner rule: whichever save is further along wins, and the other is replaced. */
-    const syncOnce = async (atBoot = false): Promise<CloudSyncResult> => {
+    const syncOnce = async (): Promise<CloudSyncResult> => {
       // A download replaces the running file, and each of these four holds a payload that
       // belongs to the file being replaced -- an unclaimed offline report, an unopened
       // requisition, an audit or a cosmic ceremony. Nothing happens and nothing is said; the
       // next auto sync tries again once the player has dealt with what is on screen.
       //
-      // Except at boot, where none of it is on screen yet: the office has not opened, and the
-      // Backlog Report boot itself just queued would otherwise refuse every cold start after
-      // a gap -- the exact case a cloud save exists for.
+      // Except while the office is still closed: nothing is on screen before `ready`, and
+      // the Backlog Report boot itself just queued would otherwise refuse every cold start
+      // after a gap -- the exact case a cloud save exists for.
+      //
+      // Read here rather than passed in by the caller: a boot sync that outlived the boot
+      // budget is still running when the office opens, and from that moment it is an
+      // ordinary sync that has to obey the guard like any other.
       const cur = get();
-      if (!atBoot && (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline)) return 'none';
+      if (cur.ready && (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline)) return 'none';
       const read = await readCloud();
       // A read that never landed says nothing about the slot, so it changes nothing here: no
       // upload over a copy we could not see, and no notice for what is usually a passing
@@ -1271,14 +1275,13 @@ export function createGameStore(deps: StoreDeps) {
         return 'ok';
       },
 
-      syncCloud(reason) {
-        // The reason is acted on in exactly one place: a boot sync runs before the office
-        // opens, so the ceremony guard has nothing to protect and would only refuse it.
-        // Otherwise it names the call site, which is where a diagnostic would read it.
+      syncCloud() {
+        // The reason a caller gives is not acted on -- every sync runs the same winner rule.
+        // It names the call site at the boundary, which is where a diagnostic would read it.
         // A second sync joins the one already running rather than queueing behind it: both
         // callers want the same answer.
         if (cloudOp) return cloudOp;
-        return exclusive(() => syncOnce(reason === 'boot'));
+        return exclusive(syncOnce);
       },
 
       uploadLocal() {
