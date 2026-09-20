@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { Character } from './Character';
+import cards from '../../data/cards.json';
 
 describe('Character', () => {
   it('renders each known character with a mood attribute', () => {
@@ -41,5 +42,17 @@ describe('Character', () => {
   it('clamps a variant past the end of the accessory list', () => {
     const { container } = render(<Character id="angel:99" mood="ok" />);
     expect(container.querySelector('svg')!.getAttribute('data-variant')).toBe('4');
+  });
+
+  it('gives every card its own portrait, keyed by its own id', () => {
+    const markup = new Set<string>();
+    for (const card of cards as { id: string; character: string }[]) {
+      const { container, unmount } = render(<Character id={card.character} mood="ok" />);
+      const svg = container.querySelector('svg')!;
+      expect(svg.getAttribute('data-character')).toBe(card.id);
+      markup.add(svg.outerHTML);
+      unmount();
+    }
+    expect(markup.size).toBe(cards.length);
   });
 });
