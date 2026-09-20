@@ -125,14 +125,15 @@ export function SettingsSheet({
           ))}
         </div>
       </div>
-      <div className="settings-row">
+      {/* Labels, not bare rows: the whole row is the hit target, which is the only usable size on a phone. */}
+      <label className="settings-row">
         <span>Sound effects</span>
         <input type="checkbox" aria-label="Sound effects" checked={sfx} onChange={(e) => setSound({ sfx: e.target.checked })} />
-      </div>
-      <div className="settings-row">
+      </label>
+      <label className="settings-row">
         <span>Music</span>
         <input type="checkbox" aria-label="Music" checked={music} onChange={(e) => setSound({ music: e.target.checked })} />
-      </div>
+      </label>
       <div className="settings-row">
         <button className="btn btn-ghost" onClick={onGoToOdds}>See requisition odds</button>
       </div>

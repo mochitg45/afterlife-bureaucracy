@@ -73,6 +73,15 @@ describe('SettingsSheet', () => {
     expect(setSound).toHaveBeenCalledWith({ music: false });
   });
 
+  it('toggles a sound setting from the row text, not just the checkbox', () => {
+    seed('no');
+    const setSound = vi.fn();
+    useGame.setState({ setSound });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    fireEvent.click(screen.getByText('Sound effects'));
+    expect(setSound).toHaveBeenCalledWith({ sfx: false });
+  });
+
   it('shows save, version and calls onGoToOdds / onClose', () => {
     seed('no');
     const onGoToOdds = vi.fn();
