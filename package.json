@@ -15,7 +15,8 @@
     "cap:sync:ios": "npm run build && cap sync ios",
     "cap:open:ios": "cap open ios",
     "icon": "node scripts/make-icon.mjs",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "play-assets": "node scripts/make-play-assets.mjs"
   },
   "dependencies": {
     "@capacitor-community/admob": "^7.2.0",

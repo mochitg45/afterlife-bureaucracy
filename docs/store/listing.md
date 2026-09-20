@@ -73,7 +73,7 @@ Plays offline. No sign-up, no login, nothing collected about you. Optional rewar
 | Asset | Requirement | Where it comes from |
 |---|---|---|
 | App icon | 512×512 PNG, 32-bit | `docs/store/icon-512.png` (`npm run icon`) — Dave's hood and face inside the seal; see `docs/store/icon-candidates/` for the three drafts compared at 48px |
-| Feature graphic | 1024×500 PNG or JPG | **still to draw** — blocked on the visual design pass |
+| Feature graphic | 1024×500 PNG or JPG | `docs/store/play-games/feature-1024x500.png` (`npm run play-assets`) |
 | Phone screenshots | 2–8, min 320 px, max 3840 px | `docs/store/screenshots/*.png`, 1080×1920 (`npm run screenshots`) |
 | Tablet screenshots | optional | not planned for v1.0 (portrait phone game) |
 

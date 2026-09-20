@@ -86,3 +86,14 @@ The app reads purchases through RevenueCat, so the Play products must be mirrore
 - Back up `C:\Users\mochi\Documents\Claude\afterlife-keys\` off this PC. Losing the upload key
   means a new app listing.
 - Never commit `android/key.properties` or the `.jks`.
+
+## Play Games publishing assets (already generated)
+
+`npm run play-assets` writes `docs/store/play-games/`:
+
+- `feature-1024x500.png`: the Play Games feature graphic (also usable as the store listing's).
+- one 512×512 PNG per mirrored achievement, named by achievement id.
+- `achievements.md`: the paste sheet (name, description, Play id, icon file) for the 20 rows.
+
+Properties page: Description = the short description in `listing.md`; Game category = Simulation;
+Icon = `docs/store/icon-512.png`; Feature graphic = the file above.
