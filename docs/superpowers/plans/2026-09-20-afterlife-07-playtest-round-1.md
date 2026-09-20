@@ -99,6 +99,18 @@ Task 3 (card sheet) runs after Task 6 and shows the shard progress ("3 of 5 dupl
 
 ---
 
+### Task 7: Store product art
+
+**Files:**
+- Create: `src/ui/components/StoreArt.tsx` (+ test)
+- Modify: `src/ui/screens/StoreScreen.tsx`, `src/ui/theme.css`.
+
+`StoreArt({ productId, size = 56 })` returns an inline SVG in the parchment ink-outline style (64-grid, `var(--ink)` 2.5 px, flat brand fills): `vouchers_10` one voucher ticket, `vouchers_55` a fanned pair, `vouchers_120` a stack with a rubber band, `vouchers_300` a full tray of tickets with a brass coin on top; `remove_ads` the PROCESSED seal with a crossed-out megaphone; `starter_pack` a manila "NEW CLERK" folder with Grandma Liu's snack peeking out; `union_monthly` a brass union badge with a ribbon. Each product row shows the art on the left (52 px), name and price on the right. The Requisition Vouchers footnote keeps its text. Test: every `ProductId` renders an SVG with `data-product` equal to its id, pairwise distinct; the Store screen shows one art per product.
+
+- [ ] Step 1: failing tests; Step 2: implement; visual check; Step 3: commit `feat(ui): store product art`; push.
+
+---
+
 ## Self-review
 
 Spec coverage: §7 odds/costs → Task 1; §8/§9 voucher amounts → Task 1; §10 theme → Task 2; card sheet is new UI under §10 Personnel → Task 3; icon → Task 4. Placeholder scan: constants and copy are exact; Task 3 names the reuse rule for the effect function. Types: `settings.theme` union is the same in Task 2's store, App and Settings.
