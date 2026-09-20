@@ -158,10 +158,22 @@ describe('StoreScreen', () => {
   it('shows one product art per visible product', () => {
     seed({ firstSeenWallClock: NOW });
     const { container } = render(<StoreScreen />);
-    const shown = ['vouchers_120', 'remove_ads', 'starter_pack', 'union_monthly'];
+    const shown = ['remove_ads', 'starter_pack', 'union_monthly'];
     for (const id of shown) {
       expect(container.querySelectorAll(`svg[data-product="${id}"]`)).toHaveLength(1);
     }
+  });
+
+  it('shows each voucher pack with its own distinct art inside the Vouchers card', () => {
+    seed({ firstSeenWallClock: NOW });
+    const { container } = render(<StoreScreen />);
+    const voucherIds = ['vouchers_10', 'vouchers_55', 'vouchers_120', 'vouchers_300'];
+    const arts = voucherIds.map((id) => {
+      const el = container.querySelector(`svg[data-product="${id}"]`);
+      expect(el).toBeInTheDocument();
+      return el!.innerHTML;
+    });
+    expect(new Set(arts).size).toBe(voucherIds.length);
   });
 
   it('shows the settings gear', () => {
