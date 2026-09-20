@@ -21,8 +21,8 @@ describe('TitleScreen', () => {
   it('offers the Play Games sign-in when the cloud is available and nobody is signed in', () => {
     seedCloud({ available: true, signedIn: false });
     render(<TitleScreen onEnter={() => {}} onGoToOdds={() => {}} />);
-    expect(screen.getByRole('button', { name: 'Sign in with Google Play Games' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Clock in without signing in' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play as guest' })).toBeInTheDocument();
   });
 
   it('hides the sign-in button where there is no cloud slot', () => {
@@ -35,7 +35,7 @@ describe('TitleScreen', () => {
   it('shows the signed-in chip and no sign-in button once signed in', () => {
     seedCloud({ available: true, signedIn: true });
     render(<TitleScreen onEnter={() => {}} onGoToOdds={() => {}} />);
-    expect(screen.getByText('Clocked in with Play Games')).toBeInTheDocument();
+    expect(screen.getByText('Signed in with Google')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /sign in with/i })).not.toBeInTheDocument();
   });
 
@@ -52,7 +52,7 @@ describe('TitleScreen', () => {
     const signInCloud = stubSignIn('ok');
     const onEnter = vi.fn();
     render(<TitleScreen onEnter={onEnter} onGoToOdds={() => {}} />);
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google Play Games' })); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google' })); });
     expect(signInCloud).toHaveBeenCalled();
     expect(onEnter).toHaveBeenCalledTimes(1);
   });
@@ -62,7 +62,7 @@ describe('TitleScreen', () => {
     stubSignIn('cancelled');
     const onEnter = vi.fn();
     render(<TitleScreen onEnter={onEnter} onGoToOdds={() => {}} />);
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google Play Games' })); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google' })); });
     expect(screen.getByRole('status')).toHaveTextContent('Sign-in cancelled.');
     expect(onEnter).not.toHaveBeenCalled();
   });
@@ -72,7 +72,7 @@ describe('TitleScreen', () => {
     stubSignIn('unavailable');
     const onEnter = vi.fn();
     render(<TitleScreen onEnter={onEnter} onGoToOdds={() => {}} />);
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google Play Games' })); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in with Google' })); });
     expect(screen.getByRole('status')).toHaveTextContent('Play Games is not available on this device.');
     expect(onEnter).not.toHaveBeenCalled();
   });

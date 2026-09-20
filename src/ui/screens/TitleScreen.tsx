@@ -46,16 +46,16 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
           <StampSeal className="title-seal pulse" />
           <Character id="seraphine" mood="ok" size={96} />
         </div>
-        {signedIn && <p className="chip title-chip">Clocked in with Play Games</p>}
+        {signedIn && <p className="chip title-chip">Signed in with Google</p>}
         <p className="sub title-status" role="status" aria-live="polite">{status}</p>
         <div className="title-actions">
           {showSignIn && (
             <button className="btn btn-primary" disabled={busy} onClick={() => void onSignIn()}>
-              Sign in with Google Play Games
+              Sign in with Google
             </button>
           )}
           <button className={'btn' + (showSignIn ? '' : ' btn-primary')} onClick={onEnter}>
-            {showSignIn ? 'Clock in without signing in' : 'Clock in'}
+            {showSignIn ? 'Play as guest' : 'Clock in'}
           </button>
         </div>
         <div className="sub title-footer">
