@@ -168,6 +168,7 @@ stops its own preview server; nothing is left listening.
 - [ ] Play Games sign-in, one achievement unlocks, the leaderboard accepts a score.
 - [ ] Export the save code, reinstall, import it, progress returns.
 - [ ] Settings → Privacy Policy opens the live page.
+- [ ] Sound: stamp thud on tap with no noticeable lag; ambience audible on the title screen after the first tap; both toggles in Settings silence their half; audio stops when the app is backgrounded and returns on resume; phone media volume controls it.
 - [ ] Rotate the device: still portrait. Dark mode: legible.
 
 ### After the release

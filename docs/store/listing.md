@@ -232,3 +232,7 @@ snapshot stays until deleted through one of those routes.
 ```
 Opening day at the Afterlife Bureau. Five departments, eighty achievements, one stamp.
 ```
+
+## What's new (1.0.0)
+
+- Sound effects and office ambience, with toggles in Settings.

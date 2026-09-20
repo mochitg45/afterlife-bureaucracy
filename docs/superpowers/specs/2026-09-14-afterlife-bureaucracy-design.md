@@ -230,3 +230,12 @@ The iOS project (`ios/`) is generated with Capacitor and kept in the repository 
 - Every platform plugin (ads, billing, cloud save, achievements, notifications, haptics) must have both an Android and an iOS implementation or a documented no-op on the platform that lacks it. Plan 4 chooses plugins that ship both (AdMob community plugin, RevenueCat, Capacitor Local Notifications, Capacitor Haptics).
 - Gacha odds disclosure and the "rewarded ad" wording satisfy App Store Review Guideline 3.1.1 (loot-box odds) as well as Play policy.
 - Builds and device testing for iOS happen on a Mac with Xcode; Windows sessions only generate and configure the project and must state that the build is unverified.
+
+## 15. Audio
+
+Every sound is synthesised with Web Audio at play time; the app ships no audio files. Sound
+effects: stamp, hire, upgrade, pull, one reveal sting per rarity, equip, achievement bell,
+audit slam, backlog-report shuffle, UI tick. Ambience: a low office hum with random typewriter
+clacks and an occasional desk bell. Settings carry `sfx` and `music` booleans (default on) that
+travel with the save. Audio starts on the first user gesture and suspends while the app is in
+the background. Volume is fixed (master 0.5, ambience 0.18); a slider is a v1.1 item.
