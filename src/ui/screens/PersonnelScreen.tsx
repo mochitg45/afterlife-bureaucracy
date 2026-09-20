@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
@@ -7,9 +7,7 @@ import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, equipSlots
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
-
-/** How long the "No free lanyard" nudge stays up after a blocked equip attempt. */
-const NO_LANYARD_MS = 2000;
+import { CardSheet } from '../overlays/CardSheet';
 
 const RARITY_ORDER: Rarity[] = ['temp', 'fulltime', 'senior', 'executive'];
 
@@ -64,29 +62,14 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   const equipped = useGame((s) => s.state.equipped);
   const perks = useGame((s) => s.state.perks);
   const pull = useGame((s) => s.pull);
-  const equip = useGame((s) => s.equip);
   const unequip = useGame((s) => s.unequip);
-  const [showNoLanyard, setShowNoLanyard] = useState(false);
+  const [sheetCardId, setSheetCardId] = useState<string | null>(null);
   const oddsRef = useRef<HTMLDivElement>(null);
-  const lanyardTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const slots = equipSlots({ perks }, content);
 
-  // A blocked equip late in a session would otherwise leave a timer running into unmount.
-  useEffect(() => () => { if (lanyardTimer.current) clearTimeout(lanyardTimer.current); }, []);
-
-  const flashNoLanyard = useCallback(() => {
-    setShowNoLanyard(true);
-    if (lanyardTimer.current) clearTimeout(lanyardTimer.current);
-    lanyardTimer.current = setTimeout(() => setShowNoLanyard(false), NO_LANYARD_MS);
-  }, []);
-
   // Stable across ticks so the memoised Collection below is not invalidated by a new closure.
-  const onCollectionClick = useCallback((cardId: string) => {
-    if (equipped.includes(cardId)) { unequip(cardId); return; }
-    if (equipped.length >= slots) { flashNoLanyard(); return; }
-    equip(cardId);
-  }, [equipped, slots, equip, unequip, flashNoLanyard]);
+  const onCollectionClick = useCallback((cardId: string) => setSheetCardId(cardId), []);
 
   return (
     <section className="screen personnel">
@@ -135,9 +118,9 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
 
       <div className="section-head">
         <h3>Collection</h3>
-        {showNoLanyard && <span className="sub warn">No free lanyard</span>}
       </div>
       <Collection cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
+      {sheetCardId && <CardSheet cardId={sheetCardId} onClose={() => setSheetCardId(null)} />}
 
       <div className="card odds" ref={oddsRef}>
         <h3>Odds</h3>

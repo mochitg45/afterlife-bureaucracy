@@ -29,12 +29,14 @@ describe('PersonnelScreen', () => {
     // its +10 voucher reward in the same apply() call.
     expect(useGame.getState().state.vouchers).toBe(10);
   });
-  it('equips and unequips from the collection', () => {
+  it('equips and unequips via the card sheet', () => {
     seed({ cards: { 'c-dave-overtime': 1 } });
     render(<PersonnelScreen />);
     fireEvent.click(screen.getByRole('button', { name: /^dave, reaper, double overtime$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^equip$/i }));
     expect(useGame.getState().state.equipped).toEqual(['c-dave-overtime']);
     expect(screen.getAllByText(/empty slot/i)).toHaveLength(2);
+    // The Equipped section's own tile still unequips directly.
     fireEvent.click(screen.getAllByRole('button', { name: /^dave, reaper, double overtime$/i })[0]);
     expect(useGame.getState().state.equipped).toEqual([]);
   });
