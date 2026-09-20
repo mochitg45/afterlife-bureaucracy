@@ -104,16 +104,16 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
       )}
 
       {packs.length > 0 && (
-        <div className="card store-section">
+        <>
           <h3>Vouchers</h3>
           <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied.</p>
           {packs.map((p) => (
-            <div className="store-row" key={p.id}>
+            <div className="card store-section store-row" key={p.id}>
               <StoreArt productId={p.id} />
               <BuyButton product={p} onResult={onPurchase} />
             </div>
           ))}
-        </div>
+        </>
       )}
 
       {removeAds && (
