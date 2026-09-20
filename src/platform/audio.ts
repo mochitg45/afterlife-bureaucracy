@@ -35,14 +35,14 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
   let hum: { stop(): void } | null = null;
 
   const ensure = (): AudioContext | null => {
-    // A closed context never comes back: drop the whole graph and build a fresh one, which
-    // starts locked again because a new context needs its own gesture.
+    // A closed context never comes back: drop the whole graph and build a fresh one. The page
+    // keeps its sticky user activation from the original gesture, so `unlocked` stays true and
+    // wake() resumes the new context without asking the player to tap again.
     if (ctx?.state === 'closed') {
       stopAmbience();
       ctx = null;
       master = null;
       music = null;
-      unlocked = false;
     }
     if (ctx) return ctx;
     const made = ctxFactory ? ctxFactory() : null;
