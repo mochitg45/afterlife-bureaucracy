@@ -172,10 +172,20 @@ function daveIcon(faceCx, faceCy, s) {
   </g>`;
 }
 
-/** The chosen mark: Dave centred inside the stamp seal, face at ~35% of the canvas. */
+/**
+ * The chosen mark: Dave centred inside the stamp seal, sized so the cream dashed ring stays
+ * fully visible around him. Dave's hood is a flat-bottomed shape (not round), so its bottom
+ * *corners* — not the face — are what could poke into the ring; `s` is solved so those corners
+ * (grid offset ±18,±22 from the head's centre) land just inside the ring's inner edge, with a
+ * 5% buffer so the ring reads as an unbroken circle. That works out to Dave's hood spanning
+ * ~60% of the ring's own diameter (~62% of the seal's, per the brief) — smaller than the hood's
+ * bounding box would let it be if only the seal's outer disc mattered.
+ */
 function daveOnSeal(S, cx, cy, R) {
-  const faceR = R * 0.4375; // R*0.4375 = 0.35*S/2 when R = 0.4*S (seal at 80% canvas)
-  const s = faceR / 11;
+  const ringR = R * (42 / 54);
+  const ringInnerEdge = ringR - R * (3 / 54) / 2;
+  const cornerReach = Math.hypot(18, 22); // hood half-width/half-height from its (32,28) origin
+  const s = (ringInnerEdge * 0.95) / cornerReach;
   return stampSeal(cx, cy, R, S) + daveIcon(cx, cy, s);
 }
 
