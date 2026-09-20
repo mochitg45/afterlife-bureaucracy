@@ -111,14 +111,14 @@ A Restructuring also opens a **new fiscal calendar**: the fiscal year goes back 
 
 ## 7. Gacha: Personnel Requisition Lottery
 
-- Cost: 1 voucher per single pull; 9 vouchers per 10-pull.
-- Rarities and odds: Temp 70%, Full-Time 22%, Senior Staff 6.5%, Executive 1.5%. Odds are shown in-app on an Odds screen (Play Store requirement).
+- Cost: 10 vouchers per single pull; 90 vouchers per 10-pull. (Playtest round 1, 2026-09-20: every voucher amount in the game was scaled ×10 so the numbers read as a currency; daily claim 10, streak pack 30, starter pack 200, IAP packs 100/550/1200/3000.)
+- Rarities and odds: Temp 70%, Full-Time 24.5%, Senior Staff 5%, Executive 0.5% (playtest round 1; executives come mostly from the 60-pull guarantee). Odds are shown in-app on an Odds screen (Play Store requirement).
 - Pity: guaranteed Senior Staff or better within every 10 pulls; guaranteed Executive within every 60 pulls. Pity counters persist across sessions and audits.
 - Pool: about 30 named staff cards in v1, 6–8 per department, defined in `src/data/cards.json`. Each card grants a passive bonus: department output %, offline cap hours, click power %, voucher income %, or (Executive only) global %.
 - Duplicates raise the card's rank from 1 to 5 stars; each star scales the bonus. Extra duplicates past 5 stars convert to KC.
 - Equip slots: 3 at start, up to 8 through Perk Ledger. Only equipped cards apply their bonus.
 - Reveal animation: filing drawer slides open, envelope rises, a stamp reveals the rarity colour; Executive pulls get a gold-foil shake and confetti of forms.
-- Free-to-play voucher income target: 2–4 per day from the recurring faucet (the three daily tasks and the seven-day streak pack), so a free single pull every day or so and a 10-pull roughly monthly. Achievement unlocks pay a separate one-off 170 vouchers across the 80 badges; the simulator shows roughly half of that arriving inside the first fortnight, which is an onboarding bulge rather than sustained income.
+- Free-to-play voucher income target: 20–40 per day (was 2–4 before the ×10 scaling) from the recurring faucet (the three daily tasks and the seven-day streak pack), so a free single pull every day or so and a 10-pull roughly monthly. Achievement unlocks pay a separate one-off 170 vouchers across the 80 badges; the simulator shows roughly half of that arriving inside the first fortnight, which is an onboarding bulge rather than sustained income.
 - RNG: seeded xorshift so unit tests can verify odds and pity deterministically.
 
 ## 8. Retention systems
