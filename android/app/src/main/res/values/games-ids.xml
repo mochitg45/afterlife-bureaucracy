@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Play Games Services project id (docs/store/ids.md). Kept as a string resource so the
+     manifest merger never parses it as a number. -->
+<resources>
+    <string name="game_services_project_id" translatable="false">1035420780939</string>
+</resources>

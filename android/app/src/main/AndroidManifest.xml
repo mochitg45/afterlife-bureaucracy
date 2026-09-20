@@ -32,13 +32,13 @@
         />
 
         <!--
-            Play Games Services project id (docs/store/ids.md). The leading "\ " keeps the
-            numeric value a string, which the Play Games SDK requires. The same id unlocks
+            Play Games Services project id (docs/store/ids.md). Stored as a string resource so the
+            manifest merger never turns it into a number. The same id unlocks
             cloud save (CloudSavePlugin.java) once Saved Games is on for the project.
         -->
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"
-            android:value="\ 1035420780939"
+            android:value="@string/game_services_project_id"
         />
 
         <provider
