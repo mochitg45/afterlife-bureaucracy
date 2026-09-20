@@ -24,12 +24,20 @@ const PAPER = '#EDE7D4';
 const LINE = '#C9BFA6';
 const INK_RED = '#A6402B';
 const INK = '#2A2620';
+/** Dave's palette (src/ui/characters/Character.tsx): hood green + cream face. */
+const DAVE_GREEN = '#1F3B33';
+const DAVE_CREAM = '#F7F2E4';
 
 /**
  * The seal itself: two rings with a serrated band between them and an approval check in the
  * middle, tilted like a stamp pressed by a bored hand. `r` is the outer radius.
+ *
+ * `opts.backing`, when given a color, fills the outer ring's disc solidly before drawing the
+ * rings — used to occlude whatever is drawn behind the seal (Dave's head) instead of letting it
+ * show through the transparent middle. `opts.check = false` drops the approval checkmark, used
+ * by candidate C to make room for a face in the centre.
  */
-function seal(cx, cy, r, color = INK_RED) {
+function seal(cx, cy, r, color = INK_RED, opts = {}) {
   const ticks = [];
   const TICK_COUNT = 24;
   for (let i = 0; i < TICK_COUNT; i++) {
@@ -50,19 +58,60 @@ function seal(cx, cy, r, color = INK_RED) {
     .map(([dx, dy, rr]) => `<circle cx="${(cx + dx * r).toFixed(2)}" cy="${(cy + dy * r).toFixed(2)}" r="${(rr * r).toFixed(2)}" />`)
     .join('');
 
-  return `
-  <g transform="rotate(-14 ${cx} ${cy})">
-    <g fill="none" stroke="${color}" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="${cx}" cy="${cy}" r="${(r * 0.93).toFixed(2)}" stroke-width="${(r * 0.1).toFixed(2)}" />
-      <circle cx="${cx}" cy="${cy}" r="${(r * 0.7).toFixed(2)}" stroke-width="${(r * 0.035).toFixed(2)}" />
-      <g stroke-width="${(r * 0.05).toFixed(2)}">${ticks.join('')}</g>
+  const backing = opts.backing
+    ? `<circle cx="${cx}" cy="${cy}" r="${(r * 0.93).toFixed(2)}" fill="${opts.backing}" />`
+    : '';
+  const check = opts.check === false ? '' : `
       <path d="M ${(cx - r * 0.3).toFixed(2)} ${(cy + r * 0.02).toFixed(2)}
                L ${(cx - r * 0.08).toFixed(2)} ${(cy + r * 0.26).toFixed(2)}
                L ${(cx + r * 0.34).toFixed(2)} ${(cy - r * 0.3).toFixed(2)}"
-            stroke-width="${(r * 0.2).toFixed(2)}" />
+            stroke-width="${(r * 0.2).toFixed(2)}" />`;
+
+  return `
+  <g transform="rotate(-14 ${cx} ${cy})">
+    ${backing}
+    <g fill="none" stroke="${color}" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="${cx}" cy="${cy}" r="${(r * 0.93).toFixed(2)}" stroke-width="${(r * 0.1).toFixed(2)}" />
+      <circle cx="${cx}" cy="${cy}" r="${(r * 0.7).toFixed(2)}" stroke-width="${(r * 0.035).toFixed(2)}" />
+      <g stroke-width="${(r * 0.05).toFixed(2)}">${ticks.join('')}</g>${check}
     </g>
     <g fill="${PAPER}" opacity="0.55">${fleckMarks}</g>
   </g>`;
+}
+
+/**
+ * Dave's head — hood + face only, no body/scythe — at icon scale. `s` is grid-to-pixel scale
+ * (Dave's source art is a 64-unit grid; see src/ui/characters/Character.tsx `Dave`), `(cx, cy)`
+ * is where grid point (32, 28) — the head's centre — lands. `S` is the overall canvas size, used
+ * to hold the ink outline at a fixed 5px-at-1024 regardless of how big the head itself is drawn.
+ */
+function daveHead(cx, cy, s, S) {
+  const sw = (5 * (S / 1024)) / s;
+  const tx = (cx - 32 * s).toFixed(2);
+  const ty = (cy - 28 * s).toFixed(2);
+  return `
+  <g transform="translate(${tx} ${ty}) scale(${s.toFixed(4)})">
+    <path d="M32 6 C18 6 14 20 14 30 L14 50 L50 50 L50 30 C50 20 46 6 32 6 Z"
+          fill="${DAVE_GREEN}" stroke="${INK}" stroke-width="${sw.toFixed(3)}" stroke-linejoin="round" />
+    <circle cx="32" cy="27" r="11" fill="${DAVE_CREAM}" stroke="${INK}" stroke-width="${sw.toFixed(3)}" />
+  </g>`;
+}
+
+/**
+ * The chosen mark: Dave's hood and face peeking over the seal's top edge, seal drawn on top with
+ * an opaque backing so his chin disappears behind it instead of showing through the rings.
+ * Positioning is proportional to `r` so it holds at any canvas/seal size (icon vs. foreground).
+ */
+function sealWithDave(S, cx, cy, r, backing = PAPER) {
+  const s = 0.01397 * r;
+  const headCy = cy - 1.024 * r;
+  return daveHead(cx, headCy, s, S) + seal(cx, cy, r, INK_RED, { backing });
+}
+
+/** Candidate C: Dave's face centred inside the seal, in place of the checkmark. */
+function sealFaceInside(S, cx, cy, r, backing = PAPER) {
+  const s = r * 0.025;
+  return seal(cx, cy, r, INK_RED, { backing, check: false }) + daveHead(cx, cy - s, s, S);
 }
 
 /** Parchment with the faint ruling of a form nobody reads. */
@@ -84,18 +133,39 @@ const svg = (size, body) =>
 const png = (size, body, file) =>
   sharp(Buffer.from(svg(size, body))).png({ compressionLevel: 9 }).toFile(file);
 
+const candidatesDir = path.join(storeDir, 'icon-candidates');
+
 async function main() {
   await mkdir(assetsDir, { recursive: true });
   await mkdir(storeDir, { recursive: true });
+  await mkdir(candidatesDir, { recursive: true });
 
   const S = 1024;
+
+  // Three candidates at 512px, plus a 48px downsample of each so the controller can compare
+  // the small-size read without eyeballing a shrunk browser tab.
+  const CS = 512;
+  const candidates = {
+    A: parchment(CS) + seal(CS / 2, CS / 2, CS * 0.35),
+    B: parchment(CS) + sealWithDave(CS, CS / 2, CS / 2, CS * 0.35),
+    C: parchment(CS) + sealFaceInside(CS, CS / 2, CS / 2, CS * 0.35),
+  };
+  for (const [name, body] of Object.entries(candidates)) {
+    const buf = Buffer.from(svg(CS, body));
+    await sharp(buf).resize(CS, CS).png({ compressionLevel: 9 }).toFile(path.join(candidatesDir, `${name}.png`));
+    await sharp(buf).resize(48, 48).png({ compressionLevel: 9 }).toFile(path.join(candidatesDir, `${name}-48.png`));
+  }
+
+  // Pick: C (Dave's face inside the seal), not B — at 48px B's peeking head collapses to a
+  // barely-visible dark nub above the ring (see icon-candidates/B-48.png vs C-48.png); C keeps
+  // Dave's whole silhouette inside the seal's own footprint, so it stays legible small.
   // Square icon: the seal fills the tile, the way a stamp lands on a form.
-  const square = parchment(S) + seal(S / 2, S / 2, S * 0.4);
+  const square = parchment(S) + sealFaceInside(S, S / 2, S / 2, S * 0.35);
   // Adaptive foreground: `@capacitor/assets` writes the XML with `android:inset="16.7%"`, so
   // this whole square is scaled down into the 72dp safe zone for us. The art therefore fills
   // its own canvas edge to edge — shrinking it here too would inset it twice and leave a
   // postage stamp floating in the middle of the launcher tile.
-  const foreground = seal(S / 2, S / 2, S * 0.47);
+  const foreground = sealFaceInside(S, S / 2, S / 2, S * 0.47);
   const background = parchment(S);
 
   await png(S, square, path.join(assetsDir, 'icon.png'));
