@@ -26,13 +26,22 @@ const GLYPH = {
   gear: `<g stroke="${INK}" stroke-width="2.5" stroke-linecap="round" fill="none"><circle cx="32" cy="29" r="8"/><path d="M40 29 L45 29 M36 35.9 L38.5 40.3 M28 35.9 L25.5 40.3 M24 29 L19 29 M28 22.1 L25.5 17.7 M36 22.1 L38.5 17.7"/></g>`,
 };
 
-function badgeSvg(kind, tier) {
+/** Short target label: Play rejects two achievements with byte-identical icons, and several share a badge and tier. */
+function label(a) {
+  const t = a.condition.target;
+  const n = t >= 1e12 ? `${t / 1e12}T` : t >= 1e9 ? `${t / 1e9}B` : t >= 1e6 ? `${t / 1e6}M` : t >= 1e3 ? `${t / 1e3}K` : String(t);
+  return a.condition.type === 'fiveStarCards' ? '5★' : n;
+}
+
+function badgeSvg(a) {
   // Play crops achievement icons to a circle, so the shield sits inside a parchment disc.
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
     <circle cx="32" cy="32" r="32" fill="${PAPER}"/>
     <circle cx="32" cy="32" r="29" fill="none" stroke="${LINE}" stroke-width="1"/>
-    <path d="M32 4 L54 13 L54 34 C54 50 32 60 32 60 C32 60 10 50 10 34 L10 13 Z" fill="${TIER[tier]}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
-    ${GLYPH[kind]}
+    <path d="M32 3 L54 12 L54 33 C54 47 32 57 32 57 C32 57 10 47 10 33 L10 12 Z" fill="${TIER[a.tier]}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
+    <g transform="translate(0 -3)">${GLYPH[a.badge]}</g>
+    <rect x="16" y="46" width="32" height="11" rx="2" fill="${CREAM}" stroke="${INK}" stroke-width="1.8"/>
+    <text x="32" y="54.5" text-anchor="middle" font-family="Special Elite" font-size="8.5" fill="${INK}">${label(a)}</text>
   </svg>`;
 }
 
@@ -63,13 +72,15 @@ async function main() {
 
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1 });
-  await page.setContent(feature((await readFile(fontFile)).toString('base64')));
+  const font64 = (await readFile(fontFile)).toString('base64');
+  await page.setContent(feature(font64));
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: path.join(outDir, 'feature-1024x500.png') });
   const icon = await browser.newPage({ viewport: { width: 512, height: 512 } });
   const rows = ['| # | Achievement | Description | Play id | Icon |', '|---|---|---|---|---|'];
   for (const [i, a] of mirrored.entries()) {
-    await icon.setContent(`<style>html,body{margin:0;background:transparent}</style>${badgeSvg(a.badge, a.tier)}`);
+    await icon.setContent(`<style>@font-face{font-family:'Special Elite';src:url('data:font/woff2;base64,${font64}') format('woff2')}html,body{margin:0;background:transparent}</style>${badgeSvg(a)}`);
+    await icon.evaluate(() => document.fonts.ready);
     const file = `${a.id}.png`;
     await icon.screenshot({ path: path.join(outDir, file), omitBackground: true });
     rows.push(`| ${i + 1} | ${a.name} | ${a.desc} | \`${a.play}\` | \`${file}\` |`);
