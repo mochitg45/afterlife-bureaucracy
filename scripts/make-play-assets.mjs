@@ -7,6 +7,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { build, preview } from 'vite';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(root, 'docs', 'store', 'play-games');
@@ -54,15 +55,39 @@ function seal(size) {
   </svg>`;
 }
 
-const feature = (font) => `<!doctype html><style>
+/** The title screen's cast (Dave, the seal, Seraphine) photographed from the built app, so the art is the real thing. */
+async function castPng(browser) {
+  await build({ root, logLevel: 'warn' });
+  const server = await preview({ root, preview: { port: 4318, strictPort: true }, logLevel: 'warn' });
+  try {
+    const page = await browser.newPage({ viewport: { width: 400, height: 890 }, deviceScaleFactor: 4, reducedMotion: 'reduce' });
+    await page.goto(server.resolvedUrls?.local?.[0] ?? 'http://localhost:4318/', { waitUntil: 'load' });
+    await page.getByTestId('splash').click({ timeout: 5000 }).catch(() => {});
+    await page.addStyleTag({ content: '*{animation:none!important;transition:none!important} html,body,#root,.screen,.title-paper,.title-wrap{background:transparent!important;background-image:none!important}' });
+    const cast = page.locator('.title-cast');
+    await cast.waitFor({ state: 'visible', timeout: 15000 });
+    const png = await cast.screenshot({ omitBackground: true });
+    await page.close();
+    return png.toString('base64');
+  } finally {
+    await server.close();
+  }
+}
+
+const feature = (font, cast) => `<!doctype html><style>
 @font-face { font-family: 'Special Elite'; src: url('data:font/woff2;base64,${font}') format('woff2'); }
 html, body { margin: 0; } body { width: 1024px; height: 500px; overflow: hidden; background: ${PAPER};
   background-image: repeating-linear-gradient(to bottom, transparent 0 39px, ${LINE} 39px 40px); font-family: 'Special Elite', serif; color: ${GREEN}; }
-.wrap { position: relative; display: flex; align-items: center; gap: 48px; padding: 0 72px; height: 100%; }
-h1 { font-size: 64px; line-height: 1.05; margin: 0; letter-spacing: 1px; }
-p { font-size: 26px; margin: 18px 0 0; color: ${INK}; opacity: .8; }
-.dev { position: absolute; right: 40px; bottom: 22px; font-size: 16px; color: ${INK}; opacity: .6; letter-spacing: 3px; }
-</style><body><div class="wrap">${seal(300)}<div><h1>Afterlife<br>Bureaucracy Inc.</h1><p>Please take a number.</p></div><span class="dev">INATA SUN SOFT</span></div></body>`;
+.wrap { position: relative; display: flex; align-items: center; gap: 10px; padding: 0 40px; height: 100%; }
+.cast { width: 470px; margin-left: -30px; flex: 0 0 auto; filter: drop-shadow(0 12px 18px rgba(42,38,32,.25)); }
+h1 { font-size: 50px; line-height: 1.05; margin: 0; letter-spacing: 1px; white-space: nowrap; }
+.tag { font-size: 22px; margin: 12px 0 0; color: ${INK}; opacity: .8; white-space: nowrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.chip { font-size: 17px; padding: 7px 16px; border: 2.5px solid ${GREEN}; border-radius: 999px; background: ${CREAM}; color: ${GREEN}; white-space: nowrap; }
+.chip.red { border-color: ${RED}; color: ${RED}; }
+.dev { position: absolute; right: 36px; bottom: 18px; font-size: 14px; color: ${INK}; opacity: .55; letter-spacing: 3px; }
+</style><body><div class="wrap"><img class="cast" src="data:image/png;base64,${cast}"><div><h1>Afterlife<br>Bureaucracy Inc.</h1><p class="tag">Stamp souls. Meet quota. Run the hereafter.</p>
+<div class="chips"><span class="chip red">Idle clicker</span><span class="chip">Earn offline</span><span class="chip">30 staff cards</span></div></div><span class="dev">INATA SUN SOFT</span></div></body>`;
 
 async function main() {
   await mkdir(outDir, { recursive: true });
@@ -73,7 +98,7 @@ async function main() {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1 });
   const font64 = (await readFile(fontFile)).toString('base64');
-  await page.setContent(feature(font64));
+  await page.setContent(feature(font64, await castPng(browser)));
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: path.join(outDir, 'feature-1024x500.png') });
   const icon = await browser.newPage({ viewport: { width: 512, height: 512 } });
