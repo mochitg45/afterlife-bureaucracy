@@ -164,14 +164,15 @@ function atMostThreeSentences(text: string): boolean {
   return text.trim().split(SENTENCE_BREAK).length <= 3;
 }
 
-const onboardingMemoSchema = z.object({
+/**
+ * One frame of the opening cutscene. `caption` may carry its form number ahead of an em
+ * dash — the overlay sets that half in the typewriter face — and `cta` labels the button;
+ * scenes without one just say Next.
+ */
+const introSceneSchema = z.object({
   id: z.string().min(1),
-  /** The form number stamped above the title — it is also the dialog's accessible name. */
-  form: z.string().min(1),
-  title: z.string().min(1),
-  text: z.string().min(1).refine(atMostThreeSentences, { message: 'Memo text must be at most three sentences' }),
-  character: z.enum(['dave', 'seraphine', 'gary', 'auditor']),
-  cta: z.string().min(1),
+  caption: z.string().min(1).refine(atMostThreeSentences, { message: 'Intro caption must be at most three sentences' }),
+  cta: z.string().min(1).optional(),
 });
 
 /** `target` names the `[data-coach]` attribute the coach mark spotlights; `none` centres the card. */
@@ -183,7 +184,8 @@ const trainingStepSchema = z.object({
 });
 
 const onboardingSchema = z.object({
-  memos: z.array(onboardingMemoSchema).min(1),
+  /** Four scenes exactly: the intro overlay is a written cutscene, not a variable slideshow. */
+  intro: z.array(introSceneSchema).length(4),
   training: z.array(trainingStepSchema).min(1),
 });
 
@@ -205,7 +207,7 @@ export type AchievementCondition = z.infer<typeof achievementConditionSchema>;
 export type AchievementDef = z.infer<typeof achievementSchema>;
 export type StoryTrigger = z.infer<typeof storyTriggerSchema>;
 export type StoryDef = z.infer<typeof storySchema>;
-export type OnboardingMemoDef = z.infer<typeof onboardingMemoSchema>;
+export type IntroSceneDef = z.infer<typeof introSceneSchema>;
 export type TrainingStepDef = z.infer<typeof trainingStepSchema>;
 export type CoachTarget = TrainingStepDef['target'];
 export type OnboardingContent = z.infer<typeof onboardingSchema>;
@@ -317,8 +319,8 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
 
   // A content set without onboarding is a valid one — most tests load a bare department —
   // so the absent case is an empty walkthrough rather than a parse error.
-  const onboarding = extras.onboarding === undefined ? { memos: [], training: [] } : onboardingSchema.parse(extras.onboarding);
-  assertUnique(onboarding.memos.map((m) => m.id), 'onboarding memo');
+  const onboarding = extras.onboarding === undefined ? { intro: [], training: [] } : onboardingSchema.parse(extras.onboarding);
+  assertUnique(onboarding.intro.map((sc) => sc.id), 'intro scene');
   // Training() looks a step up by its number; two rows claiming step 1 would make which
   // card the player sees depend on array order.
   assertUnique(onboarding.training.map((t) => String(t.step)), 'training step');

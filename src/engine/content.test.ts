@@ -149,23 +149,24 @@ describe('retention content', () => {
 });
 
 describe('onboarding content', () => {
-  it('ships the two first-launch memos and the three training steps', () => {
-    expect(content.onboarding.memos.map((m) => m.id)).toEqual(['ob-decease', 'ob-offer']);
+  it('ships the four intro scenes and the three training steps', () => {
+    expect(content.onboarding.intro.map((sc) => sc.id)).toEqual(['in-decease', 'in-queue', 'in-offer', 'in-stamp']);
     expect(content.onboarding.training.map((t) => t.step)).toEqual([0, 1, 2]);
     expect(content.onboarding.training.map((t) => t.target)).toEqual(['stamp', 'hire', 'none']);
-    for (const m of content.onboarding.memos) expect(m.cta.length).toBeGreaterThan(0);
+    expect(content.onboarding.intro[3].cta).toBe('Clock in');
   });
-  it('keeps every onboarding memo to at most three sentences', () => {
-    for (const m of content.onboarding.memos) {
-      expect(m.text.split(/[.!?]+['")\]]*\s/).length, m.id).toBeLessThanOrEqual(3);
+  it('keeps every intro caption to at most three sentences', () => {
+    for (const sc of content.onboarding.intro) {
+      expect(sc.caption.split(/[.!?]+['")\]]*\s/).length, sc.id).toBeLessThanOrEqual(3);
     }
   });
-  it('rejects a memo of four sentences', () => {
-    const bad = { ...onboarding, memos: [{ ...onboarding.memos[0], text: 'One thing. Two things. Three things. Four things.' }] };
-    expect(() => loadContent([intake], [], { onboarding: bad })).toThrow(/three sentences/i);
+  it('rejects a caption of four sentences', () => {
+    const intro = [...onboarding.intro];
+    intro[0] = { ...intro[0], caption: 'One thing. Two things. Three things. Four things.' };
+    expect(() => loadContent([intake], [], { onboarding: { ...onboarding, intro } })).toThrow(/three sentences/i);
   });
-  it('rejects a memo whose character is not one of the four clerks', () => {
-    const bad = { ...onboarding, memos: [{ ...onboarding.memos[0], character: 'nobody' }] };
+  it('rejects an intro that is not exactly four scenes', () => {
+    const bad = { ...onboarding, intro: onboarding.intro.slice(0, 3) };
     expect(() => loadContent([intake], [], { onboarding: bad })).toThrow();
   });
   it('rejects a training step with an unknown coach target', () => {
@@ -173,6 +174,6 @@ describe('onboarding content', () => {
     expect(() => loadContent([intake], [], { onboarding: bad })).toThrow();
   });
   it('defaults to no onboarding when the content set ships none', () => {
-    expect(loadContent([intake]).onboarding).toEqual({ memos: [], training: [] });
+    expect(loadContent([intake]).onboarding).toEqual({ intro: [], training: [] });
   });
 });

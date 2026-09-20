@@ -13,7 +13,7 @@ import { AuditCeremony } from './overlays/AuditCeremony';
 import { CosmicCeremony } from './overlays/CosmicCeremony';
 import { PullReveal } from './overlays/PullReveal';
 import { StoryMemo } from './overlays/StoryMemo';
-import { OnboardingMemos } from './overlays/OnboardingMemos';
+import { Intro } from './overlays/Intro';
 import { Training } from './overlays/Training';
 import { AchievementToast } from './components/AchievementToast';
 import { SettingsSheet } from './overlays/SettingsSheet';
@@ -96,13 +96,13 @@ export function App() {
           <CosmicCeremony />
           <PullReveal />
           <StoryMemo />
-          <OnboardingMemos />
+          <Intro />
           <Training />
           <AchievementToast />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
           <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
-          {/* The first-launch memos are the one overlay allowed to be the first thing a new
-              player reads; a permission prompt on top of them would be the second. */}
+          {/* The opening cutscene is the one overlay allowed to be the first thing a new
+              player sees; a permission prompt on top of it would be the second. */}
           {memosSeen && !settingsOpen && !saveCodeOpen && <NotifPrompt />}
           <TabBar active={tab} onChange={setTab} />
         </>
