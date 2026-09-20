@@ -222,7 +222,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .title-tagline { font-size: 14px; }
 .title-cast { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 4px 0; }
 .title-seal { width: 108px; height: 108px; }
-.title-chip { align-self: center; min-width: 0; text-align: center; color: var(--green); border-color: var(--green); }
+.title-chip { display: inline-block; white-space: nowrap; align-self: center; min-width: 0; text-align: center; color: var(--green); border-color: var(--green); }
 .title-status { min-height: 16px; margin: 0; }
 .title-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; }
 .title-footer { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 6px; }
