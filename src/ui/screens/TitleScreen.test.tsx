@@ -7,7 +7,7 @@ import { APP_VERSION, PRIVACY_URL } from '../../version';
 function seedCloud(cloud: { available: boolean; signedIn: boolean }) {
   useGame.setState({
     ready: true,
-    cloud: { available: cloud.available, signedIn: cloud.signedIn, syncing: false, lastSyncWall: 0, lastResult: 'none' },
+    cloud: { available: cloud.available, signedIn: cloud.signedIn, playerName: null, syncing: false, lastSyncWall: 0, lastResult: 'none' },
   });
 }
 

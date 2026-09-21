@@ -1,6 +1,8 @@
 package com.afterlifebureaucracy.game;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import com.getcapacitor.JSObject;
@@ -86,6 +88,29 @@ public class CloudSavePlugin extends Plugin {
       r.put("value", t.getResult().isAuthenticated());
       call.resolve(r);
     });
+  }
+
+  /** The signed-in player's display name, or null: Settings shows it so a shared phone knows whose desk this is. */
+  @PluginMethod
+  public void currentPlayer(PluginCall call) {
+    PlayGames.getPlayersClient(getActivity()).getCurrentPlayer().addOnCompleteListener(t -> {
+      JSObject r = new JSObject();
+      r.put("name", t.isSuccessful() && t.getResult() != null ? t.getResult().getDisplayName() : null);
+      call.resolve(r);
+    });
+  }
+
+  /**
+   * Play Games Services v2 has no in-app account picker: the account is whichever one the
+   * Google Play Games app holds as default. So "change account" opens that app (or its store
+   * page if it is missing); the store re-checks sign-in when this app comes back.
+   */
+  @PluginMethod
+  public void openAccountSettings(PluginCall call) {
+    Intent i = getActivity().getPackageManager().getLaunchIntentForPackage("com.google.android.play.games");
+    if (i == null) i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.play.games"));
+    getActivity().startActivity(i);
+    call.resolve();
   }
 
   @PluginMethod

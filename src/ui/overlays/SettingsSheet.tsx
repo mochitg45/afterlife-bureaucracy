@@ -41,6 +41,8 @@ export function SettingsSheet({
   const restorePurchases = useGame((s) => s.restorePurchases);
   const cloudAvailable = useGame((s) => s.cloud.available);
   const cloudSignedIn = useGame((s) => s.cloud.signedIn);
+  const cloudPlayerName = useGame((s) => s.cloud.playerName);
+  const changeAccount = useGame((s) => s.changeAccount);
   const cloudSyncing = useGame((s) => s.cloud.syncing);
   const cloudLastSyncWall = useGame((s) => s.cloud.lastSyncWall);
   const cloudLastResult = useGame((s) => s.cloud.lastResult);
@@ -148,6 +150,9 @@ export function SettingsSheet({
         {cloudAvailable && !cloudSignedIn && (
           <button className="btn btn-ghost" onClick={() => void onSignIn()}>Sign in</button>
         )}
+        {cloudAvailable && cloudSignedIn && (
+          <button className="btn btn-ghost" onClick={() => void changeAccount()}>Change account</button>
+        )}
         <button className="btn btn-ghost" disabled={syncDisabled} onClick={() => void onSync()}>
           Sync now
         </button>
@@ -169,6 +174,12 @@ export function SettingsSheet({
       {/* Three buttons that can only answer "not signed in" are three dead ends; the one
           button that does something is the Sign in above, so say so. */}
       {cloudAvailable && !cloudSignedIn && <p className="sub">Sign in to sync.</p>}
+      {cloudAvailable && cloudSignedIn && (
+        <p className="sub">
+          {cloudPlayerName ? `Signed in as ${cloudPlayerName}. ` : ''}
+          Change account opens Google Play Games; pick the account there, then come back.
+        </p>
+      )}
       {confirm && (
         <p className="sub warn">
           {confirm === 'upload'

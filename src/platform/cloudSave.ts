@@ -29,6 +29,10 @@ export interface CloudSave {
   isConfigured(): Promise<boolean>;
   isSignedIn(): Promise<boolean>;
   signIn(): Promise<SignInResult>;
+  /** The signed-in player's display name, or null when signed out or unknown. */
+  playerName(): Promise<string | null>;
+  /** Opens where the platform lets the player pick another account (the Play Games app). */
+  openAccountSettings(): Promise<void>;
   load(): Promise<CloudLoad>;
   save(snapshot: CloudSnapshot, description: string): Promise<'ok' | 'error'>;
 }
@@ -44,6 +48,8 @@ interface CloudSaveNativePlugin {
   isConfigured(): Promise<{ value: boolean }>;
   isAuthenticated(): Promise<{ value: boolean }>;
   signIn(): Promise<{ value: boolean }>;
+  currentPlayer(): Promise<{ name: string | null }>;
+  openAccountSettings(): Promise<void>;
   loadSnapshot(options: { name: string }): Promise<{ found: boolean; data?: string; savedAtWall?: number }>;
   saveSnapshot(options: { name: string; data: string; description: string; savedAtWall: number }): Promise<void>;
 }
@@ -92,6 +98,12 @@ export function memoryCloudSave(
       return 'ok';
     },
 
+    async playerName() {
+      return available && fake.signedIn ? 'Test Clerk' : null;
+    },
+
+    async openAccountSettings() {},
+
     async load(): Promise<CloudLoad> {
       if (!available || !fake.signedIn || failLoad) return { status: 'error' };
       return fake.snapshot ? { status: 'found', snapshot: fake.snapshot } : { status: 'empty' };
@@ -121,6 +133,10 @@ export const noopCloudSave: CloudSave = {
   async signIn() {
     return 'unavailable';
   },
+  async playerName() {
+    return null;
+  },
+  async openAccountSettings() {},
   async load(): Promise<CloudLoad> {
     // Nothing can ever be signed in here, so a caller is refused long before this; an empty
     // slot is the honest answer for a platform that has no slot to fail at reading.
@@ -193,6 +209,23 @@ export const playCloudSave: CloudSave = {
       return r?.value === true ? 'ok' : 'cancelled';
     } catch {
       return 'unavailable'; // no plugin, no Play Games app id, or no Play services
+    }
+  },
+
+  async playerName() {
+    try {
+      const r = await withTimeout(CloudSaveNative.currentPlayer(), { name: null });
+      return typeof r?.name === 'string' && r.name ? r.name : null;
+    } catch {
+      return null;
+    }
+  },
+
+  async openAccountSettings() {
+    try {
+      await CloudSaveNative.openAccountSettings();
+    } catch {
+      /* no Play Games app to open: nothing to do */
     }
   },
 

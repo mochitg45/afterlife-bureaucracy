@@ -151,6 +151,8 @@ export interface CloudState {
   /** Whether this build and platform have a cloud slot at all. */
   available: boolean;
   signedIn: boolean;
+  /** Display name of the signed-in player, for the Settings sheet; null when signed out. */
+  playerName: string | null;
   /** A sync is in flight, so the sync button stays disabled. */
   syncing: boolean;
   lastSyncWall: number;
@@ -238,6 +240,8 @@ export interface GameStore {
   signInGameServices(): Promise<boolean>;
   /** Signs into the cloud (which is also the Play Games prompt), then syncs. */
   signInCloud(): Promise<SignInResult>;
+  /** Opens the platform's account picker; the next resume re-checks who is signed in. */
+  changeAccount(): Promise<void>;
   syncCloud(reason: 'boot' | 'signin' | 'pause' | 'auto' | 'manual'): Promise<CloudSyncResult>;
   /** Explicit override: push this device's save over whatever the cloud holds. */
   uploadLocal(): Promise<CloudSyncResult>;
@@ -742,7 +746,8 @@ export function createGameStore(deps: StoreDeps) {
       } catch {
         signedIn = false;
       }
-      set((cur) => ({ cloud: { ...cur.cloud, available, signedIn } }));
+      const playerName = signedIn ? await cloudSave.playerName().catch(() => null) : null;
+      set((cur) => ({ cloud: { ...cur.cloud, available, signedIn, playerName } }));
       if (!signedIn) return stampSync('unavailable');
       set((cur) => ({ cloud: { ...cur.cloud, syncing: true } }));
       try {
@@ -800,6 +805,7 @@ export function createGameStore(deps: StoreDeps) {
       cloud: {
         available: cloudSave.available(),
         signedIn: false,
+        playerName: null,
         syncing: false,
         lastSyncWall: 0,
         lastResult: 'none',
@@ -1017,6 +1023,9 @@ export function createGameStore(deps: StoreDeps) {
             notifications.cancelAll().catch(() => {});
             audio.resume();
             if (pendingOffline) sfx('report');
+            // The player may have switched Play Games accounts while away: a sync re-reads
+            // who is signed in and lets the winner rule sort the two desks out.
+            if (get().cloud.available) void get().syncCloud('auto').catch(() => {});
             set({ adsReady: ads.isReady() });
             refreshDailiesForAds();
             startTimers();
@@ -1309,6 +1318,10 @@ export function createGameStore(deps: StoreDeps) {
         } catch {
           return false;
         }
+      },
+
+      async changeAccount() {
+        await cloudSave.openAccountSettings();
       },
 
       async signInCloud() {

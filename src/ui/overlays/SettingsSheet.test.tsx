@@ -18,9 +18,9 @@ function seed(notifOptIn: 'unasked' | 'yes' | 'no') {
   useGame.setState({ state, rates: computeRates(state, content, 0), ready: true });
 }
 
-function seedCloud(cloud: Partial<{ available: boolean; signedIn: boolean; syncing: boolean; lastSyncWall: number; lastResult: CloudSyncResult }>) {
+function seedCloud(cloud: Partial<{ available: boolean; signedIn: boolean; playerName: string | null; syncing: boolean; lastSyncWall: number; lastResult: CloudSyncResult }>) {
   useGame.setState({
-    cloud: { available: false, signedIn: false, syncing: false, lastSyncWall: 0, lastResult: 'none', ...cloud },
+    cloud: { available: false, signedIn: false, playerName: null, syncing: false, lastSyncWall: 0, lastResult: 'none', ...cloud },
   });
 }
 
@@ -239,5 +239,16 @@ describe('SettingsSheet', () => {
     seed('no');
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
     expect(screen.getByRole('link', { name: /privacy policy/i })).toHaveAttribute('href', PRIVACY_URL);
+  });
+  it('names the signed-in player and offers to change account', () => {
+    seed('no');
+    seedCloud({ available: true, signedIn: true, playerName: 'Dave R.' });
+    const changeAccount = vi.fn(async () => {});
+    useGame.setState({ changeAccount });
+    render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    expect(screen.getByText(/Signed in as Dave R\./)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Change account' }));
+    expect(changeAccount).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
   });
 });
