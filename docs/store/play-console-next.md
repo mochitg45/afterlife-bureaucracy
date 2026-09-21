@@ -4,10 +4,13 @@ The field-level companion to `docs/release.md` step 4. Every id and name below i
 `src/platform/billing.ts` asks the store for, so the app finds them with no code change.
 Package: `com.afterlifebureaucracy.game`.
 
-## 1. In-app products (Monetize with Play → Products → In-app products)
+## 1. In-app products (Monetize with Play → Products → One-time products)
 
-**Create product** six times. Product ID exactly as written, Name as written, then **Set
-price** in USD (Play converts the rest). Save, then **Activate** each one.
+**Create one-time product** six times. Page 1: Product ID and Name exactly as written, a
+one-line Description, tax category "Digital app sales", lowest age rating. Page 2 ("Availability
+and pricing"): Purchase option ID `buy`, Purchase type Buy, then **Set prices** in USD (Play
+converts the rest), then **Activate**. Consumable vs non-consumable is not chosen here any more;
+RevenueCat asks for it on import (voucher packs consumable, the other two non-consumable).
 
 | Product ID | Name | Price (USD) | Type |
 |---|---|---|---|
@@ -23,9 +26,11 @@ double" bonus is app logic; nothing to set here.
 
 ## 2. Subscription (Monetize with Play → Products → Subscriptions)
 
-- **Create subscription** → Product ID `union_monthly`, Name `Union Membership`.
-- **Add base plan**: ID `monthly`, auto-renewing, 1 month, 3.99 USD.
-- Activate the base plan, then the subscription.
+- **Create subscription** → Product ID `union_monthly`, Name `Union Membership`, benefits
+  "+25% output in every department", "Bonus vouchers on every daily rollover", "Daily tasks
+  claim themselves".
+- **Add base plan**: ID `monthly`, auto-renewing, Monthly, 7-day grace, automatic account hold,
+  price 3.99 USD. Save, Activate the base plan, then Activate the subscription.
 
 ## 3. RevenueCat (app.revenuecat.com → project)
 
@@ -47,9 +52,15 @@ The app reads purchases through RevenueCat, so the Play products must be mirrore
 
 - **Configuration** → **Publish**. Until then only the testers on its own Testers tab can
   sign in. Achievements, leaderboard, Saved Games and the debug/upload OAuth clients are done.
-- After the first AAB upload (step 6) return to **Credentials** and add one more Android
-  credential with the **Play app-signing** SHA-1 (Setup → App signing → "App signing key
-  certificate"). Play re-signs the store build with that key, so sign-in from Play needs it.
+- One Android credential per signing key, three in all: debug, upload, and Play's
+  app-signing key. Each needs its own OAuth client in Google Cloud (Android, the package name,
+  that key's SHA-1), then Play Games → Configuration → Add credential → Android → pick it →
+  Review and publish. Without the upload-key one, a locally built release APK cannot sign in;
+  without the app-signing one, the copy testers install from Play cannot.
+- The app-signing SHA-1 lives at **Protected with Play → Automatic protection → Manage** (the
+  App signing page; the old Setup → App signing and App integrity pages redirect there). Under
+  "App signing key → Classical key" the **SHA-1 certificate fingerprint** button copies it.
+  The fingerprints lower on that page are the upload key.
 
 ## 5. Listing and policy forms
 
@@ -79,7 +90,8 @@ The app reads purchases through RevenueCat, so the Play products must be mirrore
    they open it once, then install from Play.
 4. **Review release** → **Start rollout to Closed testing**. Google's first review takes hours
    to days.
-5. **Setup → License testing**: add the same tester emails so purchases are free for them.
+5. **License testing** is on the account-level page: All apps → Settings → Monetization →
+   License testing. Add the tester emails so purchases are free for them.
 
 ## 7. Before closing the laptop
 
