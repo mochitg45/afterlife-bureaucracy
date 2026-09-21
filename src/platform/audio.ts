@@ -135,44 +135,81 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
     report: (o) => { noise(o, 0.12, { type: 'bandpass', cutoff: 1800, gain: 0.4 }); noise(o, 0.14, { type: 'bandpass', cutoff: 2200, gain: 0.35, at: 0.12 }); },
   };
 
-  /** Office ambience: a soft hum plus typewriter clacks at random, a desk bell now and then. */
+  /**
+   * The music: a slow lo-fi loop, four bars of Cmaj7 / Am7 / Dm7 / G7 at 80 BPM. Soft
+   * triangle pads hold each chord, a sine bass walks the roots, a brushed hi-hat (short
+   * noise) marks the beats, and a typewriter clack lands on a random off-beat now and then
+   * so the office is still in the room. Scheduled a bar at a time from a setTimeout so a
+   * suspend() between bars stops it cleanly.
+   * ponytail: one fixed progression and tempo; variations or a second loop are a v1.1 item.
+   */
+  const BPM = 80;
+  const BEAT = 60 / BPM;
+  const BAR = BEAT * 4;
+  // Chord tones in Hz (C4-based voicings) and the bass root an octave or two below.
+  const CHORDS: { pad: number[]; bass: number }[] = [
+    { pad: [261.63, 329.63, 392.0, 493.88], bass: 65.41 }, // Cmaj7
+    { pad: [220.0, 261.63, 329.63, 392.0], bass: 55.0 },   // Am7
+    { pad: [293.66, 349.23, 440.0, 523.25], bass: 73.42 }, // Dm7
+    { pad: [246.94, 293.66, 349.23, 392.0], bass: 49.0 },  // G7 (3rd-7th-9th voicing, low G bass)
+  ];
+  let bar = 0;
+
+  const scheduleBar = (at: number) => {
+    const out = music!;
+    const chord = CHORDS[bar % CHORDS.length];
+    // Pads: four soft triangles with a slow attack, held for the bar.
+    for (const f of chord.pad) {
+      const o = ctx!.createOscillator();
+      const g = ctx!.createGain();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.09, at + 0.6);
+      g.gain.setValueAtTime(0.09, at + BAR - 0.5);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + BAR + 0.1);
+      o.connect(g); g.connect(out);
+      o.start(at); o.stop(at + BAR + 0.15);
+    }
+    // Bass: root on beats 1 and 3, the fifth on beat 4, each a short sine pluck.
+    const fifth = chord.bass * 1.5;
+    for (const [beat, f] of [[0, chord.bass], [2, chord.bass], [3, fifth]] as const) {
+      tone(out, f, 0.55, { type: 'sine', gain: 0.35, at: at - ctx!.currentTime + beat * BEAT });
+    }
+    // Brushed hi-hat on every beat, a touch louder on 2 and 4.
+    for (let beat = 0; beat < 4; beat++) {
+      noise(out, 0.05, { type: 'highpass', cutoff: 6000, gain: beat % 2 ? 0.16 : 0.1, at: at - ctx!.currentTime + beat * BEAT });
+    }
+    // The office, still in the room: a typewriter clack on a random off-beat, one bar in three.
+    if (Math.random() < 0.33) {
+      const off = (Math.floor(Math.random() * 4) + 0.5) * BEAT;
+      noise(out, 0.03, { cutoff: 3500, gain: 0.2, at: at - ctx!.currentTime + off });
+    }
+    bar += 1;
+  };
+
   const startAmbience = () => {
     if (!ctx || !music || ambience || !musicOn) return;
     const c = ctx;
-    try {
-      const o1 = c.createOscillator();
-      const o2 = c.createOscillator();
-      const g = c.createGain();
-      o1.frequency.value = 55;
-      o2.frequency.value = 110.5; // 110.5 Hz against 2x55 beats at 0.5 Hz so the hum breathes
-      g.gain.value = 0.12;
-      o1.connect(g); o2.connect(g); g.connect(music);
-      o1.start(); o2.start();
-      hum = { stop() { o1.stop(); o2.stop(); } };
-    } catch {
-      // a closed context is silence, not a crash: stop any hum this call already started
-      // (or a stale one from before) and clear both fields so a later unlock/resume/
-      // setEnabled call can retry once the context is alive again.
-      stopAmbience();
-      return;
-    }
-    const clack = () => {
+    // Sentinel so the scheduler knows it is live; stopAmbience clears it.
+    hum = { stop() { /* per-bar nodes stop themselves */ } };
+    let next = c.currentTime + 0.1;
+    const tick = () => {
       if (!ambience) return;
       try {
-        const burst = 1 + Math.floor(Math.random() * 3);
-        for (let i = 0; i < burst; i++) noise(music!, 0.03, { cutoff: 3500, gain: 0.35, at: i * (0.09 + Math.random() * 0.06) });
-        // 1319 Hz (E6), well clear of the 1760 Hz achievement bell: ambience must never sound like a reward.
-        if (Math.random() < 0.02) tone(music!, 1319, 0.5, { gain: 0.12 });
+        // Keep one bar scheduled ahead of the clock.
+        while (next < c.currentTime + BAR) {
+          scheduleBar(next);
+          next += BAR;
+        }
       } catch {
-        // the hum's oscillators are still live (started by an earlier successful
-        // startAmbience) — stop them via stopAmbience rather than just dropping the
-        // reference, or they'd play on orphaned while a later start stacks a second hum.
+        // a dead context is silence, not a crash; clear so a later start can retry
         stopAmbience();
         return;
       }
-      ambience = setTimeout(clack, 2000 + Math.random() * 6000);
+      ambience = setTimeout(tick, (BAR * 1000) / 2);
     };
-    ambience = setTimeout(clack, 400);
+    ambience = setTimeout(tick, 0);
   };
 
   const stopAmbience = () => {

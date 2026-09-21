@@ -49,10 +49,11 @@ describe('audio', () => {
     audio.setEnabled({ sfx: false, music: true });
     audio.unlock();
     audio.play('hire');
-    expect(ctx.started.filter((k) => k === 'osc')).toHaveLength(2); // the ambience hum's two oscillators only
-    // The ambience scheduler is running: within 9 s (the widest clack gap) at least one clack fires.
-    vi.advanceTimersByTime(9000);
-    expect(ctx.started.filter((k) => k === 'noise').length).toBeGreaterThan(0);
+    expect(ctx.started).toHaveLength(0); // sfx off: the hire tones never start; the loop waits for its timer
+    // The music scheduler fires: a bar has pads and bass (oscillators) and hi-hats (noise).
+    vi.advanceTimersByTime(10);
+    expect(ctx.started.filter((k) => k === 'osc').length).toBeGreaterThanOrEqual(7);
+    expect(ctx.started.filter((k) => k === 'noise').length).toBeGreaterThanOrEqual(4);
     audio.setEnabled({ sfx: false, music: false });
     const before = ctx.started.length;
     vi.advanceTimersByTime(10_000);
@@ -99,37 +100,30 @@ describe('audio', () => {
     vi.useRealTimers();
   });
 
-  it('stops the orphaned hum when a clack throws, and starts exactly one new hum after recovery', () => {
+  it('stops the loop when a bar throws mid-music, and restarts it once after recovery', () => {
     vi.useFakeTimers();
     const ctx = fakeContext();
-    const oscStops: string[] = [];
-    const workingCreateOscillator = ctx.createOscillator;
-    ctx.createOscillator = () => {
-      const n = workingCreateOscillator();
-      const origStop = n.stop;
-      n.stop = () => { oscStops.push('osc'); origStop(); };
-      return n;
-    };
     const audio = createAudio(() => ctx as unknown as AudioContext);
-
-    // Hum starts cleanly: two live oscillators, nothing stopped yet.
     audio.unlock();
-    expect(ctx.started.filter((k) => k === 'osc')).toHaveLength(2);
-    expect(oscStops).toHaveLength(0);
+    vi.advanceTimersByTime(10);
+    const firstBar = ctx.started.length;
+    expect(firstBar).toBeGreaterThan(0);
 
-    // Now the context breaks mid-ambience: the next clack's noise() throws.
+    // The context breaks: the next bar's hi-hat noise() throws. The scheduler must stop, not loop on errors.
     const workingCreateBufferSource = ctx.createBufferSource;
     ctx.createBufferSource = () => { throw new Error('context closed'); };
-    vi.advanceTimersByTime(1000); // past the 400ms initial clack delay
-    // The orphaned hum's two oscillators must have been stopped, not just dropped.
-    expect(oscStops).toHaveLength(2);
+    ctx.currentTime = 10; // the clock moved on, so the next tick tries to schedule a bar
+    vi.advanceTimersByTime(2000);
+    const afterThrow = ctx.started.length;
+    vi.advanceTimersByTime(10_000);
+    expect(ctx.started.length).toBe(afterThrow); // dead: no further scheduling
 
-    // Recovery: restore the fake, and a later setEnabled restarts exactly one new hum.
+    // Recovery: restore the fake; setEnabled restarts the loop and one bar schedules again.
     ctx.createBufferSource = workingCreateBufferSource;
+    ctx.currentTime = 20;
     audio.setEnabled({ sfx: true, music: true });
-    vi.advanceTimersByTime(1000);
-    const oscStarts = ctx.started.filter((k) => k === 'osc').length;
-    expect(oscStarts - oscStops.length).toBe(2);
+    vi.advanceTimersByTime(10);
+    expect(ctx.started.length).toBeGreaterThan(afterThrow);
     vi.useRealTimers();
   });
 
