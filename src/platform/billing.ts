@@ -36,8 +36,19 @@ export const ENTITLEMENT_UNION = 'union';
 export const REVENUECAT_TEST_KEY = 'test_KVdHDShyXRlyPVWbhZFJxMJFQLg';
 export const REVENUECAT_PLAY_KEY = 'goog_qrKNtlMXOEqzWLCObOPioONRTFb';
 
+/**
+ * The iOS public key (an `appl_…` string) is injected at build time via
+ * `VITE_REVENUECAT_IOS_KEY`, not hardcoded here — unlike the Play key, which ships as source
+ * because it is baked into every Android build the same way. If CI does not inject it, this
+ * is empty and `init()` below skips `Purchases.configure`, degrading like an unconfigured SDK.
+ */
+export function revenueCatIosKey(): string {
+  return import.meta.env.VITE_REVENUECAT_IOS_KEY ?? '';
+}
+
 export function revenueCatApiKey(dev: boolean = isDevBuild()): string {
-  return dev ? REVENUECAT_TEST_KEY : REVENUECAT_PLAY_KEY;
+  if (dev) return REVENUECAT_TEST_KEY;
+  return Capacitor.getPlatform() === 'ios' ? revenueCatIosKey() : REVENUECAT_PLAY_KEY;
 }
 
 /**
@@ -158,8 +169,13 @@ export const revenueCatBilling: Billing = (() => {
 
   return {
     async init() {
+      const apiKey = revenueCatApiKey();
+      // No iOS key injected at build time: leave the SDK unconfigured rather than call
+      // `configure` with an empty string. Every later call already degrades safely when
+      // unconfigured (empty catalogue, 'error' purchases), so this is just that same path.
+      if (!apiKey) return;
       try {
-        await Purchases.configure({ apiKey: revenueCatApiKey() });
+        await Purchases.configure({ apiKey });
       } catch {
         /* unconfigured: every later call degrades on its own */
       }

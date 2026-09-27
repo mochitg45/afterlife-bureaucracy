@@ -11,6 +11,7 @@ import { StaffRow } from '../components/StaffRow';
 import { UpgradeRow } from '../components/UpgradeRow';
 import { MemoTicker } from '../components/MemoTicker';
 import { useWatchAd } from '../hooks/useWatchAd';
+import { adsSupported } from '../../platform/ads';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
 
@@ -75,7 +76,7 @@ export function OfficeScreen({ onSettings }: { onSettings?: () => void }) {
       <h2 className="dept-title">{dept.name} Department</h2>
       <QueueCard />
       <StampButton />
-      <OvertimeBoost />
+      {adsSupported() && <OvertimeBoost />}
       <div className="section-head">
         <h3>Staff</h3>
         <div className="mode-switch" role="group" aria-label="Buy amount">

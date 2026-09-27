@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useGame, type RestoreResult } from '../../store/game';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StoreArt } from '../components/StoreArt';
+import { adsSupported } from '../../platform/ads';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
 import {
   STARTER_PACK_VOUCHERS,
@@ -102,7 +103,9 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
     const p = byId.get(id);
     return p ? [p] : [];
   });
-  const removeAds = byId.get('remove_ads');
+  // No ad network on iOS, so nothing to remove: hide the product rather than sell an
+  // entitlement with no ads behind it.
+  const removeAds = adsSupported() ? byId.get('remove_ads') : undefined;
   const starterPack = byId.get('starter_pack');
   const union = byId.get('union_monthly');
   const unionOn = unionActive({ entitlements }, now);

@@ -1,6 +1,6 @@
 import { useGame } from '../../store/game';
 import { useWatchAd } from '../hooks/useWatchAd';
-import type { AdPlacement } from '../../platform/ads';
+import { adsSupported, type AdPlacement } from '../../platform/ads';
 
 /**
  * A rewarded-ad button. `canWatch` is selected rather than derived so the button re-evaluates
@@ -27,6 +27,9 @@ export function AdButton({
   const ready = useGame((s) => s.canWatch(placement));
   const adsReady = useGame((s) => s.adsReady);
   const { busy, watch } = useWatchAd(placement, taskId);
+  // No ad network on iOS: hide the placement entirely rather than show a permanently
+  // disabled "Ad not available" button.
+  if (!adsSupported()) return null;
   return (
     <span className="ad-button">
       <button

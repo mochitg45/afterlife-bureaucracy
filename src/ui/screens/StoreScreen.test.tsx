@@ -7,6 +7,13 @@ import { content } from '../../data';
 import type { Product } from '../../platform/billing';
 import { STARTER_PACK_WINDOW_MS, UNION_PERIOD_MS } from '../../engine/entitlements';
 
+/** Lets a single test report the platform as iOS; every other test stays on 'web'. */
+const cap = vi.hoisted(() => ({ platform: 'web' }));
+vi.mock('@capacitor/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@capacitor/core')>();
+  return { ...actual, Capacitor: { ...actual.Capacitor, getPlatform: () => cap.platform } };
+});
+
 const PRODUCTS: Product[] = [
   { id: 'vouchers_10', price: '$0.99', title: '10 Requisition Vouchers' },
   { id: 'vouchers_55', price: '$4.99', title: '55 Requisition Vouchers' },
@@ -202,5 +209,16 @@ describe('StoreScreen', () => {
     render(<StoreScreen onSettings={onSettings} />);
     fireEvent.click(screen.getByRole('button', { name: /settings/i }));
     expect(onSettings).toHaveBeenCalled();
+  });
+
+  it('hides Remove Ads on iOS: there is no ad network to remove', () => {
+    cap.platform = 'ios';
+    seed({ firstSeenWallClock: NOW });
+    render(<StoreScreen />);
+    expect(screen.queryByRole('heading', { name: 'Remove Ads' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Buy Exempt From Advertising/i })).not.toBeInTheDocument();
+    // The rest of the store is untouched.
+    expect(screen.getByRole('heading', { name: 'Starter Pack' })).toBeInTheDocument();
+    cap.platform = 'web';
   });
 });

@@ -6,6 +6,13 @@ import { createInitialState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
 
+/** Lets a single test report the platform as iOS; every other test stays on 'web'. */
+const cap = vi.hoisted(() => ({ platform: 'web' }));
+vi.mock('@capacitor/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@capacitor/core')>();
+  return { ...actual, Capacitor: { ...actual.Capacitor, getPlatform: () => cap.platform } };
+});
+
 describe('BacklogReport', () => {
   it('renders nothing without pending offline', () => {
     useGame.setState({ pendingOffline: null });
@@ -37,6 +44,19 @@ describe('BacklogReport', () => {
     expect(screen.queryByRole('button', { name: 'Watch ad ×2' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /file it/i })).toBeInTheDocument();
   });
+  it('shows no Watch ad button on iOS even when the placement is open', () => {
+    cap.platform = 'ios';
+    const state = createInitialState({ wall: 0, mono: 0 }, content);
+    useGame.setState({
+      state, rates: computeRates(state, content, 0), adsReady: true,
+      pendingOffline: { elapsedSec: 7200, creditedSec: 7200, souls: new Decimal(900), kc: new Decimal(360), capped: false },
+    });
+    render(<BacklogReport />);
+    expect(screen.queryByRole('button', { name: 'Watch ad ×2' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /file it/i })).toBeInTheDocument();
+    cap.platform = 'web';
+  });
+
   it('mentions the cap when capped', () => {
     const state = createInitialState({ wall: 0, mono: 0 }, content);
     useGame.setState({

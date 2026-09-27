@@ -78,5 +78,7 @@ export const playGamesServices: GameServices = (() => {
 })();
 
 export function pickGameServices(): GameServices {
+  // No Game Center in v1: iOS gets the same no-op as web.
+  if (Capacitor.getPlatform() === 'ios') return noopGameServices;
   return Capacitor.isNativePlatform() ? playGamesServices : noopGameServices;
 }

@@ -19,6 +19,26 @@ export interface Ads {
 export const WEB_AD_DURATION_MS = 300;
 
 /**
+ * False on iOS: v1 ships with no AdMob pod and no AdMob iOS app, so there is nothing to show
+ * or to remove. UI that offers a rewarded ad should hide itself rather than render a disabled
+ * "Ad not available" button.
+ */
+export function adsSupported(): boolean {
+  return Capacitor.getPlatform() !== 'ios';
+}
+
+/** iOS fallback: never touches the AdMob plugin, which is not present in the iOS build. */
+export const noAds: Ads = {
+  async init() {},
+  isReady() {
+    return false;
+  },
+  showRewarded() {
+    return Promise.resolve<AdResult>('unavailable');
+  },
+};
+
+/**
  * Browser and test fallback: no SDK, so a development build rewards after a short pretend
  * playback and every other build reports the placement closed.
  *
@@ -116,5 +136,6 @@ export const admobAds: Ads = (() => {
 })();
 
 export function pickAds(): Ads {
+  if (Capacitor.getPlatform() === 'ios') return noAds;
   return Capacitor.isNativePlatform() ? admobAds : webAds;
 }
