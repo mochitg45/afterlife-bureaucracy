@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from scipy import ndimage
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -20,6 +21,22 @@ SRC_STORY = ROOT / "docs/art/story-v2"
 OUT_CHARS = ROOT / "public/art/chars"
 OUT_DEPTS = ROOT / "public/art/depts"
 OUT_STORY = ROOT / "public/art/story"
+SRC_SOULS = ROOT / "docs/art/souls-v2"
+OUT_SOULS = ROOT / "public/art/souls"
+
+# Soul face sheets: 4x4, no card frames or names. One letter per cell, row-major:
+# f = female, m = male, a = animal, x = alien. Output is {letter}-{NN}.webp, numbered per letter.
+SOUL_SHEETS: list[tuple[str, str]] = [
+    ("s1-women.jpg", "fffffffmfffmfffm"),
+    ("s2-men.jpg", "mmmmmmmmmfmmmmmm"),
+    ("s3-women.jpg", "fffffffffmffffff"),
+    ("s4-men.jpg", "mmmmmmmmmmmmmmfm"),
+    ("s5-pets.jpg", "aaaaaaaaaaaaaaaa"),
+    ("s6-aliens.jpg", "xxxxxxxxxxxxxxxx"),
+]
+SOUL_SIZE = 128
+# Cells whose pale body runs off the cell and floods through: fill their convex hull instead.
+HULL_CELLS = {("s5-pets.jpg", 3)}  # the hamster
 
 # (sheet file, cols, rows, names row-major; None = skip that cell)
 SHEETS = [
@@ -93,13 +110,27 @@ TEXT_GAP_ROWS = 10  # empty rows separating the character (and its shadow) from 
 MIN_BLOB_FRAC = 0.015  # drop foreground islands smaller than this fraction of the biggest one
 
 
-def cutout_sprite(cell: Image.Image) -> Image.Image:
+def cutout_sprite(cell: Image.Image, drop_edge: bool = False, tight_bg: bool = False, hull: bool = False) -> Image.Image:
     """Flood the page, card fill and card border away from the cell edges,
     cut the name text off at the lowest empty-row gap, and drop tiny islands."""
-    from scipy import ndimage
-
     rgb = np.array(cell.convert("RGB"))
     fg = ~flood_background(rgb, BG_SAT_MAX, BG_VAL_MIN)
+    if tight_bg:
+        # pale pets: white fur is as bright as the page, so only flood pixels that match the
+        # page colour itself (sampled from the corners), keeping fur, sticker rim and glow.
+        page = np.median(np.concatenate([rgb[:4, :4].reshape(-1, 3), rgb[-4:, -4:].reshape(-1, 3)]), axis=0)
+        near = np.abs(rgb.astype(np.int16) - page).max(axis=2) <= 10
+        lab_bg, _ = ndimage.label(near)
+        edge = np.unique(np.concatenate([lab_bg[0], lab_bg[:, 0], lab_bg[:, -1]]))  # not the bottom: busts end there
+        fg = ~np.isin(lab_bg, edge[edge > 0])
+        fg |= ndimage.binary_fill_holes(ndimage.binary_closing(fg, iterations=4))  # seal pinholes in the ink
+    if hull:
+        from scipy.spatial import ConvexHull
+        from PIL import ImageDraw
+        pts = np.argwhere(fg)[:, ::-1]
+        poly = Image.new("L", (fg.shape[1], fg.shape[0]), 0)
+        ImageDraw.Draw(poly).polygon([tuple(p) for p in pts[ConvexHull(pts).vertices]], fill=1)
+        fg |= np.array(poly, dtype=bool)
 
     # name text: walk up from the bottom; after the first inked row, the first
     # run of TEXT_GAP_ROWS empty rows is the gap above the name.
@@ -123,8 +154,12 @@ def cutout_sprite(cell: Image.Image) -> Image.Image:
     lab, n = ndimage.label(fg)
     if n:
         sizes = ndimage.sum(fg, lab, range(1, n + 1))
-        keep = np.isin(lab, 1 + np.flatnonzero(sizes >= sizes.max() * MIN_BLOB_FRAC))
-        fg &= keep
+        keep_ids = 1 + np.flatnonzero(sizes >= sizes.max() * MIN_BLOB_FRAC)
+        if drop_edge:  # frameless sheets: islands on the cell edge are a neighbour's overhang
+            big = 1 + int(np.argmax(sizes))
+            edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])))
+            keep_ids = [i for i in keep_ids if i == big or i not in edge]
+        fg &= np.isin(lab, keep_ids)
 
     alpha = np.where(fg, 255, 0).astype(np.uint8)
     out = Image.fromarray(np.dstack([rgb, alpha]), mode="RGBA")
@@ -148,7 +183,8 @@ def cutout_sprite(cell: Image.Image) -> Image.Image:
     return final
 
 
-def cut_sheet(path: Path, cols: int, rows: int, names: list[str | None]) -> list[tuple[str, Image.Image]]:
+def cut_sheet(path: Path, cols: int, rows: int, names: list[str | None], drop_edge: bool = False, tight_bg: bool = False) -> list[tuple[str, Image.Image]]:
+    idx = -1
     sheet = Image.open(path).convert("RGB")
     w, h = sheet.size
     cw, ch = w / cols, h / rows
@@ -158,13 +194,31 @@ def cut_sheet(path: Path, cols: int, rows: int, names: list[str | None]) -> list
         for c in range(cols):
             name = names[i]
             i += 1
+            idx = i - 1
             if name is None:
                 continue
             x0, y0 = c * cw, r * ch
             ix, iy = cw * CELL_INSET, ch * CELL_INSET
             cell = sheet.crop((round(x0 + ix), round(y0 + iy), round(x0 + cw - ix), round(y0 + ch - iy)))
-            out.append((name, cutout_sprite(cell)))
+            out.append((name, cutout_sprite(cell, drop_edge, tight_bg, (path.name, idx) in HULL_CELLS)))
     return out
+
+
+def cut_souls() -> dict[str, int]:
+    """Cut every soul sheet into 128px faces; returns the count per kind letter."""
+    OUT_SOULS.mkdir(parents=True, exist_ok=True)
+    counts: dict[str, int] = {}
+    for sheet_name, kinds in SOUL_SHEETS:
+        assert len(kinds) == 16, sheet_name
+        cells = cut_sheet(SRC_SOULS / sheet_name, 4, 4, list(kinds), drop_edge=True, tight_bg="a" in kinds)
+        for kind, sprite in cells:
+            counts[kind] = counts.get(kind, 0) + 1
+            sprite.resize((SOUL_SIZE, SOUL_SIZE), Image.LANCZOS).save(
+                OUT_SOULS / f"{kind}-{counts[kind]:02d}.webp", format="WEBP", quality=88)
+    import json
+    full = {k: counts.get(k, 0) for k in "fmax"}
+    (ROOT / "src/data/soul-faces.json").write_text(json.dumps(full) + "\n", encoding="utf-8")
+    return counts
 
 
 def cover_crop(im: Image.Image, target: tuple[int, int]) -> Image.Image:
@@ -203,7 +257,8 @@ def main() -> None:
         im.save(OUT_STORY / f"{out_name}.webp", format="WEBP", quality=82)
         story_count += 1
 
-    print(f"sprites={sprite_count} depts={dept_count} story={story_count}")
+    souls = cut_souls()
+    print(f"sprites={sprite_count} depts={dept_count} story={story_count} souls={souls}")
 
 
 if __name__ == "__main__":
