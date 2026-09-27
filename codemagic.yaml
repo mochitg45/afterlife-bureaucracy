@@ -6,7 +6,7 @@
 # made by hand. Owner steps: docs/ios-setup.md.
 #
 # Codemagic app settings → Environment variables, group `appstore_credentials`, all Secret
-# (the same team-wide values Smile uses, files in smile-secrets/ios/):
+# (the same team-wide values Smile uses, files in ../_secrets/apple-team/):
 #   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
 #   ASC_KEY_P8_B64, CERT_KEY_B64
 workflows:

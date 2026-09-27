@@ -40,14 +40,14 @@ copy the `appl_…` key. Done: `appl_yKvyDEIvMqiJiosTKCLsNLHVpek` is in `codemag
 ### 3. Codemagic — add the app (~5 min)
 Codemagic → **Add application** → GitHub → `mochitg45/afterlife-bureaucracy` → it finds
 `codemagic.yaml`. App settings → **Environment variables** → group **`appstore_credentials`**,
-all marked *Secret* — the same four values Smile uses (files in `smile-secrets/ios/`):
+all marked *Secret* — the same four team-wide values Smile uses (files in `Documents/Claude/_secrets/apple-team/`, index in `_secrets/README.md`):
 
 | Variable | Value |
 |---|---|
 | `APP_STORE_CONNECT_ISSUER_ID` | `9bb893f9-b193-4fb8-8f36-34631c5b1d58` |
 | `APP_STORE_CONNECT_KEY_IDENTIFIER` | `CFURK2CVZ2` |
-| `ASC_KEY_P8_B64` | contents of `smile-secrets/ios/ASC_KEY_P8_B64__CFURK2CVZ2.txt` |
-| `CERT_KEY_B64` | contents of `smile-secrets/ios/CERT_KEY_B64.txt` |
+| `ASC_KEY_P8_B64` | contents of `_secrets/apple-team/ASC_KEY_P8_B64__CFURK2CVZ2.txt` |
+| `CERT_KEY_B64` | contents of `_secrets/apple-team/CERT_KEY_B64.txt` |
 
 (If Codemagic lets you reuse Smile's group at team level, that works too.)
 
