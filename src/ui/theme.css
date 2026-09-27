@@ -96,6 +96,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .dept-title { color: var(--accent, var(--green)); margin: 6px 0 10px; font-size: 20px; }
 .queue-card { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
 /* Each new soul pops in: a short scale-and-fade, keyed on the face so it replays per soul. */
+.soul-faces { flex: 0 0 auto; display: flex; }
+.soul-faces.twins .soul-face { width: 44px; height: 44px; }
+.soul-faces.twins .soul-face + .soul-face { margin-left: -14px; }
 .soul-face { flex: 0 0 auto; object-fit: contain; animation: soulIn 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes soulIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .soul-face { animation: none; } }

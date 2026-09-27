@@ -1,18 +1,22 @@
 import { useGame } from '../../store/game';
 import { Character } from '../characters/Character';
-import { soulFaceUrl } from './soulFace';
+import { soulCard } from './soulFace';
 
 export function QueueCard() {
   const line = useGame((s) => s.queueLine);
-  const face = soulFaceUrl(line);
+  const { text, faces } = soulCard(line);
   return (
     <div className="card queue-card">
-      {face
-        ? <img key={face} className="soul-face" src={face} width={56} height={56} alt="" />
+      {faces.length
+        ? (
+          <div className={'soul-faces' + (faces.length > 1 ? ' twins' : '')} key={line}>
+            {faces.map((f, i) => <img key={i} className="soul-face" src={f} width={56} height={56} alt="" />)}
+          </div>
+        )
         : <Character id="soul" mood="ok" size={44} />}
       <div>
         <div className="label">Now serving</div>
-        <div className="queue-line">{line}</div>
+        <div className="queue-line">{text}</div>
       </div>
     </div>
   );

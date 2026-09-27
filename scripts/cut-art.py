@@ -25,14 +25,13 @@ SRC_SOULS = ROOT / "docs/art/souls-v2"
 OUT_SOULS = ROOT / "public/art/souls"
 
 # Soul face sheets: 4x4, no card frames or names. One letter per cell, row-major:
-# f = female, m = male, a = animal, x = alien. Output is {letter}-{NN}.webp, numbered per letter.
+# f = female, m = male, a = pet (pet lines tag their face, e.g. "a-07|..."). Output is {letter}-{NN}.webp, numbered per letter.
 SOUL_SHEETS: list[tuple[str, str]] = [
     ("s1-women.jpg", "fffffffmfffmfffm"),
     ("s2-men.jpg", "mmmmmmmmmfmmmmmm"),
     ("s3-women.jpg", "fffffffffmffffff"),
     ("s4-men.jpg", "mmmmmmmmmmmmmmfm"),
     ("s5-pets.jpg", "aaaaaaaaaaaaaaaa"),
-    ("s6-aliens.jpg", "xxxxxxxxxxxxxxxx"),
 ]
 SOUL_SIZE = 128
 # Cells whose pale body runs off the cell and floods through: fill their convex hull instead.
