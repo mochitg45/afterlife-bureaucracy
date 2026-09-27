@@ -38,7 +38,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
       ? `+${formatNumber(rate)}/s · MAX`
       : `+${formatNumber(rate.mul(period))} / ${period.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}s`;
   return (
-    <div className="card staff-row">
+    <div className="card staff-row" data-goal={`staff-${staff.id}`}>
       <Character id={staff.character} art={staff.id} mood={mood} size={52} />
       <div className="staff-info">
         <div className="milestone-bar">

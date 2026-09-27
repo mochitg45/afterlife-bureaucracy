@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { useGame } from '../../store/game';
+import { useGame, TRAINING_DONE } from '../../store/game';
 import { content } from '../../data';
 import { findDepartment } from '../../engine/content';
 import type { BuyMode } from '../../engine/actions';
@@ -12,6 +12,38 @@ import { UpgradeRow } from '../components/UpgradeRow';
 import { MemoTicker } from '../components/MemoTicker';
 import { useWatchAd } from '../hooks/useWatchAd';
 import { adsSupported } from '../../platform/ads';
+import { nextGoal, type GoalWhere } from '../../engine/goal';
+
+type GoalTab = Extract<GoalWhere, { kind: 'tab' }>['tab'];
+
+/**
+ * The one-line "Next:" hint for a player new to idle games. Selected as a string so the tick
+ * loop re-renders it only when the advice changes. Tapping it goes to the tab it names, or
+ * scrolls the Office control into view and flashes it.
+ */
+function NextGoal({ onGoTo }: { onGoTo?: (tab: GoalTab) => void }) {
+  const trained = useGame((s) => s.state.onboarding.trainingStep >= TRAINING_DONE);
+  const key = useGame((s) => JSON.stringify(nextGoal(s.state, content)));
+  if (!trained) return null;
+  const goal = JSON.parse(key) as ReturnType<typeof nextGoal>;
+  const go = () => {
+    const w = goal.where;
+    if (!w) return;
+    if (w.kind === 'tab') { onGoTo?.(w.tab); return; }
+    const el = document.querySelector<HTMLElement>(w.selector);
+    if (!el) return;
+    el.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    el.classList.remove('goal-flash');
+    void el.offsetWidth; // restart the flash if it is tapped twice
+    el.classList.add('goal-flash');
+    setTimeout(() => el.classList.remove('goal-flash'), 1200);
+  };
+  return (
+    <button type="button" className="next-goal" onClick={go} data-coach="next-goal">
+      <span className="label mono">Next:</span> <span>{goal.text}</span>
+    </button>
+  );
+}
 
 const MODES: BuyMode[] = [1, 10, 'max'];
 
@@ -64,7 +96,7 @@ function OvertimeBoost() {
   );
 }
 
-export function OfficeScreen({ onSettings }: { onSettings?: () => void }) {
+export function OfficeScreen({ onSettings, onGoTo }: { onSettings?: () => void; onGoTo?: (tab: GoalTab) => void }) {
   const activeDept = useGame((s) => s.state.activeDept);
   const dept = findDepartment(content, activeDept);
   const [mode, setMode] = useState<BuyMode>(1);
@@ -74,6 +106,7 @@ export function OfficeScreen({ onSettings }: { onSettings?: () => void }) {
       <CurrencyBar onSettings={onSettings} />
       <DeptChips />
       <h2 className="dept-title">{dept.name} Department</h2>
+      <NextGoal onGoTo={onGoTo} />
       <QueueCard />
       <StampButton />
       {adsSupported() && <OvertimeBoost />}

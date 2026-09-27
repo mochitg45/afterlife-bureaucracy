@@ -12,6 +12,19 @@ function seed(kc: number) {
 }
 
 describe('OfficeScreen', () => {
+  it('shows the Next goal only once training is done, and a tab goal switches tabs', () => {
+    seed(0);
+    const { unmount } = render(<OfficeScreen />);
+    expect(screen.queryByText('Next:')).toBeNull();
+    unmount();
+    const s = useGame.getState().state;
+    useGame.setState({ state: { ...s, vouchers: 10, onboarding: { memosSeen: true, trainingStep: 3 } } });
+    const onGoTo = vi.fn();
+    render(<OfficeScreen onGoTo={onGoTo} />);
+    expect(screen.getByText('Next:')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /draw a requisition in personnel/i }));
+    expect(onGoTo).toHaveBeenCalledWith('personnel');
+  });
   it('stamps a soul', () => {
     seed(0);
     render(<OfficeScreen />);

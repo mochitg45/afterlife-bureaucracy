@@ -70,6 +70,17 @@ button:disabled { opacity: 0.45; cursor: default; }
 .brass { color: var(--brass); }
 .currency-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
 .dept-title { color: var(--accent, var(--green)); margin: 6px 0 10px; font-size: 20px; }
+/* The "Next:" hint: one quiet line under the department title, a tap target but not a button-shaped one. */
+.next-goal {
+  display: flex; align-items: baseline; gap: 6px; width: 100%; margin: -4px 0 10px; padding: 6px 10px;
+  border: 1px dashed var(--line); border-radius: var(--radius); background: var(--surface);
+  color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+}
+.next-goal > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.next-goal .label { flex-shrink: 0; color: var(--accent, var(--green)); font-weight: 600; }
+.goal-flash { animation: goal-flash 1200ms var(--ease-out); }
+@keyframes goal-flash { 0%, 60% { box-shadow: 0 0 0 3px var(--brass); } 100% { box-shadow: 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) { .goal-flash { animation: none; outline: 3px solid var(--brass); } }
 .queue-card { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
 /* Each new soul pops in: a short scale-and-fade, keyed on the face so it replays per soul. */
 .soul-faces { flex: 0 0 auto; display: flex; }

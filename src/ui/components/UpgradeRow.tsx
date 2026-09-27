@@ -11,7 +11,7 @@ export function UpgradeRow({ upgrade }: { upgrade: UpgradeDef }) {
   const maxed = level >= upgrade.maxLevel;
   const cost = upgradeCost(upgrade, level);
   return (
-    <button className="card upgrade-row" disabled={maxed || !canAfford(cost, kc)} onClick={() => buy(upgrade.id)} aria-label={upgrade.name}>
+    <button className="card upgrade-row" disabled={maxed || !canAfford(cost, kc)} onClick={() => buy(upgrade.id)} aria-label={upgrade.name} data-goal={`upgrade-${upgrade.id}`}>
       <div>
         <div className="staff-name">{upgrade.name} <span className="mono owned">{level}/{upgrade.maxLevel}</span></div>
         <div className="sub">{upgrade.desc}</div>

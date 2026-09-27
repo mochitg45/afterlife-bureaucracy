@@ -97,7 +97,7 @@ export function App() {
           would be a dialog about a desk the player has not sat down at yet. */}
       {ready && phase === 'game' && (
         <>
-          {tab === 'office' && <OfficeScreen onSettings={openSettings} />}
+          {tab === 'office' && <OfficeScreen onSettings={openSettings} onGoTo={setTab} />}
           {tab === 'personnel' && <PersonnelScreen onSettings={openSettings} />}
           {tab === 'ledger' && <LedgerScreen onSettings={openSettings} />}
           {tab === 'tasks' && <TasksScreen onSettings={openSettings} />}

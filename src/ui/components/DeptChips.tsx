@@ -80,7 +80,7 @@ export function DeptChips() {
         }
         const progress = Math.min(1, soulsRun.div(d.unlockSouls).toNumber());
         return (
-          <button key={d.id} className="chip locked" style={style} disabled aria-label={`${d.name} (locked, unlocks at ${formatNumber(d.unlockSouls)} souls)`}>
+          <button key={d.id} className="chip locked" style={style} disabled data-goal={`dept-${d.id}`} aria-label={`${d.name} (locked, unlocks at ${formatNumber(d.unlockSouls)} souls)`}>
             <DeptIcon id={d.id} />
             <span className="chip-text">
               <span>{d.name}</span>
