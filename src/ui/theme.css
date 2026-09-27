@@ -126,15 +126,15 @@ button:disabled { opacity: 0.45; cursor: default; }
 .milestone-bar { display: flex; align-items: center; gap: 6px; line-height: 1; }
 .milestone-bar .bar { flex: 1; margin-top: 0; }
 .milestone-label { font-size: 9px; color: var(--ink-muted); white-space: nowrap; }
-.speed-bar { position: relative; height: 11px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-top: 2px; }
+.speed-bar { position: relative; height: 16px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-top: 2px; }
 .speed-bar-fill {
-  position: absolute; inset: 0; background: var(--accent, var(--green));
+  position: absolute; inset: 0; background: color-mix(in srgb, var(--accent, var(--green)) 45%, var(--surface));
   transform-origin: left; transform: scaleX(0); animation: speed-fill var(--period, 1s) linear infinite;
 }
 .speed-bar.idle .speed-bar-fill { animation: none; transform: scaleX(0); }
 .speed-bar.max .speed-bar-fill { animation: none; transform: scaleX(1); }
 .speed-bar-label {
-  position: relative; z-index: 1; display: block; text-align: center; font-size: 10px; line-height: 11px;
+  position: relative; z-index: 1; display: block; text-align: center; font-size: 12px; line-height: 16px;
   color: var(--ink); font-family: var(--font-mono); font-weight: 700;
   text-shadow: 0 0 2px var(--surface);
 }
@@ -218,6 +218,20 @@ label.settings-row { cursor: pointer; }
   .speed-bar-fill { animation: none; transform: scaleX(1); }
 }
 
+/* Heaven reads blue, Hell reads red: the office page re-tints its paper tokens per department. */
+.office[data-dept] { background: var(--paper); }
+.office[data-dept='heaven'] { --paper: #DDE8F1; --surface: #EFF5FA; --surface-2: #CFDEEA; --line: #A9C0D2; }
+.office[data-dept='hell'] { --paper: #F1DDD5; --surface: #FAEFEA; --surface-2: #EBD0C5; --line: #D2A999; }
+@supports (color: light-dark(#fff, #000)) {
+  .office[data-dept='heaven'] {
+    --paper: light-dark(#DDE8F1, #141B23); --surface: light-dark(#EFF5FA, #1D2631);
+    --surface-2: light-dark(#CFDEEA, #283442); --line: light-dark(#A9C0D2, #3A4A5C);
+  }
+  .office[data-dept='hell'] {
+    --paper: light-dark(#F1DDD5, #221513); --surface: light-dark(#FAEFEA, #2F1E1B);
+    --surface-2: light-dark(#EBD0C5, #3D2823); --line: light-dark(#D2A999, #5A3A32);
+  }
+}
 .screen-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .screen-header h2 { font-size: 22px; }
 .screen-header .gear-btn { position: static; }

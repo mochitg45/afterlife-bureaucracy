@@ -34,7 +34,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
   const speedLabel = idle
     ? `${formatNumber(rate)}/s`
     : maxSpeed
-      ? `+${formatNumber(rate)} / s (max speed)`
+      ? `+${formatNumber(rate)}/s · MAX`
       : `+${formatNumber(rate.mul(period))} / ${period.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}s`;
   return (
     <div className="card staff-row">

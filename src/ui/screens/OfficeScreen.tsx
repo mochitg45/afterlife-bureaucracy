@@ -69,7 +69,7 @@ export function OfficeScreen({ onSettings }: { onSettings?: () => void }) {
   const [mode, setMode] = useState<BuyMode>(1);
   const accentStyle = { '--accent': dept.accent } as CSSProperties;
   return (
-    <section className="screen office" style={accentStyle}>
+    <section className="screen office" data-dept={dept.id} style={accentStyle}>
       <CurrencyBar onSettings={onSettings} />
       <DeptChips />
       <h2 className="dept-title">{dept.name} Department</h2>

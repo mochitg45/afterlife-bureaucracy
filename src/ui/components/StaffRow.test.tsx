@@ -56,6 +56,6 @@ describe('StaffRow', () => {
     const { container } = render(<StaffRow staff={staff} mode={1} index={0} />);
     const speedBar = container.querySelector('.speed-bar');
     expect(speedBar).toHaveClass('max');
-    expect(speedBar!.textContent).toContain('max speed');
+    expect(speedBar!.textContent).toContain('MAX');
   });
 });
