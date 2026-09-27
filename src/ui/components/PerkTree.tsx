@@ -1,3 +1,4 @@
+import { SealIcon } from '../icons/Currency';
 import { memo } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
@@ -28,7 +29,7 @@ const PerkNode = memo(function PerkNode({ perk }: { perk: PerkDef }) {
     <button className={`card perk ${status}`} disabled={!check.ok} onClick={() => buy(perk.id)} aria-label={perk.name}>
       <div className="perk-head">
         <span className="staff-name">{perk.name}</span>
-        <span className="mono seal-cost">{status === 'owned' ? 'OWNED' : `${perk.cost} ◆`}</span>
+        <span className="mono seal-cost">{status === 'owned' ? 'OWNED' : <>{perk.cost} <SealIcon size={14} /><span className="visually-hidden"> seals</span></>}</span>
       </div>
       <div className="sub">{perk.desc}</div>
       {status === 'locked' && <div className="sub">Requires {perk.requires.map(perkName).join(', ')}</div>}

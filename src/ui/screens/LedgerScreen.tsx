@@ -1,3 +1,4 @@
+import { SealIcon } from '../icons/Currency';
 import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
@@ -50,7 +51,7 @@ export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
     <section className="screen ledger">
       <ScreenHeader title="Ledger" onSettings={onSettings} />
       <header className="currency-bar card">
-        <div><div className="label">Karma Seals</div><div className="mono value brass">{seals} ◆</div></div>
+        <div><div className="label">Karma Seals</div><div className="mono value brass">{seals} <SealIcon size={20} /><span className="visually-hidden"> seals</span></div></div>
         <div><div className="label">Fiscal Year</div><div className="mono value">{year}</div></div>
       </header>
       <AuditCard />

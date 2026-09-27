@@ -74,3 +74,36 @@ export function KarmaIcon({ size = 16, className }: IconProps) {
     </svg>
   );
 }
+
+/** Karma Seal: a wavy-edged sealing-wax blob with a brass rim pressed with a star. */
+export function SealIcon({ size = 16, className }: IconProps) {
+  // Scalloped wax edge: 10 bumps around the centre.
+  const bumps = Array.from({ length: 20 }, (_, i) => {
+    const a = (i / 20) * Math.PI * 2;
+    const r = i % 2 === 0 ? 9.6 : 8.3;
+    return `${(12 + Math.cos(a) * r).toFixed(2)} ${(12.5 + Math.sin(a) * r).toFixed(2)}`;
+  });
+  const star = Array.from({ length: 10 }, (_, i) => {
+    const a = -Math.PI / 2 + (i / 10) * Math.PI * 2;
+    const r = i % 2 === 0 ? 3.4 : 1.5;
+    return `${(12 + Math.cos(a) * r).toFixed(2)} ${(12.5 + Math.sin(a) * r).toFixed(2)}`;
+  });
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      aria-hidden="true"
+      focusable="false"
+      className={'cur-icon' + (className ? ' ' + className : '')}
+      data-icon="seal"
+    >
+      <g transform="rotate(-8 12 12.5)" strokeLinejoin="round" strokeLinecap="round">
+        <path d={`M${bumps.join(' L')} Z`} fill={RED} stroke={INK} strokeWidth={1.8} />
+        <circle cx={12} cy={12.5} r={5.6} fill={BRASS_LIGHT} stroke={BRASS_DARK} strokeWidth={1.2} />
+        <path d={`M${star.join(' L')} Z`} fill={BRASS_DARK} />
+        <path d="M6.2 9.6 A7 7 0 0 1 9 6.6" fill="none" stroke={CREAM} strokeWidth={1.1} opacity={0.7} />
+      </g>
+    </svg>
+  );
+}

@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import Decimal from 'break_infinity.js';
@@ -69,10 +69,13 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
  * Eighty-odd badges that only ever change when an achievement unlocks. Memoised on the
  * unlocked-id set alone so the grid sits still through the ten-a-second tick loop.
  */
-const AchievementGrid = memo(function AchievementGrid({ unlocked }: { unlocked: Set<string> }) {
+const AchievementGrid = memo(function AchievementGrid({ unlocked, expanded }: { unlocked: Set<string>; expanded: boolean }) {
+  // Collapsed: the four most relevant — newest unlocked first, then the next to earn.
+  const ordered = [...content.achievements.filter((a) => unlocked.has(a.id)).reverse(), ...content.achievements.filter((a) => !unlocked.has(a.id))];
+  const shown = expanded ? content.achievements : ordered.slice(0, ACHIEVEMENTS_COLLAPSED);
   return (
     <div className="badge-grid">
-      {content.achievements.map((a) => {
+      {shown.map((a) => {
         const isUnlocked = unlocked.has(a.id);
         return (
           <div key={a.id} className={'badge-tile' + (isUnlocked ? '' : ' locked')}>
@@ -85,6 +88,8 @@ const AchievementGrid = memo(function AchievementGrid({ unlocked }: { unlocked: 
     </div>
   );
 });
+
+const ACHIEVEMENTS_COLLAPSED = 4;
 
 export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   // Three narrow subscriptions rather than the whole GameState: a tick changes kc and souls
@@ -99,6 +104,7 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   const { streak, bestStreak, skipTokens, tasks } = dailies;
   const view: DailyProgressView = { dailies, stats };
   const total = content.achievements.length;
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <section className="screen tasks">
@@ -118,7 +124,10 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
         <h3>Achievements</h3>
         <span className="sub mono">{achievements.length} / {total}</span>
       </div>
-      <AchievementGrid unlocked={unlocked} />
+      <AchievementGrid unlocked={unlocked} expanded={expanded} />
+      <button className="btn btn-ghost badge-toggle" aria-expanded={expanded} onClick={() => setExpanded((e) => !e)}>
+        {expanded ? 'Show less' : `Show all ${total}`}
+      </button>
     </section>
   );
 }

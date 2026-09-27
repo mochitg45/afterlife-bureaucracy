@@ -81,7 +81,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .goal-flash { animation: goal-flash 1200ms var(--ease-out); }
 @keyframes goal-flash { 0%, 60% { box-shadow: 0 0 0 3px var(--brass); } 100% { box-shadow: 0 0 0 3px transparent; } }
 @media (prefers-reduced-motion: reduce) { .goal-flash { animation: none; outline: 3px solid var(--brass); } }
-.queue-card { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.queue-card { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; min-height: 92px; box-sizing: border-box; }
+/* Fixed height: three lines of story always, so the stamp below never jumps as souls change. */
+.queue-card > div:last-child { flex: 1; min-width: 0; }
 /* Each new soul pops in: a short scale-and-fade, keyed on the face so it replays per soul. */
 .soul-faces { flex: 0 0 auto; display: flex; }
 .soul-faces.twins .soul-face { width: 44px; height: 44px; }
@@ -89,7 +91,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .soul-face { flex: 0 0 auto; object-fit: contain; animation: soulIn 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes soulIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .soul-face { animation: none; } }
-.queue-line { font-size: 14px; line-height: 1.3; }
+.queue-line { font-size: 14px; line-height: 1.3; height: calc(1.3em * 3); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .stamp-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 4px 0 16px; }
 .stamp-scene {
   container-type: size; position: relative; aspect-ratio: 1 / 1; width: 100%; max-width: 420px; margin: 0 auto 12px;
@@ -274,11 +276,12 @@ button:disabled { opacity: 0.45; cursor: default; }
 .daily-row { margin-bottom: 10px; }
 .claimed-label { color: var(--green); font-weight: 600; }
 .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-.badge-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 8px 4px; }
+.badge-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; min-width: 0; overflow: hidden; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 8px 4px; }
 .badge-tile .badge-name, .badge-tile .badge-desc { transition: opacity 120ms; }
 .badge-tile.locked .badge-name, .badge-tile.locked .badge-desc { opacity: 0.45; }
-.badge-name { font-size: 11px; font-weight: 600; }
-.badge-desc { font-size: 10px; }
+.badge-name { font-size: 11px; font-weight: 600; max-width: 100%; overflow-wrap: anywhere; hyphens: auto; }
+.badge-toggle { display: block; margin: 0 auto 14px; }
+.badge-desc { font-size: 10px; max-width: 100%; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .toast { position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabbar-h) + 12px); display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--brass); border-radius: var(--radius); box-shadow: var(--shadow); padding: 8px 12px; z-index: 60; }
 .toast-name { font-weight: 600; }
 .safe-area .toast { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px); }
