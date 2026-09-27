@@ -1,17 +1,104 @@
 {
-  "id": "hell", "name": "Hell Compliance", "unlockSouls": 250000, "accent": "#A6402B",
+  "id": "hell",
+  "name": "Hell Compliance",
+  "unlockSouls": 250000,
+  "accent": "#A6402B",
   "staff": [
-    { "id": "d-imp", "name": "Imp Pool", "role": "Torment QA", "flavor": "Files defects against every scream.", "baseCost": 150000, "baseRate": 1500, "character": "demon:0" },
-    { "id": "d-steward", "name": "Malphas", "role": "Pitchfork Logistics", "flavor": "Tracks every fork. Loses every spoon.", "baseCost": 1000000, "baseRate": 8000, "character": "demon:1" },
-    { "id": "d-hr", "name": "Lilith from HR", "role": "People & Culture", "flavor": "Culture is mandatory.", "baseCost": 8000000, "baseRate": 50000, "character": "demon:2" },
-    { "id": "d-foreman", "name": "Foreman Grax", "role": "Furnace Operations", "flavor": "Union rep. Also on fire.", "baseCost": 60000000, "baseRate": 300000, "character": "demon:3" },
-    { "id": "d-duke", "name": "Duke Vassago", "role": "VP, Eternal Torment", "flavor": "Very senior. Very tired.", "baseCost": 500000000, "baseRate": 2000000, "character": "demon:4" }
+    {
+      "id": "d-imp",
+      "name": "Imp Pool",
+      "role": "Torment QA",
+      "flavor": "Files defects against every scream.",
+      "baseCost": 150000,
+      "baseRate": 1500,
+      "character": "demon:0"
+    },
+    {
+      "id": "d-steward",
+      "name": "Malphas",
+      "role": "Pitchfork Logistics",
+      "flavor": "Tracks every fork. Loses every spoon.",
+      "baseCost": 1000000,
+      "baseRate": 8000,
+      "character": "demon:1"
+    },
+    {
+      "id": "d-hr",
+      "name": "Lilith from HR",
+      "role": "People & Culture",
+      "flavor": "Culture is mandatory.",
+      "baseCost": 8000000,
+      "baseRate": 50000,
+      "character": "demon:2"
+    },
+    {
+      "id": "d-foreman",
+      "name": "Foreman Grax",
+      "role": "Furnace Operations",
+      "flavor": "Union rep. Also on fire.",
+      "baseCost": 60000000,
+      "baseRate": 300000,
+      "character": "demon:3"
+    },
+    {
+      "id": "d-duke",
+      "name": "Duke Vassago",
+      "role": "VP, Eternal Torment",
+      "flavor": "Very senior. Very tired.",
+      "baseCost": 500000000,
+      "baseRate": 2000000,
+      "character": "demon:4"
+    }
   ],
   "upgrades": [
-    { "id": "d-brimstone", "name": "Bulk Brimstone Contract", "desc": "Hell output +25%", "baseCost": 800000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
-    { "id": "d-shift-rota", "name": "Infernal Shift Rota", "desc": "Offline rate +15% of online", "baseCost": 5000000, "costGrowth": 7, "maxLevel": 2, "effect": { "type": "offlineRate", "value": 0.15 } },
-    { "id": "d-lake", "name": "Lake of Fire, Deregulated", "desc": "Hell output +100%", "baseCost": 40000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
-    { "id": "d-branding-iron", "name": "Branding Iron Stamp", "desc": "+5 souls per stamp", "baseCost": 3000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 5 } }
+    {
+      "id": "d-brimstone",
+      "name": "Bulk Brimstone Contract",
+      "desc": "Hell output +25%",
+      "baseCost": 800000,
+      "costGrowth": 6,
+      "maxLevel": 5,
+      "effect": {
+        "type": "deptMult",
+        "value": 0.25
+      }
+    },
+    {
+      "id": "d-shift-rota",
+      "name": "Infernal Shift Rota",
+      "desc": "Offline rate +15% of online",
+      "baseCost": 5000000,
+      "costGrowth": 7,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineRate",
+        "value": 0.15
+      }
+    },
+    {
+      "id": "d-lake",
+      "name": "Lake of Fire, Deregulated",
+      "desc": "Hell output +100%",
+      "baseCost": 40000000,
+      "costGrowth": 10,
+      "maxLevel": 3,
+      "effect": {
+        "type": "deptMult",
+        "value": 1
+      }
+    },
+    {
+      "id": "d-branding-iron",
+      "name": "Branding Iron Stamp",
+      "desc": "+5 souls per stamp",
+      "baseCost": 3000000,
+      "costGrowth": 5,
+      "maxLevel": 5,
+      "effect": {
+        "type": "click",
+        "value": 5
+      }
+    }
   ],
   "queue": [
     "Soul #66601 — disputes placement, 'it was one email'",
@@ -30,7 +117,32 @@
     "Tax Preparer #4 — asks whether torment is deductible",
     "Soul #82000 — wants it noted that the queue in Heaven was shorter",
     "The Twins (again) — one form, two souls, one is not supposed to be here",
-    "Soul #10010 — 'I'll take the Wi-Fi password now'"
+    "Soul #10010 — 'I'll take the Wi-Fi password now'",
+    "Soul #61029 — died cutting in line at the DMV, twice; disputes the placement, politely",
+    "Mr. Vantweel — choked on a stolen breadstick; requests a lawyer, any lawyer",
+    "Soul #40098 — died gloating over a parking spot; files complaint about the smell down here",
+    "Ms. Kowalenko — expired mid-eye-roll at a customer; wants it on record it was justified",
+    "Soul #77341 — died returning library books late, on purpose; unrepentant, files anyway",
+    "Landlord Pruett (again) — died raising rent posthumously; Hell says that's not possible",
+    "Soul #22014 — choked laughing at someone else's misfortune; requests better seating anyway",
+    "Mr. Higgleston — died reheating fish in the office microwave; whole floor filed against him",
+    "Soul #55620 — expired ghosting three group chats at once; requests Wi-Fi regardless",
+    "Ms. Trebek — died hoarding the good pens at work; wants the pens shipped down",
+    "Soul #90211 — died talking through the whole movie; audience of one still complaining",
+    "Mr. Aldous Crane — swindled a bake sale, allegedly; requests a smaller, dryer circle",
+    "Soul #34455 — expired leaving one square of toilet paper; roommate's soul also filing",
+    "Ms. Quisling — died double-dipping at every party she attended; requests her own chip bowl",
+    "Soul #61782 — died un-muting on every call; requests the noise-cancelling circle, again",
+    "Mr. Drossel — passed mid-lie about a fish size; fish also filing a complaint",
+    "Soul #40567 — expired reply-all-ing the entire company; HR down here is also furious",
+    "Ms. Calloway — died taking the last donut and lying about it; donut kept as evidence",
+    "Soul #88112 — died stealing Wi-Fi from a neighbor; requests the same Wi-Fi down here",
+    "Mr. Bragoli — passed bragging about a fish that got away; fish confirms it got away",
+    "Soul #29910 — expired snoozing eleven alarms, woke everyone else up; neighbors filed first",
+    "Ms. Everhart — died recycling wrong on purpose, out of spite; the bin still holds a grudge",
+    "Soul #67210 — died taking credit for a coworker's idea; coworker's soul demands a hearing",
+    "Mr. Falkirk — expired parking across two spaces, proudly; requests a two-space cell",
+    "Soul #10345 — died leaving one-star reviews for fun; business owners' souls form a line"
   ],
   "memos": [
     "MEMO: The union has secured two breaks per eternity for imps. Management is furious.",

@@ -1,17 +1,104 @@
 {
-  "id": "heaven", "name": "Heaven Admissions", "unlockSouls": 10000, "accent": "#3E9C93",
+  "id": "heaven",
+  "name": "Heaven Admissions",
+  "unlockSouls": 10000,
+  "accent": "#3E9C93",
   "staff": [
-    { "id": "h-cherub", "name": "Cherub Pool", "role": "Temp Choir", "flavor": "Sings while stapling. Off-key.", "baseCost": 8000, "baseRate": 40, "character": "angel:0" },
-    { "id": "h-gatekeeper", "name": "Petra", "role": "Gatekeeper, Acting", "flavor": "Has the keys. Lost the list.", "baseCost": 60000, "baseRate": 200, "character": "angel:1" },
-    { "id": "h-harpist", "name": "Melodia", "role": "Harpist, Hold Music", "flavor": "Your call is important to eternity.", "baseCost": 400000, "baseRate": 1000, "character": "angel:2" },
-    { "id": "h-archangel", "name": "Archangel Bev", "role": "Regional Manager", "flavor": "Six wings, one clipboard.", "baseCost": 3000000, "baseRate": 6000, "character": "angel:3" },
-    { "id": "h-seraph", "name": "The Seraph Board", "role": "Steering Committee", "flavor": "Burns with holy fire and quarterly goals.", "baseCost": 25000000, "baseRate": 40000, "character": "angel:4" }
+    {
+      "id": "h-cherub",
+      "name": "Cherub Pool",
+      "role": "Temp Choir",
+      "flavor": "Sings while stapling. Off-key.",
+      "baseCost": 8000,
+      "baseRate": 40,
+      "character": "angel:0"
+    },
+    {
+      "id": "h-gatekeeper",
+      "name": "Petra",
+      "role": "Gatekeeper, Acting",
+      "flavor": "Has the keys. Lost the list.",
+      "baseCost": 60000,
+      "baseRate": 200,
+      "character": "angel:1"
+    },
+    {
+      "id": "h-harpist",
+      "name": "Melodia",
+      "role": "Harpist, Hold Music",
+      "flavor": "Your call is important to eternity.",
+      "baseCost": 400000,
+      "baseRate": 1000,
+      "character": "angel:2"
+    },
+    {
+      "id": "h-archangel",
+      "name": "Archangel Bev",
+      "role": "Regional Manager",
+      "flavor": "Six wings, one clipboard.",
+      "baseCost": 3000000,
+      "baseRate": 6000,
+      "character": "angel:3"
+    },
+    {
+      "id": "h-seraph",
+      "name": "The Seraph Board",
+      "role": "Steering Committee",
+      "flavor": "Burns with holy fire and quarterly goals.",
+      "baseCost": 25000000,
+      "baseRate": 40000,
+      "character": "angel:4"
+    }
   ],
   "upgrades": [
-    { "id": "h-halo-polish", "name": "Halo Polish Budget", "desc": "Heaven output +25%", "baseCost": 40000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
-    { "id": "h-cloud-storage", "name": "Cloud Storage (Literal)", "desc": "Offline cap +2 hours", "baseCost": 250000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 2 } },
-    { "id": "h-pearly-turnstile", "name": "Pearly Turnstile", "desc": "Heaven output +100%", "baseCost": 2000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
-    { "id": "h-blessed-stapler", "name": "Blessed Stapler", "desc": "+2 souls per stamp", "baseCost": 120000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 2 } }
+    {
+      "id": "h-halo-polish",
+      "name": "Halo Polish Budget",
+      "desc": "Heaven output +25%",
+      "baseCost": 40000,
+      "costGrowth": 6,
+      "maxLevel": 5,
+      "effect": {
+        "type": "deptMult",
+        "value": 0.25
+      }
+    },
+    {
+      "id": "h-cloud-storage",
+      "name": "Cloud Storage (Literal)",
+      "desc": "Offline cap +2 hours",
+      "baseCost": 250000,
+      "costGrowth": 8,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineCapHours",
+        "value": 2
+      }
+    },
+    {
+      "id": "h-pearly-turnstile",
+      "name": "Pearly Turnstile",
+      "desc": "Heaven output +100%",
+      "baseCost": 2000000,
+      "costGrowth": 10,
+      "maxLevel": 3,
+      "effect": {
+        "type": "deptMult",
+        "value": 1
+      }
+    },
+    {
+      "id": "h-blessed-stapler",
+      "name": "Blessed Stapler",
+      "desc": "+2 souls per stamp",
+      "baseCost": 120000,
+      "costGrowth": 5,
+      "maxLevel": 5,
+      "effect": {
+        "type": "click",
+        "value": 2
+      }
+    }
   ],
   "queue": [
     "Sister Agnes — requests Heaven, brought references from three popes",
@@ -31,7 +118,32 @@
     "Nana Costa — wants to know who is watering her plants",
     "Soul #77777 — very lucky in life, would like that to continue",
     "Brother Anselm — has taken a vow of silence, form is blank",
-    "Soul #30001 — brought a plus-one"
+    "Soul #30001 — brought a plus-one",
+    "Soul #40188 — died peacefully in a rocking chair at 98; requests front-row cloud seating",
+    "Mrs. Abernathy — choked on a communion wafer, ironically; expects priority admission",
+    "Soul #61234 — old age mid-bingo, called BINGO with his last breath; wants a trophy",
+    "Deacon Whitmore — fell off the church roof fixing the cross; requests a corner office",
+    "Soul #77012 — died smiling at a sunset, very on-brand; wants the same sunset up here",
+    "Nonna Rizzo — died stirring the perfect sauce; requests kitchen privileges near the gate",
+    "Soul #90911 — old age, surrounded by great-grandchildren; requests seating for them all",
+    "Mr. Kowalczyk — heart gave out doing a good deed, technically two; wants double credit",
+    "Soul #55210 — died donating his lottery winnings; requests a window seat, literally clouds",
+    "Sister Agnes's understudy — also a nun, also has references; requests the same seat",
+    "Soul #33021 — expired helping an old lady cross twice; asks if that counts as overtime",
+    "Mr. Delacroix — died conducting his church choir mid-hymn; requests to keep conducting",
+    "Soul #71400 — old age, left everything to charity; wants a plaque, tastefully sized",
+    "Widow Callahan — died knitting a sweater for a stranger; requests the sweater be finished",
+    "Soul #20456 — died feeding stray cats in the rain; requests the cats be admitted too",
+    "Mr. Abioye — heart gave out mid-toast to his 60th anniversary; requests the toast continue",
+    "Soul #88712 — old age, quotes scripture from memory; requests a seat near the choir",
+    "Nana Petrov — died mid-blessing over Sunday dinner; requests the dinner be waiting",
+    "Soul #45019 — died volunteering at the shelter, third shift this week; wants recognition",
+    "Mr. Yilmaz — old age, generous tipper his whole life; requests generous tipping karma",
+    "Soul #67788 — died reading bedtime stories to grandkids; requests to finish the chapter",
+    "Widower Nakamura — passed holding his late wife's photo; requests the seat beside her",
+    "Soul #12456 — old age, never missed a Sunday; requests attendance be noted, prominently",
+    "Mr. Osei-Bonsu — died conducting an orchestra of one, his own humming; requests an encore",
+    "Soul #90033 — died smiling for no reason anyone could find; requests that seat stay sunny"
   ],
   "memos": [
     "MEMO: Cloud Nine Staffing has raised its rates. Halos now billed separately.",

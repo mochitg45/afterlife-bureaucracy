@@ -4,17 +4,104 @@
   "unlockSouls": 0,
   "accent": "#1F3B33",
   "staff": [
-    { "id": "dave", "name": "Dave", "role": "Reaper, Overtime", "flavor": "Processing stragglers past clock-out.", "baseCost": 15, "baseRate": 0.5, "character": "dave" },
-    { "id": "seraphine", "name": "Seraphine", "role": "Angel, Temp", "flavor": "On loan from Cloud Nine Staffing.", "baseCost": 100, "baseRate": 2, "character": "seraphine" },
-    { "id": "gary", "name": "Gary", "role": "Demon Intern", "flavor": "Unionized. Takes his breaks.", "baseCost": 1100, "baseRate": 8, "character": "gary" },
-    { "id": "auditor", "name": "The Auditor (Bribed)", "role": "Looks the other way", "flavor": "For a fee. Always for a fee.", "baseCost": 12000, "baseRate": 47, "character": "auditor" }
+    {
+      "id": "dave",
+      "name": "Dave",
+      "role": "Reaper, Overtime",
+      "flavor": "Processing stragglers past clock-out.",
+      "baseCost": 15,
+      "baseRate": 0.5,
+      "character": "dave"
+    },
+    {
+      "id": "seraphine",
+      "name": "Seraphine",
+      "role": "Angel, Temp",
+      "flavor": "On loan from Cloud Nine Staffing.",
+      "baseCost": 100,
+      "baseRate": 2,
+      "character": "seraphine"
+    },
+    {
+      "id": "gary",
+      "name": "Gary",
+      "role": "Demon Intern",
+      "flavor": "Unionized. Takes his breaks.",
+      "baseCost": 1100,
+      "baseRate": 8,
+      "character": "gary"
+    },
+    {
+      "id": "auditor",
+      "name": "The Auditor (Bribed)",
+      "role": "Looks the other way",
+      "flavor": "For a fee. Always for a fee.",
+      "baseCost": 12000,
+      "baseRate": 47,
+      "character": "auditor"
+    }
   ],
   "upgrades": [
-    { "id": "faster-stapler", "name": "Faster Stapler", "desc": "+1 soul per stamp", "baseCost": 50, "costGrowth": 4, "maxLevel": 10, "effect": { "type": "click", "value": 1 } },
-    { "id": "ergonomic-chairs", "name": "Ergonomic Chairs, Dept.-wide", "desc": "Intake output +25%", "baseCost": 500, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
-    { "id": "night-shift", "name": "Night Shift Rota", "desc": "Offline cap +4 hours", "baseCost": 2500, "costGrowth": 8, "maxLevel": 3, "effect": { "type": "offlineCapHours", "value": 4 } },
-    { "id": "outsourced-purgatory", "name": "Outsourced Call Center (Purgatory)", "desc": "Intake output +100%", "baseCost": 25000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
-    { "id": "overtime-pay", "name": "Overtime Pay (Unpaid)", "desc": "Offline earnings +25% of online rate", "baseCost": 8000, "costGrowth": 5, "maxLevel": 2, "effect": { "type": "offlineRate", "value": 0.25 } }
+    {
+      "id": "faster-stapler",
+      "name": "Faster Stapler",
+      "desc": "+1 soul per stamp",
+      "baseCost": 50,
+      "costGrowth": 4,
+      "maxLevel": 10,
+      "effect": {
+        "type": "click",
+        "value": 1
+      }
+    },
+    {
+      "id": "ergonomic-chairs",
+      "name": "Ergonomic Chairs, Dept.-wide",
+      "desc": "Intake output +25%",
+      "baseCost": 500,
+      "costGrowth": 6,
+      "maxLevel": 5,
+      "effect": {
+        "type": "deptMult",
+        "value": 0.25
+      }
+    },
+    {
+      "id": "night-shift",
+      "name": "Night Shift Rota",
+      "desc": "Offline cap +4 hours",
+      "baseCost": 2500,
+      "costGrowth": 8,
+      "maxLevel": 3,
+      "effect": {
+        "type": "offlineCapHours",
+        "value": 4
+      }
+    },
+    {
+      "id": "outsourced-purgatory",
+      "name": "Outsourced Call Center (Purgatory)",
+      "desc": "Intake output +100%",
+      "baseCost": 25000,
+      "costGrowth": 10,
+      "maxLevel": 3,
+      "effect": {
+        "type": "deptMult",
+        "value": 1
+      }
+    },
+    {
+      "id": "overtime-pay",
+      "name": "Overtime Pay (Unpaid)",
+      "desc": "Offline earnings +25% of online rate",
+      "baseCost": 8000,
+      "costGrowth": 5,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineRate",
+        "value": 0.25
+      }
+    }
   ],
   "queue": [
     "Karen H. — requests skip-the-line to Heaven, cites 'main character energy'",
@@ -34,7 +121,32 @@
     "Grandma Liu — brought snacks for the staff, still needs stamping",
     "Unnamed — arrived without a form, without a name, without shoes",
     "Marcus D. — wants Limbo 'just to think for a bit'",
-    "Soul #31337 — claims to be a glitch, requests admin access"
+    "Soul #31337 — claims to be a glitch, requests admin access",
+    "Soul #91234 — died slipping on a rug he'd been meaning to tape down; disputes intake form",
+    "Nguyen T. — died mid-sneeze on a rollercoaster; requests expedited processing",
+    "Mr. Fenwick — choked on a grape while proving a point; wants the point on record",
+    "Soul #40021 — died falling asleep at the wheel of a parked car; requests explanation",
+    "Ola Adeyemi — struck by a falling coconut, textbook case; asks why nobody warned him",
+    "Soul #29310 — died arguing with a vending machine, machine won; files a rematch request",
+    "Herr Brandt — tripped over his own garden gnome collection; wants gnomes named in report",
+    "Soul #61829 — expired mid-nap in a hammock, peacefully; family disputes the peacefully",
+    "Beatriz Souza — died reaching for a bee, apparently on purpose; no further comment",
+    "Soul #10087 — old age, but insists he 'still had plans'; requests an extension",
+    "Yusuf K. — died laughing at his own joke, alone in the kitchen; wants it noted as a win",
+    "Soul #73456 — fell off a stepladder reaching for a fruitcake; blames the fruitcake",
+    "Mrs. Palladino — choked on a fortune cookie fortune; wants a second opinion",
+    "Soul #88820 — died of surprise at his own surprise party; requests refund on the cake",
+    "Declan O. — drowned in a kiddie pool, adult, sober; asks for a private room",
+    "Soul #54019 — old age, 114 years, still filing objections about box 7",
+    "Priya Deshmukh — died untangling Christmas lights in July; requests seasonal exemption",
+    "Soul #20999 — expired arguing with a GPS that was, in fact, correct; wants an apology",
+    "Mr. Castellano — heart gave out watching his team lose again; requests emotional damages",
+    "Soul #33210 — died lifting a couch alone against everyone's advice; unrepentant",
+    "Ingrid Sorensen — slipped on ice she'd salted an hour too late; requests a redo",
+    "Soul #71190 — choked on ambition, allegedly; cause of death still under review",
+    "Grandpa Osei — died mid-nap during his own retirement speech; called it a good exit",
+    "Soul #46701 — died tripping over a cat that wasn't his; cat unavailable for comment",
+    "Mrs. Whitfield — struck by a golf ball on a course she wasn't playing; wants a waiver"
   ],
   "memos": [
     "MEMO: Reincarnation backlog down 12%. Mortal realm reporting spike in déjà vu.",

@@ -1,17 +1,105 @@
 {
-  "id": "valhalla", "name": "Valhalla Intake Annex", "branch": "valhalla", "unlockSouls": 5000000000000000000, "accent": "#B5651D",
+  "id": "valhalla",
+  "name": "Valhalla Intake Annex",
+  "branch": "valhalla",
+  "unlockSouls": 5000000000000000000,
+  "accent": "#B5651D",
   "staff": [
-    { "id": "v-shieldmaiden", "name": "Sigrún the Shieldmaiden", "role": "Front Desk, Armed", "flavor": "Greets every arrival. Disarms most of them.", "baseCost": 100000000000000, "baseRate": 1000000000000, "character": "angel:0" },
-    { "id": "v-skald", "name": "Ottar the Skald", "role": "Minutes & Sagas", "flavor": "Takes minutes in verse. Meetings run long.", "baseCost": 700000000000000, "baseRate": 5000000000000, "character": "demon:1" },
-    { "id": "v-quartermaster", "name": "Quartermaster Hjalti", "role": "Mead & Supplies", "flavor": "Requisitions barrels. Files none of them.", "baseCost": 4900000000000000, "baseRate": 25000000000000, "character": "demon:2" },
-    { "id": "v-einherjar", "name": "The Einherjar Pool", "role": "Day Shift, Eternal", "flavor": "Fight all morning. Feast all afternoon. File nothing.", "baseCost": 34300000000000000, "baseRate": 125000000000000, "character": "angel:3" },
-    { "id": "v-valkyrie", "name": "Brynhildr", "role": "Head of Annex", "flavor": "Chooses the slain. Also chooses the seating plan.", "baseCost": 240100000000000000, "baseRate": 625000000000000, "character": "angel:4" }
+    {
+      "id": "v-shieldmaiden",
+      "name": "Sigrún the Shieldmaiden",
+      "role": "Front Desk, Armed",
+      "flavor": "Greets every arrival. Disarms most of them.",
+      "baseCost": 100000000000000,
+      "baseRate": 1000000000000,
+      "character": "angel:0"
+    },
+    {
+      "id": "v-skald",
+      "name": "Ottar the Skald",
+      "role": "Minutes & Sagas",
+      "flavor": "Takes minutes in verse. Meetings run long.",
+      "baseCost": 700000000000000,
+      "baseRate": 5000000000000,
+      "character": "demon:1"
+    },
+    {
+      "id": "v-quartermaster",
+      "name": "Quartermaster Hjalti",
+      "role": "Mead & Supplies",
+      "flavor": "Requisitions barrels. Files none of them.",
+      "baseCost": 4900000000000000,
+      "baseRate": 25000000000000,
+      "character": "demon:2"
+    },
+    {
+      "id": "v-einherjar",
+      "name": "The Einherjar Pool",
+      "role": "Day Shift, Eternal",
+      "flavor": "Fight all morning. Feast all afternoon. File nothing.",
+      "baseCost": 34300000000000000,
+      "baseRate": 125000000000000,
+      "character": "angel:3"
+    },
+    {
+      "id": "v-valkyrie",
+      "name": "Brynhildr",
+      "role": "Head of Annex",
+      "flavor": "Chooses the slain. Also chooses the seating plan.",
+      "baseCost": 240100000000000000,
+      "baseRate": 625000000000000,
+      "character": "angel:4"
+    }
   ],
   "upgrades": [
-    { "id": "v-mead-ledger", "name": "The Mead Ledger", "desc": "Valhalla output +30%", "baseCost": 500000000000000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.30 } },
-    { "id": "v-longship-logistics", "name": "Longship Logistics", "desc": "Valhalla output +120%", "baseCost": 20000000000000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1.2 } },
-    { "id": "v-hall-extension", "name": "Hall Extension, East Wing", "desc": "Offline cap +8 hours", "baseCost": 3000000000000000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 8 } },
-    { "id": "v-horn-stamp", "name": "Drinking Horn Stamp", "desc": "+5000 souls per stamp", "baseCost": 1500000000000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 5000 } }
+    {
+      "id": "v-mead-ledger",
+      "name": "The Mead Ledger",
+      "desc": "Valhalla output +30%",
+      "baseCost": 500000000000000,
+      "costGrowth": 6,
+      "maxLevel": 5,
+      "effect": {
+        "type": "deptMult",
+        "value": 0.3
+      }
+    },
+    {
+      "id": "v-longship-logistics",
+      "name": "Longship Logistics",
+      "desc": "Valhalla output +120%",
+      "baseCost": 20000000000000000,
+      "costGrowth": 10,
+      "maxLevel": 3,
+      "effect": {
+        "type": "deptMult",
+        "value": 1.2
+      }
+    },
+    {
+      "id": "v-hall-extension",
+      "name": "Hall Extension, East Wing",
+      "desc": "Offline cap +8 hours",
+      "baseCost": 3000000000000000,
+      "costGrowth": 8,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineCapHours",
+        "value": 8
+      }
+    },
+    {
+      "id": "v-horn-stamp",
+      "name": "Drinking Horn Stamp",
+      "desc": "+5000 souls per stamp",
+      "baseCost": 1500000000000000,
+      "costGrowth": 5,
+      "maxLevel": 5,
+      "effect": {
+        "type": "click",
+        "value": 5000
+      }
+    }
   ],
   "queue": [
     "Bjorn Ivarsson — died gloriously, arrived with a spear and no paperwork",
@@ -30,7 +118,32 @@
     "Torvald Sigurdsson — arrived on a longship, parked it in Intake's bay",
     "Soul #91017 — died heroically saving a cheese; cheese also present",
     "Marcus D. (transferred) — thinking, but now with a shield",
-    "Soul #91018 — died twice. Has two files. Is furious about the duplicate."
+    "Soul #91018 — died twice. Has two files. Is furious about the duplicate.",
+    "Soul #91201 — died gloriously fighting a wasp nest; witnesses say 'ran screaming'",
+    "Halvard Ericsson — heroic death storming a buffet; staff dispute the word 'storming'",
+    "Soul #91202 — claims death by dragon; records show death by garden hose, tripping",
+    "Freydis Bjornsdottir — died defending the last mead; opponent was also her, arguing alone",
+    "Soul #91203 — heroic death pending, fell off a very small hill; hill files its own report",
+    "Sten the Bold — died charging into battle, battle was a game of chess; chess unimpressed",
+    "Soul #91204 — glorious death by longship; longship was, notably, still docked",
+    "Ragna Ulfsdottir — heroic last stand against a goose; goose remains at large",
+    "Soul #91205 — died wrestling a bear, allegedly; bear identified as a large dog",
+    "Torkel Ironjaw — glorious death in single combat; combat was arm-wrestling his cousin",
+    "Soul #91206 — heroic death defending the honor of mead; mead unharmed, unbothered",
+    "Solveig the Fierce — died in battle, technically a pillow fight; requests full honors",
+    "Soul #91207 — claims a dragon slaying; a witness says it was a very large iguana",
+    "Bjarke Stormcaller — heroic death calling a storm; storm was a garden sprinkler",
+    "Soul #91208 — died gloriously atop a mountain; mountain was a large pile of laundry",
+    "Gudrun Ax-Wielder — heroic death mid-battle-cry; cry interrupted by a hiccup, then a fall",
+    "Soul #91209 — glorious combat death, opponent unnamed; opponent was a stuck door",
+    "Erik the Overconfident — died proving he could still do that one move; he could not",
+    "Soul #91210 — heroic death in a duel; duel was over the last dumpling",
+    "Ylva Battleborn — died charging the enemy; enemy was a very sturdy fence",
+    "Soul #91211 — claims death by a thousand cuts; records show one, self-inflicted, paper",
+    "Knut the Undaunted — heroic death facing his fears; the fear was a small spider",
+    "Soul #91212 — died gloriously on the field; field was a parking lot, technically",
+    "Astrid Shieldbreaker — heroic last words delivered twice, first draft unsatisfactory",
+    "Soul #91213 — claims heroic sacrifice; a witness says he simply lost the coin toss"
   ],
   "memos": [
     "MEMO: Mead is not a stationery item.",

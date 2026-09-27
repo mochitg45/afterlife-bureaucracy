@@ -1,17 +1,104 @@
 {
-  "id": "reincarnation", "name": "Reincarnation Desk", "unlockSouls": 9600000000000000, "accent": "#A8823C",
+  "id": "reincarnation",
+  "name": "Reincarnation Desk",
+  "unlockSouls": 9600000000000000,
+  "accent": "#A8823C",
   "staff": [
-    { "id": "r-accountant", "name": "Karma Accountants", "role": "Ledger Pool", "flavor": "Every good deed, itemised.", "baseCost": 6000000, "baseRate": 50000, "character": "clerk:0" },
-    { "id": "r-placement", "name": "Officer Pemberton", "role": "Placement, Canine", "flavor": "Golden retriever tier is oversubscribed.", "baseCost": 50000000, "baseRate": 300000, "character": "clerk:1" },
-    { "id": "r-actuary", "name": "Nadia", "role": "Actuary, Next Lives", "flavor": "Knows your odds. Won't say.", "baseCost": 400000000, "baseRate": 2000000, "character": "clerk:2" },
-    { "id": "r-wheel", "name": "Wheel Technician", "role": "Samsara Maintenance", "flavor": "It squeaks. It has always squeaked.", "baseCost": 3000000000, "baseRate": 12000000, "character": "clerk:3" },
-    { "id": "r-bodhisattva", "name": "The Bodhisattva (Contract)", "role": "Senior Advisor", "flavor": "Could leave. Stays for the pension.", "baseCost": 25000000000, "baseRate": 80000000, "character": "clerk:4" }
+    {
+      "id": "r-accountant",
+      "name": "Karma Accountants",
+      "role": "Ledger Pool",
+      "flavor": "Every good deed, itemised.",
+      "baseCost": 6000000,
+      "baseRate": 50000,
+      "character": "clerk:0"
+    },
+    {
+      "id": "r-placement",
+      "name": "Officer Pemberton",
+      "role": "Placement, Canine",
+      "flavor": "Golden retriever tier is oversubscribed.",
+      "baseCost": 50000000,
+      "baseRate": 300000,
+      "character": "clerk:1"
+    },
+    {
+      "id": "r-actuary",
+      "name": "Nadia",
+      "role": "Actuary, Next Lives",
+      "flavor": "Knows your odds. Won't say.",
+      "baseCost": 400000000,
+      "baseRate": 2000000,
+      "character": "clerk:2"
+    },
+    {
+      "id": "r-wheel",
+      "name": "Wheel Technician",
+      "role": "Samsara Maintenance",
+      "flavor": "It squeaks. It has always squeaked.",
+      "baseCost": 3000000000,
+      "baseRate": 12000000,
+      "character": "clerk:3"
+    },
+    {
+      "id": "r-bodhisattva",
+      "name": "The Bodhisattva (Contract)",
+      "role": "Senior Advisor",
+      "flavor": "Could leave. Stays for the pension.",
+      "baseCost": 25000000000,
+      "baseRate": 80000000,
+      "character": "clerk:4"
+    }
   ],
   "upgrades": [
-    { "id": "r-double-entry", "name": "Double-Entry Karma", "desc": "Reincarnation output +25%", "baseCost": 30000000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
-    { "id": "r-express-wheel", "name": "Express Wheel", "desc": "Reincarnation output +100%", "baseCost": 1500000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
-    { "id": "r-overnight-lives", "name": "Overnight Lives", "desc": "Offline cap +4 hours", "baseCost": 200000000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 4 } },
-    { "id": "r-karmic-stamp", "name": "Karmic Stamp", "desc": "+15 souls per stamp", "baseCost": 100000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 15 } }
+    {
+      "id": "r-double-entry",
+      "name": "Double-Entry Karma",
+      "desc": "Reincarnation output +25%",
+      "baseCost": 30000000,
+      "costGrowth": 6,
+      "maxLevel": 5,
+      "effect": {
+        "type": "deptMult",
+        "value": 0.25
+      }
+    },
+    {
+      "id": "r-express-wheel",
+      "name": "Express Wheel",
+      "desc": "Reincarnation output +100%",
+      "baseCost": 1500000000,
+      "costGrowth": 10,
+      "maxLevel": 3,
+      "effect": {
+        "type": "deptMult",
+        "value": 1
+      }
+    },
+    {
+      "id": "r-overnight-lives",
+      "name": "Overnight Lives",
+      "desc": "Offline cap +4 hours",
+      "baseCost": 200000000,
+      "costGrowth": 8,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineCapHours",
+        "value": 4
+      }
+    },
+    {
+      "id": "r-karmic-stamp",
+      "name": "Karmic Stamp",
+      "desc": "+15 souls per stamp",
+      "baseCost": 100000000,
+      "costGrowth": 5,
+      "maxLevel": 5,
+      "effect": {
+        "type": "click",
+        "value": 15
+      }
+    }
   ],
   "queue": [
     "Bartholomew Vance — golden retriever, good-boy tier, appeal upheld",
@@ -30,7 +117,32 @@
     "Soul #67676 — requests to be reborn as 'someone taller'",
     "Grandma Liu — wants to come back as her own grandson's neighbour, to keep an eye on him",
     "Soul #78787 — form says 'surprise me', then lists 40 conditions",
-    "Marcus D. — done thinking, ready for a life 'with less thinking'"
+    "Marcus D. — done thinking, ready for a life 'with less thinking'",
+    "Soul #61234 — died tripping over a garden hose; requests a life with no hoses",
+    "Mr. Alderman — choked on a large sandwich; requests a life with smaller bites",
+    "Soul #40871 — died reaching for the TV remote behind the couch; requests better couches",
+    "Ms. Byakov — struck by a runaway shopping cart; requests to be reborn as the cart",
+    "Soul #71029 — died in a minor bee incident; requests a life allergic to nothing",
+    "Mr. Calloway — expired assembling flat-pack furniture; requests a pre-assembled next life",
+    "Soul #90234 — died slipping on a banana peel, classically; requests better traction",
+    "Ms. Devries — passed arguing with autocorrect; requests a life that spells well",
+    "Soul #55671 — died falling off a treadmill set too fast; requests a slower next life",
+    "Mr. Enescu — choked on his own pride at a spelling bee; requests a quieter ambition",
+    "Soul #34120 — expired untangling string lights; requests a life free of cords",
+    "Ms. Farrugia — died in a lawn chair collapse; requests sturdier lawn furniture, forever",
+    "Soul #67890 — passed reaching too far for a high five; requests better arm reach",
+    "Mr. Godoy — died mid-nap on a hammock that gave out; requests hammock-adjacent caution",
+    "Soul #12456 — expired tripping over shoelaces, untied on purpose; requests Velcro",
+    "Ms. Halversen — died in a vending machine dispute, machine won again; requests snacks",
+    "Soul #78341 — passed overconfident on roller skates; requests training wheels",
+    "Mr. Ionescu — choked on ambition and a hot dog, simultaneously; requests smaller goals",
+    "Soul #90112 — died stacking chairs too high at a party; requests a life closer to ground",
+    "Ms. Jarocki — expired parallel parking, badly, for the last time; requests spatial sense",
+    "Soul #45671 — passed arguing with a self-checkout machine; requests fewer machines",
+    "Mr. Kowalenko — died reaching for one more slice of cake; requests a life with two cakes",
+    "Soul #61782 — expired mid-cartwheel to impress a crowd; requests a quieter next life",
+    "Ms. Lindqvist — died proving a point about ladders; requests a life without ladders",
+    "Soul #33019 — passed overwatering a cactus out of love; requests better instincts"
   ],
   "memos": [
     "MEMO: Reincarnation backlog cleared. Mortal realm reports a baby boom and a shortage of names.",

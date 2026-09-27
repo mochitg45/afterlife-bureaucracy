@@ -1,18 +1,116 @@
 {
-  "id": "limbo", "name": "Limbo Records", "unlockSouls": 240000000000000000, "accent": "#6B6478",
+  "id": "limbo",
+  "name": "Limbo Records",
+  "unlockSouls": 240000000000000000,
+  "accent": "#6B6478",
   "staff": [
-    { "id": "l-archivist", "name": "Archivist Pool", "role": "Filing, Indefinite", "flavor": "Everything is filed. Nothing is found.", "baseCost": 300000000, "baseRate": 2000000, "character": "archivist:0" },
-    { "id": "l-lost-found", "name": "Ms. Ferro", "role": "Lost & Found", "flavor": "Holds 14 halos and one sense of purpose.", "baseCost": 2500000000, "baseRate": 12000000, "character": "archivist:1" },
-    { "id": "l-forgotten", "name": "The One Who Forgot", "role": "Resident Since Forever", "flavor": "Meant to leave. Got comfortable.", "baseCost": 20000000000, "baseRate": 80000000, "character": "archivist:2" },
-    { "id": "l-registrar", "name": "Registrar Ó Broin", "role": "Master of Records", "flavor": "Knows where box 7 is. Won't tell.", "baseCost": 150000000000, "baseRate": 500000000, "character": "archivist:3" },
-    { "id": "l-keeper", "name": "The Keeper of the Cabinet", "role": "Head of Department", "flavor": "The cabinet is bigger on the inside.", "baseCost": 1200000000000, "baseRate": 3000000000, "character": "archivist:4" }
+    {
+      "id": "l-archivist",
+      "name": "Archivist Pool",
+      "role": "Filing, Indefinite",
+      "flavor": "Everything is filed. Nothing is found.",
+      "baseCost": 300000000,
+      "baseRate": 2000000,
+      "character": "archivist:0"
+    },
+    {
+      "id": "l-lost-found",
+      "name": "Ms. Ferro",
+      "role": "Lost & Found",
+      "flavor": "Holds 14 halos and one sense of purpose.",
+      "baseCost": 2500000000,
+      "baseRate": 12000000,
+      "character": "archivist:1"
+    },
+    {
+      "id": "l-forgotten",
+      "name": "The One Who Forgot",
+      "role": "Resident Since Forever",
+      "flavor": "Meant to leave. Got comfortable.",
+      "baseCost": 20000000000,
+      "baseRate": 80000000,
+      "character": "archivist:2"
+    },
+    {
+      "id": "l-registrar",
+      "name": "Registrar Ó Broin",
+      "role": "Master of Records",
+      "flavor": "Knows where box 7 is. Won't tell.",
+      "baseCost": 150000000000,
+      "baseRate": 500000000,
+      "character": "archivist:3"
+    },
+    {
+      "id": "l-keeper",
+      "name": "The Keeper of the Cabinet",
+      "role": "Head of Department",
+      "flavor": "The cabinet is bigger on the inside.",
+      "baseCost": 1200000000000,
+      "baseRate": 3000000000,
+      "character": "archivist:4"
+    }
   ],
   "upgrades": [
-    { "id": "l-index", "name": "Index Cards, Alphabetised", "desc": "Limbo output +25%", "baseCost": 1500000000, "costGrowth": 6, "maxLevel": 5, "effect": { "type": "deptMult", "value": 0.25 } },
-    { "id": "l-cabinet", "name": "Filing Cabinet, Infinite", "desc": "Limbo output +100%", "baseCost": 80000000000, "costGrowth": 10, "maxLevel": 3, "effect": { "type": "deptMult", "value": 1 } },
-    { "id": "l-waiting-room", "name": "Eternal Waiting Room", "desc": "Offline cap +6 hours", "baseCost": 10000000000, "costGrowth": 8, "maxLevel": 2, "effect": { "type": "offlineCapHours", "value": 6 } },
-    { "id": "l-dust-rate", "name": "Dust Settles Overnight", "desc": "Offline rate +10% of online", "baseCost": 5000000000, "costGrowth": 7, "maxLevel": 2, "effect": { "type": "offlineRate", "value": 0.10 } },
-    { "id": "l-grey-stamp", "name": "Grey Stamp of Indeterminacy", "desc": "+50 souls per stamp", "baseCost": 4000000000, "costGrowth": 5, "maxLevel": 5, "effect": { "type": "click", "value": 50 } }
+    {
+      "id": "l-index",
+      "name": "Index Cards, Alphabetised",
+      "desc": "Limbo output +25%",
+      "baseCost": 1500000000,
+      "costGrowth": 6,
+      "maxLevel": 5,
+      "effect": {
+        "type": "deptMult",
+        "value": 0.25
+      }
+    },
+    {
+      "id": "l-cabinet",
+      "name": "Filing Cabinet, Infinite",
+      "desc": "Limbo output +100%",
+      "baseCost": 80000000000,
+      "costGrowth": 10,
+      "maxLevel": 3,
+      "effect": {
+        "type": "deptMult",
+        "value": 1
+      }
+    },
+    {
+      "id": "l-waiting-room",
+      "name": "Eternal Waiting Room",
+      "desc": "Offline cap +6 hours",
+      "baseCost": 10000000000,
+      "costGrowth": 8,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineCapHours",
+        "value": 6
+      }
+    },
+    {
+      "id": "l-dust-rate",
+      "name": "Dust Settles Overnight",
+      "desc": "Offline rate +10% of online",
+      "baseCost": 5000000000,
+      "costGrowth": 7,
+      "maxLevel": 2,
+      "effect": {
+        "type": "offlineRate",
+        "value": 0.1
+      }
+    },
+    {
+      "id": "l-grey-stamp",
+      "name": "Grey Stamp of Indeterminacy",
+      "desc": "+50 souls per stamp",
+      "baseCost": 4000000000,
+      "costGrowth": 5,
+      "maxLevel": 5,
+      "effect": {
+        "type": "click",
+        "value": 50
+      }
+    }
   ],
   "queue": [
     "Soul #88291 — form incomplete, missing box 7, has been told box 7 is here",
@@ -31,7 +129,32 @@
     "A librarian — has started reshelving. Nobody has stopped her.",
     "Soul #67676 — still not taller",
     "Dr. Lindqvist — peer review pending. Reviewers are also in Limbo.",
-    "Soul #78787 — 'surprise me' request filed under S, then under U, then lost"
+    "Soul #78787 — 'surprise me' request filed under S, then under U, then lost",
+    "Soul #91223 — died mid-decision between two entrees, still deciding; menu also missing",
+    "Mr. Castellan — passed weighing pros and cons of a haircut; list has grown to nine pages",
+    "Soul #40871 — expired choosing a ringtone; still cycling through options",
+    "Ms. Okonjo — died 'circling back' on an email; the email is now also lost in the system",
+    "Soul #67341 — passed deciding whether to renovate the kitchen; blueprints filed under 'Q'",
+    "Mr. Halversen — died mid-shrug about early retirement; the shrug is still ongoing",
+    "Soul #23098 — expired weighing dogs versus cats; adopted neither, is fine with that",
+    "Ms. Pruitt — passed 'thinking it over' since the appointment was made; still thinking",
+    "Soul #55671 — died choosing a paint swatch, down to two beiges; both filed, both lost",
+    "Mr. Vantongeren — expired 'sleeping on it'; the it has since also gone missing",
+    "Soul #78120 — passed mid-maybe about a career change; the maybe is now under review",
+    "Ms. Adeoye — died deciding between window or aisle; airline has no record of the flight",
+    "Soul #34567 — expired 'letting it simmer'; the stove was, notably, off",
+    "Mr. Okafor's cousin — died undecided about a haircut; hair still growing, technically",
+    "Soul #91002 — passed weighing whether to reply to a text from 2019; still unanswered",
+    "Ms. Brennan — died 'thinking about thinking about it'; form nested three folders deep",
+    "Soul #60234 — expired mid-'we'll see'; the see has not yet occurred",
+    "Mr. Tammela — passed deciding on a show to watch; browsing history filed as evidence",
+    "Soul #45678 — died 'getting around to it'; the it has been misplaced since",
+    "Ms. Whitcombe — expired weighing early bird versus night owl; both shifts still open",
+    "Soul #12093 — passed 'mulling it over' for four decades; mulling continues uninterrupted",
+    "Mr. Denholm — died choosing between two identical socks; both filed separately, lost",
+    "Soul #78341 — expired 'giving it a week'; the week has since also gone missing",
+    "Ms. Farrokh — died deciding on a tattoo design; design filed under 'maybe later'",
+    "Soul #90456 — passed weighing whether to say something; something remains unsaid, filed"
   ],
   "memos": [
     "MEMO: Box 7 has been located. It is inside box 7.",
