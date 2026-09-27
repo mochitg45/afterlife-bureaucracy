@@ -37,19 +37,22 @@ Indexed by Google Play. Keywords ("idle", "clicker", "incremental", "tycoon", "o
 1–2% each, in sentences, no stuffing; no "best", "free" or "#1" anywhere (Play policy).
 
 ```
-Death is not the end. It is an intake form. Afterlife Bureaucracy is an idle clicker game where you run the celestial civil service: stamp souls, hire staff, unlock departments and grow an office empire that keeps earning while you are away.
+Death is not the end. It is an intake form. Afterlife Bureaucracy is a cute idle clicker game where you run the celestial civil service: stamp souls, hire chibi staff, unlock Heaven and Hell and grow an office empire that keeps earning while you are away.
 
 TAP, THEN LET THE OFFICE WORK
-Tap the stamp to process souls by hand and earn Karma Credits. Hire Dave the overtime reaper, Seraphine the temp angel and Gary the unionised demon intern, and they keep stamping for you. Buy upgrades nobody approved. Watch the numbers climb from thousands to quadrillions, the way a good incremental game should.
+Tap the stamp to process souls by hand and earn Karma Credits. Hire Dave the overtime reaper, Seraphine the temp angel and Gary the unionised demon intern, and they keep stamping for you. Every staff member has a speed bar and a "x2 at" milestone, so you always know what the next hire buys. Watch the numbers climb from thousands to quadrillions, the way a good incremental game should.
+
+EVERY SOUL HAS A STORY
+Grandmas, golfers, a man who reheated fish in the office microwave, and a corgi who chased the mail van one time too many. Over 250 souls queue up at your desk, each with a face, a cause of death and a request. Some of them are pets. All of them want the good seats.
 
 SIX DEPARTMENTS TO UNLOCK
-Intake, Heaven Admissions, Hell Compliance, the Reincarnation Desk, Limbo Records and one annex the org chart does not admit to. Each department has its own staff, its own upgrades and its own opinion of the others. Unlock them all and manage the whole afterlife from one desk, idle or hands-on.
+Intake, Heaven Admissions, Hell Compliance, the Reincarnation Desk, Limbo Records and one annex the org chart does not admit to. Heaven glows in soft sunlight, Hell flickers with lanterns and embers, and each department has its own staff, upgrades and opinion of the others.
 
 PRESTIGE: FILE AN AUDIT, START FASTER
-When the fiscal year closes, file an Audit. The office resets, you bank Departmental Seals, and you spend them in the Perk Ledger on permanent bonuses. Every run is quicker than the last, and the idle loop stays fresh. Later, Cosmic Restructuring rewrites the rules of the game itself.
+When the fiscal year closes, file an Audit. The office resets, you bank Departmental Seals, and you spend them in the Perk Ledger on permanent bonuses. Every run is quicker than the last. Later, Cosmic Restructuring rewrites the rules of the game itself.
 
 COLLECT 30 PERSONNEL CARDS
-Spend Requisition Vouchers on staff cards from Temp to Executive. Every card has its own bonus. Duplicates promote a card up to five stars, and your equipped staff multiply everything you earn. One free pull every day. Full odds are published in the app.
+Spend Requisition Vouchers on staff cards from Temp to Executive. Duplicates level a card up to five stars, and your equipped staff multiply everything you earn. Spare copies of a maxed card can be exchanged for a chance at a higher rarity. One free pull every day, and full odds are published in the app.
 
 EARN OFFLINE, EVEN WHILE YOU SLEEP
 Close the app and the staff keep working offline. Come back to the Overnight Backlog Report, a pile of processed souls and an optional ad to double it. Daily tasks, login streaks and 80 achievements keep the paperwork coming.
@@ -63,7 +66,7 @@ PLAY YOUR WAY
 - Rewarded ads only. No banners, no interstitials, nothing that interrupts a stamp
 - Optional purchases; everything in the game can be earned by playing
 
-A satirical office tycoon for fans of idle games, clicker games and incremental games. The queue is out of the door and eternity is on the clock. Take a number, clock in, and start stamping.
+A cozy, satirical office tycoon for fans of idle games, clicker games and incremental games. The queue is out of the door and eternity is on the clock. Take a number, clock in, and start stamping.
 ```
 
 ## Graphics checklist
