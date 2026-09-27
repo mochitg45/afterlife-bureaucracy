@@ -84,7 +84,7 @@ export function OfficeScreen({ onSettings }: { onSettings?: () => void }) {
           ))}
         </div>
       </div>
-      {dept.staff.map((s) => <StaffRow key={s.id} staff={s} mode={mode} />)}
+      {dept.staff.map((s, i) => <StaffRow key={s.id} staff={s} mode={mode} index={i} />)}
       <div className="section-head"><h3>Upgrades</h3></div>
       {dept.upgrades.map((u) => <UpgradeRow key={u.id} upgrade={u} />)}
       <MemoTicker />

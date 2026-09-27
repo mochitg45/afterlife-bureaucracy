@@ -122,6 +122,21 @@ button:disabled { opacity: 0.45; cursor: default; }
 .owned { color: var(--ink-muted); font-weight: 500; margin-left: 4px; }
 .bar { height: 4px; background: var(--surface-2); border-radius: 2px; margin-top: 4px; overflow: hidden; }
 .bar-fill { height: 100%; background: var(--accent, var(--green)); }
+.milestone-bar { display: flex; align-items: center; gap: 6px; line-height: 1; }
+.milestone-bar .bar { flex: 1; margin-top: 0; }
+.milestone-label { font-size: 9px; color: var(--ink-muted); white-space: nowrap; }
+.speed-bar { position: relative; height: 11px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-top: 2px; }
+.speed-bar-fill {
+  position: absolute; inset: 0; background: var(--accent, var(--green));
+  transform-origin: left; transform: scaleX(0); animation: speed-fill var(--period, 1s) linear infinite;
+}
+.speed-bar.idle .speed-bar-fill { animation: none; transform: scaleX(0); }
+.speed-bar.max .speed-bar-fill { animation: none; transform: scaleX(1); }
+.speed-bar-label {
+  position: relative; z-index: 1; display: block; text-align: center; font-size: 8px; line-height: 11px;
+  color: var(--ink); font-family: var(--font-mono);
+}
+@keyframes speed-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .hire { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 84px; padding: 6px 8px; }
 .upgrade-row { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin-bottom: 8px; }
 .memo-ticker { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); background: var(--green); color: var(--paper); font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; white-space: nowrap; overflow: hidden; }
@@ -198,6 +213,7 @@ label.settings-row { cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .slam, .foil, .float, .memo-text { animation: none; }
+  .speed-bar-fill { animation: none; transform: scaleX(1); }
 }
 
 .screen-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
