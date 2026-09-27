@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
-import { DUPES_PER_STAR, MAX_STARS, equipSlots, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
+import { dupesForNextStar, MAX_STARS, equipSlots, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
 import { RARITY_LABEL } from '../components/CardTile';
 import { Stars } from '../components/Stars';
@@ -62,7 +62,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
         <span className="sub">{RARITY_LABEL[card.rarity]}</span>
         <Stars stars={stars} className="tile-stars" />
         {stars < MAX_STARS ? (
-          <span className="sub">{shards} of {DUPES_PER_STAR[stars - 1]} duplicates to ★{stars + 1}</span>
+          <span className="sub">{shards} of {dupesForNextStar(card.rarity, stars)} duplicates to ★{stars + 1}</span>
         ) : (
           <span className="sub">Max stars</span>
         )}

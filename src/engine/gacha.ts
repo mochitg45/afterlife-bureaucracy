@@ -7,8 +7,21 @@ import { perkSum } from './perks';
 export const PULL_COST = 10;
 export const TEN_PULL_COST = 90;
 export const MAX_STARS = 5;
-/** Duplicates needed to go ★1→★2, ★2→★3, ★3→★4, ★4→★5. */
-export const DUPES_PER_STAR = [1, 2, 3, 5];
+/**
+ * Duplicates needed to go ★1→★2, ★2→★3, ★3→★4, ★4→★5, per rarity (index = current stars - 1).
+ * Higher rarities need fewer dupes since they're rarer to pull at all.
+ */
+export const DUPES_PER_STAR: Record<Rarity, number[]> = {
+  temp: [2, 4, 8, 16],
+  fulltime: [2, 4, 8, 16],
+  senior: [1, 3, 6, 12],
+  executive: [1, 2, 4, 8],
+};
+
+/** Duplicates needed to go from `stars` to `stars + 1` for a card of the given rarity. */
+export function dupesForNextStar(rarity: Rarity, stars: number): number {
+  return DUPES_PER_STAR[rarity][stars - 1];
+}
 export const BASE_EQUIP_SLOTS = 3;
 export const MAX_EQUIP_SLOTS = 8;
 export const PITY_SENIOR = 10;
@@ -100,13 +113,13 @@ function bankCard(
   kcPerSec: Decimal,
 ): { kc: Decimal; duplicateKc: Decimal | null; spareGained: boolean; starsAfter: number; shards: number; shardsNeeded: number } {
   const stars = cards[id] ?? 0;
+  const def = content.cards.find((c) => c.id === id);
   let duplicateKc: Decimal | null = null;
   let spareGained = false;
   let nextKc = kc;
   if (stars === 0) {
     cards[id] = 1;
   } else if (stars >= MAX_STARS) {
-    const def = content.cards.find((c) => c.id === id);
     if (def?.rarity === 'executive') {
       duplicateKc = Decimal.max(new Decimal(DUPLICATE_KC_MIN), kcPerSec.mul(DUPLICATE_KC_SECONDS));
       nextKc = kc.add(duplicateKc);
@@ -115,7 +128,7 @@ function bankCard(
       spareGained = true;
     }
   } else {
-    const needed = DUPES_PER_STAR[stars - 1];
+    const needed = def ? dupesForNextStar(def.rarity, stars) : DUPES_PER_STAR.temp[stars - 1];
     const shards = (cardShards[id] ?? 0) + 1;
     if (shards >= needed) {
       cards[id] = stars + 1;
@@ -131,7 +144,7 @@ function bankCard(
     spareGained,
     starsAfter,
     shards: cardShards[id] ?? 0,
-    shardsNeeded: starsAfter >= MAX_STARS ? 0 : DUPES_PER_STAR[starsAfter - 1],
+    shardsNeeded: starsAfter >= MAX_STARS ? 0 : def ? dupesForNextStar(def.rarity, starsAfter) : DUPES_PER_STAR.temp[starsAfter - 1],
   };
 }
 

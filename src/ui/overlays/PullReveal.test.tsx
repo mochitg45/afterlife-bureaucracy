@@ -21,7 +21,7 @@ describe('PullReveal', () => {
 
   it('shows NEW, duplicate KC, foil executives and guaranteed pity, and dismisses on Back to Personnel', () => {
     seed([
-      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 1, spareGained: false },
+      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 2, spareGained: false },
       { cardId: 'c-keeper', rarity: 'executive', starsAfter: 5, duplicateKc: new Decimal(6000), pityTriggered: 'executive', shards: 0, shardsNeeded: 0, spareGained: false },
       { cardId: 'c-seraph-board', rarity: 'executive', starsAfter: 5, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 0, spareGained: true },
     ]);
@@ -35,5 +35,25 @@ describe('PullReveal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
     expect(useGame.getState().pendingPull).toBeNull();
+  });
+
+  it('renders a 2-column grid of 10 cells for a ten-pull', () => {
+    const ids = content.cards.slice(0, 10).map((c) => c.id);
+    seed(
+      ids.map((cardId, i): PullResult => ({
+        cardId,
+        rarity: content.cards[i].rarity,
+        starsAfter: 1,
+        duplicateKc: null,
+        pityTriggered: null,
+        shards: 0,
+        shardsNeeded: 2,
+        spareGained: false,
+      })),
+    );
+    render(<PullReveal />);
+    const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+    expect(dialog.querySelectorAll('.reveal-cell')).toHaveLength(10);
+    expect(dialog.querySelector('.reveal-grid')).toBeInTheDocument();
   });
 });

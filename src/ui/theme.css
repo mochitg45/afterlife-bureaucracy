@@ -262,10 +262,19 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tile.equipped { box-shadow: 0 0 0 2px var(--green); }
 .card-sheet-head { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; margin-bottom: 10px; }
 .odds-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.reveal { max-width: 420px; }
+.reveal { max-width: 420px; max-height: calc(100vh - 40px); overflow-y: auto; display: flex; flex-direction: column; }
+.reveal .modal-actions { flex-shrink: 0; }
 .reveal-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; max-height: 60vh; overflow-y: auto; }
 .reveal-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 10px; }
 .reveal-row .tile { border: 0; padding: 0; flex-direction: row; gap: 6px; }
+.reveal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 10px 0; max-height: 60vh; overflow-y: auto; }
+.reveal-cell { display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 2px; min-width: 0; }
+.reveal-cell .tile { border: 0; padding: 0; gap: 1px; min-width: 0; width: 100%; }
+.reveal-cell .tile-name { font-size: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reveal-cell .tile-rarity { font-size: 9px; }
+.reveal-cell .tile-stars { font-size: 9px; }
+.reveal-cell .tile-shards { font-size: 9px; }
+.reveal-cell-label { font-size: 10px; }
 .foil { border-color: var(--brass); animation: foil 1.2s ease-in-out infinite alternate; background: linear-gradient(120deg, var(--surface), color-mix(in srgb, var(--brass) 30%, var(--surface))); }
 @keyframes foil { from { filter: brightness(1); } to { filter: brightness(1.15); } }
 .daily-row { margin-bottom: 10px; }

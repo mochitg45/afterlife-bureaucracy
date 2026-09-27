@@ -1,6 +1,6 @@
 import type { CardDef } from '../../engine/content';
 import { Character } from '../characters/Character';
-import { DUPES_PER_STAR, MAX_STARS } from '../../engine/gacha';
+import { dupesForNextStar, MAX_STARS } from '../../engine/gacha';
 import { Stars } from './Stars';
 
 /** Shared with PersonnelScreen's Odds card so the two never drift apart. */
@@ -34,7 +34,7 @@ export function CardTile({ card, stars, owned, equipped = false, onClick, shards
       <span className="tile-rarity sub">{RARITY_LABEL[card.rarity]}</span>
       <Stars stars={owned ? stars : 0} className="tile-stars" />
       {owned && shards !== undefined && stars < MAX_STARS && stars >= 1 && (
-        <span className="tile-shards sub">{shards}/{DUPES_PER_STAR[stars - 1]}</span>
+        <span className="tile-shards sub">{shards}/{dupesForNextStar(card.rarity, stars)}</span>
       )}
     </button>
   );

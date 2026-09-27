@@ -107,42 +107,38 @@ describe('pull', () => {
       expect(sinceExec).toBeLessThan(PITY_EXECUTIVE);
     }
   });
-  it('star-ups cost 1/2/3/5 duplicates, banking shards between promotions', () => {
+  it('star-ups cost 2/4/8/16 duplicates for a temp card, banking shards between promotions', () => {
     const one = { ...content, cards: [content.cards[0]] };
     const id = content.cards[0].id;
+    expect(content.cards[0].rarity).toBe('temp');
     let s = { ...base(), vouchers: 1000 };
     // 1st pull: first copy, straight to ★1, no shard spent.
     let r = pull(s, one, 1, rate);
     s = r.state;
     expect(s.cards[id]).toBe(1);
-    expect(r.results[0]).toMatchObject({ starsAfter: 1, shards: 0, shardsNeeded: 1 });
-    // 2nd pull: 1 duplicate is enough to reach ★2 (DUPES_PER_STAR[0] = 1).
+    expect(r.results[0]).toMatchObject({ starsAfter: 1, shards: 0, shardsNeeded: 2 });
+    // Pulls 2-3: ★1→★2 needs 2 duplicates (dupesForNextStar('temp', 1) = 2).
+    r = pull(s, one, 1, rate);
+    s = r.state;
+    expect(s.cards[id]).toBe(1);
+    expect(r.results[0]).toMatchObject({ starsAfter: 1, shards: 1, shardsNeeded: 2 });
     r = pull(s, one, 1, rate);
     s = r.state;
     expect(s.cards[id]).toBe(2);
-    expect(r.results[0]).toMatchObject({ starsAfter: 2, shards: 0, shardsNeeded: 2 });
-    // Pulls 3-4: ★2→★3 needs 2 duplicates; the first only banks a shard.
-    r = pull(s, one, 1, rate);
-    s = r.state;
-    expect(s.cards[id]).toBe(2);
-    expect(r.results[0]).toMatchObject({ starsAfter: 2, shards: 1, shardsNeeded: 2 });
-    r = pull(s, one, 1, rate);
-    s = r.state;
-    expect(s.cards[id]).toBe(3);
-    expect(r.results[0]).toMatchObject({ starsAfter: 3, shards: 0, shardsNeeded: 3 });
+    expect(r.results[0]).toMatchObject({ starsAfter: 2, shards: 0, shardsNeeded: 4 });
     expect(s.cardShards[id]).toBe(0);
   });
 
-  it('reaches ★5 after 1+2+3+5 = 11 duplicates; the 12th banks a spare copy instead (non-executive)', () => {
+  it('reaches ★5 after 2+4+8+16 = 30 duplicates for a temp card; the 31st banks a spare copy instead', () => {
     const one = { ...content, cards: [content.cards[0]] };
     const id = content.cards[0].id;
     let s = { ...base(), vouchers: 1000 };
-    // 1 pull for the first copy, then 10 more duplicates: 1+2+3+4 = 10 consumed by
-    // ★1→★2 (1), ★2→★3 (2), ★3→★4 (3), leaving 4 of the 5 needed for ★4→★5.
-    for (let i = 0; i < 11; i++) s = pull(s, one, 1, rate).state;
+    // 1 pull for the first copy, then 29 more duplicates: 2+4+8 = 14 consumed by
+    // ★1→★2 (2), ★2→★3 (4), ★3→★4 (8), leaving 15 of the 16 needed for ★4→★5.
+    for (let i = 0; i < 30; i++) s = pull(s, one, 1, rate).state;
     expect(s.cards[id]).toBe(4);
-    expect(s.cardShards[id]).toBe(4);
-    // The 11th duplicate (12th pull overall) completes ★4→★5.
+    expect(s.cardShards[id]).toBe(15);
+    // The 30th duplicate (31st pull overall) completes ★4→★5.
     let r = pull(s, one, 1, rate);
     s = r.state;
     expect(s.cards[id]).toBe(5);
@@ -155,6 +151,17 @@ describe('pull', () => {
     expect(r.results[0].spareGained).toBe(true);
     expect(r.state.cardSpares[id]).toBe(1);
     expect(r.state.kc.toNumber()).toBe(0);
+  });
+
+  it('reaches ★5 after 1+2+4+8 = 15 duplicates for an executive card', () => {
+    const execCard = content.cards.find((c) => c.rarity === 'executive')!;
+    const one = { ...content, cards: [execCard] };
+    const id = execCard.id;
+    let s = { ...base(), vouchers: 1000 };
+    // 1 pull for the first copy, then 15 more duplicates: 1+2+4+8 = 15 total needed.
+    for (let i = 0; i < 16; i++) s = pull(s, one, 1, rate).state;
+    expect(s.cards[id]).toBe(5);
+    expect(s.cardShards[id]).toBe(0);
   });
 
   it('still converts a duplicate past ★5 to Karma Credits for an executive card (no higher rarity to exchange into)', () => {

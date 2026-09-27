@@ -69,7 +69,7 @@ describe('CardSheet', () => {
   it('shows duplicate progress toward the next star', () => {
     seed({ cards: { [CARD]: 1 }, cardShards: { [CARD]: 1 } });
     render(<CardSheet cardId={CARD} onClose={() => {}} />);
-    expect(screen.getByText(/1 of 1 duplicates to ★2/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 of 2 duplicates to ★2/i)).toBeInTheDocument();
   });
 
   it('shows Max stars at the cap', () => {

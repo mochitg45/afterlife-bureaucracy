@@ -20,16 +20,25 @@ export function PullReveal() {
   const equipped = useGame((s) => s.state.equipped);
   const dismissPull = useGame((s) => s.dismissPull);
   if (!pendingPull) return null;
+  const grid = pendingPull.length > 1;
   return (
     <Modal open title="Requisition results" className="reveal">
-      <div className="reveal-list">
-        {pendingPull.map((r, i) => (
-          <div key={i} className={'reveal-row' + (r.rarity === 'executive' ? ' foil' : '')}>
-            <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} />
-            <span className="mono">{resultLabel(r)}</span>
-            {r.pityTriggered && <span className="sub brass">Guaranteed</span>}
-          </div>
-        ))}
+      <div className={grid ? 'reveal-grid' : 'reveal-list'}>
+        {pendingPull.map((r, i) =>
+          grid ? (
+            <div key={i} className={'reveal-cell' + (r.rarity === 'executive' ? ' foil' : '')}>
+              <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} />
+              <span className="mono reveal-cell-label">{resultLabel(r)}</span>
+              {r.pityTriggered && <span className="sub brass">Guaranteed</span>}
+            </div>
+          ) : (
+            <div key={i} className={'reveal-row' + (r.rarity === 'executive' ? ' foil' : '')}>
+              <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} />
+              <span className="mono">{resultLabel(r)}</span>
+              {r.pityTriggered && <span className="sub brass">Guaranteed</span>}
+            </div>
+          ),
+        )}
       </div>
       <div className="modal-actions">
         <button className="btn btn-primary" onClick={dismissPull}>Back to Personnel</button>
