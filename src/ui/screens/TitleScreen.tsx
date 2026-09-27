@@ -24,6 +24,9 @@ function GoogleG() {
   );
 }
 
+/** The Intake backdrop behind the parchment, at a faint 18% opacity (see .title-backdrop). */
+const INTAKE_BG = `${import.meta.env.BASE_URL}art/depts/intake.webp`;
+
 export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGoToOdds: () => void }) {
   const available = useGame((s) => s.cloud.available);
   const signedIn = useGame((s) => s.cloud.signedIn);
@@ -50,13 +53,15 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
 
   return (
     <section className="screen title-paper">
+      <div className="title-backdrop" style={{ backgroundImage: `url(${INTAKE_BG})` }} aria-hidden="true" />
       <div className="title-wrap">
         <h1 className="title-name">Afterlife Bureaucracy Inc.</h1>
         <p className="sub title-tagline">Please take a number.</p>
         <div className="title-cast">
-          <Character id="dave" mood="ok" size={96} />
+          <Character id="dave" mood="ok" size={96} art="dave" />
           <StampSeal className="title-seal pulse" />
-          <Character id="seraphine" mood="ok" size={96} />
+          <Character id="seraphine" mood="ok" size={96} art="seraphine" />
+          <Character id="gary" mood="ok" size={96} art="gary" />
         </div>
         {signedIn && <p className="btn-google title-chip"><GoogleG /><span>Signed in with Google</span></p>}
         <p className="sub title-status" role="status" aria-live="polite">{status}</p>

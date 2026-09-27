@@ -77,6 +77,12 @@ describe('TitleScreen', () => {
     expect(onEnter).not.toHaveBeenCalled();
   });
 
+  it('shows the chibi cast around the seal', () => {
+    seedCloud({ available: false, signedIn: false });
+    const { container } = render(<TitleScreen onEnter={() => {}} onGoToOdds={() => {}} />);
+    expect(container.querySelectorAll('.title-cast img.char-sprite').length).toBe(3);
+  });
+
   it('shows the version, the privacy link and the odds button in the footer', () => {
     seedCloud({ available: false, signedIn: false });
     const onGoToOdds = vi.fn();

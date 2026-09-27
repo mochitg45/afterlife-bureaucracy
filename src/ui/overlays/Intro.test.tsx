@@ -23,12 +23,23 @@ describe('Intro', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('opens on scene one: the notice of decease and the rising soul', () => {
+  it('opens on scene one: the notice of decease, painted', () => {
     seed(false);
     const { container } = render(<Intro />);
     expect(screen.getByText('FORM 1-A · NOTICE OF DECEASE')).toBeInTheDocument();
     expect(screen.getByText(/You have died/)).toBeInTheDocument();
-    expect(container.querySelector('.intro-rise [data-character="soul"]')).toBeInTheDocument();
+    const img = container.querySelector('img.intro-scene-img') as HTMLImageElement | null;
+    expect(img?.src).toMatch(/art\/story\/in-decease\.webp$/);
+  });
+
+  it('renders each scene id as its own painted background', () => {
+    seed(false);
+    const { container } = render(<Intro />);
+    for (const scene of scenes) {
+      const img = container.querySelector('img.intro-scene-img') as HTMLImageElement | null;
+      expect(img?.src).toMatch(new RegExp(`art/story/${scene.id}\\.webp$`));
+      if (scene !== scenes[scenes.length - 1]) next();
+    }
   });
 
   it('walks Next through all four scenes to the Clock in button', () => {
