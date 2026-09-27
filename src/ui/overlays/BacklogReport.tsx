@@ -3,6 +3,7 @@ import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
 import { useWatchAd } from '../hooks/useWatchAd';
 import { adsSupported } from '../../platform/ads';
+import { KarmaIcon } from '../icons/Currency';
 
 function fmtDuration(sec: number): string {
   const h = Math.floor(sec / 3600);
@@ -22,7 +23,7 @@ export function BacklogReport() {
       {pending.capped && <p className="sub warn">Backlog full: the in-tray overflowed at the offline cap. Extend it with Night Shift Rota.</p>}
       <div className="report-grid">
         <div><div className="label">Souls</div><div className="mono value">{formatNumber(pending.souls)}</div></div>
-        <div><div className="label">Karma Credits</div><div className="mono value brass">{formatNumber(pending.kc)}</div></div>
+        <div><div className="label">Karma Credits</div><div className="mono value brass amt">{formatNumber(pending.kc)} <KarmaIcon size={20} /></div></div>
       </div>
       <div className="modal-actions">
         {/* Hidden, not disabled: there is no reward to promise when the placement is closed,

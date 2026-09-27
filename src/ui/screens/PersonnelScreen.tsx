@@ -8,6 +8,7 @@ import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
 import { CardSheet } from '../overlays/CardSheet';
+import { VoucherIcon } from '../icons/Currency';
 
 const RARITY_ORDER: Rarity[] = ['temp', 'fulltime', 'senior', 'executive'];
 
@@ -76,15 +77,17 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
       <ScreenHeader title="Personnel" onSettings={onSettings} />
       <header className="card">
         <div className="label">Requisition Vouchers</div>
-        <div className="mono value brass">{vouchers} ◇</div>
+        <div className="mono value brass amt" role="img" aria-label={`${vouchers} vouchers`}>
+          {vouchers} <VoucherIcon size={22} />
+        </div>
         <p className="sub">Senior guaranteed in {PITY_SENIOR - pity.senior}</p>
         <p className="sub">Executive guaranteed in {PITY_EXECUTIVE - pity.executive}</p>
         <div className="modal-actions">
-          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label="Draw one requisition">
-            {PULL_COST} ◇
+          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label={`Draw one requisition, ${PULL_COST} vouchers`}>
+            <span className="amt">{PULL_COST} <VoucherIcon /></span>
           </button>
-          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label="Draw ten requisitions">
-            {TEN_PULL_COST} ◇
+          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label={`Draw ten requisitions, ${TEN_PULL_COST} vouchers`}>
+            <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
           </button>
           <AdButton placement="free-pull" label="Free daily pull" />
           <button

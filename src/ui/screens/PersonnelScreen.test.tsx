@@ -22,6 +22,11 @@ describe('PersonnelScreen', () => {
   it('pulls ten and opens the reveal', () => {
     seed({ vouchers: 90 });
     render(<PersonnelScreen />);
+    // The voucher glyph is decorative; the balance and the costs still read as words.
+    const balance = screen.getByRole('img', { name: '90 vouchers' });
+    expect(balance.querySelector('svg[data-icon="voucher"]')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /draw ten requisitions, 90 vouchers/i })).toBeEnabled();
+    expect(document.body).not.toHaveTextContent('◇');
     fireEvent.click(screen.getByRole('button', { name: /draw ten requisitions/i }));
     expect(useGame.getState().pendingPull).toHaveLength(10);
     // Spends the 90-voucher cost, but with this fixed rngSeed (wall: 0) the ten pulls always land

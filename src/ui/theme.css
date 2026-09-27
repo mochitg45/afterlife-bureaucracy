@@ -20,6 +20,7 @@
   --font-body: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --radius: 10px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --shadow: 0 1px 0 rgba(42, 38, 32, 0.12), 0 2px 6px rgba(42, 38, 32, 0.08);
   --tabbar-h: 64px;
   color-scheme: light dark;
@@ -111,7 +112,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   border-radius: var(--radius); background-size: cover; background-position: center;
   box-shadow: var(--shadow); border: 1.5px solid var(--line); display: grid; place-items: center;
 }
-.stamp { position: relative; z-index: 1; transition: transform 80ms ease; touch-action: manipulation; }
+.stamp { position: relative; transition: transform 80ms ease; touch-action: manipulation; }
 /* Ambient scene motion: glows breathe on the painted lamps, particles drift up. Transform and
    opacity only; the whole layer is still under reduced motion. */
 .scene-fx { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
@@ -207,14 +208,14 @@ button:disabled { opacity: 0.45; cursor: default; }
 }
 @keyframes speed-shimmer { to { transform: translateX(330%); } }
 .speed-bar-label {
-  position: relative; z-index: 1; display: block; text-align: center; font-size: 12px; line-height: 16px;
+  position: relative; display: block; text-align: center; font-size: 12px; line-height: 16px;
   color: var(--ink); font-family: var(--font-mono); font-weight: 700;
   text-shadow: 0 0 2px var(--surface);
 }
 @keyframes speed-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .hire { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 84px; padding: 6px 8px; }
 .upgrade-row { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin-bottom: 8px; }
-.memo-ticker { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); background: var(--green); color: var(--paper); font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; white-space: nowrap; overflow: hidden; }
+.memo-ticker { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); z-index: 40; background: var(--green); color: var(--paper); font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; white-space: nowrap; overflow: hidden; }
 .memo-text { display: inline-block; animation: ticker 18s linear infinite; }
 @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(42, 38, 32, 0.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
@@ -612,3 +613,9 @@ label.settings-row { cursor: pointer; }
   .splash-ray, .splash-facet, .splash-word { animation: none; opacity: 1; stroke-dashoffset: 0; transform: none; }
   .splash-glow { display: none; }
 }
+
+/* Currency glyphs (src/ui/icons/Currency.tsx) sit on the text baseline next to their number. */
+.cur-icon { display: inline-block; flex-shrink: 0; vertical-align: -0.2em; }
+.amt { display: inline-flex; align-items: center; gap: 0.25em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.daily-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.daily-reward { display: inline-flex; gap: 10px; }

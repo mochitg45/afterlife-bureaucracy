@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import Decimal from 'break_infinity.js';
 import { PullReveal } from './PullReveal';
 import { useGame } from '../../store/game';
@@ -28,13 +28,105 @@ describe('PullReveal', () => {
     render(<PullReveal />);
     const dialog = screen.getByRole('dialog', { name: /requisition results/i });
     expect(screen.getByText('NEW')).toBeInTheDocument();
-    expect(screen.getByText('+6,000 KC')).toBeInTheDocument();
+    // The duplicate payout shows the Karma icon and keeps "KC" for screen readers.
+    const kcLabel = screen.getByText(/\+6,000/);
+    expect(kcLabel).toHaveTextContent('+6,000 KC');
+    expect(kcLabel.querySelector('svg[data-icon="karma"]')).toBeInTheDocument();
     expect(screen.getByText('+1 spare copy')).toBeInTheDocument();
     expect(screen.getByText('Guaranteed')).toBeInTheDocument();
     expect(dialog.querySelector('.foil')).toBeInTheDocument();
 
+    // The first tap only fast-forwards the reveal; the second one dismisses.
+    fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
+    expect(useGame.getState().pendingPull).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
     expect(useGame.getState().pendingPull).toBeNull();
+  });
+
+  function tenPull(): PullResult[] {
+    return content.cards.slice(0, 10).map((card): PullResult => ({
+      cardId: card.id,
+      rarity: card.rarity,
+      starsAfter: 1,
+      duplicateKc: null,
+      pityTriggered: null,
+      shards: 0,
+      shardsNeeded: 2,
+      spareGained: false,
+    }));
+  }
+
+  describe('reveal animation', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('plays, thunks the stamp once, and settles on its own without leaking timers', () => {
+      seed(tenPull());
+      const play = vi.spyOn(useGame.getState().audio, 'play');
+      const { unmount } = render(<PullReveal />);
+      const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+      expect(dialog).toHaveClass('reveal-motion');
+      expect(dialog.querySelector('.reveal-intro')).toBeInTheDocument();
+      expect(dialog.querySelectorAll('.reveal-cell')).toHaveLength(10);
+      expect(screen.getAllByText('NEW')).toHaveLength(10);
+
+      act(() => { vi.advanceTimersByTime(400); });
+      expect(play).toHaveBeenCalledWith('stamp');
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(dialog).not.toHaveClass('reveal-motion');
+      expect(dialog.querySelector('.reveal-intro')).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+      expect(play.mock.calls.filter(([n]) => n === 'stamp')).toHaveLength(1);
+      unmount();
+      play.mockRestore();
+    });
+
+    it('fast-forwards to the final state on a tap and cancels pending timers', () => {
+      seed(tenPull());
+      const play = vi.spyOn(useGame.getState().audio, 'play');
+      render(<PullReveal />);
+      const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+      // The reveal owns two timers (settle + stamp thunk); the skip must cancel both.
+      const pending = vi.getTimerCount();
+      fireEvent.click(dialog);
+      expect(dialog).not.toHaveClass('reveal-motion');
+      expect(dialog.querySelector('.reveal-intro')).toBeNull();
+      expect(dialog.querySelectorAll('.reveal-cell')).toHaveLength(10);
+      expect(vi.getTimerCount()).toBe(pending - 2);
+      // Skipped before the slam, so no stamp sound after the fact.
+      act(() => { vi.advanceTimersByTime(3000); });
+      expect(play).not.toHaveBeenCalledWith('stamp');
+      // Once settled, taps reach the UI again.
+      fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
+      expect(useGame.getState().pendingPull).toBeNull();
+      play.mockRestore();
+    });
+
+    it('unmounting mid-animation leaves no timers behind', () => {
+      seed(tenPull());
+      const { unmount } = render(<PullReveal />);
+      act(() => { vi.advanceTimersByTime(100); });
+      unmount();
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('under reduced motion skips the slam and just fades the results in', () => {
+      const mm = vi.fn().mockReturnValue({ matches: true });
+      vi.stubGlobal('matchMedia', mm);
+      seed(tenPull());
+      const play = vi.spyOn(useGame.getState().audio, 'play');
+      render(<PullReveal />);
+      const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+      expect(dialog).toHaveClass('reveal-fade');
+      expect(dialog).not.toHaveClass('reveal-motion');
+      expect(dialog.querySelector('.reveal-intro')).toBeNull();
+      act(() => { vi.advanceTimersByTime(1000); });
+      expect(dialog).not.toHaveClass('reveal-fade');
+      expect(play).not.toHaveBeenCalledWith('stamp');
+      expect(vi.getTimerCount()).toBe(0);
+      play.mockRestore();
+      vi.unstubAllGlobals();
+    });
   });
 
   it('renders a 2-column grid of 10 cells for a ten-pull', () => {

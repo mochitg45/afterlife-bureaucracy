@@ -1,6 +1,7 @@
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { useLerpNumber } from '../hooks/useLerpNumber';
+import { KarmaIcon } from '../icons/Currency';
 
 export function CurrencyBar({ onSettings }: { onSettings?: () => void }) {
   const kc = useGame((s) => s.state.kc);
@@ -16,7 +17,7 @@ export function CurrencyBar({ onSettings }: { onSettings?: () => void }) {
       )}
       <div>
         <div className="label">Karma Credits</div>
-        <div className="mono value brass">{formatNumber(kcShown)}</div>
+        <div className="mono value brass amt">{formatNumber(kcShown)} <KarmaIcon size={20} /></div>
       </div>
       <div>
         <div className="label">Souls Processed</div>

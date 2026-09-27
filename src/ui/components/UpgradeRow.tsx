@@ -2,6 +2,7 @@ import { useGame } from '../../store/game';
 import type { UpgradeDef } from '../../engine/content';
 import { upgradeCost, canAfford } from '../../engine/economy';
 import { formatNumber } from '../../engine/format';
+import { KarmaIcon } from '../icons/Currency';
 
 export function UpgradeRow({ upgrade }: { upgrade: UpgradeDef }) {
   const level = useGame((s) => s.state.upgrades[upgrade.id] ?? 0);
@@ -15,7 +16,7 @@ export function UpgradeRow({ upgrade }: { upgrade: UpgradeDef }) {
         <div className="staff-name">{upgrade.name} <span className="mono owned">{level}/{upgrade.maxLevel}</span></div>
         <div className="sub">{upgrade.desc}</div>
       </div>
-      <div className="mono">{maxed ? 'MAX' : formatNumber(cost)}</div>
+      <div className="mono amt">{maxed ? 'MAX' : <>{formatNumber(cost)} <KarmaIcon size={14} /></>}</div>
     </button>
   );
 }

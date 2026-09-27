@@ -6,6 +6,7 @@ import type { BuyMode } from '../../engine/actions';
 import { staffBulkCost, maxAffordable, nextMilestone, prevMilestone, milestoneMult, canAfford } from '../../engine/economy';
 import { formatNumber } from '../../engine/format';
 import { Character } from '../characters/Character';
+import { KarmaIcon } from '../icons/Currency';
 
 const ZERO = new Decimal(0);
 
@@ -64,7 +65,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
         {...(staff.id === 'dave' ? { 'data-coach': 'hire' } : {})}
       >
         <span>Hire {mode === 'max' ? (count || 1) : mode}</span>
-        <span className="mono">{formatNumber(cost)}</span>
+        <span className="mono amt">{formatNumber(cost)} <KarmaIcon size={14} /></span>
       </button>
     </div>
   );

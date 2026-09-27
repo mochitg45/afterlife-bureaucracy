@@ -4,6 +4,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { StoreArt } from '../components/StoreArt';
 import { adsSupported } from '../../platform/ads';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
+import { KarmaIcon } from '../icons/Currency';
 import {
   STARTER_PACK_VOUCHERS,
   STARTER_PACK_KC_SECONDS,
@@ -161,7 +162,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
             <div>
               <h3>Starter Pack</h3>
               <p className="sub">
-                {STARTER_PACK_VOUCHERS} Requisition Vouchers, Grandma Liu at one star, and Karma Credits worth{' '}
+                {STARTER_PACK_VOUCHERS} Requisition Vouchers, Grandma Liu at one star, and Karma Credits <KarmaIcon size={14} /> worth{' '}
                 {STARTER_PACK_KC_SECONDS / 60} minutes of your current income. Offered once, in your first three days.
               </p>
             </div>

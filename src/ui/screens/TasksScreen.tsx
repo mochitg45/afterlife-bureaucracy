@@ -1,7 +1,11 @@
 import { memo, useMemo } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
-import { progressOf, isDone, type DailyProgressView } from '../../engine/dailies';
+import Decimal from 'break_infinity.js';
+import { progressOf, isDone, DAILY_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
+import { grantVouchers } from '../../engine/vouchers';
+import { formatNumber } from '../../engine/format';
+import { KarmaIcon, VoucherIcon } from '../icons/Currency';
 import type { DailyDef } from '../../engine/content';
 import { Badge } from '../components/Badge';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -14,6 +18,10 @@ function fillText(def: DailyDef): string {
 function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) {
   const claimDaily = useGame((s) => s.claimDaily);
   const skipDaily = useGame((s) => s.skipDaily);
+  // Primitive selectors (a number, a formatted string) so the tick loop only re-renders a row
+  // when the reward it shows actually changes. Mirrors claimDaily() in engine/dailies.ts.
+  const rewardVouchers = useGame((s) => grantVouchers(s.state, content, DAILY_VOUCHERS).vouchers - s.state.vouchers);
+  const rewardKc = useGame((s) => formatNumber(Decimal.max(new Decimal(DAILY_KC_MIN), s.rates.kcPerSec.mul(DAILY_KC_SECONDS))));
   const def = content.dailies.find((d) => d.id === taskId);
   const task = view.dailies.tasks.find((t) => t.id === taskId);
   if (!def || !task) return null;
@@ -27,7 +35,16 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
     <div className="card daily-row">
       <p>{text}</p>
       <div className="bar"><div className="bar-fill" style={{ width: pct + '%' }} /></div>
-      <div className="mono sub">{progress}/{def.target}</div>
+      <div className="daily-meta">
+        <span className="mono sub">{progress}/{def.target}</span>
+        {!task.claimed && (
+          <span className="mono sub daily-reward">
+            <span className="visually-hidden">Reward:</span>
+            <span className="amt">+{rewardVouchers} <VoucherIcon size={14} /><span className="visually-hidden">vouchers</span></span>
+            <span className="amt">+{rewardKc} <KarmaIcon size={14} /><span className="visually-hidden">Karma Credits</span></span>
+          </span>
+        )}
+      </div>
       <div className="modal-actions">
         {task.claimed ? (
           <span className="mono claimed-label">Claimed</span>

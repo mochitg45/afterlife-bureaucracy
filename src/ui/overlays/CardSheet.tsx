@@ -4,6 +4,7 @@ import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import { dupesForNextStar, MAX_STARS, equipSlots, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
+import { KarmaIcon } from '../icons/Currency';
 import { RARITY_LABEL } from '../components/CardTile';
 import { Stars } from '../components/Stars';
 import { Character } from '../characters/Character';
@@ -98,6 +99,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
               ? `Exchanged: ${findCard(content, outcome.cardId as string).name} is already maxed, +${formatNumber(outcome.duplicateKc)} KC`
               : `Exchanged: got ${findCard(content, outcome.cardId as string).name}!`
             : `No luck: +${formatNumber(outcome.duplicateKc as NonNullable<typeof outcome.duplicateKc>)} KC`}
+          {outcome.duplicateKc && <> <KarmaIcon size={14} /></>}
         </p>
       )}
     </Modal>
