@@ -12,4 +12,3 @@ game's caption box sits over it.
 | scene3-offer.jpg | in-offer | At the Intake counter Dave slides you the employment form |
 | scene4-desk.jpg | in-stamp | You at the desk with the stamp; Gary wheels off the old clerk |
 
-Known issue: scene1-notice.jpg is an outpaint of a landscape first try and shows two faint horizontal seams (rooftops, pavement). Re-roll it in a fresh chat as portrait from the start.
