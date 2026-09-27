@@ -278,6 +278,30 @@ describe('cloud sync on boot', () => {
   });
 });
 
+describe('one-time progress reset (RESET_EPOCH) and cloud sync', () => {
+  it('treats an old-epoch cloud snapshot as an empty slot: keeps local, uploads, no notice', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(5), soulsRun: new Decimal(5) });
+    const staleCloud = { ...snapshotOf(saveState({ soulsLifetime: new Decimal(9e6), soulsRun: new Decimal(9e6), savedAtWall: T0 - 1_000 })) };
+    staleCloud.data = JSON.stringify({ ...JSON.parse(staleCloud.data), resetEpoch: 0 });
+    const { store, cloud } = await make({ saved: local, cloud: { signedIn: true, snapshot: staleCloud } });
+    await bootSynced(store, 'uploaded');
+    expect(store.getState().state.soulsLifetime.toNumber()).toBe(5);
+    expect(deserialize(cloud.snapshot!.data, content).soulsLifetime.toNumber()).toBe(5);
+    expect(store.getState().cloudNotice).toBeNull();
+    store.getState().stopLoop();
+  });
+
+  it('still downloads a same-epoch, newer cloud snapshot, as before', async () => {
+    const local = saveState({ soulsLifetime: new Decimal(5), soulsRun: new Decimal(5) });
+    const remote = saveState({ soulsLifetime: new Decimal(9e6), soulsRun: new Decimal(9e6), savedAtWall: T0 - 1_000 });
+    const { store } = await make({ saved: local, cloud: { signedIn: true, snapshot: snapshotOf(remote) } });
+    await bootSynced(store, 'downloaded');
+    expect(store.getState().state.soulsLifetime.toNumber()).toBe(9e6);
+    expect(store.getState().cloudNotice!.kind).toBe('downloaded');
+    store.getState().stopLoop();
+  });
+});
+
 describe('cloud sign-in and overrides', () => {
   it('reports unavailable and syncs nothing where there is no cloud', async () => {
     const { store, cloud, services } = await make({ cloud: { available: false } });

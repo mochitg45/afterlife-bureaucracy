@@ -1,10 +1,10 @@
 import Decimal from 'break_infinity.js';
-import { migrate, SAVE_VERSION } from './migrations';
+import { migrate, SAVE_VERSION, RESET_EPOCH } from './migrations';
 import { clampEquipped } from './gacha';
 import type { Content } from './content';
 import type { CloudSyncResult } from './cloudSync';
 
-export { SAVE_VERSION };
+export { SAVE_VERSION, RESET_EPOCH };
 
 export interface Stats {
   clicks: number;
@@ -97,6 +97,8 @@ export interface CloudMeta {
 
 export interface GameState {
   saveVersion: number;
+  /** See `RESET_EPOCH`: a save below the current epoch is loaded as a fresh game. */
+  resetEpoch: number;
   kc: Decimal;
   soulsRun: Decimal;
   soulsLifetime: Decimal;
@@ -157,6 +159,7 @@ export function createInitialState(now: Now, content: Content): GameState {
   const deptsUnlocked = startingDepartments(content);
   return {
     saveVersion: SAVE_VERSION,
+    resetEpoch: RESET_EPOCH,
     kc: new Decimal(0),
     soulsRun: new Decimal(0),
     soulsLifetime: new Decimal(0),
@@ -437,8 +440,40 @@ function sanitizeCloud(v: unknown): CloudMeta {
   return { lastSyncWall: nonNeg(raw.lastSyncWall), lastResult };
 }
 
+/**
+ * Reads `resetEpoch` straight off a raw save payload, without running it through `migrate` or
+ * `deserialize` -- so the cloud-sync guard can tell a stale snapshot apart from one that has
+ * already been reset (and would otherwise look like an ordinary fresh save once loaded). A
+ * payload that will not even parse counts as epoch 0: as stale as it gets.
+ */
+export function readResetEpoch(json: string): number {
+  try {
+    const raw = JSON.parse(json) as Record<string, unknown>;
+    return num(raw.resetEpoch, 0);
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * A one-time wipe: everything about the run resets to a brand-new game, except what the
+ * player cannot be asked to earn twice -- purchases and entitlements -- and the settings that
+ * are a device preference, not progress. Achievements already unlocked on Play Games stay
+ * unlocked there; only this save's own copy of the run is touched.
+ */
+function applyResetEpoch(raw: Record<string, unknown>, content: Content): GameState {
+  const fresh = createInitialState({ wall: Date.now(), mono: 0 }, content);
+  return {
+    ...fresh,
+    entitlements: sanitizeEntitlements(raw.entitlements),
+    settings: sanitizeSettings(raw.settings),
+    adState: sanitizeAdState(raw.adState),
+  };
+}
+
 export function deserialize(json: string, content: Content): GameState {
   const raw = migrate(JSON.parse(json) as Record<string, unknown>);
+  if (num(raw.resetEpoch, 0) < RESET_EPOCH) return applyResetEpoch(raw, content);
   const base = createInitialState({ wall: 0, mono: 0 }, content);
   const rawStats = (raw.stats ?? {}) as Record<string, unknown>;
   const branchesUnlocked = stringIds(

@@ -248,13 +248,13 @@ describe('branch gating', () => {
     expect(unlockDepartments(rich, content).deptsUnlocked).toContain('valhalla');
   });
   it('drops a branch department from a save whose branch is not open', () => {
-    const raw = { saveVersion: 6, deptsUnlocked: ['intake', 'valhalla'], activeDept: 'valhalla', branchesUnlocked: [] };
+    const raw = { saveVersion: 6, resetEpoch: 1, deptsUnlocked: ['intake', 'valhalla'], activeDept: 'valhalla', branchesUnlocked: [] };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.activeDept).toBe('intake');
   });
   it('keeps it when the save also carries the unlocked branch', () => {
-    const raw = { saveVersion: 6, deptsUnlocked: ['intake', 'valhalla'], activeDept: 'valhalla', branchesUnlocked: ['valhalla'] };
+    const raw = { saveVersion: 6, resetEpoch: 1, deptsUnlocked: ['intake', 'valhalla'], activeDept: 'valhalla', branchesUnlocked: ['valhalla'] };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.deptsUnlocked).toEqual(['intake', 'valhalla']);
     expect(s.activeDept).toBe('valhalla');

@@ -1,5 +1,6 @@
 {
   "saveVersion": 1,
+  "resetEpoch": 1,
   "kc": "2500",
   "soulsRun": "9000",
   "soulsLifetime": "9000",

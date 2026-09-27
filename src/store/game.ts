@@ -2,7 +2,7 @@ import Decimal from 'break_infinity.js';
 import { createWithEqualityFn } from 'zustand/traditional';
 import type { Content, DepartmentDef, AchievementDef, StoryDef } from '../engine/content';
 import { findDepartment } from '../engine/content';
-import { createInitialState, deserialize, serialize, type GameState, type Settings } from '../engine/state';
+import { createInitialState, deserialize, serialize, RESET_EPOCH, type GameState, type Settings } from '../engine/state';
 import { staffBulkCost, canAfford, computeRates, BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
 import { canAudit, fileAudit } from '../engine/prestige';
@@ -657,6 +657,13 @@ export function createGameStore(deps: StoreDeps) {
       if (load.status === 'error') return { status: 'unreachable' };
       if (load.status === 'empty') return { status: 'empty' };
       try {
+        // A snapshot from before the one-time progress reset is exactly as stale as an empty
+        // slot: it must never come down over a freshly-reset local save, and the next sync
+        // uploads that fresh save over it -- no download, no notice, no conflict. Parsed here
+        // rather than through readResetEpoch: a payload that will not even parse must fall
+        // through to 'unreadable' below, never get mistaken for an old-epoch snapshot.
+        const rawEpoch = (JSON.parse(load.snapshot.data) as Record<string, unknown>).resetEpoch;
+        if (typeof rawEpoch !== 'number' || rawEpoch < RESET_EPOCH) return { status: 'empty' };
         // The payload's own savedAtWall is what the winner rule reads, not the slot's
         // metadata: a save written before the field existed arrives as 0 and, by the rule,
         // never wins a tie -- and the notice repeats that 0 so the UI can say "date unknown".

@@ -1,5 +1,13 @@
 export const SAVE_VERSION = 8;
 
+/**
+ * Bumped once, by hand, whenever the owner wants every existing save wiped for a fresh test
+ * round -- separate from SAVE_VERSION, which only ever grows to keep old saves loadable. A
+ * save whose own `resetEpoch` is missing or lower than this loads as a brand-new game; see
+ * `deserialize` and the cloud-sync guard in `store/game.ts`.
+ */
+export const RESET_EPOCH = 1;
+
 type Raw = Record<string, unknown>;
 
 /**

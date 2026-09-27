@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import { createInitialState, serialize, deserialize, SAVE_VERSION, type GameState } from './state';
+import { createInitialState, serialize, deserialize, SAVE_VERSION, RESET_EPOCH, readResetEpoch, type GameState } from './state';
 import { loadContent } from './content';
 import { content } from '../data';
 import intake from '../data/departments/intake.json';
@@ -68,21 +68,21 @@ describe('state', () => {
     expect(() => deserialize(JSON.stringify(raw), content)).toThrow('No migration step for save version 0');
   });
   it('accepts a numeric-string saveVersion and still migrates it', () => {
-    const raw = { saveVersion: '2', kc: '10', boostUntilWall: 5 };
+    const raw = { saveVersion: '2', resetEpoch: 1, kc: '10', boostUntilWall: 5 };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
     expect(s.boostUntilWall).toBe(5);
     expect(s.perks).toEqual([]);
   });
   it('fills missing fields from a partial old save', () => {
-    const raw = { saveVersion: 2, kc: '10', soulsRun: '10', soulsLifetime: '10' };
+    const raw = { saveVersion: 2, resetEpoch: 1, kc: '10', soulsRun: '10', soulsLifetime: '10' };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.staff).toEqual({});
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.stats.clicks).toBe(0);
   });
   it('coerces numeric-string owned counts and drops junk entries', () => {
-    const raw = { saveVersion: 2, staff: { dave: '5', gary: 'nope', seraphine: -3, auditor: 2 } };
+    const raw = { saveVersion: 2, resetEpoch: 1, staff: { dave: '5', gary: 'nope', seraphine: -3, auditor: 2 } };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.staff.dave).toBe(5);
     expect(s.staff.auditor).toBe(2);
@@ -90,25 +90,25 @@ describe('state', () => {
     expect(s.staff.seraphine).toBeUndefined();
   });
   it('drops departments the build no longer ships and repairs the active one', () => {
-    const raw = { saveVersion: 3, deptsUnlocked: ['intake', 'atlantis'], activeDept: 'atlantis' };
+    const raw = { saveVersion: 3, resetEpoch: 1, deptsUnlocked: ['intake', 'atlantis'], activeDept: 'atlantis' };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.activeDept).toBe('intake');
   });
   it('falls back to the starting departments when every saved one is unknown', () => {
-    const raw = { saveVersion: 3, deptsUnlocked: ['atlantis'], activeDept: 'atlantis' };
+    const raw = { saveVersion: 3, resetEpoch: 1, deptsUnlocked: ['atlantis'], activeDept: 'atlantis' };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.deptsUnlocked).toEqual(['intake']);
     expect(s.activeDept).toBe('intake');
   });
   it('drops perks the build no longer ships and de-duplicates the rest', () => {
     const known = content.perks[0].id;
-    const raw = { saveVersion: 3, perks: [known, 'p-atlantis', known, 42] };
+    const raw = { saveVersion: 3, resetEpoch: 1, perks: [known, 'p-atlantis', known, 42] };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.perks).toEqual([known]);
   });
   it('falls back to zero for an unparseable Decimal field', () => {
-    const raw = { saveVersion: 2, kc: 'abc', soulsRun: null, soulsLifetime: '1e5' };
+    const raw = { saveVersion: 2, resetEpoch: 1, kc: 'abc', soulsRun: null, soulsLifetime: '1e5' };
     const s = deserialize(JSON.stringify(raw), content);
     expect(s.kc.toNumber()).toBe(0);
     expect(s.soulsRun.toNumber()).toBe(0);
@@ -394,6 +394,7 @@ describe('exhaustive save round-trip', () => {
   it('carries every field of a fully non-default state through serialize/deserialize', () => {
     const s: GameState = {
       saveVersion: SAVE_VERSION,
+      resetEpoch: RESET_EPOCH,
       kc: new Decimal('1e40'),
       soulsRun: new Decimal('2e40'),
       soulsLifetime: new Decimal('3e40'),
@@ -450,5 +451,49 @@ describe('exhaustive save round-trip', () => {
       if (a instanceof Decimal) expect((b as Decimal).eq(a)).toBe(true);
       else expect(b).toEqual(a);
     }
+  });
+});
+
+describe('one-time progress reset (RESET_EPOCH)', () => {
+  it('loads an old save (no resetEpoch) as a fresh state, but keeps entitlements and settings', () => {
+    const old = {
+      ...saveV8,
+      kc: '9e50',
+      soulsRun: '9e50',
+      soulsLifetime: '9e50',
+      seals: 999,
+      staff: { dave: 500 },
+      cards: { 'c-dave-overtime': 5 },
+      achievements: ['a-souls-1'],
+      settings: { notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'dark', sfx: false, music: false },
+      entitlements: { removeAds: true, unionUntilWall: 1_700_000_600_000, starterPackBought: true, firstBuyUsed: { vouchers_10: true } },
+      adState: { freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1_700_000_300_000 },
+    };
+    delete (old as Record<string, unknown>).resetEpoch;
+    const s = deserialize(JSON.stringify(old), content);
+    expect(s.resetEpoch).toBe(RESET_EPOCH);
+    // Progress is wiped.
+    expect(s.kc.toNumber()).toBe(0);
+    expect(s.soulsLifetime.toNumber()).toBe(0);
+    expect(s.seals).toBe(0);
+    expect(s.staff).toEqual({});
+    expect(s.cards).toEqual({});
+    expect(s.achievements).toEqual([]);
+    expect(s.deptsUnlocked).toEqual(['intake']);
+    // Entitlements, settings and ad-state survive.
+    expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1_700_000_600_000, starterPackBought: true, firstBuyUsed: { vouchers_10: true } });
+    expect(s.settings).toEqual({ notifOptIn: 'yes', notifDate: '2026-09-14', notifsSent: 1, theme: 'dark', sfx: false, music: false });
+    expect(s.adState).toEqual({ freePullDate: '2026-09-14', dailySkipDate: '2026-09-13', boostCooldownUntilWall: 1_700_000_300_000 });
+  });
+  it('loads a save already at resetEpoch 1 unchanged', () => {
+    const s = deserialize(JSON.stringify(saveV8), content);
+    expect(s.resetEpoch).toBe(RESET_EPOCH);
+    expect(s.kc.toNumber()).toBe(2500);
+    expect(s.staff.dave).toBe(12);
+  });
+  it('readResetEpoch reads the raw field without running migrate or deserialize', () => {
+    expect(readResetEpoch(JSON.stringify({ resetEpoch: 1 }))).toBe(1);
+    expect(readResetEpoch(JSON.stringify({}))).toBe(0);
+    expect(readResetEpoch('not json')).toBe(0);
   });
 });
