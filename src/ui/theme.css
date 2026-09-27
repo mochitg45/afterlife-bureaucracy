@@ -108,6 +108,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
   background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--ink);
   padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  max-width: calc(100% - 20px); overflow: hidden; text-overflow: ellipsis;
 }
 .float { position: absolute; top: 0; color: var(--brass); font-weight: 600; animation: floatUp 700ms ease-out forwards; pointer-events: none; }
 @keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-48px); opacity: 0; } }
@@ -133,8 +134,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .speed-bar.idle .speed-bar-fill { animation: none; transform: scaleX(0); }
 .speed-bar.max .speed-bar-fill { animation: none; transform: scaleX(1); }
 .speed-bar-label {
-  position: relative; z-index: 1; display: block; text-align: center; font-size: 8px; line-height: 11px;
-  color: var(--ink); font-family: var(--font-mono);
+  position: relative; z-index: 1; display: block; text-align: center; font-size: 10px; line-height: 11px;
+  color: var(--ink); font-family: var(--font-mono); font-weight: 700;
+  text-shadow: 0 0 2px var(--surface);
 }
 @keyframes speed-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .hire { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 84px; padding: 6px 8px; }
@@ -249,13 +251,13 @@ label.settings-row { cursor: pointer; }
 }
 /* The Intake room, faint behind the parchment ruling above. */
 .title-backdrop {
-  position: absolute; inset: 0; background-size: cover; background-position: center top;
+  position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center top;
   opacity: 0.18; pointer-events: none;
 }
 .title-wrap { position: relative; z-index: 1; width: 100%; max-width: 360px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .title-name { font-size: 30px; line-height: 1.15; color: var(--green); }
 .title-tagline { font-size: 14px; }
-.title-cast { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 4px 0; }
+.title-cast { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 4px; margin: 4px 0; }
 .title-seal { width: 108px; height: 108px; }
 /* Gentle idle bob on the cast sprites, staggered so they don't nod in unison. */
 .title-cast .char-sprite { animation: bob 2.4s ease-in-out infinite; }
@@ -372,12 +374,14 @@ label.settings-row { cursor: pointer; }
   animation: introIn 300ms ease-out both;
 }
 .intro-art {
-  position: relative; width: 100%; aspect-ratio: 200 / 140;
+  position: relative; aspect-ratio: 768 / 1376;
+  width: min(100%, calc((100dvh - 150px) * 768 / 1376));
+  margin: 0 auto;
   border: 2.5px solid var(--ink); border-radius: var(--radius);
   background: var(--surface-2); overflow: hidden;
 }
 .intro-scene-img {
-  display: block; width: 100%; height: 100%; object-fit: cover; object-position: top;
+  display: block; width: 100%; height: 100%; object-fit: cover; object-position: center;
   animation: introDrift 3700ms ease-out both;
 }
 /* The caption rides over the art's bottom third, in a cream box the art was drawn to leave

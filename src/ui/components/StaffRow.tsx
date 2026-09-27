@@ -48,7 +48,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
         <div className="sub">{staff.role} — {staff.flavor}</div>
         <div
           className={`speed-bar${idle ? ' idle' : maxSpeed ? ' max' : ''}`}
-          style={{ '--period': `${period}s`, animationDuration: `${period}s` } as CSSProperties}
+          style={{ '--period': `${period}s` } as CSSProperties}
         >
           <div className="speed-bar-fill" />
           <span className="speed-bar-label">{speedLabel}</span>

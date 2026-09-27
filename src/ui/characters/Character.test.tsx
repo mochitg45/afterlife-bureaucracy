@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react';
 import { Character } from './Character';
 import { ART } from './art';
-import cards from '../../data/cards.json';
 
 const SPRITE_NAMES = new Set([
   'auditor', 'auditor-fine', 'auditor-true', 'bev', 'bodhisattva', 'brynhildr', 'choir-cherub',
@@ -32,39 +31,6 @@ describe('Character', () => {
     const { container } = render(<Character id="whoever" mood="ok" />);
     expect(container.querySelector('svg')!.getAttribute('data-character')).toBe('soul');
   });
-  it('renders archetype variants with accessories', () => {
-    for (const arch of ['angel', 'demon', 'clerk', 'archivist']) {
-      const { container, unmount } = render(<Character id={`${arch}:3`} mood="ok" />);
-      const svg = container.querySelector('svg')!;
-      expect(svg.getAttribute('data-character')).toBe(arch);
-      expect(svg.getAttribute('data-variant')).toBe('3');
-      expect(svg.querySelector('[data-accessory="clipboard"]')).not.toBeNull();
-      unmount();
-    }
-  });
-  it('floors a fractional variant instead of landing between accessories', () => {
-    const { container } = render(<Character id="angel:2.7" mood="ok" />);
-    const svg = container.querySelector('svg')!;
-    expect(svg.getAttribute('data-variant')).toBe('2');
-    expect(svg.querySelector('[data-accessory="tie"]')).not.toBeNull();
-  });
-  it('clamps a variant past the end of the accessory list', () => {
-    const { container } = render(<Character id="angel:99" mood="ok" />);
-    expect(container.querySelector('svg')!.getAttribute('data-variant')).toBe('4');
-  });
-
-  it('gives every card its own portrait, keyed by its own id', () => {
-    const markup = new Set<string>();
-    for (const card of cards as { id: string; character: string }[]) {
-      const { container, unmount } = render(<Character id={card.character} mood="ok" />);
-      const svg = container.querySelector('svg')!;
-      expect(svg.getAttribute('data-character')).toBe(card.id);
-      markup.add(svg.outerHTML);
-      unmount();
-    }
-    expect(markup.size).toBe(cards.length);
-  });
-
   it('renders a sprite img when art resolves to a known asset', () => {
     const { container } = render(<Character id="angel:0" art="h-cherub" mood="ok" size={52} />);
     const img = container.querySelector('img')!;

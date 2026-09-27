@@ -27,7 +27,9 @@ SHEETS = [
     ("b2-fulltime.jpg", 3, 2, ["petra", "malphas", "pemberton", "ferro", "auditor-fine", "melodia"]),
     ("b3-fulltime2.jpg", 3, 2, ["lilith", "nadia", "forgot", "night-temp", "bev", "grax"]),
     ("b4-senior-exec.jpg", 3, 2, ["wheel-tech", "obroin", "grandma-liu", "seraph-board", "vassago", "bodhisattva"]),
-    ("b5-intake-exec.jpg", 3, 2, ["dave", "seraphine", "gary", "auditor", "keeper", "auditor-true"]),
+    # dave: None here -- public/art/chars/dave.webp is hand-cut from docs/art/characters-v2/b8-dave.jpg,
+    # do not let this sheet's auto-cut overwrite it.
+    ("b5-intake-exec.jpg", 3, 2, [None, "seraphine", "gary", "auditor", "keeper", "auditor-true"]),
     ("b6-variants-valhalla.jpg", 3, 2, [None, None, "sigrun", "ottar", "hjalti", "brynhildr"]),
     ("b7-reroll-dave-gary.jpg", 2, 1, ["dave-cooked", "gary-break"]),
 ]

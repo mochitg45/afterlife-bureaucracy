@@ -35,12 +35,12 @@ describe('StaffRow', () => {
     expect(milestoneBar!.compareDocumentPosition(name!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('sets the speed bar animation duration from the staff slot and milestone multiplier', () => {
+  it('sets the speed bar --period from the staff slot and milestone multiplier', () => {
     const staff = content.departments[0].staff[1];
     seed('ok', { [staff.id]: 25 });
     const { container } = render(<StaffRow staff={staff} mode={1} index={1} />);
     const speedBar = container.querySelector('.speed-bar') as HTMLElement;
-    expect(speedBar.style.animationDuration).toBe('0.3s');
+    expect(speedBar.style.getPropertyValue('--period')).toBe('0.3s');
   });
 
   it('marks the speed bar idle with 0 owned', () => {

@@ -55,12 +55,12 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
     <section className="screen title-paper">
       <div className="title-backdrop" style={{ backgroundImage: `url(${INTAKE_BG})` }} aria-hidden="true" />
       <div className="title-wrap">
+        <StampSeal className="title-seal pulse" />
         <h1 className="title-name">Afterlife Bureaucracy Inc.</h1>
         <p className="sub title-tagline">Please take a number.</p>
         <div className="title-cast">
-          <Character id="dave" mood="ok" size={96} art="dave" />
-          <StampSeal className="title-seal pulse" />
           <Character id="seraphine" mood="ok" size={96} art="seraphine" />
+          <Character id="dave" mood="ok" size={96} art="dave" />
           <Character id="gary" mood="ok" size={96} art="gary" />
         </div>
         {signedIn && <p className="btn-google title-chip"><GoogleG /><span>Signed in with Google</span></p>}

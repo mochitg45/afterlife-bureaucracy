@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useGame } from '../../store/game';
+import type { GameState } from '../../engine/state';
 import { formatNumber } from '../../engine/format';
 
 interface Float { id: number; x: number; text: string }
 
 const DEPT_ART = new Set(['intake', 'heaven', 'hell', 'reincarnation', 'limbo', 'valhalla']);
 
-function deptSceneUrl(deptId: string) {
+function deptSceneUrl(deptId: GameState['activeDept']) {
   const file = DEPT_ART.has(deptId) ? deptId : 'intake';
   return `${import.meta.env.BASE_URL}art/depts/${file}.webp`;
 }
