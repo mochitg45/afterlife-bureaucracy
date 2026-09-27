@@ -94,7 +94,9 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
       {outcome && (
         <p className="sub brass">
           {outcome.success
-            ? `Exchanged: got ${findCard(content, outcome.cardId as string).name}!`
+            ? outcome.duplicateKc
+              ? `Exchanged: ${findCard(content, outcome.cardId as string).name} is already maxed, +${formatNumber(outcome.duplicateKc)} KC`
+              : `Exchanged: got ${findCard(content, outcome.cardId as string).name}!`
             : `No luck: +${formatNumber(outcome.duplicateKc as NonNullable<typeof outcome.duplicateKc>)} KC`}
         </p>
       )}
