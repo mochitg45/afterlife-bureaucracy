@@ -59,10 +59,26 @@ function RevealBody({ results }: { results: PullResult[] }) {
   const dismissPull = useGame((s) => s.dismissPull);
   const [reduced] = useState(prefersReducedMotion);
   const [playing, setPlaying] = useState(true);
+  // The free daily pull resolves while the rewarded ad still covers the WebView. Hold the
+  // choreography until the game is back on screen, or it would finish unseen behind the ad.
+  const [onScreen, setOnScreen] = useState(() => typeof document === 'undefined' || document.visibilityState === 'visible');
   const grid = results.length > 1;
 
   useEffect(() => {
-    if (!playing) return;
+    if (onScreen) return;
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') setOnScreen(true);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [onScreen]);
+
+  useEffect(() => {
+    if (!playing || !onScreen) return;
     const total = reduced ? REDUCED_MS : CARDS_START_MS + (results.length - 1) * STAGGER_MS + CARD_MS;
     const timers = [setTimeout(() => setPlaying(false), total)];
     // No slam under reduced motion, so no thunk either.
@@ -80,14 +96,14 @@ function RevealBody({ results }: { results: PullResult[] }) {
       timers.forEach(clearTimeout);
       document.removeEventListener('click', skip, true);
     };
-  }, [playing, reduced, results.length]);
+  }, [playing, onScreen, reduced, results.length]);
 
   // reveal-motion drives the full choreography; reveal-fade is the reduced-motion stand-in.
   // Dropping either class is the fast-forward: every element's resting style is its end state.
-  const cls = 'reveal' + (playing ? (reduced ? ' reveal-fade' : ' reveal-motion') : '');
+  const cls = 'reveal' + (playing ? (!onScreen ? ' reveal-waiting' : reduced ? ' reveal-fade' : ' reveal-motion') : '');
   return (
     <Modal open title="Requisition results" className={cls}>
-      {playing && !reduced && (
+      {playing && onScreen && !reduced && (
         <div className="reveal-intro" aria-hidden="true">
           <div className="reveal-form">
             <div className="reveal-form-title">Requisition</div>

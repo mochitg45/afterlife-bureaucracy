@@ -81,6 +81,21 @@ describe('PullReveal', () => {
       play.mockRestore();
     });
 
+    it('waits for the game to be on screen (behind a rewarded ad) before playing', () => {
+      seed(tenPull());
+      const vis = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+      render(<PullReveal />);
+      const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+      act(() => { vi.advanceTimersByTime(5000); });
+      expect(dialog).toHaveClass('reveal-waiting');
+      expect(dialog.querySelector('.reveal-intro')).toBeNull();
+      vis.mockReturnValue('visible');
+      act(() => { document.dispatchEvent(new Event('visibilitychange')); });
+      expect(dialog).toHaveClass('reveal-motion');
+      expect(dialog.querySelector('.reveal-intro')).toBeInTheDocument();
+      vis.mockRestore();
+    });
+
     it('fast-forwards to the final state on a tap and cancels pending timers', () => {
       seed(tenPull());
       const play = vi.spyOn(useGame.getState().audio, 'play');

@@ -94,3 +94,6 @@
 .reveal-fade .reveal-grid,
 .reveal-fade .reveal-list { animation: reveal-fade-in 200ms ease both; }
 @keyframes reveal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Waiting for the game to come back on screen (behind a rewarded ad): keep the cards unseen. */
+.reveal-waiting .reveal-grid, .reveal-waiting .reveal-list { opacity: 0; }
