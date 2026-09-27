@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
-import { DUPES_PER_STAR, MAX_STARS, equipSlots } from '../../engine/gacha';
+import { DUPES_PER_STAR, MAX_STARS, equipSlots, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
+import { formatNumber } from '../../engine/format';
 import { RARITY_LABEL } from '../components/CardTile';
+import { Stars } from '../components/Stars';
 import { Character } from '../characters/Character';
 import { Modal } from '../components/Modal';
 
@@ -39,6 +42,8 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
   const perks = useGame((s) => s.state.perks);
   const equip = useGame((s) => s.equip);
   const unequip = useGame((s) => s.unequip);
+  const exchange = useGame((s) => s.exchange);
+  const [outcome, setOutcome] = useState<ExchangeResult | null>(null);
 
   const card = findCard(content, cardId);
   const stars = cards[cardId] ?? 1;
@@ -46,6 +51,8 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
   const slots = equipSlots({ perks }, content);
   const full = !isEquipped && equipped.length >= slots;
   const shards = useGame((s) => s.state.cardShards[cardId] ?? 0);
+  const spares = useGame((s) => s.state.cardSpares[cardId] ?? 0);
+  const canExchange = stars >= MAX_STARS && card.rarity !== 'executive' && spares >= EXCHANGE_COST;
 
   return (
     <Modal open title={card.name} label={`${card.name}, ${card.title}`} onClose={onClose}>
@@ -53,7 +60,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
         <Character id={card.character} art={card.id} mood="ok" size={96} />
         <span className="sub">{card.title}</span>
         <span className="sub">{RARITY_LABEL[card.rarity]}</span>
-        <span className="tile-stars mono" aria-label={`${stars} stars`}>{'★'.repeat(Math.max(0, stars))}</span>
+        <Stars stars={stars} className="tile-stars" />
         {stars < MAX_STARS ? (
           <span className="sub">{shards} of {DUPES_PER_STAR[stars - 1]} duplicates to ★{stars + 1}</span>
         ) : (
@@ -76,6 +83,21 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
         </button>
         {full && <span className="sub warn">No free lanyard</span>}
       </div>
+      {canExchange && (
+        <div className="modal-actions">
+          <button className="btn" onClick={() => setOutcome(exchange(cardId))}>
+            Exchange {EXCHANGE_COST} spares ({pct(EXCHANGE_CHANCE[card.rarity as 'temp' | 'fulltime' | 'senior'])} chance)
+          </button>
+          <span className="sub">{spares} spare{spares === 1 ? '' : 's'}</span>
+        </div>
+      )}
+      {outcome && (
+        <p className="sub brass">
+          {outcome.success
+            ? `Exchanged: got ${findCard(content, outcome.cardId as string).name}!`
+            : `No luck: +${formatNumber(outcome.duplicateKc as NonNullable<typeof outcome.duplicateKc>)} KC`}
+        </p>
+      )}
     </Modal>
   );
 }

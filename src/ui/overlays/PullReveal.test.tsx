@@ -21,13 +21,15 @@ describe('PullReveal', () => {
 
   it('shows NEW, duplicate KC, foil executives and guaranteed pity, and dismisses on Back to Personnel', () => {
     seed([
-      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 1 },
-      { cardId: 'c-keeper', rarity: 'executive', starsAfter: 5, duplicateKc: new Decimal(6000), pityTriggered: 'executive', shards: 0, shardsNeeded: 0 },
+      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 1, spareGained: false },
+      { cardId: 'c-keeper', rarity: 'executive', starsAfter: 5, duplicateKc: new Decimal(6000), pityTriggered: 'executive', shards: 0, shardsNeeded: 0, spareGained: false },
+      { cardId: 'c-seraph-board', rarity: 'executive', starsAfter: 5, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 0, spareGained: true },
     ]);
     render(<PullReveal />);
     const dialog = screen.getByRole('dialog', { name: /requisition results/i });
     expect(screen.getByText('NEW')).toBeInTheDocument();
     expect(screen.getByText('+6,000 KC')).toBeInTheDocument();
+    expect(screen.getByText('+1 spare copy')).toBeInTheDocument();
     expect(screen.getByText('Guaranteed')).toBeInTheDocument();
     expect(dialog.querySelector('.foil')).toBeInTheDocument();
 

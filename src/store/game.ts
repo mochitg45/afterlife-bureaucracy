@@ -14,7 +14,7 @@ import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
-import { pull as pullEngine, equipCard, unequipCard, type PullResult } from '../engine/gacha';
+import { pull as pullEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
@@ -219,6 +219,8 @@ export interface GameStore {
   buyPerk(perkId: string): void;
   pull(count: 1 | 10): void;
   dismissPull(): void;
+  /** Null if the card wasn't ★5, executive, or short of EXCHANGE_COST spares. */
+  exchange(cardId: string): ExchangeResult | null;
   equip(cardId: string): void;
   unequip(cardId: string): void;
   claimDaily(taskId: string): void;
@@ -1123,6 +1125,12 @@ export function createGameStore(deps: StoreDeps) {
         }
       },
       dismissPull() { set({ pendingPull: null }); },
+      exchange(cardId) {
+        const r = exchangeCardEngine(get().state, content, cardId, get().rates.kcPerSec);
+        if (!r.result) return null;
+        apply(r.state);
+        return r.result;
+      },
       equip(cardId) {
         const s = get().state;
         const next = equipCard(s, content, cardId);

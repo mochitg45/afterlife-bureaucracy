@@ -4,7 +4,24 @@ import { useGame } from '../../store/game';
 import { createInitialState, type GameState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
-import { cardGlobalMult, cardDeptMult, cardClickMult, cardOfflineCapHours, cardVoucherMult } from '../../engine/gacha';
+import { nextFloat } from '../../engine/rng';
+import {
+  cardGlobalMult,
+  cardDeptMult,
+  cardClickMult,
+  cardOfflineCapHours,
+  cardVoucherMult,
+  EXCHANGE_COST,
+  EXCHANGE_CHANCE,
+} from '../../engine/gacha';
+
+/** Brute-forces a seed whose next roll lands on the wanted side of `chance` (mirrors gacha.test.ts). */
+function seedFor(chance: number, wantSuccess: boolean): number {
+  for (let seed = 1; seed < 10_000; seed++) {
+    if ((nextFloat(seed).value < chance) === wantSuccess) return seed;
+  }
+  throw new Error('no seed found in range');
+}
 
 const CARD = 'c-dave-overtime'; // deptMult 0.05 on intake
 
@@ -59,6 +76,46 @@ describe('CardSheet', () => {
     seed({ cards: { [CARD]: 5 } });
     render(<CardSheet cardId={CARD} onClose={() => {}} />);
     expect(screen.getByText(/max stars/i)).toBeInTheDocument();
+  });
+
+  it('shows 5 filled stars at the cap with the 5-of-5 label', () => {
+    seed({ cards: { [CARD]: 5 } });
+    render(<CardSheet cardId={CARD} onClose={() => {}} />);
+    expect(screen.getByLabelText('5 of 5 stars')).toBeInTheDocument();
+  });
+
+  it('hides the Exchange button below EXCHANGE_COST spares, below ★5, or for an executive card', () => {
+    seed({ cards: { [CARD]: 5 }, cardSpares: { [CARD]: EXCHANGE_COST - 1 } });
+    render(<CardSheet cardId={CARD} onClose={() => {}} />);
+    expect(screen.queryByRole('button', { name: /exchange/i })).toBeNull();
+    cleanup();
+
+    seed({ cards: { [CARD]: 4 }, cardSpares: { [CARD]: EXCHANGE_COST } });
+    render(<CardSheet cardId={CARD} onClose={() => {}} />);
+    expect(screen.queryByRole('button', { name: /exchange/i })).toBeNull();
+    cleanup();
+
+    const exec = content.cards.find((c) => c.rarity === 'executive')!.id;
+    seed({ cards: { [exec]: 5 }, cardSpares: { [exec]: EXCHANGE_COST } });
+    render(<CardSheet cardId={exec} onClose={() => {}} />);
+    expect(screen.queryByRole('button', { name: /exchange/i })).toBeNull();
+  });
+
+  it('exchanges spares for a chance at the next rarity and shows the result', () => {
+    const winSeed = seedFor(EXCHANGE_CHANCE.temp, true);
+    seed({ cards: { [CARD]: 5 }, cardSpares: { [CARD]: EXCHANGE_COST }, rngSeed: winSeed });
+    render(<CardSheet cardId={CARD} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: /exchange 3 spares/i }));
+    expect(useGame.getState().state.cardSpares[CARD]).toBe(0);
+    expect(screen.getByText(/exchanged: got/i)).toBeInTheDocument();
+  });
+
+  it('shows a consolation KC line on a failed exchange', () => {
+    const loseSeed = seedFor(EXCHANGE_CHANCE.temp, false);
+    seed({ cards: { [CARD]: 5 }, cardSpares: { [CARD]: EXCHANGE_COST }, rngSeed: loseSeed });
+    render(<CardSheet cardId={CARD} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: /exchange 3 spares/i }));
+    expect(screen.getByText(/no luck: \+[\d,]+ kc/i)).toBeInTheDocument();
   });
 
   it('prints the bonus the engine would actually apply, for every card at every star', () => {

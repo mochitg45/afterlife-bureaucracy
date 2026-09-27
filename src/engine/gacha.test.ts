@@ -1,8 +1,10 @@
 import Decimal from 'break_infinity.js';
 import { createInitialState } from './state';
 import { content } from '../data';
+import { nextFloat } from './rng';
 import {
   pull,
+  exchangeCard,
   rollRarity,
   equipCard,
   unequipCard,
@@ -16,6 +18,9 @@ import {
   PITY_EXECUTIVE,
   PULL_COST,
   TEN_PULL_COST,
+  MAX_STARS,
+  EXCHANGE_COST,
+  EXCHANGE_CHANCE,
 } from './gacha';
 
 const now = { wall: 0, mono: 0 };
@@ -128,7 +133,7 @@ describe('pull', () => {
     expect(s.cardShards[id]).toBe(0);
   });
 
-  it('reaches ★5 after 1+2+3+5 = 11 duplicates; the 12th pays KC instead', () => {
+  it('reaches ★5 after 1+2+3+5 = 11 duplicates; the 12th banks a spare copy instead (non-executive)', () => {
     const one = { ...content, cards: [content.cards[0]] };
     const id = content.cards[0].id;
     let s = { ...base(), vouchers: 1000 };
@@ -142,13 +147,89 @@ describe('pull', () => {
     s = r.state;
     expect(s.cards[id]).toBe(5);
     expect(r.results[0]).toMatchObject({ starsAfter: 5, shards: 0, shardsNeeded: 0 });
-    // Any further duplicate pays KC and leaves stars/shards untouched.
+    // Any further duplicate of a non-executive card banks a spare copy, no KC, stars untouched.
     r = pull(s, one, 1, rate);
     expect(r.state.cards[id]).toBe(5);
     expect(r.state.cardShards[id]).toBe(0);
+    expect(r.results[0].duplicateKc).toBeNull();
+    expect(r.results[0].spareGained).toBe(true);
+    expect(r.state.cardSpares[id]).toBe(1);
+    expect(r.state.kc.toNumber()).toBe(0);
+  });
+
+  it('still converts a duplicate past ★5 to Karma Credits for an executive card (no higher rarity to exchange into)', () => {
+    const execCard = content.cards.find((c) => c.rarity === 'executive')!;
+    const one = { ...content, cards: [execCard] };
+    const maxed = { ...base(), vouchers: 1000, cards: { [execCard.id]: MAX_STARS } };
+    const r = pull(maxed, one, 1, rate);
+    expect(r.state.cards[execCard.id]).toBe(MAX_STARS);
+    expect(r.state.cardSpares[execCard.id]).toBeUndefined();
+    expect(r.results[0].spareGained).toBe(false);
     expect(r.results[0].duplicateKc?.toNumber()).toBe(6000);
     expect(r.state.kc.toNumber()).toBe(6000);
-    expect(pull({ ...s, kc: new Decimal(0) }, one, 1, new Decimal(0.01)).results[0].duplicateKc?.toNumber()).toBe(100);
+    expect(pull({ ...maxed, kc: new Decimal(0) }, one, 1, new Decimal(0.01)).results[0].duplicateKc?.toNumber()).toBe(100);
+  });
+});
+
+describe('exchangeCard', () => {
+  const tempId = 'c-dave-overtime'; // temp rarity
+  const execId = content.cards.find((c) => c.rarity === 'executive')!.id;
+
+  function maxed(id: string, spares = EXCHANGE_COST) {
+    return { ...base(), cards: { [id]: MAX_STARS }, cardSpares: { [id]: spares } };
+  }
+
+  /** Brute-forces a seed whose next roll lands on the wanted side of `chance`, for a stable test. */
+  function seedFor(chance: number, wantSuccess: boolean): number {
+    for (let seed = 1; seed < 10_000; seed++) {
+      if ((nextFloat(seed).value < chance) === wantSuccess) return seed;
+    }
+    throw new Error('no seed found in range');
+  }
+
+  it('refuses below EXCHANGE_COST spares, below ★5, for an executive, or an unknown card', () => {
+    expect(exchangeCard(maxed(tempId, EXCHANGE_COST - 1), content, tempId, rate).result).toBeNull();
+    expect(exchangeCard({ ...base(), cards: { [tempId]: 3 }, cardSpares: { [tempId]: EXCHANGE_COST } }, content, tempId, rate).result).toBeNull();
+    expect(exchangeCard(maxed(execId), content, execId, rate).result).toBeNull();
+    expect(exchangeCard(maxed(tempId), content, 'zzz-unknown', rate).result).toBeNull();
+  });
+
+  it('spends exactly EXCHANGE_COST spares and advances the seed, leaving state untouched on refusal', () => {
+    const s = maxed(tempId, 5);
+    const r = exchangeCard(s, content, tempId, rate);
+    expect(r.result).not.toBeNull();
+    expect(r.state.cardSpares[tempId]).toBe(2);
+    expect(r.state.rngSeed).not.toBe(s.rngSeed);
+    const short = maxed(tempId, 1);
+    const refused = exchangeCard(short, content, tempId, rate);
+    expect(refused.result).toBeNull();
+    expect(refused.state).toBe(short); // refusal returns the same state, no copy made
+  });
+
+  it('is deterministic: the same seed and state always give the same outcome', () => {
+    const s = maxed(tempId, 5);
+    const a = exchangeCard(s, content, tempId, rate);
+    const b = exchangeCard(s, content, tempId, rate);
+    expect(a.result).toEqual(b.result);
+    expect(a.state.rngSeed).toBe(b.state.rngSeed);
+  });
+
+  it('on success, banks a card of the next rarity up exactly like a pull would', () => {
+    const winSeed = seedFor(EXCHANGE_CHANCE.temp, true);
+    const r = exchangeCard({ ...maxed(tempId, 5), rngSeed: winSeed }, content, tempId, rate);
+    expect(r.result?.success).toBe(true);
+    const gained = r.result?.cardId as string;
+    expect(content.cards.find((c) => c.id === gained)?.rarity).toBe('fulltime');
+    expect(r.state.cards[gained]).toBeGreaterThanOrEqual(1);
+  });
+
+  it('on failure, pays the same consolation Karma Credits a duplicate-past-★5 pays', () => {
+    const failSeed = seedFor(EXCHANGE_CHANCE.temp, false);
+    const r = exchangeCard({ ...maxed(tempId, 5), rngSeed: failSeed }, content, tempId, rate);
+    expect(r.result?.success).toBe(false);
+    expect(r.result?.cardId).toBeNull();
+    expect(r.result?.duplicateKc?.toNumber()).toBe(6000);
+    expect(r.state.kc.toNumber()).toBe(6000);
   });
 });
 

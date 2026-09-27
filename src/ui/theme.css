@@ -191,7 +191,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tile.empty { justify-content: center; min-height: 96px; color: var(--ink-muted); }
 .tile-name { font-size: 12px; font-weight: 600; }
 .tile-rarity { font-size: 10px; }
-.tile-stars { font-size: 11px; color: var(--brass); }
+.tile-stars { font-size: 11px; }
+.stars-filled { color: var(--brass); }
+.stars-empty { color: var(--ink-muted); }
 .rarity-temp { border-color: var(--line); }
 .rarity-fulltime { border-color: var(--teal); }
 .rarity-senior { border-color: var(--brass); }

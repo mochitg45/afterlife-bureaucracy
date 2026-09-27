@@ -374,6 +374,15 @@ describe('save v8 (playtest round 1: vouchers x10)', () => {
     const v8 = deserialize(JSON.stringify({ ...saveV8, cardShards: { 'c-dave-overtime': 2, 'c-nobody': 9 } }), content);
     expect(v8.cardShards).toEqual({ 'c-dave-overtime': 2 });
   });
+  it('sanitises cardSpares like cardShards: unknown ids dropped, missing defaults to empty', () => {
+    const noField = deserialize(JSON.stringify(saveV8), content);
+    expect(noField.cardSpares).toEqual({});
+    const withSpares = deserialize(
+      JSON.stringify({ ...saveV8, cardSpares: { 'c-dave-overtime': 4, 'c-nobody': 9, ghost: -1 } }),
+      content,
+    );
+    expect(withSpares.cardSpares).toEqual({ 'c-dave-overtime': 4 });
+  });
   it('folds an empty firstBuyUsed map into a v7 save migrated to v8, keeping the rest of entitlements', () => {
     const raw = { ...saveV7 };
     const s = deserialize(JSON.stringify(raw), content);
@@ -403,6 +412,7 @@ describe('exhaustive save round-trip', () => {
       stats: { clicks: 7, staffHired: 14, upgradesBought: 5, audits: 5, pulls: 9, equips: 2, dailiesClaimed: 4, adsWatched: 1, perksBought: 3, cosmics: 2, purchases: 4 },
       cards: { 'c-dave-overtime': 3, 'c-seraphine-chipper': 1 },
       cardShards: { 'c-dave-overtime': 2 },
+      cardSpares: { 'c-seraph-board': 4 },
       equipped: ['c-dave-overtime'],
       pity: { senior: 4, executive: 12 },
       rngSeed: 987654321,

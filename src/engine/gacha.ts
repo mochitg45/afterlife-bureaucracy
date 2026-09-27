@@ -18,6 +18,12 @@ export const DUPLICATE_KC_MIN = 100;
 export const ODDS: Record<Rarity, number> = { temp: 0.7, fulltime: 0.245, senior: 0.05, executive: 0.005 };
 const ROLL_ORDER: Rarity[] = ['executive', 'senior', 'fulltime', 'temp'];
 
+/** Spares spent on one Exchange attempt. */
+export const EXCHANGE_COST = 3;
+/** Chance an Exchange succeeds, by the spent card's own rarity. Executives have no higher rarity to exchange into. */
+export const EXCHANGE_CHANCE: Record<'temp' | 'fulltime' | 'senior', number> = { temp: 0.5, fulltime: 0.25, senior: 0.1 };
+const NEXT_RARITY: Record<'temp' | 'fulltime' | 'senior', Rarity> = { temp: 'fulltime', fulltime: 'senior', senior: 'executive' };
+
 export interface PullResult {
   cardId: string;
   rarity: Rarity;
@@ -28,6 +34,19 @@ export interface PullResult {
   shards: number;
   /** Shards required for the next star; 0 at ★5. */
   shardsNeeded: number;
+  /** True when this duplicate banked a spare copy rather than converting to Karma Credits. */
+  spareGained: boolean;
+}
+
+/** Outcome of one Exchange attempt (see `exchangeCard`). */
+export interface ExchangeResult {
+  success: boolean;
+  /** The card gained, on success only. */
+  cardId: string | null;
+  starsAfter: number;
+  /** Consolation Karma Credits on failure; also set on a success that maxes an executive. */
+  duplicateKc: Decimal | null;
+  spareGained: boolean;
 }
 
 /** Rolls a rarity from a seed, applying pity: forced senior+ at PITY_SENIOR, forced executive at PITY_EXECUTIVE. */
@@ -64,6 +83,58 @@ export interface PullOptions {
   free?: boolean;
 }
 
+/**
+ * Applies one copy of `id` to the owned collection: first copy → ★1; below ★5 → bank a shard
+ * (star up if that completes the requirement); at ★5 → a spare copy, except an executive card
+ * (no higher rarity to exchange into) still converts to Karma Credits. Shared by `pull` and
+ * `exchangeCard`, whose "you got a card" step is otherwise identical. Mutates `cards`,
+ * `cardShards` and `cardSpares` in place; returns the new `kc` alongside the per-pull result bits.
+ */
+function bankCard(
+  content: Content,
+  cards: Record<string, number>,
+  cardShards: Record<string, number>,
+  cardSpares: Record<string, number>,
+  id: string,
+  kc: Decimal,
+  kcPerSec: Decimal,
+): { kc: Decimal; duplicateKc: Decimal | null; spareGained: boolean; starsAfter: number; shards: number; shardsNeeded: number } {
+  const stars = cards[id] ?? 0;
+  let duplicateKc: Decimal | null = null;
+  let spareGained = false;
+  let nextKc = kc;
+  if (stars === 0) {
+    cards[id] = 1;
+  } else if (stars >= MAX_STARS) {
+    const def = content.cards.find((c) => c.id === id);
+    if (def?.rarity === 'executive') {
+      duplicateKc = Decimal.max(new Decimal(DUPLICATE_KC_MIN), kcPerSec.mul(DUPLICATE_KC_SECONDS));
+      nextKc = kc.add(duplicateKc);
+    } else {
+      cardSpares[id] = (cardSpares[id] ?? 0) + 1;
+      spareGained = true;
+    }
+  } else {
+    const needed = DUPES_PER_STAR[stars - 1];
+    const shards = (cardShards[id] ?? 0) + 1;
+    if (shards >= needed) {
+      cards[id] = stars + 1;
+      cardShards[id] = 0;
+    } else {
+      cardShards[id] = shards;
+    }
+  }
+  const starsAfter = cards[id] ?? MAX_STARS;
+  return {
+    kc: nextKc,
+    duplicateKc,
+    spareGained,
+    starsAfter,
+    shards: cardShards[id] ?? 0,
+    shardsNeeded: starsAfter >= MAX_STARS ? 0 : DUPES_PER_STAR[starsAfter - 1],
+  };
+}
+
 /** Spends vouchers, rolls `count` cards from a seeded RNG, and applies duplicate-to-KC conversion past 5 stars. Refuses (same state) if vouchers are short. */
 export function pull(
   state: GameState,
@@ -78,6 +149,7 @@ export function pull(
   let pity = { ...state.pity };
   const cards = { ...state.cards };
   const cardShards = { ...state.cardShards };
+  const cardSpares = { ...state.cardSpares };
   let kc = state.kc;
   const results: PullResult[] = [];
   for (let i = 0; i < count; i++) {
@@ -87,34 +159,19 @@ export function pull(
     const picked = pickCard(seed, pool.length ? pool : content.cards);
     seed = picked.seed;
     const id = picked.card.id;
-    const stars = cards[id] ?? 0;
-    let duplicateKc: Decimal | null = null;
-    if (stars === 0) {
-      cards[id] = 1;
-    } else if (stars >= MAX_STARS) {
-      duplicateKc = Decimal.max(new Decimal(DUPLICATE_KC_MIN), kcPerSec.mul(DUPLICATE_KC_SECONDS));
-      kc = kc.add(duplicateKc);
-    } else {
-      const needed = DUPES_PER_STAR[stars - 1];
-      const shards = (cardShards[id] ?? 0) + 1;
-      if (shards >= needed) {
-        cards[id] = stars + 1;
-        cardShards[id] = 0;
-      } else {
-        cardShards[id] = shards;
-      }
-    }
+    const banked = bankCard(content, cards, cardShards, cardSpares, id, kc, kcPerSec);
+    kc = banked.kc;
     const gotSenior = roll.rarity === 'senior' || roll.rarity === 'executive';
     pity = { senior: gotSenior ? 0 : pity.senior + 1, executive: roll.rarity === 'executive' ? 0 : pity.executive + 1 };
-    const starsAfter = cards[id] ?? MAX_STARS;
     results.push({
       cardId: id,
       rarity: roll.rarity,
-      starsAfter,
-      duplicateKc,
+      starsAfter: banked.starsAfter,
+      duplicateKc: banked.duplicateKc,
       pityTriggered: roll.pityTriggered,
-      shards: cardShards[id] ?? 0,
-      shardsNeeded: starsAfter >= MAX_STARS ? 0 : DUPES_PER_STAR[starsAfter - 1],
+      shards: banked.shards,
+      shardsNeeded: banked.shardsNeeded,
+      spareGained: banked.spareGained,
     });
   }
   return {
@@ -125,10 +182,60 @@ export function pull(
       pity,
       cards,
       cardShards,
+      cardSpares,
       kc,
       stats: { ...state.stats, pulls: state.stats.pulls + count },
     },
     results,
+  };
+}
+
+/**
+ * Spends `EXCHANGE_COST` spare copies of `cardId` for a chance at a random card of the next
+ * rarity up, handled exactly like pulling it (new → ★1; owned → shard/star-up; ★5 → spare, or
+ * Karma Credits for an executive). On failure, pays the same consolation Karma Credits a
+ * duplicate-past-★5 would. Refuses (null result, unchanged state) if the card isn't ★5, doesn't
+ * have enough spares, or has no higher rarity to exchange into (executive, or unknown).
+ */
+export function exchangeCard(
+  state: GameState,
+  content: Content,
+  cardId: string,
+  kcPerSec: Decimal,
+): { state: GameState; result: ExchangeResult | null } {
+  const def = content.cards.find((c) => c.id === cardId);
+  const stars = state.cards[cardId] ?? 0;
+  const spares = state.cardSpares[cardId] ?? 0;
+  if (!def || !(def.rarity in EXCHANGE_CHANCE) || stars < MAX_STARS || spares < EXCHANGE_COST) {
+    return { state, result: null };
+  }
+  const rarity = def.rarity as keyof typeof EXCHANGE_CHANCE;
+  const nextRarity = NEXT_RARITY[rarity];
+  const cardSpares = { ...state.cardSpares, [cardId]: spares - EXCHANGE_COST };
+  const roll = nextFloat(state.rngSeed);
+  let seed = roll.seed;
+  if (roll.value < EXCHANGE_CHANCE[rarity]) {
+    const cards = { ...state.cards };
+    const cardShards = { ...state.cardShards };
+    const pool = content.cards.filter((c) => c.rarity === nextRarity);
+    const picked = pickCard(seed, pool.length ? pool : content.cards);
+    seed = picked.seed;
+    const banked = bankCard(content, cards, cardShards, cardSpares, picked.card.id, state.kc, kcPerSec);
+    return {
+      state: { ...state, rngSeed: seed, cards, cardShards, cardSpares, kc: banked.kc },
+      result: {
+        success: true,
+        cardId: picked.card.id,
+        starsAfter: banked.starsAfter,
+        duplicateKc: banked.duplicateKc,
+        spareGained: banked.spareGained,
+      },
+    };
+  }
+  const duplicateKc = Decimal.max(new Decimal(DUPLICATE_KC_MIN), kcPerSec.mul(DUPLICATE_KC_SECONDS));
+  return {
+    state: { ...state, rngSeed: seed, cardSpares, kc: state.kc.add(duplicateKc) },
+    result: { success: false, cardId: null, starsAfter: 0, duplicateKc, spareGained: false },
   };
 }
 

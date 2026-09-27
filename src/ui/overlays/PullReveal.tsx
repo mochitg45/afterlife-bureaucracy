@@ -9,6 +9,7 @@ import { Modal } from '../components/Modal';
 /** New card (first copy) vs. a star-up vs. a banked shard vs. a duplicate converted to Karma Coins. */
 function resultLabel(r: PullResult): string {
   if (r.duplicateKc) return `+${formatNumber(r.duplicateKc)} KC`;
+  if (r.spareGained) return '+1 spare copy';
   if (r.starsAfter === 1) return 'NEW';
   if (r.shards === 0) return `★ ${r.starsAfter}`;
   return `+1 (${r.shards}/${r.shardsNeeded})`;

@@ -119,6 +119,8 @@ export interface GameState {
   cards: Record<string, number>;
   /** Duplicate shards banked toward each card's next star; resets to 0 on star-up, unused at ★5. */
   cardShards: Record<string, number>;
+  /** Spare copies banked from a non-executive duplicate pulled at ★5; spent 3 at a time on an Exchange. */
+  cardSpares: Record<string, number>;
   equipped: string[];
   pity: { senior: number; executive: number };
   rngSeed: number;
@@ -173,6 +175,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     stats: { clicks: 0, staffHired: 0, upgradesBought: 0, audits: 0, pulls: 0, equips: 0, dailiesClaimed: 0, adsWatched: 0, perksBought: 0, cosmics: 0, purchases: 0 },
     cards: {},
     cardShards: {},
+    cardSpares: {},
     equipped: [],
     pity: { senior: 0, executive: 0 },
     rngSeed: (now.wall % 2147483647) || 1,
@@ -264,7 +267,8 @@ function cardCounts(v: unknown, knownCardIds: Set<string>): Record<string, numbe
   return out;
 }
 
-/** Duplicate shards per card: counts, filtered to cards this build ships, like `cardCounts`. */
+/** Duplicate shards per card: counts, filtered to cards this build ships, like `cardCounts`.
+ * Also used for `cardSpares`, which sanitises identically. */
 function cardShardCounts(v: unknown, knownCardIds: Set<string>): Record<string, number> {
   const out: Record<string, number> = {};
   for (const [id, n] of Object.entries(counts(v))) {
@@ -497,6 +501,7 @@ export function deserialize(json: string, content: Content): GameState {
     },
     cards,
     cardShards: cardShardCounts(raw.cardShards, knownCardIds),
+    cardSpares: cardShardCounts(raw.cardSpares, knownCardIds),
     equipped: equippedCards(raw.equipped, cards),
     pity: { senior: nonNegInt(rawPity.senior, 0), executive: nonNegInt(rawPity.executive, 0) },
     rngSeed: (() => {

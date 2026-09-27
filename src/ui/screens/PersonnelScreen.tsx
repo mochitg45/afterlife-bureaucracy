@@ -3,7 +3,7 @@ import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import type { Rarity } from '../../engine/content';
-import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, equipSlots } from '../../engine/gacha';
+import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, EXCHANGE_COST, EXCHANGE_CHANCE, equipSlots } from '../../engine/gacha';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
@@ -132,6 +132,14 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
         ))}
         <p className="sub">Senior Staff or better is guaranteed within {PITY_SENIOR} pulls of the last one.</p>
         <p className="sub">Executive is guaranteed within {PITY_EXECUTIVE} pulls of the last one.</p>
+        <h3>Exchange</h3>
+        <p className="sub">At ★5, spend {EXCHANGE_COST} spare copies for a chance at the next rarity up.</p>
+        {(['temp', 'fulltime', 'senior'] as const).map((r) => (
+          <div key={r} className="odds-row">
+            <span>{RARITY_LABEL[r]} → {RARITY_LABEL[RARITY_ORDER[RARITY_ORDER.indexOf(r) + 1]]}</span>
+            <span className="mono">{pct(EXCHANGE_CHANCE[r])}</span>
+          </div>
+        ))}
       </div>
     </section>
   );
