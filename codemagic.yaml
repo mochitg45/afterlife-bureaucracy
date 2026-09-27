@@ -1,0 +1,108 @@
+# iOS release build (Codemagic). There is no Mac, so this replaces Xcode.
+# Android is built locally (docs/release.md); .github/workflows/ci.yml only runs tests.
+#
+# Copied from Smile's working setup (smile/codemagic.yaml), which reached TestFlight:
+# signing via `fetch-signing-files --create` with base64 keys, so no certificate or profile is
+# made by hand. Owner steps: docs/ios-setup.md.
+#
+# Codemagic app settings → Environment variables, group `appstore_credentials`, all Secret
+# (the same team-wide values Smile uses, files in smile-secrets/ios/):
+#   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+#   ASC_KEY_P8_B64, CERT_KEY_B64
+workflows:
+  ios-release:
+    name: Afterlife iOS release
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      groups:
+        - appstore_credentials
+      vars:
+        BUNDLE_ID: com.afterlifebureaucracy.game
+        # Numeric Apple ID of the app record in App Store Connect (App Information).
+        APP_STORE_APPLE_ID: 6816599024
+        # RevenueCat public App Store key (appl_...). Public by design. Empty = the store shows
+        # products as unavailable instead of crashing.
+        VITE_REVENUECAT_IOS_KEY: ""
+      node: 22
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+
+      - name: Run tests
+        # A red suite stops the build before it spends macOS minutes.
+        script: npm test
+
+      - name: Build the web bundle
+        script: npm run build
+
+      - name: Copy the web bundle into the iOS project
+        script: npx cap sync ios
+
+      - name: Drop AdMob from the iOS build
+        # The Google Mobile Ads SDK starts itself at launch and aborts without a
+        # GADApplicationIdentifier. iOS v1 has no AdMob app and never shows ads (pickAds() in
+        # src/platform/ads.ts returns noAds on iOS), so the pod is removed, not configured.
+        # Done after `cap sync`, which regenerates the Podfile's plugin list every time.
+        script: |
+          set -e
+          grep -q CapacitorCommunityAdmob ios/App/Podfile || { echo "AdMob pod not found in Podfile"; exit 1; }
+          sed -i '' "/CapacitorCommunityAdmob/d" ios/App/Podfile
+          grep -q CapacitorCommunityAdmob ios/App/Podfile && exit 1 || true
+
+      - name: Install CocoaPods dependencies
+        script: |
+          set -e
+          cd ios/App
+          pod install
+
+      - name: Set up code signing
+        # After `cap sync` and `pod install`: both rewrite project.pbxproj, and
+        # `xcode-project use-profiles` writes the profile into it. Keys arrive as one line of
+        # base64 because multi-line PEM pastes get mangled in Codemagic's form.
+        script: |
+          set -e
+          KEYS="$HOME/signing-keys"
+          mkdir -p "$KEYS"
+          echo "$ASC_KEY_P8_B64" | base64 --decode > "$KEYS/asc.p8"
+          echo "$CERT_KEY_B64" | base64 --decode > "$KEYS/cert_key"
+          openssl pkey -in "$KEYS/asc.p8" -noout 2>/dev/null || { echo "ASC_KEY_P8_B64 does not decode to a private key"; exit 1; }
+          openssl pkey -in "$KEYS/cert_key" -noout 2>/dev/null || { echo "CERT_KEY_B64 does not decode to a private key"; exit 1; }
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "@file:$KEYS/asc.p8" \
+            --certificate-key "@file:$KEYS/cert_key"
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Set the build number
+        script: |
+          set -e
+          cd ios/App
+          agvtool new-version -all $PROJECT_BUILD_NUMBER
+
+      - name: Build the IPA
+        script: xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
+
+      - name: Upload to App Store Connect
+        # Upload only. Internal TestFlight testers get it without review; `--testflight` would
+        # also submit for external beta review, which fails until Test Information is filled in.
+        script: |
+          set -e
+          app-store-connect publish \
+            --path build/ios/ipa/*.ipa \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "@file:$HOME/signing-keys/asc.p8"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
