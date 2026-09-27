@@ -1,4 +1,7 @@
 /**
+ * SUPERSEDED (2026-09-27): the app icon is now the Gemini chibi art in docs/art/icon-v2/;
+ * assets/icon*.png were built from it. Running this script overwrites them with the old SVG icon.
+ *
  * Draws the app icon — a rubber-stamp seal in the game's parchment palette — and hands the
  * results to `@capacitor/assets`, which writes the Android mipmaps and splash drawables.
  *
