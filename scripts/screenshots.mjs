@@ -33,7 +33,7 @@ const PORT = 4317;
 const PLATFORMS = [
   { id: 'android', outDir: storeDir, width: 1080, height: 1920, raw: { width: 400, height: 890, dsf: 2 }, frame: 'phone' },
   { id: 'ios-6.9', outDir: path.join(storeDir, 'ios-6.9'), width: 1320, height: 2868, raw: { width: 430, height: 932, dsf: 3 }, frame: 'phone' },
-  { id: 'ios-ipad-13', outDir: path.join(storeDir, 'ios-ipad-13'), width: 2064, height: 2752, raw: { width: 1032, height: 1376, dsf: 2 }, frame: 'tablet' },
+  { id: 'ios-ipad-13', outDir: path.join(storeDir, 'ios-ipad-13'), width: 2064, height: 2752, raw: { width: 768, height: 1024, dsf: 2 }, frame: 'tablet' },
 ];
 
 /** Must match `src/platform/storage.ts`; the web build persists the save under this key. */
@@ -196,7 +196,10 @@ async function compose(browser, rawDir, platform, { file, headline, sub, chips }
   const font = (await readFile(fontFile)).toString('base64');
   const shot = (await readFile(path.join(rawDir, file))).toString('base64');
   const bezelW = 820 * s;
-  const bezelH = bezelW * (platform.raw.height / platform.raw.width) * (frame === 'phone' ? 1.045 : 1.02);
+  // The screen inside the bezel has exactly the capture's aspect, so object-fit never crops the
+  // app's left and right edges.
+  const pad = 26 * s;
+  const bezelH = (bezelW - 2 * pad) * (platform.raw.height / platform.raw.width) + 2 * pad;
   const notch = frame === 'phone'
     ? `<span class="notch" style="position:absolute;top:${44 * s}px;left:50%;transform:translateX(-50%);width:${130 * s}px;height:${34 * s}px;border-radius:${17 * s}px;background:#2A2620;"></span>`
     : '';
@@ -204,12 +207,12 @@ async function compose(browser, rawDir, platform, { file, headline, sub, chips }
     @font-face { font-family: 'Special Elite'; src: url('data:font/woff2;base64,${font}') format('woff2'); }
     html, body { margin: 0; } body { width: ${W}px; height: ${H}px; overflow: hidden; background: #EDE7D4;
       background-image: repeating-linear-gradient(to bottom, transparent 0 ${59 * s}px, #C9BFA6 ${59 * s}px ${60 * s}px); font-family: 'Special Elite', serif; color: #1F3B33; text-align: center; }
-    h1 { font-size: ${74 * s}px; line-height: 1.1; margin: 0; padding: ${96 * s}px ${70 * s}px 0; text-wrap: balance; }
+    h1 { font-size: ${66 * s}px; line-height: 1.1; margin: 0; padding: ${96 * s}px ${70 * s}px 0; text-wrap: balance; }
     p { font-size: ${32 * s}px; margin: ${18 * s}px ${80 * s}px 0; color: #2A2620; opacity: .75; }
     .chips { display: flex; justify-content: center; flex-wrap: wrap; gap: ${14 * s}px; margin: ${30 * s}px ${60 * s}px 0; }
     .chip { font-size: ${26 * s}px; padding: ${12 * s}px ${24 * s}px; border: ${3 * s}px solid #1F3B33; border-radius: 999px; background: #F7F2E4; color: #1F3B33; white-space: nowrap; }
     .chip.red { border-color: #A6402B; color: #A6402B; }
-    .phone { position: absolute; left: 50%; bottom: ${-260 * s}px; transform: translateX(-50%); width: ${bezelW}px; height: ${bezelH}px; border-radius: ${(frame === 'phone' ? 96 : 48) * s}px; background: #2A2620; padding: ${26 * s}px; box-sizing: border-box; box-shadow: 0 ${40 * s}px ${80 * s}px rgba(42,38,32,.35); }
+    .phone { position: absolute; left: 50%; bottom: ${-260 * s}px; transform: translateX(-50%); width: ${bezelW}px; height: ${bezelH}px; border-radius: ${(frame === 'phone' ? 96 : 48) * s}px; background: #2A2620; padding: ${pad}px; box-sizing: border-box; box-shadow: 0 ${40 * s}px ${80 * s}px rgba(42,38,32,.35); }
     .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: ${(frame === 'phone' ? 72 : 30) * s}px; display: block; }
   </style><body><h1>${headline}</h1><p>${sub}</p>
   <div class="chips">${chips.map((c, i) => `<span class="chip${i === 0 ? ' red' : ''}">${c}</span>`).join('')}</div>
@@ -217,6 +220,14 @@ async function compose(browser, rawDir, platform, { file, headline, sub, chips }
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   await page.setContent(html);
   await page.evaluate(() => document.fonts.ready);
+  // A headline that wraps pushes its subtitle and chips down; the device must start below the
+  // last line of text, never over it. It may run further off the bottom edge instead.
+  await page.evaluate((gap) => {
+    const phone = document.querySelector('.phone');
+    const textBottom = Math.max(...[...document.querySelectorAll('h1, p, .chips')].map((e) => e.getBoundingClientRect().bottom));
+    const top = textBottom + gap;
+    Object.assign(phone.style, { top: `${top}px`, bottom: 'auto' });
+  }, 44 * s);
   await page.screenshot({ path: path.join(platform.outDir, file) });
   await page.close();
   console.log(`  [${platform.id}] ${file}`);
