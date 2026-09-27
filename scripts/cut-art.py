@@ -43,10 +43,9 @@ STORY = {
     "scene4-desk.jpg": "in-stamp",
 }
 
-CELL_INSET = 0.08  # fraction of cell trimmed off each side before flood fill (clears the card's border stroke)
-BOTTOM_TEXT_FRAC = 0.22  # bottom slice dropped (name text)
-BG_SAT_MAX = 0.15  # HSV saturation ceiling for "flat cream panel/page" pixels
-BG_VAL_MIN = 0.75  # HSV value floor for same
+CELL_INSET = 0.0  # fraction of cell trimmed off each side before flood fill (clears the card's border stroke)
+BG_SAT_MAX = 0.24  # HSV saturation ceiling for "flat cream panel/page" pixels
+BG_VAL_MIN = 0.72  # HSV value floor for same
 SPRITE_SIZE = 256
 SPRITE_MARGIN = 8
 DEPT_SIZE = 768
@@ -90,22 +89,51 @@ def flood_background(rgb: np.ndarray, sat_max: float, val_min: float) -> np.ndar
     return bg
 
 
+TEXT_GAP_ROWS = 10  # empty rows separating the character (and its shadow) from the name text below
+MIN_BLOB_FRAC = 0.015  # drop foreground islands smaller than this fraction of the biggest one
+
+
 def cutout_sprite(cell: Image.Image) -> Image.Image:
-    cell = cell.convert("RGB")
-    w, h = cell.size
-    cell = cell.crop((0, 0, w, int(h * (1 - BOTTOM_TEXT_FRAC))))
-    rgb = np.array(cell)
-    bg = flood_background(rgb, BG_SAT_MAX, BG_VAL_MIN)
-    alpha = np.where(bg, 0, 255).astype(np.uint8)
-    rgba = np.dstack([rgb, alpha])
-    out = Image.fromarray(rgba, mode="RGBA")
+    """Flood the page, card fill and card border away from the cell edges,
+    cut the name text off at the lowest empty-row gap, and drop tiny islands."""
+    from scipy import ndimage
+
+    rgb = np.array(cell.convert("RGB"))
+    fg = ~flood_background(rgb, BG_SAT_MAX, BG_VAL_MIN)
+
+    # name text: walk up from the bottom; after the first inked row, the first
+    # run of TEXT_GAP_ROWS empty rows is the gap above the name.
+    rows = fg.sum(axis=1) > 0
+    h = len(rows)
+    y, seen, gap = h - 1, False, 0
+    cut = h
+    while y >= 0:
+        if rows[y]:
+            seen, gap = True, 0
+        elif seen:
+            gap += 1
+            if gap >= TEXT_GAP_ROWS:
+                cut = y + gap
+                break
+        y -= 1
+    if cut < h * 0.6:  # no plausible text gap found; keep everything
+        cut = h
+    fg[cut:] = False
+
+    lab, n = ndimage.label(fg)
+    if n:
+        sizes = ndimage.sum(fg, lab, range(1, n + 1))
+        keep = np.isin(lab, 1 + np.flatnonzero(sizes >= sizes.max() * MIN_BLOB_FRAC))
+        fg &= keep
+
+    alpha = np.where(fg, 255, 0).astype(np.uint8)
+    out = Image.fromarray(np.dstack([rgb, alpha]), mode="RGBA")
 
     bbox = out.getbbox()
     if bbox is None:
         return out
     out = out.crop(bbox)
 
-    # pad 8px transparent margin, then fit into 256x256 preserving aspect
     ow, oh = out.size
     canvas_w, canvas_h = ow + 2 * SPRITE_MARGIN, oh + 2 * SPRITE_MARGIN
     padded = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
