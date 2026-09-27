@@ -1,0 +1,37 @@
+APP NAME
+Afterlife Bureaucracy: Idle
+
+SHORT DESCRIPTION
+Tycoon idle cõi âm: đóng dấu linh hồn, tuyển reaper, kiếm tiền cả khi offline.
+
+FULL DESCRIPTION
+Cái chết không phải là dấu chấm hết. Nó chỉ là một tờ khai nhập cảnh. Afterlife Bureaucracy là game idle clicker dễ thương, nơi bạn điều hành bộ máy hành chính của cõi âm: đóng dấu linh hồn, tuyển nhân viên chibi, mở khóa Thiên Đàng và Địa Ngục, rồi xây dựng cả một đế chế văn phòng vẫn kiếm tiền đều đều dù bạn đang offline.
+
+CHẠM, RỒI ĐỂ VĂN PHÒNG TỰ VẬN HÀNH
+Chạm vào con dấu để xử lý linh hồn bằng tay và kiếm Tín Dụng Nghiệp. Tuyển Dave — tử thần tăng ca, Seraphine — thiên thần thực tập, và Gary — quỷ thực tập có công đoàn, họ sẽ đóng dấu thay bạn. Mỗi nhân viên có thanh tốc độ riêng và mốc "x2 tại", nên bạn luôn biết lần tuyển dụng tiếp theo đáng giá gì. Nhìn con số leo từ hàng nghìn lên hàng triệu tỷ, đúng chất một game incremental hay.
+
+MỖI LINH HỒN LÀ MỘT CÂU CHUYỆN
+Các bà cụ, dân chơi golf, ông chú hâm cá trong lò vi sóng văn phòng, và một chú chó corgi rượt xe bưu tá hơi nhiều lần. Hơn 250 linh hồn xếp hàng ở bàn bạn, mỗi người một gương mặt, một nguyên nhân qua đời và một yêu cầu riêng. Vài linh hồn là thú cưng. Tất cả đều muốn chỗ ngồi đẹp.
+
+SÁU PHÒNG BAN CẦN MỞ KHÓA
+Tiếp Nhận, Phòng Duyệt Thiên Đàng, Phòng Tuân Thủ Địa Ngục, Bàn Đầu Thai, Kho Hồ Sơ Luyện Ngục, và một phòng phụ mà sơ đồ tổ chức không thừa nhận. Thiên Đàng tỏa nắng dịu nhẹ, Địa Ngục lập lòe ánh đèn lồng và than hồng, mỗi phòng ban có nhân viên, nâng cấp và ý kiến riêng về các phòng khác.
+
+PRESTIGE: NỘP KIỂM TOÁN, KHỞI ĐẦU NHANH HƠN
+Khi năm tài chính khép lại, hãy nộp một cuộc Kiểm Toán. Văn phòng reset, bạn nhận Con Dấu Phòng Ban, rồi dùng chúng trong Sổ Cái Đặc Quyền để đổi lấy bonus vĩnh viễn. Mỗi lượt chơi mới đều nhanh hơn lượt trước. Về sau, Tái Cơ Cấu Vũ Trụ sẽ viết lại toàn bộ luật chơi.
+
+SƯU TẦM 30 THẺ NHÂN SỰ
+Dùng Phiếu Yêu Cầu Vật Tư để quay thẻ nhân viên, từ Thời Vụ đến Điều Hành. Thẻ trùng giúp nâng sao tối đa năm sao, và nhân viên đã trang bị sẽ nhân toàn bộ thu nhập của bạn. Thẻ dư của một thẻ đã full sao có thể đổi lấy cơ hội ra thẻ hiếm hơn. Có một lượt quay miễn phí mỗi ngày, và tỷ lệ đầy đủ được công khai ngay trong game.
+
+KIẾM TIỀN OFFLINE, KỂ CẢ KHI BẠN NGỦ
+Tắt app thì nhân viên vẫn làm việc offline. Quay lại, bạn sẽ thấy Báo Cáo Tồn Đọng Qua Đêm — một đống linh hồn đã xử lý, cùng lựa chọn xem quảng cáo để nhân đôi. Nhiệm vụ hằng ngày, chuỗi đăng nhập và 80 thành tựu khiến giấy tờ không bao giờ hết việc.
+
+CHƠI THEO CÁCH CỦA BẠN
+- Nhịp độ idle không ngốn thời gian: vài phút mỗi ngày là đủ
+- Thu nhập offline với giới hạn có thể nâng cấp
+- Đăng nhập Google tùy chọn kèm lưu trữ đám mây, bàn làm việc theo bạn sang máy mới
+- Thành tựu Play Games và bảng xếp hạng tổng số linh hồn
+- Giao diện sáng và tối
+- Chỉ có quảng cáo có thưởng. Không banner, không interstitial, không gì ngắt quãng lúc đóng dấu
+- Mua trong game là tùy chọn; mọi thứ đều có thể kiếm được miễn phí khi chơi
+
+Một game tycoon văn phòng ấm cúng và châm biếm, dành cho fan của game idle, clicker và incremental. Hàng người đã xếp ra tới cửa và sự vĩnh hằng vẫn đang tính giờ. Lấy số thứ tự, chấm công, rồi bắt đầu đóng dấu thôi.
