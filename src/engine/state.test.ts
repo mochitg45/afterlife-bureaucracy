@@ -421,6 +421,7 @@ describe('exhaustive save round-trip', () => {
         date: '2026-09-14',
         tasks: [{ id: 'd-clicks-1', claimed: true }, { id: 'd-hire-1', claimed: false }],
         skipped: ['d-upgrades-1'],
+        adSkipped: [],
         streak: 5,
         bestStreak: 9,
         skipTokens: 2,

@@ -58,6 +58,8 @@ export interface DailiesState {
   date: string;
   tasks: DailyTaskState[];
   skipped: string[];
+  /** Of `skipped`, the tasks written off with a rewarded ad; they claim for five vouchers. */
+  adSkipped: string[];
   streak: number;
   bestStreak: number;
   skipTokens: number;
@@ -187,6 +189,7 @@ export function createInitialState(now: Now, content: Content): GameState {
       date: '',
       tasks: [],
       skipped: [],
+      adSkipped: [],
       streak: 0,
       bestStreak: 0,
       skipTokens: 0,
@@ -375,6 +378,7 @@ function sanitizeDailies(v: unknown, knownDailyIds: Set<string>, fallback: Daili
     date: typeof raw.date === 'string' ? raw.date : fallback.date,
     tasks,
     skipped: knownIds(raw.skipped, knownDailyIds),
+    adSkipped: knownIds(raw.adSkipped, knownDailyIds),
     streak: num(raw.streak, fallback.streak),
     bestStreak: num(raw.bestStreak, fallback.bestStreak),
     skipTokens: num(raw.skipTokens, fallback.skipTokens),

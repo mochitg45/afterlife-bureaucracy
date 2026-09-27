@@ -29,6 +29,7 @@ function dailiesWith(overrides: Partial<DailiesState> = {}): DailiesState {
     date: TODAY,
     tasks: [{ id: TASK_ID, claimed: false }],
     skipped: [],
+    adSkipped: [],
     streak: 3,
     bestStreak: 5,
     skipTokens: 1,
@@ -168,6 +169,18 @@ describe('TasksScreen', () => {
     // assertion sit inside act() together.
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: `Skip with ad: ${TASK_TEXT}` })); });
     expect(watchAd).toHaveBeenCalledWith('daily-skip', TASK_ID);
+  });
+
+  it('shows +1 voucher normally, +5 once ad-skipped, and says +5 on the ad button', () => {
+    seed({ dailies: dailiesWith() });
+    useGame.setState({ adsReady: true });
+    const { unmount } = render(<TasksScreen />);
+    expect(document.querySelector('.daily-reward')).toHaveTextContent('+1');
+    expect(screen.getByRole('button', { name: `Skip with ad: ${TASK_TEXT}` })).toHaveTextContent('+5 vouchers');
+    unmount();
+    seed({ dailies: dailiesWith({ skipped: [TASK_ID], adSkipped: [TASK_ID] }) });
+    render(<TasksScreen />);
+    expect(document.querySelector('.daily-reward')).toHaveTextContent('+5');
   });
 
   it('closes the ad skip once it has been spent today', () => {

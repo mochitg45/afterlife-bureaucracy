@@ -11,7 +11,11 @@ export const TASKS_PER_DAY = 3;
 export const STREAK_BONUS_EVERY = 7;
 export const STREAK_BONUS_VOUCHERS = 30;
 export const TOKEN_EVERY_DAYS = 7;
-export const DAILY_VOUCHERS = 10;
+/** A claimed task pays a flat voucher; one written off with a rewarded ad pays five. Both are
+ * exact grants: the voucher multiplier applies only to the streak bonus, so the row's "+1" and
+ * "+5" are always what lands. */
+export const DAILY_VOUCHERS = 1;
+export const AD_SKIP_VOUCHERS = 5;
 export const DAILY_KC_SECONDS = 300;
 export const DAILY_KC_MIN = 50;
 
@@ -166,6 +170,7 @@ export function rollover(state: GameState, content: Content, wallMs: number, opt
       date: today,
       tasks: pickTasks(content, today, state, options).map((t) => ({ id: t.id, claimed: false })),
       skipped: [],
+      adSkipped: [],
       streak,
       bestStreak,
       skipTokens,
@@ -177,6 +182,11 @@ export function rollover(state: GameState, content: Content, wallMs: number, opt
   };
   // A membership perk, not a reward: exact, so the requisition multipliers never touch it.
   return options.unionActive ? grantVouchersExact(next, UNION_ROLLOVER_VOUCHERS) : next;
+}
+
+/** What claiming this task pays in vouchers: five if it was written off with an ad, else one. */
+export function dailyVoucherReward(state: Pick<GameState, 'dailies'>, taskId: string): number {
+  return state.dailies.adSkipped.includes(taskId) ? AD_SKIP_VOUCHERS : DAILY_VOUCHERS;
 }
 
 export function claimDaily(
@@ -199,7 +209,7 @@ export function claimDaily(
     stats: { ...state.stats, dailiesClaimed: state.stats.dailiesClaimed + 1 },
   };
   const before = next.vouchers;
-  next = grantVouchers(next, content, DAILY_VOUCHERS);
+  next = grantVouchersExact(next, dailyVoucherReward(state, taskId));
   // streak + 1 anticipates tonight's rollover, which will count today as completed.
   if (allClaimed && (state.dailies.streak + 1) % STREAK_BONUS_EVERY === 0) next = grantVouchers(next, content, STREAK_BONUS_VOUCHERS);
   return { state: next, vouchers: next.vouchers - before, kc };
@@ -212,8 +222,12 @@ function skippable(state: GameState, content: Content, taskId: string): boolean 
   return !!task && !!def && !task.claimed && !isDone(state, def);
 }
 
-function markSkipped(state: GameState, taskId: string, skipTokens: number): GameState {
-  return { ...state, dailies: { ...state.dailies, skipTokens, skipped: [...state.dailies.skipped, taskId] } };
+function markSkipped(state: GameState, taskId: string, skipTokens: number, byAd = false): GameState {
+  const d = state.dailies;
+  return {
+    ...state,
+    dailies: { ...d, skipTokens, skipped: [...d.skipped, taskId], adSkipped: byAd ? [...d.adSkipped, taskId] : d.adSkipped },
+  };
 }
 
 export function skipDaily(state: GameState, content: Content, taskId: string): GameState {
@@ -222,10 +236,11 @@ export function skipDaily(state: GameState, content: Content, taskId: string): G
 }
 
 /**
- * The rewarded-ad write-off: the same effect as a skip token, paid for with an ad instead.
- * The per-day limit lives in the store's ad state, not in the token pool.
+ * The rewarded-ad write-off: like a skip token, paid for with an ad instead, and the task then
+ * claims for AD_SKIP_VOUCHERS rather than one. The per-day limit lives in the store's ad
+ * state, not in the token pool.
  */
 export function skipDailyFree(state: GameState, content: Content, taskId: string): GameState {
   if (!skippable(state, content, taskId)) return state;
-  return markSkipped(state, taskId, state.dailies.skipTokens);
+  return markSkipped(state, taskId, state.dailies.skipTokens, true);
 }

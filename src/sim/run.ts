@@ -44,11 +44,11 @@ function table(label: string, r: SimResult, pacing: Pacing): boolean {
   }
   const faucet = vouchersPerDay(r, 3, 14, 'tasks');
   console.log(
-    'vouchers/day, days 3-14: faucet', faucet.toFixed(2), '(target 20-40)',
+    'vouchers/day, days 3-14: faucet', faucet.toFixed(2), '(target 8-16: 1 per task, 5 ad-skipped, plus the streak pack)',
     '| achievements', vouchersPerDay(r, 3, 14, 'achievements').toFixed(2),
     '| all sources', vouchersPerDay(r, 3, 14).toFixed(2),
   );
-  if (pacing.faucet && (faucet < 20 || faucet > 40)) ok = false;
+  if (pacing.faucet && (faucet < 8 || faucet > 16)) ok = false;
   const slice = r.days.filter((d) => d.day >= 3 && d.day <= 14);
   const mean = (pick: (d: typeof slice[number]) => number) => slice.reduce((t, d) => t + pick(d), 0) / (slice.length || 1);
   console.log(

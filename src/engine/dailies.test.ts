@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import { createInitialState, type GameState } from './state';
+import { createInitialState, serialize, deserialize, type GameState } from './state';
 import { content } from '../data';
 import { loadContent, ALWAYS_AVAILABLE_DAILY_KINDS } from './content';
 import intake from '../data/departments/intake.json';
@@ -137,10 +137,10 @@ describe('claim and skip', () => {
     let s = ready();
     const ids = s.dailies.tasks.map((t) => t.id);
     const r1 = claimDaily(s, content, ids[0], new Decimal(2));
-    expect(r1.vouchers).toBe(10);
+    expect(r1.vouchers).toBe(1);
     expect(r1.kc.toNumber()).toBe(600);
     s = r1.state;
-    expect(s.vouchers).toBe(10);
+    expect(s.vouchers).toBe(1);
     expect(s.stats.dailiesClaimed).toBe(1);
     expect(claimDaily(s, content, ids[0], new Decimal(2)).state).toBe(s);
     s = claimDaily(s, content, ids[1], new Decimal(0)).state;
@@ -154,7 +154,9 @@ describe('claim and skip', () => {
     expect(claimDaily(s0, content, id, new Decimal(1)).state).toBe(s0);
     const s1 = skipDaily(s0, content, id);
     expect(s1.dailies.skipTokens).toBe(0);
-    expect(claimDaily(s1, content, id, new Decimal(1)).vouchers).toBe(10);
+    // A skip-token write-off pays the normal single voucher.
+    expect(s1.dailies.adSkipped).toEqual([]);
+    expect(claimDaily(s1, content, id, new Decimal(1)).vouchers).toBe(1);
     expect(skipDaily(s1, content, s1.dailies.tasks[1].id)).toBe(s1);
   });
   it('writes a task off without a token for the rewarded-ad skip', () => {
@@ -165,14 +167,15 @@ describe('claim and skip', () => {
     expect(skipDaily(noTokens, content, id)).toBe(noTokens);
     const s1 = skipDailyFree(noTokens, content, id);
     expect(s1.dailies.skipped).toEqual([id]);
+    expect(s1.dailies.adSkipped).toEqual([id]);
     expect(s1.dailies.skipTokens).toBe(0);
     // Already written off, so a second ad changes nothing.
     expect(skipDailyFree(s1, content, id)).toBe(s1);
     // The write-off is an instant completion, not a forfeit: the task is claimable and pays
-    // its vouchers and KC like any other (spec §8).
+    // KC like any other (spec §8), and five vouchers instead of one.
     expect(isDone(s1, content.dailies.find((d) => d.id === id)!)).toBe(true);
     const claim = claimDaily(s1, content, id, new Decimal(1));
-    expect(claim.vouchers).toBe(10);
+    expect(claim.vouchers).toBe(5);
     expect(claim.state.dailies.tasks.find((t) => t.id === id)!.claimed).toBe(true);
   });
   it('grants two exact vouchers on a rollover for a union member', () => {
@@ -184,7 +187,19 @@ describe('claim and skip', () => {
     let s = { ...ready() };
     s = { ...s, dailies: { ...s.dailies, streak: 6 } };
     for (const t of s.dailies.tasks) s = claimDaily(s, content, t.id, new Decimal(0)).state;
-    expect(s.vouchers).toBe(30 + 30);
+    expect(s.vouchers).toBe(3 + 30);
+  });
+  it('pays the daily voucher exactly, without the multiplier', () => {
+    const s = { ...ready(), perks: ['requisition-1'] };
+    expect(claimDaily(s, content, s.dailies.tasks[0].id, new Decimal(0)).vouchers).toBe(1);
+  });
+  it('clears the ad-skip list on rollover and defaults it on an old save', () => {
+    const s0 = rollover(createInitialState(now, content), content, T0);
+    const s1 = skipDailyFree(s0, content, s0.dailies.tasks[0].id);
+    expect(rollover(s1, content, T0 + 86_400_000).dailies.adSkipped).toEqual([]);
+    const raw = JSON.parse(serialize(s1));
+    delete raw.dailies.adSkipped;
+    expect(deserialize(JSON.stringify(raw), content).dailies.adSkipped).toEqual([]);
   });
   it('carries the sub-voucher remainder instead of rounding every grant up', () => {
     const s = { ...fresh(), perks: ['requisition-1'] };

@@ -532,7 +532,7 @@ describe('union membership in the store', () => {
     const after = store.getState().state;
     expect(after.dailies.tasks[0].claimed).toBe(true);
     expect(after.stats.dailiesClaimed).toBe(1);
-    expect(after.vouchers).toBe(10);
+    expect(after.vouchers).toBe(1);
     store.getState().stopLoop();
   });
 

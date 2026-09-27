@@ -2,8 +2,7 @@ import { memo, useMemo } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import Decimal from 'break_infinity.js';
-import { progressOf, isDone, DAILY_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
-import { grantVouchers } from '../../engine/vouchers';
+import { progressOf, isDone, dailyVoucherReward, AD_SKIP_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
 import { formatNumber } from '../../engine/format';
 import { KarmaIcon, VoucherIcon } from '../icons/Currency';
 import type { DailyDef } from '../../engine/content';
@@ -18,9 +17,8 @@ function fillText(def: DailyDef): string {
 function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) {
   const claimDaily = useGame((s) => s.claimDaily);
   const skipDaily = useGame((s) => s.skipDaily);
-  // Primitive selectors (a number, a formatted string) so the tick loop only re-renders a row
-  // when the reward it shows actually changes. Mirrors claimDaily() in engine/dailies.ts.
-  const rewardVouchers = useGame((s) => grantVouchers(s.state, content, DAILY_VOUCHERS).vouchers - s.state.vouchers);
+  // A primitive selector (a formatted string) so the tick loop only re-renders a row when the
+  // reward it shows actually changes. Mirrors claimDaily() in engine/dailies.ts.
   const rewardKc = useGame((s) => formatNumber(Decimal.max(new Decimal(DAILY_KC_MIN), s.rates.kcPerSec.mul(DAILY_KC_SECONDS))));
   const def = content.dailies.find((d) => d.id === taskId);
   const task = view.dailies.tasks.find((t) => t.id === taskId);
@@ -30,6 +28,7 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
   const done = isDone(view, def);
   const text = fillText(def);
   const pct = (Math.min(progress, def.target) / def.target) * 100;
+  const rewardVouchers = dailyVoucherReward(view, taskId);
 
   return (
     <div className="card daily-row">
@@ -59,7 +58,7 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
           </button>
         )}
         {!done && !task.claimed && (
-          <AdButton placement="daily-skip" taskId={taskId} label={`Skip with ad: ${text}`} text="Skip with ad" />
+          <AdButton placement="daily-skip" taskId={taskId} label={`Skip with ad: ${text}`} text={`Skip with ad · +${AD_SKIP_VOUCHERS} vouchers`} />
         )}
       </div>
     </div>
