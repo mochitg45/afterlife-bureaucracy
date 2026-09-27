@@ -11,4 +11,4 @@ one per department.
 | hell.jpg | Hell Compliance |
 | reincarnation.jpg | Reincarnation Desk |
 | limbo.jpg | Limbo Records |
-| (missing) valhalla.jpg | Valhalla Intake Annex: Gemini image limit hit; generate after the reset |
+| valhalla.jpg | Valhalla Intake Annex |
