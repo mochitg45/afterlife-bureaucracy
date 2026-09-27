@@ -26,6 +26,12 @@ function GoogleG() {
 /** Full-bleed key art: heaven left, hell right, the Intake desk and the cast in between. */
 const TITLE_ART = `${import.meta.env.BASE_URL}art/title.webp`;
 
+/** Hell-side embers: [left %, delay s, duration s], fixed so renders stay stable. */
+const EMBERS: [number, number, number][] = [
+  [56, 0, 5.2], [62, 1.4, 6.1], [68, 0.6, 4.8], [73, 2.3, 5.6], [79, 0.9, 6.4], [84, 3.1, 5.0],
+  [89, 1.8, 5.8], [94, 0.3, 6.6], [60, 3.8, 5.4], [76, 4.4, 6.0], [87, 2.7, 4.6], [65, 5.0, 6.2],
+];
+
 export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGoToOdds: () => void }) {
   const available = useGame((s) => s.cloud.available);
   const signedIn = useGame((s) => s.cloud.signedIn);
@@ -52,7 +58,15 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
 
   return (
     <section className="screen title-paper">
-      <div className="title-art" style={{ backgroundImage: `url(${TITLE_ART})` }} aria-hidden="true" />
+      <div className="title-art" style={{ backgroundImage: `url(${TITLE_ART})` }} aria-hidden="true">
+        <div className="fx-rays" />
+        <div className="fx-cloud fx-cloud-a" />
+        <div className="fx-cloud fx-cloud-b" />
+        <div className="fx-glow" />
+        {EMBERS.map(([left, delay, dur], i) => (
+          <span key={i} className="fx-ember" style={{ left: `${left}%`, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />
+        ))}
+      </div>
       <div className="title-wrap">
         <div className="title-plate">
           <StampSeal className="title-seal pulse" />
