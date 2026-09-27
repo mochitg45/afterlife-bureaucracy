@@ -98,15 +98,10 @@ describe('App shell', () => {
     expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('applies data-theme from settings and removes it for system', async () => {
+  it('never sets a theme attribute: the app is light only', async () => {
     render(<App />);
     await clockIn();
-    act(() => { useGame.getState().setTheme('dark'); });
-    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
-    act(() => { useGame.getState().setTheme('system'); });
     expect(document.documentElement).not.toHaveAttribute('data-theme');
-    act(() => { useGame.getState().setTheme('light'); });
-    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
   });
 
   it('reaches the requisition odds from the title screen footer', async () => {

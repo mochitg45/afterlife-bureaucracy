@@ -238,7 +238,6 @@ async function main() {
   // Splash is square and generously oversized: Capacitor centre-crops it to every orientation.
   const SP = 2732;
   await png(SP, parchment(SP) + seal(SP / 2, SP / 2, SP * 0.14), path.join(assetsDir, 'splash.png'));
-  await png(SP, parchment(SP, { dark: true }) + seal(SP / 2, SP / 2, SP * 0.14, '#D9634A'), path.join(assetsDir, 'splash-dark.png'));
 
   // Play Console wants a 512×512 PNG for the listing; it is uploaded by hand, not packaged.
   await sharp(Buffer.from(svg(S, square))).resize(512, 512).png({ compressionLevel: 9 }).toFile(path.join(storeDir, 'icon-512.png'));

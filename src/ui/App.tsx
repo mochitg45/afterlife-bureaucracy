@@ -48,14 +48,8 @@ export function App() {
   const stopLoop = useGame((s) => s.stopLoop);
   const ready = useGame((s) => s.ready);
   const memosSeen = useGame((s) => s.state.onboarding.memosSeen);
-  const theme = useGame((s) => s.state.settings.theme);
 
   useEffect(() => { void boot(); }, [boot]);
-
-  useEffect(() => {
-    if (theme === 'system') document.documentElement.removeAttribute('data-theme');
-    else document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   // Web Audio may only start from a user gesture, and a gesture the WebView does not count
   // leaves the context suspended -- so every gesture keeps trying until the context says it

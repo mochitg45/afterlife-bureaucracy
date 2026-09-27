@@ -49,15 +49,11 @@ describe('SettingsSheet', () => {
     expect(checkbox.checked).toBe(true);
   });
 
-  it('renders the theme row with the active toggle and calls setTheme', () => {
+  it('offers no theme choice: the app is light only', () => {
     seed('no');
-    const setTheme = vi.fn();
-    useGame.setState({ setTheme });
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);
-    expect(screen.getByRole('button', { name: 'Light' })).toHaveClass('active');
-    expect(screen.getByRole('button', { name: 'Dark' })).not.toHaveClass('active');
-    fireEvent.click(screen.getByRole('button', { name: 'Dark' }));
-    expect(setTheme).toHaveBeenCalledWith('dark');
+    expect(screen.queryByText('Theme')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Dark' })).toBeNull();
   });
 
   it('renders sound toggles and calls setSound', () => {

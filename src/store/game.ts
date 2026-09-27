@@ -228,7 +228,6 @@ export interface GameStore {
   dismissStory(): void;
   clearAchievementToast(): void;
   setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
-  setTheme(theme: Settings['theme']): void;
   audio: Audio;
   setSound(flags: Partial<{ sfx: boolean; music: boolean }>): void;
   shouldAskNotifications(): boolean;
@@ -1160,10 +1159,6 @@ export function createGameStore(deps: StoreDeps) {
         }
         apply({ ...get().state, settings: { ...get().state.settings, notifOptIn } });
         await get().save();
-      },
-      setTheme(theme) {
-        apply({ ...get().state, settings: { ...get().state.settings, theme } });
-        void get().save();
       },
       setSound(flags) {
         const settings = { ...get().state.settings, ...flags };

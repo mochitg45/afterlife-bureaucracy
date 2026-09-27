@@ -77,6 +77,7 @@ export interface Settings {
   notifDate: string;
   /** Notifications already scheduled today, so a chatty app cannot spam the tray. */
   notifsSent: number;
+  /** Kept only so older saves load; the app is light only and ignores it. */
   theme: 'light' | 'dark' | 'system';
   /** Sound effects and the office ambience loop; both travel with the save like the theme. */
   sfx: boolean;
