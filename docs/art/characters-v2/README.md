@@ -16,8 +16,8 @@ body, dot eyes, tiny mouth, thin even outline, cream cards. Six sheets of six ca
 Card variants "Dave (double overtime)" and "Seraphine (chipper)" were rejected by the
 user: those cards reuse the base Dave and Seraphine art.
 
-Known drift: Dave Cooked and Gary On Break came out with the older, more detailed chibi
-face (skull, eyebrows) instead of the dot-eye sticker face. Re-roll them before wiring in.
+Dave Cooked and Gary On Break in b6 drifted to the older, detailed face; use the re-rolled
+pair in b7-reroll-dave-gary.jpg instead.
 
 Next step: cut each card to its own transparent PNG (flat cream background keys cleanly)
 and swap them into src/ui/characters/Character.tsx and the card art.
