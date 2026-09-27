@@ -121,13 +121,26 @@ button:disabled { opacity: 0.45; cursor: default; }
 }
 /* The lights dim and come back: a slow dip, not a pulse. */
 @keyframes lampBreath { 0%, 100% { opacity: 1; transform: scale(1.05); } 45% { opacity: 0.15; transform: scale(0.9); } 60% { opacity: 0.25; } }
-/* Heaven's window shaft: a soft diagonal band that fades down and back up. */
+/* Heaven's window sunlight: god rays fanning down-left from the window. The fan sways a few
+   degrees like passing clouds, and two ray layers drift apart and fade so the light shimmers. */
 .fx-beam {
-  left: 38%; top: -8%; width: 38%; height: 80%; transform-origin: top right; rotate: 28deg;
-  background: linear-gradient(to bottom, rgb(255 252 230 / 0.7), rgb(255 250 220 / 0) 90%);
-  filter: blur(6px); mix-blend-mode: screen; animation: beamDim 7s ease-in-out infinite;
+  left: 56%; top: 4%; width: 34%; height: 110%; transform-origin: 50% 0; rotate: 32deg; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 25%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0 25%, transparent 85%);
+  mix-blend-mode: screen; filter: blur(3px); animation: sunSway 14s ease-in-out infinite alternate;
 }
-@keyframes beamDim { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.15; } }
+.fx-beam::before, .fx-beam::after {
+  content: ''; position: absolute; inset: 0 -40%;
+  background: repeating-linear-gradient(90deg, rgb(255 250 222 / 0) 0 7%, rgb(255 250 222 / 0.55) 11% 15%, rgb(255 250 222 / 0) 20% 27%);
+  animation: raysDrift 9s ease-in-out infinite alternate, raysFade 6s ease-in-out infinite;
+}
+.fx-beam::after {
+  background: repeating-linear-gradient(90deg, rgb(255 245 205 / 0) 0 12%, rgb(255 245 205 / 0.4) 16% 19%, rgb(255 245 205 / 0) 24% 33%);
+  animation-duration: 11s, 7.5s; animation-delay: -4s, -2s; animation-direction: alternate-reverse, normal;
+}
+@keyframes sunSway { from { rotate: 27deg; } to { rotate: 37deg; } }
+@keyframes raysDrift { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+@keyframes raysFade { 0%, 100% { opacity: 0.95; } 40% { opacity: 0.35; } 65% { opacity: 0.75; } }
 .scene-sparkle .fx-lamp { background: radial-gradient(circle, rgb(255 252 230 / 0.85), rgb(255 245 210 / 0) 68%); animation-duration: 6s; }
 .scene-ember .fx-lamp { background: radial-gradient(circle, rgb(255 150 60 / 0.85), rgb(255 90 30 / 0) 68%); animation: lampFlicker 2.6s ease-in-out infinite; }
 @keyframes lampFlicker { 0%, 100% { opacity: 0.9; } 18% { opacity: 0.3; } 30% { opacity: 0.8; } 52% { opacity: 0.1; } 70% { opacity: 1; } 85% { opacity: 0.45; } }
