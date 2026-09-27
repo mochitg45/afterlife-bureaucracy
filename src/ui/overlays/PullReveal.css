@@ -5,6 +5,8 @@
  */
 .reveal { position: relative; }
 .reveal-grid, .reveal-list { overflow-x: hidden; }
+/* clip, not hidden: the 10-pull grid fits the screen and must not become a 1px scroller. */
+.reveal-grid { overflow: visible; overflow-x: clip; }
 
 /* Opening beat: form slides up (0-240ms), stamp slams (180-480ms, impact ~330ms), beat fades. */
 .reveal-intro {

@@ -148,4 +148,14 @@ describe('PullReveal', () => {
     expect(dialog.querySelectorAll('.reveal-cell')).toHaveLength(10);
     expect(dialog.querySelector('.reveal-grid')).toBeInTheDocument();
   });
+
+  it('labels a same-pull duplicate that banked a shard as progress, not NEW', () => {
+    seed([
+      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 2, spareGained: false },
+      { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 1, shardsNeeded: 2, spareGained: false },
+    ]);
+    render(<PullReveal />);
+    expect(screen.getAllByText('NEW')).toHaveLength(1);
+    expect(screen.getByText('+1 (1/2)')).toBeInTheDocument();
+  });
 });

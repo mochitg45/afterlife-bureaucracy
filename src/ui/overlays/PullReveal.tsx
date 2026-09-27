@@ -36,7 +36,7 @@ function resultLabel(r: PullResult) {
     );
   }
   if (r.spareGained) return '+1 spare copy';
-  if (r.starsAfter === 1) return <span className="reveal-new">NEW</span>;
+  if (r.starsAfter === 1 && r.shards === 0) return <span className="reveal-new">NEW</span>;
   if (r.shards === 0) return `★ ${r.starsAfter}`;
   return `+1 (${r.shards}/${r.shardsNeeded})`;
 }
@@ -105,7 +105,7 @@ function RevealBody({ results }: { results: PullResult[] }) {
             className={(grid ? 'reveal-cell' : 'reveal-row') + glowClass(r)}
             style={{ '--i': i } as CSSProperties}
           >
-            <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} />
+            <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} size={grid ? 40 : 48} />
             <span className={'mono' + (grid ? ' reveal-cell-label' : '')}>{resultLabel(r)}</span>
             {r.pityTriggered && <span className="sub brass">Guaranteed</span>}
           </div>
