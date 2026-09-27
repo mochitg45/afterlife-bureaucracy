@@ -14,6 +14,7 @@
     "cap:open": "cap open android",
     "cap:sync:ios": "npm run build && cap sync ios",
     "cap:open:ios": "cap open ios",
+    "art": "python scripts/cut-art.py",
     "icon": "node scripts/make-icon.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "play-assets": "node scripts/make-play-assets.mjs"
