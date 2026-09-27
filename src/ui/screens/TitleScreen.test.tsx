@@ -77,10 +77,10 @@ describe('TitleScreen', () => {
     expect(onEnter).not.toHaveBeenCalled();
   });
 
-  it('shows the chibi cast around the seal', () => {
+  it('shows the heaven and hell key art behind the title', () => {
     seedCloud({ available: false, signedIn: false });
     const { container } = render(<TitleScreen onEnter={() => {}} onGoToOdds={() => {}} />);
-    expect(container.querySelectorAll('.title-cast img.char-sprite').length).toBe(3);
+    expect((container.querySelector('.title-art') as HTMLElement).style.backgroundImage).toContain('art/title.webp');
   });
 
   it('shows the version, the privacy link and the odds button in the footer', () => {

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useGame } from '../../store/game';
-import { Character } from '../characters/Character';
 import { StampSeal } from '../components/StampButton';
 import { APP_VERSION, PRIVACY_URL } from '../../version';
 
@@ -24,8 +23,8 @@ function GoogleG() {
   );
 }
 
-/** The Intake backdrop behind the parchment, at a faint 18% opacity (see .title-backdrop). */
-const INTAKE_BG = `${import.meta.env.BASE_URL}art/depts/intake.webp`;
+/** Full-bleed key art: heaven left, hell right, the Intake desk and the cast in between. */
+const TITLE_ART = `${import.meta.env.BASE_URL}art/title.webp`;
 
 export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGoToOdds: () => void }) {
   const available = useGame((s) => s.cloud.available);
@@ -53,16 +52,14 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
 
   return (
     <section className="screen title-paper">
-      <div className="title-backdrop" style={{ backgroundImage: `url(${INTAKE_BG})` }} aria-hidden="true" />
+      <div className="title-art" style={{ backgroundImage: `url(${TITLE_ART})` }} aria-hidden="true" />
       <div className="title-wrap">
-        <StampSeal className="title-seal pulse" />
-        <h1 className="title-name">Afterlife Bureaucracy Inc.</h1>
-        <p className="sub title-tagline">Please take a number.</p>
-        <div className="title-cast">
-          <Character id="seraphine" mood="ok" size={96} art="seraphine" />
-          <Character id="dave" mood="ok" size={96} art="dave" />
-          <Character id="gary" mood="ok" size={96} art="gary" />
+        <div className="title-plate">
+          <StampSeal className="title-seal pulse" />
+          <h1 className="title-name">Afterlife Bureaucracy Inc.</h1>
+          <p className="sub title-tagline">Please take a number.</p>
         </div>
+        <div className="title-panel">
         {signedIn && <p className="btn-google title-chip"><GoogleG /><span>Signed in with Google</span></p>}
         <p className="sub title-status" role="status" aria-live="polite">{status}</p>
         <div className="title-actions">
@@ -80,6 +77,7 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
           <span className="mono">v{APP_VERSION}</span>
           <a href={PRIVACY_URL} target="_blank" rel="noreferrer">Privacy</a>
           <button className="link" onClick={onGoToOdds}>Odds</button>
+        </div>
         </div>
       </div>
     </section>
