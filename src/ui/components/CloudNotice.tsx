@@ -3,13 +3,13 @@ import { formatNumber } from '../../engine/format';
 import { relativeTime } from '../format';
 import type { CloudNotice as Notice } from '../../store/game';
 
-function line(notice: Notice): string {
+function line(notice: Notice): string | null {
   if (notice.kind === 'error') return 'Cloud sync failed. Your desk is safe on this device.';
   // This device would not vouch for its own save, so it was not allowed over the cloud's.
   if (notice.kind === 'refused') return 'Not uploaded: clock check failed.';
-  // A conflict resolved for the local save ends the same way an empty cloud slot does: this
-  // device's desk is now the one in the cloud, so it is one sentence, not two.
-  if (notice.kind !== 'downloaded') return 'This device had the newer desk; uploaded it.';
+  // An upload (plain, or a conflict won by this device) leaves the desk the player is looking
+  // at unchanged, so it is not news: no notice.
+  if (notice.kind !== 'downloaded') return null;
   const s = notice.summary;
   if (!s) return 'Restored your desk from the cloud.';
   const souls = formatNumber(s.soulsLifetime);
@@ -23,10 +23,11 @@ function line(notice: Notice): string {
 export function CloudNotice() {
   const notice = useGame((s) => s.cloudNotice);
   const dismiss = useGame((s) => s.dismissCloudNotice);
-  if (!notice) return null;
+  const text = notice && line(notice);
+  if (!text) return null;
   return (
     <div className="card cloud-notice" role="status" aria-live="polite">
-      <span className="sub">{line(notice)}</span>
+      <span className="sub">{text}</span>
       <button className="btn btn-ghost" onClick={dismiss}>Dismiss</button>
     </div>
   );

@@ -105,11 +105,49 @@ button:disabled { opacity: 0.45; cursor: default; }
 .queue-line { font-size: 14px; line-height: 1.3; }
 .stamp-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 4px 0 16px; }
 .stamp-scene {
-  position: relative; aspect-ratio: 1 / 1; width: 100%; max-width: 420px; margin: 0 auto 12px;
+  container-type: size; position: relative; aspect-ratio: 1 / 1; width: 100%; max-width: 420px; margin: 0 auto 12px;
   border-radius: var(--radius); background-size: cover; background-position: center;
   box-shadow: var(--shadow); border: 1.5px solid var(--line); display: grid; place-items: center;
 }
-.stamp { transition: transform 80ms ease; touch-action: manipulation; }
+.stamp { position: relative; z-index: 1; transition: transform 80ms ease; touch-action: manipulation; }
+/* Ambient scene motion: glows breathe on the painted lamps, particles drift up. Transform and
+   opacity only; the whole layer is still under reduced motion. */
+.scene-fx { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.scene-fx > span { position: absolute; }
+.fx-lamp {
+  width: 26%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; mix-blend-mode: screen;
+  background: radial-gradient(circle, rgb(255 220 150 / 0.8), rgb(255 190 110 / 0) 68%);
+  animation: lampBreath 4.5s ease-in-out infinite;
+}
+/* The lights dim and come back: a slow dip, not a pulse. */
+@keyframes lampBreath { 0%, 100% { opacity: 1; transform: scale(1.05); } 45% { opacity: 0.15; transform: scale(0.9); } 60% { opacity: 0.25; } }
+/* Heaven's window shaft: a soft diagonal band that fades down and back up. */
+.fx-beam {
+  left: 38%; top: -8%; width: 38%; height: 80%; transform-origin: top right; rotate: 28deg;
+  background: linear-gradient(to bottom, rgb(255 252 230 / 0.7), rgb(255 250 220 / 0) 90%);
+  filter: blur(6px); mix-blend-mode: screen; animation: beamDim 7s ease-in-out infinite;
+}
+@keyframes beamDim { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.15; } }
+.scene-sparkle .fx-lamp { background: radial-gradient(circle, rgb(255 252 230 / 0.85), rgb(255 245 210 / 0) 68%); animation-duration: 6s; }
+.scene-ember .fx-lamp { background: radial-gradient(circle, rgb(255 150 60 / 0.85), rgb(255 90 30 / 0) 68%); animation: lampFlicker 2.6s ease-in-out infinite; }
+@keyframes lampFlicker { 0%, 100% { opacity: 0.9; } 18% { opacity: 0.3; } 30% { opacity: 0.8; } 52% { opacity: 0.1; } 70% { opacity: 1; } 85% { opacity: 0.45; } }
+.fx-dot { bottom: -4%; width: 6px; height: 6px; border-radius: 50%; opacity: 0; animation: moteRise 8s linear infinite; }
+.scene-dust .fx-dot { background: rgb(255 244 210); box-shadow: 0 0 6px 2px rgb(255 230 170 / 0.9); }
+.scene-sparkle .fx-dot { width: 7px; height: 7px; background: #fffbe6; box-shadow: 0 0 8px 3px rgb(255 240 170 / 0.95); animation-name: sparkleRise; }
+.scene-ember .fx-dot { width: 7px; height: 7px; background: #ffc061; box-shadow: 0 0 8px 3px rgb(255 110 40 / 0.9); animation-name: emberUp; }
+@keyframes moteRise {
+  0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 0.95; }
+  50% { transform: translate(12px, -45cqh); } 85% { opacity: 0.5; } 100% { transform: translate(-8px, -95cqh); opacity: 0; }
+}
+@keyframes sparkleRise {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 40% { transform: translate(6px, -35cqh) scale(1.1); opacity: 0.3; }
+  60% { opacity: 1; } 100% { transform: translate(-6px, -90cqh) scale(0.7); opacity: 0; }
+}
+@keyframes emberUp {
+  0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: 1; }
+  50% { transform: translate(-10px, -40cqh); } 100% { transform: translate(8px, -85cqh); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .scene-fx { display: none; } }
 .stamp.pressed { transform: scale(0.92) rotate(-3deg); }
 .stamp-scene-pill {
   position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);

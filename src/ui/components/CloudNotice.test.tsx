@@ -25,18 +25,14 @@ describe('CloudNotice', () => {
     );
   });
 
-  it('reports an upload of the newer local desk', () => {
-    seed({ kind: 'uploaded' });
-    render(<CloudNotice />);
-    expect(screen.getByRole('status')).toHaveTextContent('This device had the newer desk; uploaded it.');
-  });
-
-  // A conflict resolved in the local save's favour is the same news to the player as a plain
-  // upload: the desk they are looking at is the one that won.
-  it('reports a kept-local conflict the same way', () => {
-    seed({ kind: 'kept-local', summary: { soulsLifetime: new Decimal(1), savedAtWall: 0, fiscalYear: 1, seals: 0 } });
-    render(<CloudNotice />);
-    expect(screen.getByRole('status')).toHaveTextContent('This device had the newer desk; uploaded it.');
+  // Uploads leave the player's desk as it was, so they raise no notice at all.
+  it.each([
+    { kind: 'uploaded' } as Notice,
+    { kind: 'kept-local', summary: { soulsLifetime: new Decimal(1), savedAtWall: 0, fiscalYear: 1, seals: 0 } } as Notice,
+  ])('shows nothing for an upload ($kind)', (notice) => {
+    seed(notice);
+    const { container } = render(<CloudNotice />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('reports a failed sync and says the local desk is safe', () => {
