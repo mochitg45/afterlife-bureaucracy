@@ -82,7 +82,7 @@
       "id": "personnel-intro",
       "target": "pull",
       "title": "Requisitions.",
-      "text": "Vouchers buy personnel cards: one for {pull}, ten for {ten} (a discount, for once). There is a free daily pull, and Senior staff are guaranteed within {pity} pulls. The odds are posted at the bottom, as regulations require."
+      "text": "Vouchers buy personnel cards: one for {pull}, ten for {ten} (a discount, for once).{free} Senior staff are guaranteed within {pity} pulls. The odds are posted at the bottom, as regulations require."
     },
     {
       "id": "equip",

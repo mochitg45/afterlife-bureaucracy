@@ -1,3 +1,4 @@
+import { adsSupported } from '../../platform/ads';
 import { useEffect, useRef, useState } from 'react';
 import { useGame, TRAINING_DONE } from '../../store/game';
 import { content as shippedContent } from '../../data';
@@ -49,7 +50,7 @@ function relevant(id: TipId, s: GameState, content: Content, ctx: TipContext): R
     case 'dept-unlock':
       return office && s.deptsUnlocked.length > 1 ? {} : null;
     case 'personnel-intro':
-      return ctx.tab === 'personnel' ? { pull: PULL_COST, ten: TEN_PULL_COST, pity: PITY_SENIOR } : null;
+      return ctx.tab === 'personnel' ? { pull: PULL_COST, ten: TEN_PULL_COST, pity: PITY_SENIOR, free: adsSupported() ? ' There is a free daily pull.' : '' } : null;
     case 'equip':
       return ctx.tab === 'personnel' && s.stats.pulls > 0 ? {} : null;
     case 'stars': {

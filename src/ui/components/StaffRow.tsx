@@ -33,7 +33,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
   const idle = owned === 0;
   const maxSpeed = !idle && period < MAX_SPEED_THRESHOLD;
   const speedLabel = idle
-    ? `${formatNumber(rate)}/s`
+    ? 'Hire to start stamping'
     : maxSpeed
       ? `+${formatNumber(rate)}/s · MAX`
       : `+${formatNumber(rate.mul(period))} / ${period.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}s`;
