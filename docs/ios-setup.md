@@ -35,7 +35,7 @@ Then on the `union_monthly` row → **Attach** → entitlement **`union`** → A
 
 ### 2. RevenueCat — copy the public iOS key (~1 min)
 Project → **API keys** → *SDK API keys* → row **Afterlife Bureaucracy (App Store)** → eye icon →
-copy the `appl_…` key and paste it in chat. It is public by design; it goes in `codemagic.yaml`.
+copy the `appl_…` key. Done: `appl_yKvyDEIvMqiJiosTKCLsNLHVpek` is in `codemagic.yaml`.
 
 ### 3. Codemagic — add the app (~5 min)
 Codemagic → **Add application** → GitHub → `mochitg45/afterlife-bureaucracy` → it finds

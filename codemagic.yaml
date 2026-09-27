@@ -24,7 +24,7 @@ workflows:
         APP_STORE_APPLE_ID: 6816599024
         # RevenueCat public App Store key (appl_...). Public by design. Empty = the store shows
         # products as unavailable instead of crashing.
-        VITE_REVENUECAT_IOS_KEY: ""
+        VITE_REVENUECAT_IOS_KEY: appl_yKvyDEIvMqiJiosTKCLsNLHVpek
       node: 22
       xcode: latest
       cocoapods: default
