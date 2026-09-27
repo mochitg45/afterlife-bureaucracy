@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Source art (do not regenerate in this plan): `docs/art/characters-v2/b1..b7*.jpg`, `docs/art/depts-v2/*.jpg`, `docs/art/story-v2/scene1..4*.jpg`. Valhalla has no department background yet: fall back to Intake's.
+- Source art (do not regenerate in this plan): `docs/art/characters-v2/b1..b7*.jpg`, `docs/art/depts-v2/*.jpg`, `docs/art/story-v2/scene1..4*.jpg`. All six departments have a background, including `valhalla.jpg`; any unknown department id falls back to Intake's.
 - Sprites: transparent WebP, 256×256, character centred with 8 px margin, no name text, no card frame. Department backgrounds: WebP 768×768, quality 82. Story scenes: WebP 768×1376, quality 82. Total added assets ≤ 6 MB.
 - Paths at runtime: `${import.meta.env.BASE_URL}art/...` (works for web and Capacitor).
 - `Character` keeps its current API and SVG fallback; new optional prop only.
@@ -30,7 +30,7 @@
 - Modify: `package.json` (script `"art": "python scripts/cut-art.py"`)
 
 **Interfaces:**
-- Produces: sprite files named exactly as the keys below (e.g. `public/art/chars/dave.webp`), department files `public/art/depts/{intake,heaven,hell,reincarnation,limbo}.webp`, story files `public/art/story/{in-decease,in-queue,in-offer,in-stamp}.webp`.
+- Produces: sprite files named exactly as the keys below (e.g. `public/art/chars/dave.webp`), department files `public/art/depts/{intake,heaven,hell,reincarnation,limbo,valhalla}.webp`, story files `public/art/story/{in-decease,in-queue,in-offer,in-stamp}.webp`.
 
 Sheet layouts (row-major; 3 columns × 2 rows unless noted). Each card is a rounded cream panel with the name printed in its bottom ~20%:
 
@@ -47,7 +47,7 @@ b7-reroll-dave-gary.jpg   2 columns × 1 row: dave-cooked, gary-break
 That is 36 sprites. Story mapping: scene1-notice → in-decease, scene2-intake → in-queue, scene3-offer → in-offer, scene4-desk → in-stamp.
 
 - [ ] **Step 1: Write the script.** For each sheet: detect the card panels (the sheet background is slightly darker than the cream panels; find panel boxes by thresholding and connected components, or fall back to an even grid split with a 3% inset if detection finds the wrong count), take each panel, drop the bottom 22% (name text), then remove the flat cream panel background with a flood fill from the panel's edge pixels (tolerance ~18 in RGB distance) so only the character and its outline and soft ground shadow remain; keep interior cream pixels that are not connected to the edge. Trim to the alpha bounding box, pad 8 px, fit into 256×256 preserving aspect, save WebP (quality 90, with alpha). Department and story images: resize and save WebP quality 82.
-- [ ] **Step 2: Run it** (`python scripts/cut-art.py`), build a contact sheet PNG of all sprites on a checkerboard at `%TEMP%/art-contact.png` and look at it: every sprite must be the whole character, no name text, no leftover cream box, no chopped heads or props. Fix thresholds until clean. Report file count (36 sprites, 5 depts, 4 story) and total bytes.
+- [ ] **Step 2: Run it** (`python scripts/cut-art.py`), build a contact sheet PNG of all sprites on a checkerboard at `%TEMP%/art-contact.png` and look at it: every sprite must be the whole character, no name text, no leftover cream box, no chopped heads or props. Fix thresholds until clean. Report file count (36 sprites, 6 depts, 4 story) and total bytes.
 - [ ] **Step 3: Commit** `feat(art): cut chibi sprites, department and story images into public/art` with the script and outputs.
 
 ---
@@ -107,8 +107,8 @@ export function artUrl(key: string): string | null {
 **Interfaces:**
 - Consumes: `useGame((s) => s.state.activeDept)`.
 
-- [ ] **Step 1: Failing test**: rendering the stamp area with `activeDept: 'hell'` shows an element with `data-testid="stamp-scene"` whose inline `backgroundImage` contains `art/depts/hell.webp`; with `activeDept: 'valhalla'` it contains `art/depts/intake.webp` (fallback).
-- [ ] **Step 2: Implement**: wrap the existing stamp and its "+N per stamp" line in a `div.stamp-scene` (`data-testid="stamp-scene"`, inline `backgroundImage: url(${BASE_URL}art/depts/${file}.webp)`) where `file` is the department id if it is one of `intake, heaven, hell, reincarnation, limbo`, else `intake`. CSS: a square card (`aspect-ratio: 1 / 1; width: 100%; max-width: 420px; margin: 0 auto 12px; border-radius: var(--radius); background-size: cover; background-position: center; box-shadow: var(--shadow); border: 1.5px solid var(--line); display: grid; place-items: center;`); the "+N per stamp" label sits on a small translucent cream pill at the bottom of the square so it stays readable on dark scenes (Hell).
+- [ ] **Step 1: Failing test**: rendering the stamp area with `activeDept: 'hell'` shows an element with `data-testid="stamp-scene"` whose inline `backgroundImage` contains `art/depts/hell.webp`; with `activeDept: 'valhalla'` it contains `art/depts/valhalla.webp`; with an unknown id it contains `art/depts/intake.webp` (fallback).
+- [ ] **Step 2: Implement**: wrap the existing stamp and its "+N per stamp" line in a `div.stamp-scene` (`data-testid="stamp-scene"`, inline `backgroundImage: url(${BASE_URL}art/depts/${file}.webp)`) where `file` is the department id if it is one of `intake, heaven, hell, reincarnation, limbo, valhalla`, else `intake`. CSS: a square card (`aspect-ratio: 1 / 1; width: 100%; max-width: 420px; margin: 0 auto 12px; border-radius: var(--radius); background-size: cover; background-position: center; box-shadow: var(--shadow); border: 1.5px solid var(--line); display: grid; place-items: center;`); the "+N per stamp" label sits on a small translucent cream pill at the bottom of the square so it stays readable on dark scenes (Hell).
 - [ ] **Step 3:** tests, build, commit `feat(ui): painted department scene behind the stamp`.
 
 ---
@@ -146,5 +146,5 @@ Ruling for this plan: the game pays continuously, so the speed bar is visual. Ea
 ## Self-review
 
 - Every user ask has a task: title chibi + animation (T5), per-department backgrounds behind a square stamp area (T3), milestone bar on top + AdCap speed bar at the bottom (T4), staff art (T1, T2), story in chibi (T5, art from story-v2).
-- Placeholders: none; Valhalla's missing background is an explicit fallback.
+- Placeholders: none.
 - Types: `ART`/`artUrl` (T2) are the only new exports; T3 and T5 use `BASE_URL` paths with names produced by T1.
