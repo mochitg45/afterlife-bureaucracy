@@ -32,6 +32,7 @@ export function SettingsSheet({
   const sfx = useGame((s) => s.state.settings.sfx);
   const music = useGame((s) => s.state.settings.music);
   const setSound = useGame((s) => s.setSound);
+  const replayTips = useGame((s) => s.replayTips);
   const saveVersion = useGame((s) => s.state.saveVersion);
   const fiscalYear = useGame((s) => s.state.fiscalYear);
   const soulsLifetime = useGame((s) => s.state.soulsLifetime);
@@ -122,6 +123,10 @@ export function SettingsSheet({
       </label>
       <div className="settings-row">
         <button className="btn btn-ghost" onClick={onGoToOdds}>See requisition odds</button>
+      </div>
+      <div className="settings-row">
+        {/* Closes the sheet so the walkthrough it restarts is not hiding behind it. */}
+        <button className="btn btn-ghost" onClick={() => { replayTips(); onClose(); }}>Replay tips</button>
       </div>
       <div className="settings-row">
         <button className="btn btn-ghost" onClick={() => void onRestore()}>Restore purchases</button>

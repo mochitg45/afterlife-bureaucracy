@@ -306,7 +306,7 @@ describe('save v6', () => {
 describe('save v7', () => {
   it('initial state carries the v7 defaults', () => {
     const s = createInitialState(now, content);
-    expect(s.onboarding).toEqual({ memosSeen: false, trainingStep: 0 });
+    expect(s.onboarding).toEqual({ memosSeen: false, trainingStep: 0, tipsSeen: [] });
     expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
     expect(s.savedAtWall).toBe(0);
   });
@@ -315,16 +315,20 @@ describe('save v7', () => {
     expect(s.saveVersion).toBe(SAVE_VERSION);
     // A save with souls on it belongs to a player who has been here for versions: the memos
     // and the walkthrough are not replayed at them.
-    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
+    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3, tipsSeen: [] });
     expect(s.cloud).toEqual({ lastSyncWall: 0, lastResult: 'none' });
     expect(s.savedAtWall).toBe(0);
     expect(s.entitlements).toEqual({ removeAds: true, unionUntilWall: 1700000600000, starterPackBought: true, firstBuyUsed: {} });
     expect(s.voucherFraction).toBeCloseTo(0.4);
   });
+  it('keeps known tips seen, drops unknown ones and duplicates', () => {
+    const raw = { ...saveV7, onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: ['equip', 'nope', 'equip', 7] } };
+    expect(deserialize(JSON.stringify(raw), content).onboarding.tipsSeen).toEqual(['equip']);
+  });
   it('loads the v7 fixture', () => {
     const s = deserialize(JSON.stringify(saveV7), content);
     expect(s.saveVersion).toBe(SAVE_VERSION);
-    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
+    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3, tipsSeen: [] });
     expect(s.cloud).toEqual({ lastSyncWall: 1700000001000, lastResult: 'uploaded' });
     expect(s.savedAtWall).toBe(1700000002000);
   });
@@ -336,7 +340,7 @@ describe('save v7', () => {
       savedAtWall: 'nope',
     };
     const s = deserialize(JSON.stringify(raw), content);
-    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
+    expect(s.onboarding).toEqual({ memosSeen: true, trainingStep: 3, tipsSeen: [] });
     expect(s.cloud).toEqual({ lastSyncWall: 5, lastResult: 'none' });
     expect(s.savedAtWall).toBe(0);
   });
@@ -440,7 +444,7 @@ describe('exhaustive save round-trip', () => {
       cosmicClauses: ['clause-throughput-1', 'clause-seals-1'],
       branchesUnlocked: ['valhalla'],
       processId: 'k3f9zq',
-      onboarding: { memosSeen: true, trainingStep: 2 },
+      onboarding: { memosSeen: true, trainingStep: 2, tipsSeen: ['equip', 'offline'] },
       cloud: { lastSyncWall: 1_700_000_444_000, lastResult: 'downloaded' },
       savedAtWall: 1_700_000_888_000,
     };

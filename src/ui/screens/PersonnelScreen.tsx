@@ -34,7 +34,7 @@ const Collection = memo(function Collection({
   onCardClick: (cardId: string) => void;
 }) {
   return (
-    <div className="tile-grid">
+    <div className="tile-grid" data-coach="collection">
       {content.cards.map((card) => {
         const owned = card.id in cards;
         return (
@@ -82,7 +82,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
         </div>
         <p className="sub">Senior guaranteed in {PITY_SENIOR - pity.senior}</p>
         <p className="sub">Executive guaranteed in {PITY_EXECUTIVE - pity.executive}</p>
-        <div className="modal-actions">
+        <div className="modal-actions" data-coach="pull">
           <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label={`Draw one requisition, ${PULL_COST} vouchers`}>
             <span className="amt">{PULL_COST} <VoucherIcon /></span>
           </button>
@@ -101,7 +101,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
       </header>
 
       <div className="section-head"><h3>Equipped</h3></div>
-      <div className="tile-grid">
+      <div className="tile-grid" data-coach="equipped">
         {Array.from({ length: slots }, (_, i) => equipped[i]).map((cardId, i) =>
           cardId ? (
             <CardTile

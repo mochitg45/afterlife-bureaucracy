@@ -27,7 +27,7 @@ function AuditCard() {
     audit();
   };
   return (
-    <div className="card audit-card">
+    <div className="card audit-card" data-coach="audit">
       <h3>Fiscal Year Audit</h3>
       <p className="sub">Close the books. Staff, upgrades and departments reset; Seals, perks and vouchers stay.</p>
       {ready

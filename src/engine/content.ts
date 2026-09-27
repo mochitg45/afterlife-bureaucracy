@@ -183,10 +183,29 @@ const trainingStepSchema = z.object({
   text: z.string().min(1),
 });
 
+/** The beginner tips, in the order the tips overlay considers them. */
+export const TIP_IDS = [
+  'speed-bar', 'staff-milestone', 'buy-mode', 'upgrades', 'offline', 'dept-unlock',
+  'personnel-intro', 'equip', 'stars', 'tasks-intro', 'ledger-intro',
+] as const;
+export type TipId = (typeof TIP_IDS)[number];
+
+/**
+ * A one-time beginner tip. `target` names a `[data-coach]` attribute like a training step's,
+ * or `none` to centre the card; `{name}` placeholders in `text` are filled in by the overlay.
+ */
+const tipSchema = z.object({
+  id: z.enum(TIP_IDS),
+  target: z.string().min(1),
+  title: z.string().min(1),
+  text: z.string().min(1),
+});
+
 const onboardingSchema = z.object({
   /** Four scenes exactly: the intro overlay is a written cutscene, not a variable slideshow. */
   intro: z.array(introSceneSchema).length(4),
   training: z.array(trainingStepSchema).min(1),
+  tips: z.array(tipSchema).default([]),
 });
 
 export type UpgradeEffect = z.infer<typeof upgradeEffectSchema>;
@@ -210,6 +229,7 @@ export type StoryDef = z.infer<typeof storySchema>;
 export type IntroSceneDef = z.infer<typeof introSceneSchema>;
 export type TrainingStepDef = z.infer<typeof trainingStepSchema>;
 export type CoachTarget = TrainingStepDef['target'];
+export type TipDef = z.infer<typeof tipSchema>;
 export type OnboardingContent = z.infer<typeof onboardingSchema>;
 export interface Content {
   departments: DepartmentDef[];
@@ -319,11 +339,12 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
 
   // A content set without onboarding is a valid one — most tests load a bare department —
   // so the absent case is an empty walkthrough rather than a parse error.
-  const onboarding = extras.onboarding === undefined ? { intro: [], training: [] } : onboardingSchema.parse(extras.onboarding);
+  const onboarding = extras.onboarding === undefined ? { intro: [], training: [], tips: [] } : onboardingSchema.parse(extras.onboarding);
   assertUnique(onboarding.intro.map((sc) => sc.id), 'intro scene');
   // Training() looks a step up by its number; two rows claiming step 1 would make which
   // card the player sees depend on array order.
   assertUnique(onboarding.training.map((t) => String(t.step)), 'training step');
+  assertUnique(onboarding.tips.map((t) => t.id), 'tip');
 
   return { departments, perks, clauses, cards, dailies, achievements, story, onboarding };
 }

@@ -72,7 +72,12 @@ export function DeptChips() {
         const style = { '--accent': d.accent } as CSSProperties;
         if (unlocked.includes(d.id)) {
           return (
-            <button key={d.id} className={'chip' + (active === d.id ? ' active' : '')} style={style} aria-pressed={active === d.id} onClick={() => setActiveDept(d.id)}>
+            <button
+              key={d.id}
+              className={'chip' + (active === d.id ? ' active' : '')}
+              style={style}
+              // The newest department, for the beginner tip that announces it.
+              {...(unlocked.length > 1 && d.id === unlocked[unlocked.length - 1] ? { 'data-coach': 'dept-new' } : {})} aria-pressed={active === d.id} onClick={() => setActiveDept(d.id)}>
               <DeptIcon id={d.id} />
               <span>{d.name}</span>
             </button>

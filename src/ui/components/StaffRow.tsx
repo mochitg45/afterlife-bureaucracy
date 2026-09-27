@@ -41,7 +41,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
     <div className="card staff-row" data-goal={`staff-${staff.id}`}>
       <Character id={staff.character} art={staff.id} mood={mood} size={52} />
       <div className="staff-info">
-        <div className="milestone-bar">
+        <div className="milestone-bar" {...(index === 0 ? { 'data-coach': 'milestone' } : {})}>
           <div className="bar"><div className="bar-fill" style={{ width: progress * 100 + '%' }} /></div>
           <span className="mono milestone-label">×2 at {next}</span>
         </div>
@@ -49,6 +49,7 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
         <div className="sub">{staff.role} — {staff.flavor}</div>
         <div
           className={`speed-bar${idle ? ' idle' : maxSpeed ? ' max' : ''}`}
+          {...(index === 0 ? { 'data-coach': 'speed-bar' } : {})}
           style={{ '--period': `${period}s` } as CSSProperties}
         >
           <div className="speed-bar-fill" />

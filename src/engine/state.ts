@@ -1,7 +1,7 @@
 import Decimal from 'break_infinity.js';
 import { migrate, SAVE_VERSION, RESET_EPOCH } from './migrations';
 import { clampEquipped } from './gacha';
-import type { Content } from './content';
+import { TIP_IDS, type Content } from './content';
 import type { CloudSyncResult } from './cloudSync';
 
 export { SAVE_VERSION, RESET_EPOCH };
@@ -90,6 +90,8 @@ export interface Settings {
 export interface Onboarding {
   memosSeen: boolean;
   trainingStep: number;
+  /** Beginner tips already shown (or skipped); each shows once. */
+  tipsSeen: string[];
 }
 
 /** Cloud-save bookkeeping the title screen and sync notice read. */
@@ -208,7 +210,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     cosmicClauses: [],
     branchesUnlocked: [],
     processId: '',
-    onboarding: { memosSeen: false, trainingStep: 0 },
+    onboarding: { memosSeen: false, trainingStep: 0, tipsSeen: [] },
     cloud: { lastSyncWall: 0, lastResult: 'none' },
     savedAtWall: 0,
   };
@@ -434,6 +436,7 @@ function sanitizeOnboarding(v: unknown): Onboarding {
   return {
     memosSeen: bool(raw.memosSeen, false),
     trainingStep: Math.min(3, Math.max(0, Number.isFinite(step) ? step : 0)),
+    tipsSeen: stringIds(raw.tipsSeen, new Set<string>(TIP_IDS)),
   };
 }
 

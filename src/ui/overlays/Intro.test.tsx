@@ -8,7 +8,7 @@ import { content } from '../../data';
 
 function seed(memosSeen: boolean) {
   const state = createInitialState({ wall: 0, mono: 0 }, content);
-  state.onboarding = { memosSeen, trainingStep: 0 };
+  state.onboarding = { memosSeen, trainingStep: 0, tipsSeen: [] };
   useGame.setState({ state, rates: computeRates(state, content, 0), ready: true });
 }
 

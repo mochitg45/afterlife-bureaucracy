@@ -112,7 +112,7 @@ export function OfficeScreen({ onSettings, onGoTo }: { onSettings?: () => void; 
       {adsSupported() && <OvertimeBoost />}
       <div className="section-head">
         <h3>Staff</h3>
-        <div className="mode-switch" role="group" aria-label="Buy amount">
+        <div className="mode-switch" role="group" aria-label="Buy amount" data-coach="buy-mode">
           {MODES.map((m) => (
             <button key={String(m)} className={'btn btn-ghost' + (mode === m ? ' active' : '')} onClick={() => setMode(m)} aria-label={`×${m}`}>×{m}</button>
           ))}
@@ -120,7 +120,7 @@ export function OfficeScreen({ onSettings, onGoTo }: { onSettings?: () => void; 
       </div>
       {dept.staff.map((s, i) => <StaffRow key={s.id} staff={s} mode={mode} index={i} />)}
       <div className="section-head"><h3>Upgrades</h3></div>
-      {dept.upgrades.map((u) => <UpgradeRow key={u.id} upgrade={u} />)}
+      {dept.upgrades.map((u, i) => <UpgradeRow key={u.id} upgrade={u} first={i === 0} />)}
       <MemoTicker />
     </section>
   );

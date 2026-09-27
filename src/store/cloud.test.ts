@@ -269,11 +269,11 @@ describe('cloud sync on boot', () => {
   it('carries onboarding progress with whichever save wins', async () => {
     const remote = saveState({
       soulsLifetime: new Decimal(4_000), soulsRun: new Decimal(4_000), savedAtWall: T0 - 1_000,
-      onboarding: { memosSeen: true, trainingStep: 3 },
+      onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: [] },
     });
     const { store } = await make({ cloud: { signedIn: true, snapshot: snapshotOf(remote) } });
     await bootSynced(store, 'downloaded');
-    expect(store.getState().state.onboarding).toEqual({ memosSeen: true, trainingStep: 3 });
+    expect(store.getState().state.onboarding).toEqual({ memosSeen: true, trainingStep: 3, tipsSeen: [] });
     store.getState().stopLoop();
   });
 });

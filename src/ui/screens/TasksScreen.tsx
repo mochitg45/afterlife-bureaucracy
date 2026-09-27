@@ -103,7 +103,7 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   return (
     <section className="screen tasks">
       <ScreenHeader title="Tasks" onSettings={onSettings} />
-      <div className="card">
+      <div className="card" data-coach="tasks">
         <h3>Daily tasks</h3>
         <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>
         <p className="sub">Skip tokens: {skipTokens}</p>

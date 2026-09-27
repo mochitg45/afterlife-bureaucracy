@@ -15,6 +15,7 @@ import { PullReveal } from './overlays/PullReveal';
 import { StoryMemo } from './overlays/StoryMemo';
 import { Intro } from './overlays/Intro';
 import { Training } from './overlays/Training';
+import { Tips } from './overlays/Tips';
 import { AchievementToast } from './components/AchievementToast';
 import { SettingsSheet } from './overlays/SettingsSheet';
 import { NotifPrompt } from './overlays/NotifPrompt';
@@ -110,6 +111,7 @@ export function App() {
           <StoryMemo />
           <Intro />
           <Training />
+          <Tips tab={tab} />
           <AchievementToast />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
           <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />

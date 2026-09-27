@@ -141,7 +141,7 @@ describe('App onboarding', () => {
     await dismissSplash();
     await screen.findByRole('button', { name: 'Clock in' });
     const state = useGame.getState().state;
-    useGame.setState({ state: { ...state, onboarding: { memosSeen: true, trainingStep: 3 } } });
+    useGame.setState({ state: { ...state, onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: [] } } });
     await clockIn();
     await screen.findByRole('tab', { name: /office/i });
     expect(screen.queryByRole('dialog', { name: 'Introduction' })).not.toBeInTheDocument();

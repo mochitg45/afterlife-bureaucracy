@@ -1,4 +1,4 @@
-import { loadContent, findStaff, findUpgrade, findPerk, findCard } from './content';
+import { TIP_IDS, loadContent, findStaff, findUpgrade, findPerk, findCard } from './content';
 import { content } from '../data';
 import intake from '../data/departments/intake.json';
 import cards from '../data/cards.json';
@@ -155,6 +155,9 @@ describe('onboarding content', () => {
     expect(content.onboarding.training.map((t) => t.target)).toEqual(['stamp', 'hire', 'none']);
     expect(content.onboarding.intro[3].cta).toBe('Clock in');
   });
+  it('ships one tip per tip id', () => {
+    expect(content.onboarding.tips.map((t) => t.id).sort()).toEqual([...TIP_IDS].sort());
+  });
   it('keeps every intro caption to at most three sentences', () => {
     for (const sc of content.onboarding.intro) {
       expect(sc.caption.split(/[.!?]+['")\]]*\s/).length, sc.id).toBeLessThanOrEqual(3);
@@ -174,6 +177,6 @@ describe('onboarding content', () => {
     expect(() => loadContent([intake], [], { onboarding: bad })).toThrow();
   });
   it('defaults to no onboarding when the content set ships none', () => {
-    expect(loadContent([intake]).onboarding).toEqual({ intro: [], training: [] });
+    expect(loadContent([intake]).onboarding).toEqual({ intro: [], training: [], tips: [] });
   });
 });

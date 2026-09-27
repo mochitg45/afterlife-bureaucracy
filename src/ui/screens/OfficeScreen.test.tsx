@@ -18,7 +18,7 @@ describe('OfficeScreen', () => {
     expect(screen.queryByText('Next:')).toBeNull();
     unmount();
     const s = useGame.getState().state;
-    useGame.setState({ state: { ...s, vouchers: 10, onboarding: { memosSeen: true, trainingStep: 3 } } });
+    useGame.setState({ state: { ...s, vouchers: 10, onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: [] } } });
     const onGoTo = vi.fn();
     render(<OfficeScreen onGoTo={onGoTo} />);
     expect(screen.getByText('Next:')).toBeInTheDocument();

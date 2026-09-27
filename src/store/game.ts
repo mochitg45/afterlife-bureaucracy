@@ -253,6 +253,10 @@ export interface GameStore {
   /** Onboarding only ever moves forward, so a replayed step cannot rewind it. */
   advanceTraining(step: number): void;
   skipTraining(): void;
+  /** Marks a beginner tip as shown, whether read or skipped; each tip shows once. */
+  markTipSeen(id: string): void;
+  /** Settings' "Replay tips": every tip and the training walkthrough show again. */
+  replayTips(): void;
   exportSaveCode(): string;
   importSaveCode(code: string): Promise<'ok' | 'invalid'>;
 }
@@ -1419,6 +1423,20 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       skipTraining() { get().advanceTraining(TRAINING_DONE); },
+
+      markTipSeen(id) {
+        const s = get().state;
+        if (s.onboarding.tipsSeen.includes(id)) return;
+        set({ state: { ...s, onboarding: { ...s.onboarding, tipsSeen: [...s.onboarding.tipsSeen, id] } } });
+        void get().save();
+      },
+
+      replayTips() {
+        // The one place training may run backwards: the player asked for it.
+        const s = get().state;
+        set({ state: { ...s, onboarding: { ...s.onboarding, trainingStep: 0, tipsSeen: [] } } });
+        void get().save();
+      },
 
       exportSaveCode() {
         const s = withClocks(get().state);

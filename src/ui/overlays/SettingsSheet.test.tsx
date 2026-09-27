@@ -49,6 +49,17 @@ describe('SettingsSheet', () => {
     expect(checkbox.checked).toBe(true);
   });
 
+  it('Replay tips calls replayTips and closes the sheet', () => {
+    seed('no');
+    const replayTips = vi.fn();
+    const onClose = vi.fn();
+    useGame.setState({ replayTips });
+    render(<SettingsSheet open onClose={onClose} onGoToOdds={() => {}} onSaveCode={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Replay tips' }));
+    expect(replayTips).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it('offers no theme choice: the app is light only', () => {
     seed('no');
     render(<SettingsSheet open onClose={() => {}} onGoToOdds={() => {}} onSaveCode={() => {}} />);

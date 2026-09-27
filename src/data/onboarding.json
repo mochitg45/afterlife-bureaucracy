@@ -40,5 +40,73 @@
       "title": "That is the job.",
       "text": "Souls pay Karma Credits; Karma hires staff; the Backlog Report pays you when you come back."
     }
+  ],
+  "tips": [
+    {
+      "id": "speed-bar",
+      "target": "speed-bar",
+      "title": "Watch the bar.",
+      "text": "Each fill pays out: the clerk files a batch and you are credited souls and Karma. More staff and milestones make it faster."
+    },
+    {
+      "id": "staff-milestone",
+      "target": "milestone",
+      "title": "Milestones, not raises.",
+      "text": "Every milestone doubles this clerk's speed. The next one is at {next}. Hiring toward it is nearly always the best use of Karma."
+    },
+    {
+      "id": "buy-mode",
+      "target": "buy-mode",
+      "title": "Bulk filing is still filing.",
+      "text": "You can afford more than one hire. ×10 hires ten at once; ×max hires as many as your Karma covers. Handy when a milestone is a few desks away."
+    },
+    {
+      "id": "upgrades",
+      "target": "upgrade",
+      "title": "An upgrade is affordable.",
+      "text": "Upgrades are one-off purchases that speed up a whole department or your stamp. Buy them when you can; they outlast any single hire."
+    },
+    {
+      "id": "offline",
+      "target": "none",
+      "title": "The office never closes.",
+      "text": "Staff keep working while the app is closed, up to your offline cap. Come back, collect the Backlog Report, spend it on staff, leave again. That is the whole career."
+    },
+    {
+      "id": "dept-unlock",
+      "target": "dept-new",
+      "title": "A new department has opened.",
+      "text": "Tap its chip to move desks. Every department you own keeps earning at once, wherever you sit; each has its own staff and upgrades."
+    },
+    {
+      "id": "personnel-intro",
+      "target": "pull",
+      "title": "Requisitions.",
+      "text": "Vouchers buy personnel cards: one for {pull}, ten for {ten} (a discount, for once). There is a free daily pull, and Senior staff are guaranteed within {pity} pulls. The odds are posted at the bottom, as regulations require."
+    },
+    {
+      "id": "equip",
+      "target": "equipped",
+      "title": "Put them to work.",
+      "text": "Equipped cards boost output. Duplicates add stars. Tap a card in your Collection to equip it; a card in the drawer helps nobody."
+    },
+    {
+      "id": "stars",
+      "target": "collection",
+      "title": "A duplicate, in triplicate.",
+      "text": "Copies of a card you already own bank toward its next star, and each star makes the card stronger. {card} needs {need} more for its next star. Rarer cards need fewer copies."
+    },
+    {
+      "id": "tasks-intro",
+      "target": "tasks",
+      "title": "Daily tasks.",
+      "text": "Daily tasks pay vouchers. Claim them before midnight, when the list is reshuffled. A skip token writes off one you cannot finish; a finished week pays a bonus."
+    },
+    {
+      "id": "ledger-intro",
+      "target": "audit",
+      "title": "The Annual Audit.",
+      "text": "An Audit closes the fiscal year: staff, upgrades and departments reset, and you are paid permanent Seals. Each Seal adds 2% to all output forever and buys perks here. File one when progress slows; the next year goes faster."
+    }
   ]
 }

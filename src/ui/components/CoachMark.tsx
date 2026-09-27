@@ -1,5 +1,4 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import type { CoachTarget } from '../../engine/content';
 
 interface Hole { top: number; left: number; width: number; height: number; card: { top?: string; bottom?: string }; above: boolean }
 
@@ -39,14 +38,18 @@ export function CoachMark({
   text,
   stepIndex,
   total,
+  label,
   onSkip,
   children,
 }: {
-  target: CoachTarget;
+  /** A `[data-coach]` value to spotlight, or `none` to centre the card. */
+  target: string;
   title: string;
   text: string;
-  stepIndex: number;
-  total: number;
+  stepIndex?: number;
+  total?: number;
+  /** Replaces the "Step n of m" line; the beginner tips say "Tip" instead. */
+  label?: string;
   onSkip: () => void;
   /** An extra action beside Skip — the recap step's "Got it". */
   children?: ReactNode;
@@ -138,7 +141,7 @@ export function CoachMark({
         aria-label={title}
         aria-live="polite"
       >
-        <div className="label mono">Step {stepIndex + 1} of {total}</div>
+        <div className="label mono">{label ?? `Step ${(stepIndex ?? 0) + 1} of ${total ?? 1}`}</div>
         <h3 className="coach-title">{title}</h3>
         <p className="sub coach-text">{text}</p>
         <div className="coach-actions">
