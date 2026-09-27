@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { artUrl } from './art';
 
 export type Mood = 'ok' | 'cooked';
 
@@ -414,7 +415,23 @@ const PORTRAITS: Record<string, Parts> = {
   'c-auditor-true': { fill: 'var(--surface-2)', face: 'shades', prop: 'briefcase' },
 };
 
-export function Character({ id, mood, size = 56 }: { id: string; mood: Mood; size?: number }) {
+export function Character({ id, mood, size = 56, art }: { id: string; mood: Mood; size?: number; art?: string }) {
+  const url = art ? artUrl(art) : null;
+  if (url) {
+    return (
+      <img
+        className={mood === 'cooked' ? 'char-sprite cooked' : 'char-sprite'}
+        src={url}
+        alt=""
+        width={size}
+        height={size}
+        data-character={id}
+        data-mood={mood}
+        loading="lazy"
+        decoding="async"
+      />
+    );
+  }
   const parts = PORTRAITS[id];
   if (parts) {
     return (

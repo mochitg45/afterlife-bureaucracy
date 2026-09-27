@@ -106,6 +106,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .mode-switch .btn { padding: 4px 8px; font-size: 12px; }
 .mode-switch .btn.active { border-color: var(--ink); color: var(--ink); }
 .staff-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+.char-sprite { object-fit: contain; }
+.char-sprite.cooked { filter: saturate(0.7); transform: translateY(2px); }
 .staff-name { font-weight: 600; }
 .owned { color: var(--ink-muted); font-weight: 500; margin-left: 4px; }
 .bar { height: 4px; background: var(--surface-2); border-radius: 2px; margin-top: 4px; overflow: hidden; }

@@ -50,7 +50,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
   return (
     <Modal open title={card.name} label={`${card.name}, ${card.title}`} onClose={onClose}>
       <div className="card-sheet-head">
-        <Character id={card.character} mood="ok" size={96} />
+        <Character id={card.character} art={card.id} mood="ok" size={96} />
         <span className="sub">{card.title}</span>
         <span className="sub">{RARITY_LABEL[card.rarity]}</span>
         <span className="tile-stars mono" aria-label={`${stars} stars`}>{'★'.repeat(Math.max(0, stars))}</span>

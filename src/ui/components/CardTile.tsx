@@ -28,7 +28,7 @@ export function CardTile({ card, stars, owned, equipped = false, onClick, shards
   if (equipped) classes.push('equipped');
   return (
     <button type="button" className={classes.join(' ')} onClick={onClick} aria-label={`${card.name}, ${card.title}`}>
-      <Character id={owned ? card.character : 'soul'} mood="ok" size={48} />
+      <Character id={owned ? card.character : 'soul'} art={owned ? card.id : undefined} mood="ok" size={48} />
       <span className="tile-name">{card.name}</span>
       <span className="tile-rarity sub">{RARITY_LABEL[card.rarity]}</span>
       {owned && (

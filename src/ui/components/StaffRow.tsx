@@ -22,7 +22,7 @@ export function StaffRow({ staff, mode }: { staff: StaffDef; mode: BuyMode }) {
   const progress = Math.min(1, (owned - prev) / (next - prev));
   return (
     <div className="card staff-row">
-      <Character id={staff.character} mood={mood} size={52} />
+      <Character id={staff.character} art={staff.id} mood={mood} size={52} />
       <div className="staff-info">
         <div className="staff-name">{staff.name} <span className="mono owned">×{owned}</span></div>
         <div className="sub">{staff.role} — {staff.flavor}</div>
