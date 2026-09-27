@@ -4,6 +4,13 @@ import { formatNumber } from '../../engine/format';
 
 interface Float { id: number; x: number; text: string }
 
+const DEPT_ART = new Set(['intake', 'heaven', 'hell', 'reincarnation', 'limbo', 'valhalla']);
+
+function deptSceneUrl(deptId: string) {
+  const file = DEPT_ART.has(deptId) ? deptId : 'intake';
+  return `${import.meta.env.BASE_URL}art/depts/${file}.webp`;
+}
+
 /**
  * The stamp's seal, without the button around it. The title screen shows the same seal as
  * artwork, so the drawing lives here once and the button is one of its two callers.
@@ -23,6 +30,7 @@ export function StampButton() {
   const stamp = useGame((s) => s.stamp);
   const rotateQueue = useGame((s) => s.rotateQueue);
   const clickPower = useGame((s) => s.rates.clickPower);
+  const activeDept = useGame((s) => s.state.activeDept);
   const [floats, setFloats] = useState<Float[]>([]);
   const [pressed, setPressed] = useState(false);
 
@@ -38,11 +46,13 @@ export function StampButton() {
 
   return (
     <div className="stamp-wrap">
-      {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>{f.text}</span>)}
-      <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label="Stamp soul" data-coach="stamp">
-        <StampSeal />
-      </button>
-      <div className="mono sub">+{formatNumber(clickPower)} per stamp</div>
+      <div className="stamp-scene" data-testid="stamp-scene" style={{ backgroundImage: `url(${deptSceneUrl(activeDept)})` }}>
+        {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>{f.text}</span>)}
+        <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label="Stamp soul" data-coach="stamp">
+          <StampSeal />
+        </button>
+        <div className="mono sub stamp-scene-pill">+{formatNumber(clickPower)} per stamp</div>
+      </div>
     </div>
   );
 }
