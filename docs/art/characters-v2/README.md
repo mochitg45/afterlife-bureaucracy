@@ -21,3 +21,5 @@ pair in b7-reroll-dave-gary.jpg instead.
 
 Next step: cut each card to its own transparent PNG (flat cream background keys cleanly)
 and swap them into src/ui/characters/Character.tsx and the card art.
+
+Base Dave: b5 drew him with a skull face (off-style). The sprite public/art/chars/dave.webp comes from b8-dave.jpg (round face, purple hood), cut by hand: border stroke erased, trapped wedge seeded, thin slivers removed. scripts/cut-art.py still cuts b5 slot 0 to dave.webp, so re-running it overwrites this; re-apply or point the script at b8.
