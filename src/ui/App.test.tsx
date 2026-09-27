@@ -134,6 +134,8 @@ describe('App onboarding', () => {
     await screen.findByRole('dialog', { name: 'Introduction' });
     for (let i = 0; i < content.onboarding.intro.length - 1; i++) {
       fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      // Clears the intro's ~300ms double-tap guard so this loop reads as separate taps.
+      await new Promise((resolve) => setTimeout(resolve, 310));
     }
     fireEvent.click(screen.getByRole('button', { name: content.onboarding.intro[3].cta }));
     expect(await screen.findByText(content.onboarding.training[0].title)).toBeInTheDocument();

@@ -79,7 +79,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tabbar {
   /* The inset is padding, so the row of buttons needs the extra height on top of --tabbar-h
      or the home indicator eats into the tap targets. */
-  position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  /* z-index: page content with its own layer (the stamp, speed-bar labels) must scroll under
+     the bar, not paint over it; notices (44), coach marks (45) and modals (50+) stay above. */
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   display: grid; grid-template-columns: repeat(5, 1fr);
   background: var(--surface); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
@@ -534,16 +536,24 @@ label.settings-row { cursor: pointer; }
 .intro-form { font-family: var(--font-display); letter-spacing: 0.06em; }
 .intro-caption p { margin: 4px 0 0; }
 .intro-cta { min-width: 160px; min-height: 44px; }
-/* Invisible pacer: the delay covers the scene's drift, the duration is the hold the brief
-   asks for, and its animationend is what advances the scene. No JS timers. */
-.intro-timer { position: absolute; width: 0; height: 0; opacity: 0; animation: introHold 2500ms linear 1200ms both; }
+/* Nudges the player to tap instead of waiting. `backwards` fill holds the keyframe's 0%
+   (hidden) through the animation-delay, so it stays off screen until the stage's own
+   introIn fade (300ms) has finished — it must never appear mid-caption-reveal. */
+.intro-hint {
+  display: block; margin-top: 6px; font-size: 0.78em; opacity: 0.6; letter-spacing: 0.02em;
+  animation: introHintPulse 1800ms ease-in-out 300ms infinite backwards;
+}
 
 @keyframes introIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes introDrift { from { transform: scale(1); } to { transform: scale(1.06); } }
-@keyframes introHold { from { opacity: 0; } to { opacity: 0; } }
+@keyframes introHintPulse {
+  0%, 100% { opacity: 0; }
+  15%, 85% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-stage, .intro-scene-img, .intro-timer { animation: none; }
+  .intro-stage, .intro-scene-img, .intro-hint { animation: none; }
 }
 
 /* ---- Inata Sun Soft splash ----------------------------------------------------------

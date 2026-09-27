@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { vi } from 'vitest';
 import { Intro } from './Intro';
 import { useGame } from '../../store/game';
 import { createInitialState } from '../../engine/state';
@@ -12,9 +13,18 @@ function seed(memosSeen: boolean) {
 }
 
 const scenes = content.onboarding.intro;
-const next = () => fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-/** jsdom runs no animations, so the pacer's end has to be fired by hand. */
-const pace = () => fireEvent.animationEnd(screen.getByTestId('intro-timer'));
+// Clicks past the 300ms double-tap guard, so a chain of these walks one scene per call.
+const next = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  act(() => { vi.advanceTimersByTime(301); });
+};
+const tapStage = () => {
+  fireEvent.click(screen.getByRole('dialog'));
+  act(() => { vi.advanceTimersByTime(301); });
+};
+
+beforeEach(() => { vi.useFakeTimers(); });
+afterEach(() => { vi.useRealTimers(); });
 
 describe('Intro', () => {
   it('renders nothing once the intro has been seen', () => {
@@ -54,31 +64,19 @@ describe('Intro', () => {
     expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
   });
 
-  it('auto-advances when a scene is left alone, up to the last one', () => {
+  it('never changes scene on its own, however long the player waits', () => {
     seed(false);
     render(<Intro />);
-    pace();
-    expect(screen.getByText(/forwarded to Intake/)).toBeInTheDocument();
-    pace();
-    pace();
-    expect(screen.getByRole('button', { name: 'Clock in' })).toBeInTheDocument();
-    expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
-  });
-
-  it('never self-dismisses on the last scene: the pacer is not mounted there', () => {
-    seed(false);
-    render(<Intro />);
-    next();
-    next();
-    next();
-    expect(screen.queryByTestId('intro-timer')).not.toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(30_000); });
+    expect(screen.getByText('FORM 1-A · NOTICE OF DECEASE')).toBeInTheDocument();
+    expect(screen.getByText(/You have died/)).toBeInTheDocument();
     expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
   });
 
   it('advances one scene per tap, on the button or the stage', () => {
     seed(false);
     render(<Intro />);
-    fireEvent.click(screen.getByRole('dialog'));
+    tapStage();
     expect(screen.getByText(/forwarded to Intake/)).toBeInTheDocument();
     expect(screen.queryByText('FORM 2-C · OFFER OF EMPLOYMENT')).not.toBeInTheDocument();
   });
@@ -96,6 +94,27 @@ describe('Intro', () => {
     render(<Intro />);
     fireEvent.click(screen.getByRole('dialog', { name: 'Introduction' }));
     expect(screen.getByText(/forwarded to Intake/)).toBeInTheDocument();
+  });
+
+  it('guards against a double tap: one tap moves one scene', () => {
+    seed(false);
+    render(<Intro />);
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(dialog);
+    fireEvent.click(dialog); // fired well inside the 300ms guard window, must be ignored
+    expect(screen.getByText(/forwarded to Intake/)).toBeInTheDocument();
+    expect(screen.queryByText('FORM 2-C · OFFER OF EMPLOYMENT')).not.toBeInTheDocument();
+  });
+
+  it('completes the intro on a tap on the last scene', () => {
+    seed(false);
+    render(<Intro />);
+    tapStage();
+    tapStage();
+    tapStage();
+    expect(useGame.getState().state.onboarding.memosSeen).toBe(false);
+    tapStage();
+    expect(useGame.getState().state.onboarding.memosSeen).toBe(true);
   });
 
   it('skips from scene two without walking the rest', () => {

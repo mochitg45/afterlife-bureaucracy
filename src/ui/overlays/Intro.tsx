@@ -1,23 +1,23 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 
 const BASE_URL = import.meta.env.BASE_URL;
+// One tap should move one scene: ignore any further taps for this long after one lands.
+const TAP_GUARD_MS = 300;
 
 /**
  * The opening cutscene, shown once on the first shift in place of the old memo dialogs.
- * Four scenes on a full-screen parchment stage: tapping anywhere, the button, or letting a
- * scene's pacing animation run out advances; Skip and the last scene's CTA both end it.
- *
- * The pacing is a CSS animation rather than a timer — an invisible element whose delay
- * covers the scene's own animation and whose `animationend` advances — so a `prefers-
- * reduced-motion` player gets four still frames that only move when they ask them to.
+ * Four scenes on a full-screen parchment stage: tapping anywhere on the stage, or the
+ * button, advances — Skip and the last scene's CTA both end it. There is no auto-advance;
+ * the player reads at their own pace.
  */
 export function Intro() {
   const memosSeen = useGame((s) => s.state.onboarding.memosSeen);
   const markMemosSeen = useGame((s) => s.markMemosSeen);
   const [index, setIndex] = useState(0);
   const scenes = content.onboarding.intro;
+  const lastAdvance = useRef(0);
 
   if (memosSeen || scenes.length === 0) return null;
   // Clamped rather than indexed raw: a content build with fewer scenes than a stale index
@@ -25,7 +25,12 @@ export function Intro() {
   const at = Math.min(index, scenes.length - 1);
   const scene = scenes[at];
   const last = at >= scenes.length - 1;
-  const advance = () => (last ? markMemosSeen() : setIndex(at + 1));
+  const advance = () => {
+    const now = Date.now();
+    if (now - lastAdvance.current < TAP_GUARD_MS) return;
+    lastAdvance.current = now;
+    last ? markMemosSeen() : setIndex(at + 1);
+  };
   // Everything before the em dash is the form number, set in the typewriter face above the line.
   const [form, line] = scene.caption.includes(' — ') ? scene.caption.split(' — ') : [null, scene.caption];
 
@@ -43,15 +48,12 @@ export function Intro() {
           <div className="intro-caption">
             {form && <div className="mono label intro-form">{form}</div>}
             <p>{line}</p>
+            <span className="intro-hint" aria-hidden="true">Tap to continue</span>
           </div>
         </div>
         <button className="btn btn-primary intro-cta" onClick={(e) => { e.stopPropagation(); advance(); }}>
           {scene.cta ?? 'Next'}
         </button>
-        {/* The pacer. Its delay covers the scene animation, its duration is the 2.5s hold.
-            Never mounted on the last scene: the intro must end on a deliberate press, not on
-            a hold running out while the player reads the CTA. */}
-        {!last && <span className="intro-timer" data-testid="intro-timer" onAnimationEnd={advance} />}
       </div>
     </div>
   );
