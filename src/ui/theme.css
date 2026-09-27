@@ -272,11 +272,17 @@ label.settings-row { cursor: pointer; }
 .title-art > * { position: absolute; pointer-events: none; }
 /* Heaven: slow-turning light rays from behind the gates, two soft clouds drifting across. */
 .fx-rays {
-  left: -30%; top: -20%; width: 110%; height: 110%;
-  background: repeating-conic-gradient(from 0deg at 50% 45%, rgb(255 250 220 / 0.32) 0deg 6deg, transparent 6deg 18deg);
-  -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 0 22%, transparent 60%);
-  mask-image: radial-gradient(circle at 50% 45%, #000 0 22%, transparent 60%);
-  animation: raysTurn 40s linear infinite, raysPulse 5s ease-in-out infinite;
+  left: 0; top: 0; width: 50%; height: 100%; overflow: hidden;
+  animation: raysPulse 5s ease-in-out infinite;
+}
+/* The spinning disc lives in a pseudo-element so the half-width box can clip it at the seam. */
+.fx-rays::before {
+  content: ''; position: absolute; left: 50%; top: 36%; width: 240%; aspect-ratio: 1;
+  translate: -50% -50%;
+  background: repeating-conic-gradient(rgb(255 250 220 / 0.34) 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0 10%, transparent 42%);
+  mask-image: radial-gradient(circle, #000 0 10%, transparent 42%);
+  animation: raysTurn 40s linear infinite;
 }
 @keyframes raysTurn { to { transform: rotate(360deg); } }
 @keyframes raysPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
@@ -359,7 +365,7 @@ label.settings-row { cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .pulse { animation: none; }
-  .title-art, .title-plate, .title-art > * { animation: none; }
+  .title-art, .title-plate, .title-art > *, .fx-rays::before { animation: none; }
   .fx-ember { display: none; }
 }
 
