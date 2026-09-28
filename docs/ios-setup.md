@@ -64,3 +64,28 @@ revoke an unused one in Certificates and rerun.
 App Store listing text (reuse `docs/store/listing.md`), screenshots (`docs/store/screenshots/ios-6.9/`
 and `ios-ipad-13/`), App Privacy answers (no tracking, no data collected by the app; RevenueCat
 purchase history), age rating, and attach the 6 in-app purchases to the 1.1.0 version.
+
+## Lessons from the first port (for the next app)
+
+- App Store Connect's web UI is unreliable for automation (clicks ignored, screenshots freeze).
+  Use its REST API with a JWT signed by the team key (`_secrets/apple-team/AuthKey_CFURK2CVZ2.p8`,
+  key `CFURK2CVZ2`, issuer `9bb893f9-b193-4fb8-8f36-34631c5b1d58`). It covers IAPs and subscriptions,
+  prices (`inAppPurchasePriceSchedules`; `subscriptionPrices` per territory via `/equalizations`),
+  availability, localizations, review screenshots, version text, subtitle, keywords, category,
+  age rating, content rights, review contact, screenshots, build attach, TestFlight group/tester
+  and "What to Test" notes.
+- `subscriptionPrices` POSTs return random 500s (about 25 of 175). Re-list and retry the missing ones.
+- IAPs stay *Missing Metadata* until each has a review screenshot of the in-game store. Hide
+  products not sold on iOS in that shot, and dismiss any coach/tip overlay first.
+- Keywords max 100 characters (409 if over). Don't repeat words already in the name or subtitle.
+- App Privacy has no API. Fill it in the web UI (RevenueCat: Purchase History, App Functionality,
+  not linked, no tracking). The final Publish click is the owner's declaration.
+- RevenueCat: "Select existing key" for both keys (IAP `WP3L8R84J8`, ASC API `CFURK2CVZ2`). Its
+  Products "Import" button and the public-key reveal ignored automation; the owner did those.
+- Codemagic: only the owner enters the 4 secret env vars. Copying Smile's yaml built first try.
+- Info.plist: with no ads on iOS, remove `GADApplicationIdentifier`, `NSUserTrackingUsageDescription`
+  and `SKAdNetworkItems`. `ITSAppUsesNonExemptEncryption=false` skips export compliance.
+- Icons via `@capacitor/assets generate --ios` (RGB, no alpha). Store screenshots: 1320x2868 and
+  2064x2752 PNG, no alpha; bezel screen must match the capture's aspect; capture iPad at 768x1024.
+- Code: hide (not disable) every ad button on iOS; skip `Purchases.configure` if the iOS key is
+  empty; bump `MARKETING_VERSION` and the App Store version string every release.
