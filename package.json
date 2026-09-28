@@ -17,7 +17,8 @@
     "art": "python scripts/cut-art.py",
     "icon": "node scripts/make-icon.mjs",
     "screenshots": "node scripts/screenshots.mjs",
-    "play-assets": "node scripts/make-play-assets.mjs"
+    "play-assets": "node scripts/make-play-assets.mjs",
+    "cap:sync:test": "tsc --noEmit && vite build --mode testads && cap sync android"
   },
   "dependencies": {
     "@capacitor-community/admob": "^7.2.0",

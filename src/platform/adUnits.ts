@@ -40,6 +40,15 @@ export function isDevBuild(): boolean {
   return import.meta.env?.DEV ?? true;
 }
 
-export function rewardedUnitId(placement: AdPlacement, dev: boolean = isDevBuild()): string {
+/**
+ * Test ads for builds installed on a developer's phone (`npm run cap:sync:test`): those are
+ * production bundles, so `isDevBuild()` is false, but tapping a live ad there is still a
+ * policy violation. Store releases are built without the flag.
+ */
+export function useTestAds(): boolean {
+  return isDevBuild() || import.meta.env?.VITE_TEST_ADS === '1';
+}
+
+export function rewardedUnitId(placement: AdPlacement, dev: boolean = useTestAds()): string {
   return dev ? TEST_REWARDED_UNIT : PRODUCTION_REWARDED_UNITS[placement];
 }

@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { AdMob, AdmobConsentStatus, RewardAdPluginEvents } from '@capacitor-community/admob';
 import type { AdMobRewardItem } from '@capacitor-community/admob';
-import { isDevBuild, rewardedUnitId } from './adUnits';
+import { isDevBuild, useTestAds, rewardedUnitId } from './adUnits';
 import type { AdPlacement } from './adUnits';
 
 export type { AdPlacement };
@@ -87,7 +87,7 @@ export const admobAds: Ads = (() => {
     async init() {
       await requestConsent();
       try {
-        await AdMob.initialize({ initializeForTesting: isDevBuild() });
+        await AdMob.initialize({ initializeForTesting: useTestAds() });
         initialised = true;
       } catch {
         initialised = false;
@@ -102,7 +102,7 @@ export const admobAds: Ads = (() => {
       if (!initialised) return 'unavailable';
 
       try {
-        await AdMob.prepareRewardVideoAd({ adId: rewardedUnitId(placement), isTesting: isDevBuild() });
+        await AdMob.prepareRewardVideoAd({ adId: rewardedUnitId(placement), isTesting: useTestAds() });
       } catch {
         return 'unavailable'; // no fill, offline, or a bad unit id
       }
