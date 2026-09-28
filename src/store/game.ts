@@ -11,7 +11,7 @@ import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
-import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
+import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
 import { pull as pullEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
@@ -225,6 +225,8 @@ export interface GameStore {
   unequip(cardId: string): void;
   claimDaily(taskId: string): void;
   skipDaily(taskId: string): void;
+  /** Writes off a task the player can no longer finish (e.g. every upgrade already bought). */
+  writeOffDaily(taskId: string): void;
   dismissStory(): void;
   clearAchievementToast(): void;
   setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
@@ -1153,6 +1155,15 @@ export function createGameStore(deps: StoreDeps) {
         apply(r.state);
       },
       skipDaily(taskId) { apply(skipDailyEngine(get().state, content, taskId)); },
+      writeOffDaily(taskId) {
+        const st = get().state;
+        const def = content.dailies.find((d) => d.id === taskId);
+        if (def?.kind !== 'upgrades') return;
+        const left = upgradeLevelsLeft(st, content);
+        const done = st.stats.upgradesBought - st.dailies.baseline.upgradesBought;
+        if (left >= def.target - done) return;
+        apply(skipDailyFree(st, content, taskId));
+      },
       dismissStory() { set((cur) => ({ pendingStory: cur.pendingStory.slice(1) })); },
       clearAchievementToast() { set((cur) => ({ recentAchievements: cur.recentAchievements.slice(1) })); },
       async setNotifOptIn(v) {

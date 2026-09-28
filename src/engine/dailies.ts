@@ -83,8 +83,25 @@ export function isKindFeasible(state: GameState, content: Content, kind: DailyKi
   }
 }
 
+/**
+ * Upgrade levels still buyable in the departments the player has opened, plus the next one
+ * to open: a player often unlocks it mid-day and buys its upgrades toward the task.
+ */
+export function upgradeLevelsLeft(state: GameState, content: Content): number {
+  let left = 0;
+  const nextLocked = content.departments.find((d) => !state.deptsUnlocked.includes(d.id) && !('branch' in d && d.branch));
+  for (const d of content.departments) {
+    if (!state.deptsUnlocked.includes(d.id) && d !== nextLocked) continue;
+    for (const u of d.upgrades) left += Math.max(0, u.maxLevel - (state.upgrades[u.id] ?? 0));
+  }
+  return left;
+}
+
 export function pickTasks(content: Content, date: string, state: GameState, eligibility: DailyEligibility = {}): DailyDef[] {
-  const pool = content.dailies.filter((d) => isKindFeasible(state, content, d.kind, eligibility));
+  // "Buy 5 upgrades" is unfinishable once fewer than five levels are left to buy.
+  const upgradesLeft = upgradeLevelsLeft(state, content);
+  const pool = content.dailies.filter((d) =>
+    isKindFeasible(state, content, d.kind, eligibility) && (d.kind !== 'upgrades' || d.target <= upgradesLeft));
   const out: DailyDef[] = [];
   let seed = hashDate(date);
   while (out.length < TASKS_PER_DAY && pool.length) {

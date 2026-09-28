@@ -12,6 +12,15 @@ function seed(recentAchievements: AchievementDef[]) {
 }
 
 describe('AchievementToast', () => {
+  it('holds the toast while a requisition reveal is open, then shows it', () => {
+    seed([content.achievements[0]]);
+    useGame.setState({ pendingPull: [] as never });
+    const { container } = render(<AchievementToast />);
+    expect(container.querySelector('.toast')).toBeNull();
+    act(() => { useGame.setState({ pendingPull: null }); });
+    expect(screen.getByRole('status')).toHaveTextContent(content.achievements[0].name);
+  });
+
   beforeEach(() => {
     vi.useFakeTimers();
   });

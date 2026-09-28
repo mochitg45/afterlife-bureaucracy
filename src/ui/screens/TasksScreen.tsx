@@ -2,7 +2,7 @@ import { memo, useMemo, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import Decimal from 'break_infinity.js';
-import { progressOf, isDone, dailyVoucherReward, AD_SKIP_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
+import { upgradeLevelsLeft, progressOf, isDone, dailyVoucherReward, AD_SKIP_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
 import { formatNumber } from '../../engine/format';
 import { KarmaIcon, VoucherIcon } from '../icons/Currency';
 import type { DailyDef } from '../../engine/content';
@@ -29,6 +29,10 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
   const text = fillText(def);
   const pct = (Math.min(progress, def.target) / def.target) * 100;
   const rewardVouchers = dailyVoucherReward(view, taskId);
+  // A task the player can no longer finish (every upgrade bought) is written off for free.
+  const levelsLeft = useGame((s) => upgradeLevelsLeft(s.state, content));
+  const writeOffDaily = useGame((s) => s.writeOffDaily);
+  const unfinishable = def.kind === 'upgrades' && !done && levelsLeft < def.target - progress;
 
   return (
     <div className="card daily-row">
@@ -57,7 +61,12 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
             Skip
           </button>
         )}
-        {!done && !task.claimed && (
+        {unfinishable && !task.claimed && (
+          <button className="btn btn-ghost" aria-label={`Write off: ${text}`} onClick={() => writeOffDaily(taskId)}>
+            Write off (no upgrades left)
+          </button>
+        )}
+        {!done && !task.claimed && !unfinishable && (
           <AdButton placement="daily-skip" taskId={taskId} label={`Skip with ad: ${text}`} text={`Skip with ad · +${AD_SKIP_VOUCHERS} vouchers`} />
         )}
       </div>

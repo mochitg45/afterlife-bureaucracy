@@ -4,7 +4,7 @@ import { content } from '../data';
 import { loadContent, ALWAYS_AVAILABLE_DAILY_KINDS } from './content';
 import intake from '../data/departments/intake.json';
 import dailies from '../data/dailies.json';
-import { dayKey, nextLocalMidnight, daysBetween, pickTasks, rollover, claimDaily, skipDaily, skipDailyFree, progressOf, isDone, TASKS_PER_DAY } from './dailies';
+import { dayKey, nextLocalMidnight, daysBetween, pickTasks, rollover, claimDaily, skipDaily, skipDailyFree, progressOf, isDone, TASKS_PER_DAY, upgradeLevelsLeft } from './dailies';
 import { voucherMult, grantVouchers, grantVouchersExact } from './vouchers';
 
 const now = { wall: 0, mono: 0 };
@@ -39,6 +39,17 @@ describe('day helpers', () => {
 });
 
 describe('task feasibility', () => {
+  it('never offers an upgrade task larger than the upgrade levels left to buy', () => {
+    const s = fresh();
+    const maxed: GameState = { ...s, upgrades: Object.fromEntries(content.departments.flatMap((d) => d.upgrades.map((u) => [u.id, u.maxLevel]))) };
+    expect(upgradeLevelsLeft(maxed, content)).toBe(0);
+    for (let i = 0; i < 120; i++) {
+      for (const t of pickTasks(content, dayKey(day(i)), maxed)) expect(t.kind).not.toBe('upgrades');
+    }
+    const left = upgradeLevelsLeft(s, content);
+    expect(left).toBeGreaterThan(0);
+  });
+
   it('never offers a fresh save a task it cannot start, over a full year of dates', () => {
     const s = fresh();
     for (let i = 0; i < 365; i++) {
