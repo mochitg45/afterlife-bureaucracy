@@ -8,9 +8,9 @@ const TOAST_MS = 3000;
 export function AchievementToast() {
   const achievement = useGame((s) => s.recentAchievements[0] ?? null);
   const clearAchievementToast = useGame((s) => s.clearAchievementToast);
-  // Held while the requisition reveal is open: pull achievements unlock mid-reveal and the
-  // toast would sit on the card flip. It shows (and starts its timer) once the reveal closes.
-  const held = useGame((s) => s.pendingPull !== null);
+  // Held while a popup is open (pull reveal, backlog report, audit, restructuring): the toast
+  // would sit on top of it. It shows, and starts its timer, once the popup closes.
+  const held = useGame((s) => s.pendingPull !== null || s.pendingOffline !== null || s.lastAudit !== null || s.lastCosmic !== null);
 
   useEffect(() => {
     if (!achievement || held) return;
