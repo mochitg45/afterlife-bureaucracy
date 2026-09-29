@@ -220,6 +220,47 @@ def cut_souls() -> dict[str, int]:
     return counts
 
 
+SRC_FLYERS = ROOT / "docs/art/flyers"
+OUT_FLYERS = ROOT / "public/art/flyers"
+FLYER_FRAMES = 4
+FLYER_HEIGHT = 160
+
+
+def cut_strip(name: str) -> int:
+    """Cut a 1-row animation strip ({name}-strip.jpg, flat page colour) into
+    {name}-N.webp frames. Every frame gets the same box and scale, so the body
+    stays put and only the wings move (per-frame fitting would make it wobble)."""
+    rgb = np.array(Image.open(SRC_FLYERS / f"{name}-strip.jpg").convert("RGB"))
+    page = np.median(np.concatenate([rgb[0], rgb[-1], rgb[:, 0], rgb[:, -1]]), axis=0)
+    near = np.abs(rgb.astype(np.int16) - page).max(axis=2) <= 14
+    lab, _ = ndimage.label(near)
+    edge = np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))
+    fg = ~np.isin(lab, edge[edge > 0])
+    lab, n = ndimage.label(fg)  # drop JPEG speckle
+    sizes = ndimage.sum(fg, lab, range(1, n + 1))
+    fg &= np.isin(lab, 1 + np.flatnonzero(sizes >= sizes.max() * MIN_BLOB_FRAC))
+
+    w = rgb.shape[1]
+    cw = w // FLYER_FRAMES
+    ys, xs = np.nonzero(fg)
+    top, bot = ys.min() - SPRITE_MARGIN, ys.max() + 1 + SPRITE_MARGIN
+    # widest frame sets the shared width; each frame centres on its own ink
+    spans = [np.nonzero(fg[:, i * cw:(i + 1) * cw].any(axis=0))[0] + i * cw for i in range(FLYER_FRAMES)]
+    bw = max(s[-1] - s[0] + 1 for s in spans) + 2 * SPRITE_MARGIN
+    rgba = np.dstack([rgb, np.where(fg, 255, 0).astype(np.uint8)])
+    OUT_FLYERS.mkdir(parents=True, exist_ok=True)
+    scale = FLYER_HEIGHT / (bot - top)
+    size = (round(bw * scale), FLYER_HEIGHT)
+    for i, s in enumerate(spans):
+        frame = np.zeros((bot - top, bw, 4), np.uint8)
+        x0 = s[0] - SPRITE_MARGIN
+        src = rgba[top:bot, max(x0, 0):min(x0 + bw, (i + 1) * cw)]
+        frame[:, max(-x0, 0):max(-x0, 0) + src.shape[1]] = src
+        Image.fromarray(frame).resize(size, Image.LANCZOS).save(
+            OUT_FLYERS / f"{name}-{i + 1}.webp", format="WEBP", quality=90)
+    return FLYER_FRAMES
+
+
 def cover_crop(im: Image.Image, target: tuple[int, int]) -> Image.Image:
     tw, th = target
     w, h = im.size
@@ -261,4 +302,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    if sys.argv[1:2] == ["strip"]:  # python scripts/cut-art.py strip pip
+        print(f"{sys.argv[2]}: {cut_strip(sys.argv[2])} frames")
+    else:
+        sys.exit(main())
