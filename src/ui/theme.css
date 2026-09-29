@@ -606,5 +606,5 @@ label.settings-row { cursor: pointer; }
 .daily-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .daily-reward { display: inline-flex; gap: 10px; }
 
-.leaderboard-row { display: flex; flex-direction: column; gap: 4px; }
+.leaderboard-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .leaderboard-row .btn { width: 100%; }
