@@ -20,7 +20,7 @@ import {
   UNION_PERIOD_MS,
   UNION_ROLLOVER_VOUCHERS,
 } from '../engine/entitlements';
-import { BOOST_AD_COOLDOWN_MS, BOOST_AD_DURATION_MS, lifetimeSoulsScore, TRAINING_DONE, VISITOR_AD_MULT, VISITOR_EVERY_MS, VISITOR_FIRST_MS, VISITOR_KC_SECONDS, VISITOR_MIN_KC } from './game';
+import { BOOST_AD_COOLDOWN_MS, BOOST_AD_DURATION_MS, lifetimeSoulsScore, TRAINING_DONE, VISITOR_AD_MULT, VISITOR_EVERY_MS, VISITOR_FIRST_MS, VISITOR_KC_SECONDS, VISITOR_MIN_KC, VISITOR_DEAL_VOUCHERS, VISITOR_DEAL_AD_VOUCHERS, VISITOR_ANGEL_SHARE } from './game';
 
 /** The leaderboard id is still a console placeholder, so the store's call is stubbed to a real one. */
 vi.mock('../platform/gameIds', async (importOriginal) => {
@@ -306,7 +306,7 @@ describe('rewarded ads', () => {
     clock.advance(3600_000);
     await store.getState().resume();
     expect(store.getState().pendingOffline).not.toBeNull();
-    store.setState({ pendingVisitor: { kc: new Decimal(100) } });
+    store.setState({ pendingVisitor: { from: 'angel', kc: new Decimal(100) } });
     for (const p of AD_PLACEMENTS) expect(store.getState().canWatch(p)).toBe(true);
     store.setState({ clockSuspect: true });
     for (const p of AD_PLACEMENTS) expect(store.getState().canWatch(p)).toBe(false);
@@ -724,6 +724,11 @@ describe('game services and the save code', () => {
 });
 
 describe('Pip the visitor', () => {
+  /** Pins the letter's sender: Math.random below the share is Seraphine, above it Gary. */
+  const from = (who: 'angel' | 'devil') =>
+    vi.spyOn(Math, 'random').mockReturnValue(who === 'angel' ? 0 : VISITOR_ANGEL_SHARE + 0.01);
+  afterEach(() => vi.restoreAllMocks());
+
   async function onboarded() {
     const m = await make();
     const s = m.store.getState().state;
@@ -754,16 +759,17 @@ describe('Pip the visitor', () => {
 
   it('gives two minutes of income, with a floor, once', async () => {
     const { store, clock, seed } = await onboarded();
+    from('angel');
     clock.advance(VISITOR_FIRST_MS);
     store.getState().openVisitor();
-    expect(store.getState().pendingVisitor!.kc.eq(VISITOR_MIN_KC)).toBe(true);
+    expect((store.getState().pendingVisitor as { kc: Decimal }).kc.eq(VISITOR_MIN_KC)).toBe(true);
     store.getState().claimVisitor();
 
     seed({ staff: { dave: 50 } });
     clock.advance(VISITOR_EVERY_MS);
     const expected = store.getState().rates.kcPerSec.mul(VISITOR_KC_SECONDS).floor();
     store.getState().openVisitor();
-    expect(store.getState().pendingVisitor!.kc.eq(expected)).toBe(true);
+    expect((store.getState().pendingVisitor as { kc: Decimal }).kc.eq(expected)).toBe(true);
     const before = store.getState().state.kc;
     store.getState().claimVisitor();
     store.getState().claimVisitor();
@@ -773,18 +779,59 @@ describe('Pip the visitor', () => {
 
   it('an ad pays the gift ×5 and closes it; a missed visit just waits for the next', async () => {
     const { store, clock } = await onboarded();
+    from('angel');
     expect(store.getState().canWatch('visitor')).toBe(false);
     clock.advance(VISITOR_FIRST_MS);
     store.getState().missVisitor();
     expect(store.getState().visitorDue()).toBe(false);
     clock.advance(VISITOR_EVERY_MS);
     store.getState().openVisitor();
-    const gift = store.getState().pendingVisitor!.kc;
+    const gift = (store.getState().pendingVisitor as { kc: Decimal }).kc;
     const before = store.getState().state.kc;
     expect(await store.getState().watchAd('visitor')).toBe('rewarded');
     expect(store.getState().state.kc.sub(before).eq(gift.mul(VISITOR_AD_MULT))).toBe(true);
     expect(store.getState().pendingVisitor).toBeNull();
     expect(store.getState().canWatch('visitor')).toBe(false);
+    store.getState().stopLoop();
+  });
+});
+
+describe("Gary's letter", () => {
+  async function devilLetter() {
+    const m = await make();
+    const s = m.store.getState().state;
+    m.seed({ onboarding: { ...s.onboarding, memosSeen: true, trainingStep: TRAINING_DONE } });
+    m.clock.advance(VISITOR_FIRST_MS);
+    vi.spyOn(Math, 'random').mockReturnValue(VISITOR_ANGEL_SHARE + 0.01);
+    m.store.getState().openVisitor();
+    vi.restoreAllMocks();
+    expect(m.store.getState().pendingVisitor).toEqual({ from: 'devil' });
+    return m;
+  }
+
+  it('pays one voucher, or five with an ad', async () => {
+    const a = await devilLetter();
+    const v0 = a.store.getState().state.vouchers;
+    a.store.getState().claimVisitor();
+    expect(a.store.getState().state.vouchers - v0).toBe(VISITOR_DEAL_VOUCHERS);
+    expect(VISITOR_DEAL_VOUCHERS).toBe(1);
+    a.store.getState().stopLoop();
+
+    const b = await devilLetter();
+    const v1 = b.store.getState().state.vouchers;
+    expect(await b.store.getState().watchAd('visitor')).toBe('rewarded');
+    expect(b.store.getState().state.vouchers - v1).toBe(VISITOR_DEAL_AD_VOUCHERS);
+    expect(VISITOR_DEAL_AD_VOUCHERS).toBe(5);
+    expect(b.store.getState().pendingVisitor).toBeNull();
+    b.store.getState().stopLoop();
+  });
+
+  it('"No deal" closes the letter without paying', async () => {
+    const { store } = await devilLetter();
+    const v0 = store.getState().state.vouchers;
+    store.getState().declineVisitor();
+    expect(store.getState().pendingVisitor).toBeNull();
+    expect(store.getState().state.vouchers).toBe(v0);
     store.getState().stopLoop();
   });
 });

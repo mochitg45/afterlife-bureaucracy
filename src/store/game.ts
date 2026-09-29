@@ -90,14 +90,23 @@ export { BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS };
 
 /**
  * Pip, the flying courier: first visit a few minutes into a session, then one every few
- * minutes. His gift is VISITOR_KC_SECONDS of current income (a floor keeps it worth a tap in
- * the first minute), ×VISITOR_AD_MULT with an ad. Session-only: the timer is not saved.
+ * minutes. His letter is from Seraphine (VISITOR_KC_SECONDS of current income, with a floor
+ * so it is worth a tap in the first minute; ×VISITOR_AD_MULT with an ad) or from Gary
+ * (VISITOR_DEAL_VOUCHERS Requisition Vouchers, VISITOR_DEAL_AD_VOUCHERS with an ad). Not a
+ * speed boost: the Overtime ad already gives ×2 for four hours.
+ * Session-only: the timer is not saved.
  */
 export const VISITOR_FIRST_MS = 3 * 60_000;
 export const VISITOR_EVERY_MS = 6 * 60_000;
 export const VISITOR_KC_SECONDS = 120;
 export const VISITOR_MIN_KC = 50;
 export const VISITOR_AD_MULT = 5;
+export const VISITOR_DEAL_VOUCHERS = 1;
+export const VISITOR_DEAL_AD_VOUCHERS = 5;
+/** Share of letters from Seraphine. Gary's voucher deals stay rare: vouchers are the paid currency. */
+export const VISITOR_ANGEL_SHARE = 0.8;
+
+export type VisitorLetter = { from: 'angel'; kc: Decimal } | { from: 'devil' };
 
 /**
  * A per-process id, regenerated on every boot. Two boots of the same save must not collide,
@@ -213,8 +222,8 @@ export interface GameStore {
   lastCosmic: { pointsGained: number } | null;
   cloud: CloudState;
   cloudNotice: CloudNotice | null;
-  /** Pip's gift, open in the popup until taken or doubled by an ad. */
-  pendingVisitor: { kc: Decimal } | null;
+  /** The letter Pip delivered, open in the popup until taken, declined or boosted by an ad. */
+  pendingVisitor: VisitorLetter | null;
   /** Monotonic time Pip is next due; pushed forward whenever he is tapped or flies off. */
   visitorDueMono: number;
   boot(): Promise<void>;
@@ -261,6 +270,8 @@ export interface GameStore {
   /** Pip flew off untapped: books the next visit. */
   missVisitor(): void;
   claimVisitor(): void;
+  /** "No deal": closes the letter without taking anything. */
+  declineVisitor(): void;
   buyClause(clauseId: string): void;
   signInGameServices(): Promise<boolean>;
   /** Signs into the cloud (which is also the Play Games prompt), then syncs. */
@@ -1303,7 +1314,7 @@ export function createGameStore(deps: StoreDeps) {
           case 'visitor': {
             const v = get().pendingVisitor;
             if (v) {
-              next = addSouls(next, new Decimal(0), v.kc.mul(VISITOR_AD_MULT));
+              next = v.from === 'angel' ? addSouls(next, new Decimal(0), v.kc.mul(VISITOR_AD_MULT)) : { ...next, vouchers: next.vouchers + VISITOR_DEAL_AD_VOUCHERS };
               extra = { pendingVisitor: null };
             }
             break;
@@ -1374,15 +1385,19 @@ export function createGameStore(deps: StoreDeps) {
       },
       openVisitor() {
         if (!get().visitorDue()) return;
-        const kc = Decimal.max(get().rates.kcPerSec.mul(VISITOR_KC_SECONDS), VISITOR_MIN_KC).floor();
-        set({ pendingVisitor: { kc }, visitorDueMono: clock.mono() + VISITOR_EVERY_MS });
+        const letter: VisitorLetter = Math.random() < VISITOR_ANGEL_SHARE
+          ? { from: 'angel', kc: Decimal.max(get().rates.kcPerSec.mul(VISITOR_KC_SECONDS), VISITOR_MIN_KC).floor() }
+          : { from: 'devil' };
+        set({ pendingVisitor: letter, visitorDueMono: clock.mono() + VISITOR_EVERY_MS });
       },
       missVisitor() { set({ visitorDueMono: clock.mono() + VISITOR_EVERY_MS }); },
       claimVisitor() {
         const v = get().pendingVisitor;
         if (!v) return;
-        apply(addSouls(get().state, new Decimal(0), v.kc), { pendingVisitor: null });
+        const s = get().state;
+        apply(v.from === 'angel' ? addSouls(s, new Decimal(0), v.kc) : { ...s, vouchers: s.vouchers + VISITOR_DEAL_VOUCHERS }, { pendingVisitor: null });
       },
+      declineVisitor() { set({ pendingVisitor: null }); },
       buyClause(clauseId) { apply(buyClauseEngine(get().state, content, clauseId)); },
 
       async signInGameServices() {
