@@ -3,13 +3,14 @@
  * the AdMob account never appears here. Source of truth: `docs/store/ids.md`.
  */
 
-export type AdPlacement = 'offline-double' | 'overtime-boost' | 'free-pull' | 'daily-skip';
+export type AdPlacement = 'offline-double' | 'overtime-boost' | 'free-pull' | 'daily-skip' | 'visitor';
 
 export const AD_PLACEMENTS: readonly AdPlacement[] = [
   'offline-double',
   'overtime-boost',
   'free-pull',
   'daily-skip',
+  'visitor',
 ] as const;
 
 /** AdMob app id — also mirrored in `android/app/src/main/AndroidManifest.xml`. */
@@ -21,6 +22,7 @@ export const PRODUCTION_REWARDED_UNITS: Record<AdPlacement, string> = {
   'overtime-boost': 'ca-app-pub-5130289288594607/2737586738',
   'free-pull': 'ca-app-pub-5130289288594607/3254618178',
   'daily-skip': 'ca-app-pub-5130289288594607/8562785171',
+  visitor: 'ca-app-pub-5130289288594607/6310082380',
 };
 
 /**

@@ -17,6 +17,8 @@ import { Intro } from './overlays/Intro';
 import { Training } from './overlays/Training';
 import { Tips } from './overlays/Tips';
 import { AchievementToast } from './components/AchievementToast';
+import { Visitor } from './components/Visitor';
+import { VisitorGift } from './overlays/VisitorGift';
 import { SettingsSheet } from './overlays/SettingsSheet';
 import { NotifPrompt } from './overlays/NotifPrompt';
 import { SaveCodeSheet } from './overlays/SaveCodeSheet';
@@ -108,6 +110,8 @@ export function App() {
           <AuditCeremony />
           <CosmicCeremony />
           <PullReveal />
+          {tab === 'office' && <Visitor />}
+          <VisitorGift />
           <StoryMemo />
           <Intro />
           <Training />

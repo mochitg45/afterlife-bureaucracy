@@ -9,6 +9,7 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
   - overtime-boost: `ca-app-pub-5130289288594607/2737586738`
   - free-pull: `ca-app-pub-5130289288594607/3254618178`
   - daily-skip: `ca-app-pub-5130289288594607/8562785171`
+  - visitor (Pip the flying courier): `ca-app-pub-5130289288594607/6310082380`
 
 ## Google Play
 - Package: `com.afterlifebureaucracy.game`

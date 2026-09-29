@@ -89,6 +89,17 @@ export const BOOT_QUEUE_CAP = 3;
 export { BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS };
 
 /**
+ * Pip, the flying courier: first visit a few minutes into a session, then one every few
+ * minutes. His gift is VISITOR_KC_SECONDS of current income (a floor keeps it worth a tap in
+ * the first minute), ×VISITOR_AD_MULT with an ad. Session-only: the timer is not saved.
+ */
+export const VISITOR_FIRST_MS = 3 * 60_000;
+export const VISITOR_EVERY_MS = 6 * 60_000;
+export const VISITOR_KC_SECONDS = 120;
+export const VISITOR_MIN_KC = 50;
+export const VISITOR_AD_MULT = 5;
+
+/**
  * A per-process id, regenerated on every boot. Two boots of the same save must not collide,
  * so that the forward-jump rule only ever fires on a genuine same-process resume.
  *
@@ -202,6 +213,10 @@ export interface GameStore {
   lastCosmic: { pointsGained: number } | null;
   cloud: CloudState;
   cloudNotice: CloudNotice | null;
+  /** Pip's gift, open in the popup until taken or doubled by an ad. */
+  pendingVisitor: { kc: Decimal } | null;
+  /** Monotonic time Pip is next due; pushed forward whenever he is tapped or flies off. */
+  visitorDueMono: number;
   boot(): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -239,6 +254,13 @@ export interface GameStore {
   restorePurchases(): Promise<RestoreResult>;
   cosmic(): void;
   dismissCosmic(): void;
+  /** True when Pip may fly: the office is open, he is due, and no other popup is up. */
+  visitorDue(): boolean;
+  /** Pip was tapped: opens his gift and books the next visit. */
+  openVisitor(): void;
+  /** Pip flew off untapped: books the next visit. */
+  missVisitor(): void;
+  claimVisitor(): void;
   buyClause(clauseId: string): void;
   signInGameServices(): Promise<boolean>;
   /** Signs into the cloud (which is also the Play Games prompt), then syncs. */
@@ -711,7 +733,7 @@ export function createGameStore(deps: StoreDeps) {
       // budget is still running when the office opens, and from that moment it is an
       // ordinary sync that has to obey the guard like any other.
       const cur = get();
-      if (cur.ready && (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline)) return 'none';
+      if (cur.ready && (cur.pendingPull || cur.lastAudit || cur.lastCosmic || cur.pendingOffline || cur.pendingVisitor)) return 'none';
       const read = await readCloud();
       // A read that never landed says nothing about the slot, so it changes nothing here: no
       // upload over a copy we could not see, and no notice for what is usually a passing
@@ -825,6 +847,8 @@ export function createGameStore(deps: StoreDeps) {
         lastResult: 'none',
       },
       cloudNotice: null,
+      pendingVisitor: null,
+      visitorDueMono: clock.mono() + VISITOR_FIRST_MS,
 
       boot() {
         if (booting) return booting;
@@ -1203,6 +1227,8 @@ export function createGameStore(deps: StoreDeps) {
             return s.adState.freePullDate !== dayKey(wall);
           case 'daily-skip':
             return s.adState.dailySkipDate !== dayKey(wall);
+          case 'visitor':
+            return get().pendingVisitor !== null;
           default:
             return false;
         }
@@ -1274,6 +1300,14 @@ export function createGameStore(deps: StoreDeps) {
             if (skipped !== next) next = { ...skipped, adState: { ...skipped.adState, dailySkipDate: today } };
             break;
           }
+          case 'visitor': {
+            const v = get().pendingVisitor;
+            if (v) {
+              next = addSouls(next, new Decimal(0), v.kc.mul(VISITOR_AD_MULT));
+              extra = { pendingVisitor: null };
+            }
+            break;
+          }
         }
         apply(next, extra);
         void get().save();
@@ -1332,6 +1366,23 @@ export function createGameStore(deps: StoreDeps) {
         void get().save();
       },
       dismissCosmic() { set({ lastCosmic: null }); },
+      visitorDue() {
+        const g = get();
+        const ob = g.state.onboarding;
+        return g.ready && clock.mono() >= g.visitorDueMono && ob.memosSeen && ob.trainingStep >= TRAINING_DONE
+          && !(g.pendingVisitor || g.pendingPull || g.lastAudit || g.lastCosmic || g.pendingOffline || g.pendingStory.length);
+      },
+      openVisitor() {
+        if (!get().visitorDue()) return;
+        const kc = Decimal.max(get().rates.kcPerSec.mul(VISITOR_KC_SECONDS), VISITOR_MIN_KC).floor();
+        set({ pendingVisitor: { kc }, visitorDueMono: clock.mono() + VISITOR_EVERY_MS });
+      },
+      missVisitor() { set({ visitorDueMono: clock.mono() + VISITOR_EVERY_MS }); },
+      claimVisitor() {
+        const v = get().pendingVisitor;
+        if (!v) return;
+        apply(addSouls(get().state, new Decimal(0), v.kc), { pendingVisitor: null });
+      },
       buyClause(clauseId) { apply(buyClauseEngine(get().state, content, clauseId)); },
 
       async signInGameServices() {

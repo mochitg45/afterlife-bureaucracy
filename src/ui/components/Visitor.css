@@ -1,0 +1,48 @@
+.visitor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.visitor:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 12px; }
+.visitor-pip { width: 72px; height: auto; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25)); }
+.visitor[data-dir='left'] .visitor-pip { transform: scaleX(-1); }
+.visitor-bubble {
+  position: relative;
+  margin-bottom: 6px;
+  padding: 4px 9px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  /* Wraps rather than running off the screen when Pip is at the edge of his loop. */
+  max-width: 140px;
+  text-align: center;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.visitor-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 9px;
+  height: 9px;
+  margin-left: -5px;
+  background: var(--surface);
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  transform: rotate(45deg);
+}
+.visitor-gift-pip { display: block; width: 110px; margin: 0 auto 4px; }
+.visitor-gift-amt { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 12px 0; font-size: 22px; }

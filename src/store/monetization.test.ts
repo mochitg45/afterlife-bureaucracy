@@ -20,7 +20,7 @@ import {
   UNION_PERIOD_MS,
   UNION_ROLLOVER_VOUCHERS,
 } from '../engine/entitlements';
-import { BOOST_AD_COOLDOWN_MS, BOOST_AD_DURATION_MS, lifetimeSoulsScore } from './game';
+import { BOOST_AD_COOLDOWN_MS, BOOST_AD_DURATION_MS, lifetimeSoulsScore, TRAINING_DONE, VISITOR_AD_MULT, VISITOR_EVERY_MS, VISITOR_FIRST_MS, VISITOR_KC_SECONDS, VISITOR_MIN_KC } from './game';
 
 /** The leaderboard id is still a console placeholder, so the store's call is stubbed to a real one. */
 vi.mock('../platform/gameIds', async (importOriginal) => {
@@ -306,6 +306,7 @@ describe('rewarded ads', () => {
     clock.advance(3600_000);
     await store.getState().resume();
     expect(store.getState().pendingOffline).not.toBeNull();
+    store.setState({ pendingVisitor: { kc: new Decimal(100) } });
     for (const p of AD_PLACEMENTS) expect(store.getState().canWatch(p)).toBe(true);
     store.setState({ clockSuspect: true });
     for (const p of AD_PLACEMENTS) expect(store.getState().canWatch(p)).toBe(false);
@@ -718,6 +719,72 @@ describe('game services and the save code', () => {
     // The import's own save is not the loop; blank it and wait for the autosave to write again.
     await storage.set(SAVE_KEY, '');
     await vi.waitFor(async () => expect((await storage.get(SAVE_KEY))?.length).toBeGreaterThan(0));
+    store.getState().stopLoop();
+  });
+});
+
+describe('Pip the visitor', () => {
+  async function onboarded() {
+    const m = await make();
+    const s = m.store.getState().state;
+    m.seed({ onboarding: { ...s.onboarding, memosSeen: true, trainingStep: TRAINING_DONE } });
+    return m;
+  }
+
+  it('is due a few minutes in, never during onboarding, and books the next visit when tapped', async () => {
+    const { store, clock, seed } = await make();
+    clock.advance(VISITOR_FIRST_MS);
+    const s = store.getState().state;
+    seed({ onboarding: { ...s.onboarding, memosSeen: true, trainingStep: 0 } });
+    expect(store.getState().visitorDue()).toBe(false);
+    seed({ onboarding: { ...s.onboarding, memosSeen: true, trainingStep: TRAINING_DONE } });
+    expect(store.getState().visitorDue()).toBe(true);
+    store.getState().openVisitor();
+    expect(store.getState().pendingVisitor).not.toBeNull();
+    // A second tap while the gift is open changes nothing.
+    const gift = store.getState().pendingVisitor;
+    store.getState().openVisitor();
+    expect(store.getState().pendingVisitor).toBe(gift);
+    store.getState().claimVisitor();
+    expect(store.getState().visitorDue()).toBe(false);
+    clock.advance(VISITOR_EVERY_MS);
+    expect(store.getState().visitorDue()).toBe(true);
+    store.getState().stopLoop();
+  });
+
+  it('gives two minutes of income, with a floor, once', async () => {
+    const { store, clock, seed } = await onboarded();
+    clock.advance(VISITOR_FIRST_MS);
+    store.getState().openVisitor();
+    expect(store.getState().pendingVisitor!.kc.eq(VISITOR_MIN_KC)).toBe(true);
+    store.getState().claimVisitor();
+
+    seed({ staff: { dave: 50 } });
+    clock.advance(VISITOR_EVERY_MS);
+    const expected = store.getState().rates.kcPerSec.mul(VISITOR_KC_SECONDS).floor();
+    store.getState().openVisitor();
+    expect(store.getState().pendingVisitor!.kc.eq(expected)).toBe(true);
+    const before = store.getState().state.kc;
+    store.getState().claimVisitor();
+    store.getState().claimVisitor();
+    expect(store.getState().state.kc.sub(before).eq(expected)).toBe(true);
+    store.getState().stopLoop();
+  });
+
+  it('an ad pays the gift ×5 and closes it; a missed visit just waits for the next', async () => {
+    const { store, clock } = await onboarded();
+    expect(store.getState().canWatch('visitor')).toBe(false);
+    clock.advance(VISITOR_FIRST_MS);
+    store.getState().missVisitor();
+    expect(store.getState().visitorDue()).toBe(false);
+    clock.advance(VISITOR_EVERY_MS);
+    store.getState().openVisitor();
+    const gift = store.getState().pendingVisitor!.kc;
+    const before = store.getState().state.kc;
+    expect(await store.getState().watchAd('visitor')).toBe('rewarded');
+    expect(store.getState().state.kc.sub(before).eq(gift.mul(VISITOR_AD_MULT))).toBe(true);
+    expect(store.getState().pendingVisitor).toBeNull();
+    expect(store.getState().canWatch('visitor')).toBe(false);
     store.getState().stopLoop();
   });
 });

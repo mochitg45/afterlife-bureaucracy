@@ -18,6 +18,7 @@ describe('adUnits', () => {
       'overtime-boost': 'ca-app-pub-5130289288594607/2737586738',
       'free-pull': 'ca-app-pub-5130289288594607/3254618178',
       'daily-skip': 'ca-app-pub-5130289288594607/8562785171',
+      visitor: 'ca-app-pub-5130289288594607/6310082380',
     });
     expect(Object.keys(PRODUCTION_REWARDED_UNITS).sort()).toEqual([...AD_PLACEMENTS].sort());
   });
