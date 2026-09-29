@@ -7,6 +7,10 @@ export interface GameServices {
   isSignedIn(): boolean;
   unlockAchievements(ids: string[]): Promise<void>;
   submitScore(leaderboardId: string, value: number): Promise<void>;
+  /** Opens the platform's leaderboard screen; false if it could not be shown. */
+  showLeaderboard(leaderboardId: string): Promise<boolean>;
+  /** Whether this platform has leaderboards at all (Play Games on Android). */
+  available(): boolean;
 }
 
 /** Browser and test fallback: no Play Games, nothing to sign into, every call a no-op. */
@@ -19,6 +23,12 @@ export const noopGameServices: GameServices = {
   },
   async unlockAchievements() {},
   async submitScore() {},
+  async showLeaderboard() {
+    return false;
+  },
+  available() {
+    return false;
+  },
 };
 
 function isPlaceholder(id: string): boolean {
@@ -73,6 +83,20 @@ export const playGamesServices: GameServices = (() => {
       } catch {
         /* offline or unknown leaderboard */
       }
+    },
+
+    async showLeaderboard(leaderboardID) {
+      if (!signedIn || isPlaceholder(leaderboardID)) return false;
+      try {
+        await CapacitorGameConnect.showLeaderboard({ leaderboardID });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+
+    available() {
+      return true;
     },
   };
 })();

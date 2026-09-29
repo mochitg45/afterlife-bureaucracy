@@ -44,6 +44,26 @@ function AuditCard() {
   );
 }
 
+/** Android only: opens the Play Games "Lifetime souls" board (signing in first if needed). */
+function LeaderboardButton() {
+  const available = useGame((s) => s.leaderboardAvailable);
+  const open = useGame((s) => s.openLeaderboard);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  if (!available) return null;
+  const onClick = () => {
+    setBusy(true);
+    setFailed(false);
+    void open().then((ok) => setFailed(!ok)).finally(() => setBusy(false));
+  };
+  return (
+    <div className="leaderboard-row">
+      <button className="btn" disabled={busy} onClick={onClick}>🏆 Leaderboard: lifetime souls</button>
+      {failed && <span className="sub warn">Sign in to Play Games to see the leaderboard.</span>}
+    </div>
+  );
+}
+
 export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
   const seals = useGame((s) => s.state.seals);
   const year = useGame((s) => s.state.fiscalYear);
@@ -54,6 +74,7 @@ export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
         <div><div className="label">Karma Seals</div><div className="mono value brass">{seals} <SealIcon size={20} /><span className="visually-hidden"> seals</span></div></div>
         <div><div className="label">Fiscal Year</div><div className="mono value">{year}</div></div>
       </header>
+      <LeaderboardButton />
       <AuditCard />
       <div className="section-head"><h3>Perk Ledger</h3><span className="sub">Spend Seals. Permanent.</span></div>
       <PerkTree />

@@ -605,3 +605,6 @@ label.settings-row { cursor: pointer; }
 .amt { display: inline-flex; align-items: center; gap: 0.25em; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .daily-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .daily-reward { display: inline-flex; gap: 10px; }
+
+.leaderboard-row { display: flex; flex-direction: column; gap: 4px; }
+.leaderboard-row .btn { width: 100%; }

@@ -17,6 +17,8 @@ function fakeServices() {
     isSignedIn: () => signedIn,
     async unlockAchievements() {},
     async submitScore() {},
+    async showLeaderboard() { return false; },
+    available: () => false,
   };
   return { services, calls };
 }

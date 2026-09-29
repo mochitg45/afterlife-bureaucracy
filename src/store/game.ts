@@ -274,6 +274,10 @@ export interface GameStore {
   declineVisitor(): void;
   buyClause(clauseId: string): void;
   signInGameServices(): Promise<boolean>;
+  /** True where a leaderboard can be opened (Android with Play Games and a mapped board id). */
+  leaderboardAvailable: boolean;
+  /** Signs in if needed, sends the latest score, then opens the lifetime-souls leaderboard. */
+  openLeaderboard(): Promise<boolean>;
   /** Signs into the cloud (which is also the Play Games prompt), then syncs. */
   signInCloud(): Promise<SignInResult>;
   /** Opens the platform's account picker; the next resume re-checks who is signed in. */
@@ -858,6 +862,7 @@ export function createGameStore(deps: StoreDeps) {
         lastResult: 'none',
       },
       cloudNotice: null,
+      leaderboardAvailable: gameServices.available() && lifetimeSoulsLeaderboardId() !== null,
       pendingVisitor: null,
       visitorDueMono: clock.mono() + VISITOR_FIRST_MS,
 
@@ -1007,6 +1012,8 @@ export function createGameStore(deps: StoreDeps) {
         // Fire-and-forget on both paths: backgrounding must not wait on a network round-trip,
         // and a sync that does not finish before the process is frozen costs nothing.
         audio.suspend();
+        // The board would otherwise only move on an audit, which can be days apart.
+        submitLifetimeScore(s.soulsLifetime);
         if (s.settings.notifOptIn !== 'yes') {
           await get().save();
           void get().syncCloud('pause').catch(() => {});
@@ -1400,6 +1407,13 @@ export function createGameStore(deps: StoreDeps) {
       declineVisitor() { set({ pendingVisitor: null }); },
       buyClause(clauseId) { apply(buyClauseEngine(get().state, content, clauseId)); },
 
+      async openLeaderboard() {
+        const board = lifetimeSoulsLeaderboardId();
+        if (!board || !gameServices.available()) return false;
+        if (!gameServices.isSignedIn() && !(await get().signInGameServices())) return false;
+        await gameServices.submitScore(board, lifetimeSoulsScore(get().state.soulsLifetime)).catch(() => {});
+        return gameServices.showLeaderboard(board);
+      },
       async signInGameServices() {
         // One prompt, one sign-in: where there is a cloud slot, the cloud sign-in owns the
         // Play Games dialog and mirrors it into the achievement client itself.

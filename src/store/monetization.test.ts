@@ -108,14 +108,17 @@ function fakeBilling() {
 function fakeServices() {
   const unlocked: string[][] = [];
   const scores: Array<[string, number]> = [];
+  const shown: string[] = [];
   let signedIn = false;
   const services: GameServices = {
     async signIn() { signedIn = true; return true; },
     isSignedIn: () => signedIn,
     async unlockAchievements(ids) { unlocked.push(ids); },
     async submitScore(leaderboardId, value) { scores.push([leaderboardId, value]); },
+    async showLeaderboard(leaderboardId) { shown.push(leaderboardId); return signedIn; },
+    available: () => true,
   };
-  return { services, unlocked, scores };
+  return { services, unlocked, scores, shown };
 }
 
 const T0 = new Date(2026, 8, 14, 10).getTime();
@@ -833,5 +836,27 @@ describe("Gary's letter", () => {
     expect(store.getState().pendingVisitor).toBeNull();
     expect(store.getState().state.vouchers).toBe(v0);
     store.getState().stopLoop();
+  });
+});
+
+describe('leaderboard', () => {
+  it('signs in if needed, sends the latest score, then opens the board', async () => {
+    const { store, services, seed } = await make();
+    seed({ soulsLifetime: new Decimal(12345) });
+    expect(store.getState().leaderboardAvailable).toBe(true);
+    expect(services.services.isSignedIn()).toBe(false);
+    expect(await store.getState().openLeaderboard()).toBe(true);
+    expect(services.services.isSignedIn()).toBe(true);
+    expect(services.scores[services.scores.length - 1]).toEqual(['lb-lifetime-souls', lifetimeSoulsScore(new Decimal(12345))]);
+    expect(services.shown).toEqual(['lb-lifetime-souls']);
+    store.getState().stopLoop();
+  });
+
+  it('sends the score when the app goes to the background', async () => {
+    const { store, services, seed } = await make();
+    await services.services.signIn();
+    seed({ soulsLifetime: new Decimal(777) });
+    await store.getState().pause();
+    expect(services.scores[services.scores.length - 1]).toEqual(['lb-lifetime-souls', lifetimeSoulsScore(new Decimal(777))]);
   });
 });
