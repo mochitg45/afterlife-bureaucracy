@@ -8,6 +8,8 @@ const LOOP_MS = 9_000;
 const FRAME_MS = 90;
 const FLAP = [1, 2, 3, 2];
 const BOB = [0, 2, 4, 2];
+/** Closest the speech bubble may get to the screen edge, in px. */
+const EDGE = 8;
 export const PIP_LINES = [
   'Special delivery!',
   'Tap me! Blessing inside',
@@ -31,6 +33,7 @@ export function Visitor() {
   const [line, setLine] = useState(0);
   const pip = useRef<HTMLButtonElement>(null);
   const img = useRef<HTMLImageElement>(null);
+  const bubble = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (flying) return;
@@ -64,6 +67,14 @@ export function Visitor() {
         const y = H * 0.42 + H * 0.12 * Math.sin(2 * a) - el.offsetHeight / 2 + BOB[k];
         el.style.transform = `translate(${x}px, ${y}px)`;
         el.dataset.dir = Math.cos(a) < 0 ? 'left' : 'right';
+        // Keep the bubble on screen at the ends of the loop; the tail still points at Pip.
+        const b = bubble.current;
+        if (b) {
+          const left = x + el.offsetWidth / 2 - b.offsetWidth / 2;
+          const shift = Math.max(EDGE - left, Math.min(0, W - EDGE - (left + b.offsetWidth)));
+          b.style.transform = `translateX(${shift}px)`;
+          b.style.setProperty('--tail', `${b.offsetWidth / 2 - shift}px`);
+        }
       }
       raf = requestAnimationFrame(step);
     };
@@ -80,7 +91,7 @@ export function Visitor() {
       aria-label="Pip the courier has a delivery. Tap to open it."
       onClick={() => { openVisitor(); setFlying(false); }}
     >
-      <span className="visitor-bubble" aria-hidden>{PIP_LINES[line]}</span>
+      <span ref={bubble} className="visitor-bubble" aria-hidden>{PIP_LINES[line]}</span>
       <img ref={img} className="visitor-pip" src={pipFrameUrl(1)} alt="" />
     </button>
   );
