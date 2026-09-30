@@ -26,6 +26,7 @@ import { formatNumber } from '../engine/format';
 import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
+import { requestReview, shouldAskForReview } from '../platform/review';
 import { content as defaultContent } from '../data';
 
 /** Where an unreadable save is parked so a bad release cannot erase a player's run. */
@@ -199,7 +200,6 @@ export interface GameStore {
   memoLine: string;
   lastAudit: { sealsGained: number; fiscalYear: number } | null;
   pendingPull: PullResult[] | null;
-  pendingStory: StoryDef[];
   recentAchievements: AchievementDef[];
   mood: 'ok' | 'cooked';
   /**
@@ -251,7 +251,6 @@ export interface GameStore {
   skipDaily(taskId: string): void;
   /** Writes off a task the player can no longer finish (e.g. every upgrade already bought). */
   writeOffDaily(taskId: string): void;
-  dismissStory(): void;
   clearAchievementToast(): void;
   setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
   audio: Audio;
@@ -455,7 +454,6 @@ export function createGameStore(deps: StoreDeps) {
         state: r.state,
         rates: r.rates,
         recentAchievements: r.unlockedAch.length ? [...cur.recentAchievements, ...r.unlockedAch] : cur.recentAchievements,
-        pendingStory: r.unlockedStory.length ? [...cur.pendingStory, ...r.unlockedStory] : cur.pendingStory,
         ...extra,
       }));
       if (r.unlockedAch.length) sfx('achievement');
@@ -628,7 +626,6 @@ export function createGameStore(deps: StoreDeps) {
         // appended to, and then filled from the adopted save's own settle exactly as boot
         // does -- same fold, same cap.
         recentAchievements: r.unlockedAch.slice(0, BOOT_QUEUE_CAP),
-        pendingStory: r.unlockedStory.slice(0, BOOT_QUEUE_CAP),
       });
       if (restartLoop) startTimers();
       applySoundSettings(r.state);
@@ -844,7 +841,6 @@ export function createGameStore(deps: StoreDeps) {
       memoLine: '',
       lastAudit: null,
       pendingPull: null,
-      pendingStory: [],
       recentAchievements: [],
       mood: 'ok',
       clockSuspect: false,
@@ -946,7 +942,6 @@ export function createGameStore(deps: StoreDeps) {
             queueLine: pick(dept.queue, ''),
             memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),
             recentAchievements: [...cur.recentAchievements, ...r.unlockedAch].slice(0, BOOT_QUEUE_CAP),
-            pendingStory: [...cur.pendingStory, ...r.unlockedStory].slice(0, BOOT_QUEUE_CAP),
             mood: moodAfterGap(pendingOffline, elapsedSec),
             clockSuspect: suspect,
             // What the save remembers of the last sync, so the title screen can say when it
@@ -1072,7 +1067,6 @@ export function createGameStore(deps: StoreDeps) {
               // of triggers, and the rest are already recorded as seen, so they are filed
               // silently rather than shown one modal at a time.
               recentAchievements: [...cur.recentAchievements, ...r.unlockedAch].slice(0, BOOT_QUEUE_CAP),
-              pendingStory: [...cur.pendingStory, ...r.unlockedStory].slice(0, BOOT_QUEUE_CAP),
               mood: moodAfterGap(pendingOffline, elapsedSec),
               clockSuspect: suspect,
             }));
@@ -1167,7 +1161,10 @@ export function createGameStore(deps: StoreDeps) {
         submitLifetimeScore(get().state.soulsLifetime);
         void get().save();
       },
-      dismissAudit() { set({ lastAudit: null }); },
+      dismissAudit() {
+        set({ lastAudit: null });
+        if (shouldAskForReview(get().state.stats.audits)) void requestReview();
+      },
       buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
       pull(count) {
         const r = pullEngine(get().state, content, count, get().rates.kcPerSec);
@@ -1206,7 +1203,6 @@ export function createGameStore(deps: StoreDeps) {
         if (left >= def.target - done) return;
         apply(skipDailyFree(st, content, taskId));
       },
-      dismissStory() { set((cur) => ({ pendingStory: cur.pendingStory.slice(1) })); },
       clearAchievementToast() { set((cur) => ({ recentAchievements: cur.recentAchievements.slice(1) })); },
       async setNotifOptIn(v) {
         let notifOptIn: Settings['notifOptIn'] = 'no';
@@ -1388,7 +1384,7 @@ export function createGameStore(deps: StoreDeps) {
         const g = get();
         const ob = g.state.onboarding;
         return g.ready && clock.mono() >= g.visitorDueMono && ob.memosSeen && ob.trainingStep >= TRAINING_DONE
-          && !(g.pendingVisitor || g.pendingPull || g.lastAudit || g.lastCosmic || g.pendingOffline || g.pendingStory.length);
+          && !(g.pendingVisitor || g.pendingPull || g.lastAudit || g.lastCosmic || g.pendingOffline);
       },
       openVisitor() {
         if (!get().visitorDue()) return;

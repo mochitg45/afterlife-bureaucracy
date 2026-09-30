@@ -6,11 +6,10 @@ export function NotifPrompt() {
   const shouldAsk = useGame((s) => s.shouldAskNotifications());
   const pendingOffline = useGame((s) => s.pendingOffline);
   const pendingPull = useGame((s) => s.pendingPull);
-  const pendingStory = useGame((s) => s.pendingStory[0]);
   const lastAudit = useGame((s) => s.lastAudit);
   const setNotifOptIn = useGame((s) => s.setNotifOptIn);
 
-  const visible = shouldAsk && !pendingOffline && !pendingPull && !pendingStory && !lastAudit;
+  const visible = shouldAsk && !pendingOffline && !pendingPull && !lastAudit;
   if (!visible) return null;
 
   return (

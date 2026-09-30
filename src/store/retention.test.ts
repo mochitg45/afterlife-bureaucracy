@@ -58,14 +58,13 @@ describe('retention store', () => {
     expect(store.getState().state.equipped).toEqual([]);
     store.getState().stopLoop();
   });
-  it('unlocks achievements and queues story memos after actions', async () => {
+  it('unlocks achievements and records story beats after actions', async () => {
     const { store } = await make();
     store.setState({ state: { ...store.getState().state, soulsLifetime: new Decimal(999) } });
     store.getState().stamp();
     expect(store.getState().state.achievements).toContain('a-souls-1');
     expect(store.getState().recentAchievements.map((a) => a.id)).toContain('a-souls-1');
-    expect(store.getState().pendingStory.map((m) => m.id)).toContain('s-deja-vu');
-    store.getState().dismissStory();
+    expect(store.getState().state.storySeen).toContain('s-deja-vu');
     store.getState().clearAchievementToast();
     expect(store.getState().recentAchievements).toEqual([]);
     store.getState().stopLoop();
@@ -162,13 +161,10 @@ describe('retention store', () => {
     expect(a.dailies.date).toBe(s.dailies.date);
     store.getState().stopLoop();
   });
-  it('pops one story memo and one achievement toast at a time, leaving the rest queued', async () => {
+  it('pops one achievement toast at a time, leaving the rest queued', async () => {
     const { store } = await make();
-    const [s1, s2] = content.story;
     const [a1, a2] = content.achievements;
-    store.setState({ pendingStory: [s1, s2], recentAchievements: [a1, a2] });
-    store.getState().dismissStory();
-    expect(store.getState().pendingStory).toEqual([s2]);
+    store.setState({ recentAchievements: [a1, a2] });
     store.getState().clearAchievementToast();
     expect(store.getState().recentAchievements).toEqual([a2]);
     store.getState().stopLoop();

@@ -494,16 +494,14 @@ describe('boot queue caps', () => {
     return serialize(s);
   }
 
-  it('shows at most three memos and three badges on boot, filing the rest silently', async () => {
+  it('shows at most three badges on boot, filing the rest silently', async () => {
     const { store } = await make({ saved: loadedSave() });
     await store.getState().boot();
     const s = store.getState();
-    expect(s.pendingStory.length).toBe(BOOT_QUEUE_CAP);
     expect(s.recentAchievements.length).toBe(BOOT_QUEUE_CAP);
     // Everything that unlocked is recorded, whether or not its memo made the queue.
     expect(s.state.storySeen.length).toBeGreaterThan(BOOT_QUEUE_CAP);
     expect(s.state.achievements.length).toBeGreaterThan(BOOT_QUEUE_CAP);
-    expect(s.state.storySeen).toEqual(expect.arrayContaining(s.pendingStory.map((m) => m.id)));
     store.getState().stopLoop();
   });
 
@@ -515,13 +513,11 @@ describe('boot queue caps', () => {
     await store.getState().pause();
     store.setState({
       state: deserialize(loadedSave(), content),
-      pendingStory: [],
       recentAchievements: [],
     });
     clock.advance(3600_000);
     await store.getState().resume();
     const s = store.getState();
-    expect(s.pendingStory.length).toBe(BOOT_QUEUE_CAP);
     expect(s.recentAchievements.length).toBe(BOOT_QUEUE_CAP);
     expect(s.state.storySeen.length).toBeGreaterThan(BOOT_QUEUE_CAP);
     expect(s.state.achievements.length).toBeGreaterThan(BOOT_QUEUE_CAP);

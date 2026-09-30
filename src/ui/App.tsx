@@ -12,7 +12,6 @@ import { BacklogReport } from './overlays/BacklogReport';
 import { AuditCeremony } from './overlays/AuditCeremony';
 import { CosmicCeremony } from './overlays/CosmicCeremony';
 import { PullReveal } from './overlays/PullReveal';
-import { StoryMemo } from './overlays/StoryMemo';
 import { Intro } from './overlays/Intro';
 import { Training } from './overlays/Training';
 import { Tips } from './overlays/Tips';
@@ -112,7 +111,6 @@ export function App() {
           <PullReveal />
           {tab === 'office' && <Visitor />}
           <VisitorGift />
-          <StoryMemo />
           <Intro />
           <Training />
           <Tips tab={tab} />

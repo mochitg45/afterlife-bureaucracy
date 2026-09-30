@@ -17,7 +17,6 @@ function seed(daysAgo: number) {
     ready: true,
     pendingOffline: null,
     pendingPull: null,
-    pendingStory: [],
     lastAudit: null,
   });
 }
