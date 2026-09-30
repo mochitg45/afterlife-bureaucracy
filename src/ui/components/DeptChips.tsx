@@ -85,11 +85,13 @@ export function DeptChips() {
         }
         const progress = Math.min(1, soulsRun.div(d.unlockSouls).toNumber());
         return (
-          <button key={d.id} className="chip locked" style={style} disabled data-goal={`dept-${d.id}`} aria-label={`${d.name} (locked, unlocks at ${formatNumber(d.unlockSouls)} souls)`}>
+          <button key={d.id} className="chip locked" style={style} disabled data-goal={`dept-${d.id}`} aria-label={`${d.name} (locked, unlocks at ${formatNumber(d.unlockSouls)} souls this run; ${formatNumber(soulsRun)} so far)`}>
             <DeptIcon id={d.id} />
             <span className="chip-text">
               <span>{d.name}</span>
-              <span className="mono sub">{formatNumber(d.unlockSouls)} souls</span>
+              {/* Souls this run, not the lifetime total in the header: an audit resets the run
+                  and closes departments again, which read as a bug when only the target showed. */}
+              <span className="mono sub">{formatNumber(soulsRun)} / {formatNumber(d.unlockSouls)} this run</span>
             </span>
             <span className="bar"><span className="bar-fill" style={{ width: progress * 100 + '%' }} /></span>
           </button>

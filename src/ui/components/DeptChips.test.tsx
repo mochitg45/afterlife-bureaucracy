@@ -19,7 +19,7 @@ describe('DeptChips', () => {
     expect(screen.queryByRole('button', { name: /valhalla/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^intake$/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /heaven admissions \(locked/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /heaven admissions \(locked, unlocks at 10,000 souls\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /heaven admissions \(locked, unlocks at 10,000 souls this run/i })).toBeInTheDocument();
   });
   it('shows a branch department only once its Cosmic branch is open', () => {
     seed(5000, ['intake'], ['valhalla']);
