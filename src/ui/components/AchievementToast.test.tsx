@@ -34,7 +34,7 @@ describe('AchievementToast', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows the badge and name as a status toast, then clears after 3000 ms', () => {
+  it('shows the badge and name as a status toast, then clears after 4000 ms', () => {
     const ach = content.achievements[0];
     seed([ach]);
     render(<AchievementToast />);
@@ -44,7 +44,7 @@ describe('AchievementToast', () => {
     expect(status.querySelector('svg')).toHaveAttribute('data-kind', ach.badge);
 
     act(() => {
-      vi.advanceTimersByTime(2999);
+      vi.advanceTimersByTime(3999);
     });
     expect(screen.getByRole('status')).toBeInTheDocument();
 
@@ -52,5 +52,21 @@ describe('AchievementToast', () => {
       vi.advanceTimersByTime(1);
     });
     expect(useGame.getState().recentAchievements).toEqual([]);
+  });
+
+  it('says how many vouchers the achievement paid, and closes on tap', () => {
+    const ach = content.achievements.find((a) => a.vouchers)!;
+    seed([ach]);
+    render(<AchievementToast />);
+    expect(screen.getByRole('status')).toHaveTextContent(`+${ach.vouchers}`);
+    act(() => { screen.getByRole('status').click(); });
+    expect(useGame.getState().recentAchievements).toEqual([]);
+  });
+
+  it('shows no reward pill for an achievement that pays nothing', () => {
+    const ach = content.achievements.find((a) => !a.vouchers)!;
+    seed([ach]);
+    const { container } = render(<AchievementToast />);
+    expect(container.querySelector('.ach-reward')).toBeNull();
   });
 });
