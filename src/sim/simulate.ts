@@ -10,7 +10,7 @@ import { applyOffline } from '../engine/offline';
 import { canAudit, fileAudit } from '../engine/prestige';
 import { canBuyPerk, headStart } from '../engine/perks';
 import { rollover, claimDaily, skipDailyFree, isDone, dayKey } from '../engine/dailies';
-import { pull, equipCard, unequipCard, equipSlots, TEN_PULL_COST, PULL_COST } from '../engine/gacha';
+import { pull, equipCard, unequipCard, equipSlots, TEN_PULL_COST, PULL_COST, MAX_STARS } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause, canBuyClause, clauseSealMult } from '../engine/cosmic';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
@@ -61,6 +61,13 @@ export interface DaySnapshot {
   cosmicPoints: number;
   clauses: number;
   dailiesClaimed: number;
+  /** Perk Ledger nodes owned right now (a Cosmic Restructuring clears them). */
+  perks: number;
+  /** Cards at MAX_STARS. */
+  cardsMaxed: number;
+  cosmics: number;
+  /** Lifetime souls, for the year report. */
+  soulsLifetime: string;
 }
 
 export interface SimResult {
@@ -370,6 +377,10 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       cosmicPoints: state.cosmicPoints,
       clauses: state.cosmicClauses.length,
       dailiesClaimed: state.stats.dailiesClaimed,
+      perks: state.perks.length,
+      cardsMaxed: Object.values(state.cards).filter((s) => s >= MAX_STARS).length,
+      cosmics: state.stats.cosmics,
+      soulsLifetime: state.soulsLifetime.toString(),
     });
   }
   return {
