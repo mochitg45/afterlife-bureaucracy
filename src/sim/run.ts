@@ -8,7 +8,7 @@ import { SEAL_CAP_PER_AUDIT } from '../engine/prestige';
  * and faucet windows, so it is guarded on its run ratios (never slower than the run before)
  * and the Seal cap only.
  */
-interface Pacing { ratioMax: number; cosmic: boolean; faucet: boolean }
+interface Pacing { cosmic: boolean; faucet: boolean; audits: boolean }
 
 /** Returns true if every printed "(target ...)" line held, so the runner can fail the build. */
 function table(label: string, r: SimResult, pacing: Pacing): boolean {
@@ -25,9 +25,10 @@ function table(label: string, r: SimResult, pacing: Pacing): boolean {
   console.log('audit ready: day', r.firstAuditReadyDay, 'at played sec', r.firstAuditReadySec);
   console.log('time-to-audit per run (played sec):', r.auditReadySecByRun.join(', '));
   const ratioNums = r.auditReadySecByRun.slice(1, 5).map((sec, i) => sec / r.auditReadySecByRun[i]);
-  const ratioMax = pacing.ratioMax;
-  console.log('run N+1 / run N (first five runs):', ratioNums.map((n) => n.toFixed(3)).join(', '), `(target <= ${ratioMax.toFixed(3)})`);
-  if ((ratioNums.length < 4 || ratioNums.some((n) => n > ratioMax))) ok = false;
+  console.log('run N+1 / run N (first five runs, informational):', ratioNums.map((n) => n.toFixed(3)).join(', '));
+  const audits = r.days[r.days.length - 1]?.audits ?? 0;
+  console.log('audits filed:', audits, '(target 20-90 in 30 days: at most three 8-hour fiscal years a day)');
+  if (pacing.audits && (audits < 20 || audits > 90)) ok = false;
   console.log('seals per audit:', r.sealsPerAudit.join(', '));
   const caps = r.sealMultPerAudit.map((m) => SEAL_CAP_PER_AUDIT * m);
   const over = r.sealsPerAudit.filter((n, i) => n > caps[i]).length;
@@ -36,11 +37,11 @@ function table(label: string, r: SimResult, pacing: Pacing): boolean {
   if (over > 0) ok = false;
   console.log(
     'cosmic filed on days:', r.cosmicDays.join(', ') || 'never',
-    `(${r.cosmicDays.length} filings; target 2-5 in 30 days, first between day 8 and 30)`,
+    `(${r.cosmicDays.length} filings; target none in the first 30 days)`,
   );
   if (pacing.cosmic) {
     const filings = r.cosmicDays.length;
-    if (filings < 2 || filings > 5 || r.firstCosmicDay === null || r.firstCosmicDay < 8 || r.firstCosmicDay > 30) ok = false;
+    if (filings !== 0) ok = false;
   }
   const faucet = vouchersPerDay(r, 3, 14, 'tasks');
   console.log(
@@ -63,11 +64,11 @@ function table(label: string, r: SimResult, pacing: Pacing): boolean {
 const checkIn = table(
   'check-in player (5 x 3 min, 3 clicks/s)',
   simulate({ sessionsPerDay: 5, sessionSec: 180, clicksPerSec: 3, days: 30 }, content),
-  { ratioMax: 0.85, cosmic: true, faucet: true },
+  { cosmic: true, faucet: true, audits: true },
 );
 const active = table(
   'active player (2 x 30 min, 5 clicks/s)',
   simulate({ sessionsPerDay: 2, sessionSec: 1800, clicksPerSec: 5, days: 14 }, content),
-  { ratioMax: 1, cosmic: false, faucet: false },
+  { cosmic: false, faucet: false, audits: false },
 );
 if (!checkIn || !active) process.exitCode = 1;

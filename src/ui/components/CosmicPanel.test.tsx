@@ -18,7 +18,7 @@ describe('CosmicPanel', () => {
   it('shows the locked state with progress below the threshold', () => {
     seed({ seals: 40 });
     render(<CosmicPanel />);
-    expect(screen.getByText(/unlocks at 100 seals/i)).toBeInTheDocument();
+    expect(screen.getByText(/unlocks at 6000 seals/i)).toBeInTheDocument();
     expect(screen.getByText(`40 / ${COSMIC_THRESHOLD} Seals`)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /restructure/i })).not.toBeInTheDocument();
   });
@@ -27,7 +27,7 @@ describe('CosmicPanel', () => {
     const base = createInitialState({ wall: 0, mono: 0 }, content);
     seed({ seals: 200, stats: { ...base.stats, cosmics: 2 } });
     render(<CosmicPanel />);
-    expect(screen.getByText(/the next one is filed at 625 seals/i)).toBeInTheDocument();
+    expect(screen.getByText(/the next one is filed at 11760 seals/i)).toBeInTheDocument();
     expect(screen.getByText(`200 / ${cosmicThreshold(2)} Seals`)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /restructure/i })).not.toBeInTheDocument();
   });

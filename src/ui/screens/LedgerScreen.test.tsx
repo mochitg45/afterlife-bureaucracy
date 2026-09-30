@@ -5,7 +5,7 @@ import { useGame } from '../../store/game';
 import { createInitialState, type GameState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
-import { AUDIT_BASE, SEAL_COEFF, auditThreshold } from '../../engine/prestige';
+import { AUDIT_BASE, SEAL_COEFF, auditThreshold, MIN_FISCAL_YEAR_MS } from '../../engine/prestige';
 import { formatNumber } from '../../engine/format';
 
 function seed(patch: Partial<GameState>) {
@@ -18,6 +18,26 @@ const startingWith = (prefix: string) => (text: string) => text.startsWith(prefi
 const needPrefix = (year: number) => `Need ${formatNumber(auditThreshold(year))} souls this run`;
 
 describe('LedgerScreen', () => {
+  it('holds a ready audit until the fiscal year has run its 8 hours, and offers to expedite', () => {
+    const opened = Date.now() - (MIN_FISCAL_YEAR_MS - 2 * 3_600_000); // 2h left: 4 vouchers
+    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(2), runStartWall: opened, vouchers: 3 });
+    render(<LedgerScreen />);
+    expect(screen.getByRole('button', { name: /file annual audit/i })).toBeDisabled();
+    expect(screen.getByText(/fiscal year closes in 2h 0m/i)).toBeInTheDocument();
+    // Three vouchers cannot buy a four-voucher expedite.
+    expect(screen.getByRole('button', { name: /expedite the audit for 4 vouchers/i })).toBeDisabled();
+  });
+  it('expedites on the second tap: spends the vouchers and files the audit', () => {
+    const opened = Date.now() - (MIN_FISCAL_YEAR_MS - 2 * 3_600_000);
+    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(2), runStartWall: opened, vouchers: 10 });
+    render(<LedgerScreen />);
+    const btn = screen.getByRole('button', { name: /expedite the audit for 4 vouchers/i });
+    fireEvent.click(btn);
+    expect(useGame.getState().state.fiscalYear).toBe(1);
+    fireEvent.click(screen.getByRole('button', { name: /expedite the audit/i }));
+    expect(useGame.getState().state.vouchers).toBe(6);
+    expect(useGame.getState().state.fiscalYear).toBe(2);
+  });
   it('disables the audit below the threshold', () => {
     seed({ soulsRun: new Decimal(10) });
     render(<LedgerScreen />);
@@ -56,7 +76,8 @@ describe('LedgerScreen', () => {
     expect(screen.getByRole('button', { name: /stamped memo pads/i })).toBe(before);
   });
   it('renders the perk tree and buys an available perk', () => {
-    seed({ seals: 2 });
+    const rootCost = content.perks.find((p) => p.id === 'throughput-1')!.cost;
+    seed({ seals: rootCost + 1 });
     render(<LedgerScreen />);
     const root = screen.getByRole('button', { name: /stamped memo pads/i });
     expect(root).toBeEnabled();
@@ -77,7 +98,7 @@ describe('LedgerScreen', () => {
   it('shows the locked cosmic panel', () => {
     seed({});
     render(<LedgerScreen />);
-    expect(screen.getByText(/unlocks at 100 seals/i)).toBeInTheDocument();
+    expect(screen.getByText(/unlocks at 6,?000 seals/i)).toBeInTheDocument();
   });
   it('shows the settings gear', () => {
     seed({});

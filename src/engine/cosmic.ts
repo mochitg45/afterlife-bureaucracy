@@ -4,8 +4,12 @@ import type { ClauseDef, Content } from './content';
 import { findClause } from './content';
 import { resetRun } from './prestige';
 
-/** Seals needed before the Bureau will entertain a first Cosmic Restructuring. */
-export const COSMIC_THRESHOLD = 100;
+/**
+ * Seals needed before the Bureau will entertain a first Cosmic Restructuring. Sized against the
+ * minimum fiscal year: about 2.5 Audits a day at the Seal cap puts the first filing near day 55
+ * for a check-in player (npx tsx src/sim/year.ts).
+ */
+export const COSMIC_THRESHOLD = 6000;
 /**
  * What each further filing multiplies the requirement by. A flat 100 Seals was a one-off gate
  * that turned into a treadmill: once the Perk Ledger and the Seal cap were doing their work, a
@@ -18,13 +22,13 @@ export const COSMIC_THRESHOLD = 100;
  * and the fresh fiscal year below means a Restructuring is followed by a burst of one-session
  * fiscal years paying that raised cap. The threshold has to outrun its own reward.
  */
-export const COSMIC_THRESHOLD_GROWTH = 2.5;
+export const COSMIC_THRESHOLD_GROWTH = 1.4;
 /** Every Clause costs the same: one Cosmic Point. The tree is gated by prerequisites, not price. */
 export const CLAUSE_COST = 1;
 
 /**
  * Seals the next Cosmic Restructuring asks for, after `cosmics` of them have been filed:
- * 100, 250, 625, 1563, 3906, … Every reader — the engine, the store, the Ledger's Cosmic panel
+ * 6000, 8400, 11760, 16464, … Every reader — the engine, the store, the Ledger's Cosmic panel
  * and the ceremony — goes through this, so the number on screen is always the one the filing
  * will actually check.
  */
@@ -56,13 +60,14 @@ export interface CosmicResult { state: GameState; pointsGained: number }
  * set the player is left with, and resetRun's own clampEquipped then trims any lanyard the
  * lost slot-granting perks were paying for.
  */
-export function fileCosmic(state: GameState, content: Content): CosmicResult {
+export function fileCosmic(state: GameState, content: Content, nowWall: number): CosmicResult {
   if (!canCosmic(state)) return { state, pointsGained: 0 };
   const reset = resetRun({ ...state, seals: 0, perks: [] }, content);
   return {
     state: {
       ...reset,
       fiscalYear: 1,
+      runStartWall: nowWall,
       cosmicPoints: state.cosmicPoints + 1,
       stats: { ...state.stats, cosmics: state.stats.cosmics + 1 },
     },

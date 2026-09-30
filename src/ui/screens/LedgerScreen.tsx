@@ -1,8 +1,10 @@
 import { SealIcon } from '../icons/Currency';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
-import { sealsForRun, canAudit, auditThreshold } from '../../engine/prestige';
+import { sealsForRun, canAudit, auditThreshold, auditTimeLeftMs, expediteCost } from '../../engine/prestige';
+import { fmtLeft } from '../format';
+import { VoucherIcon } from '../icons/Currency';
 import { clauseSealMult } from '../../engine/cosmic';
 import { content } from '../../data';
 import { PerkTree } from '../components/PerkTree';
@@ -18,27 +20,56 @@ function AuditCard() {
   const soulsRun = useGame((s) => s.state.soulsRun);
   // Narrow on purpose: the preview needs the Clause seal multiplier, not the whole state.
   const cosmicClauses = useGame((s) => s.state.cosmicClauses);
+  const runStartWall = useGame((s) => s.state.runStartWall);
+  const vouchers = useGame((s) => s.state.vouchers);
   const audit = useGame((s) => s.audit);
-  const [confirming, setConfirming] = useState(false);
+  const expedite = useGame((s) => s.expediteAudit);
+  // Which button is waiting on its second tap: both reset the run, so both confirm.
+  const [confirming, setConfirming] = useState<'audit' | 'expedite' | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const ready = canAudit({ soulsRun, fiscalYear: year });
+  const left = auditTimeLeftMs({ runStartWall }, now);
+  const waiting = ready && left > 0;
+  const cost = expediteCost({ runStartWall }, now);
   const preview = sealsForRun(soulsRun, year, clauseSealMult({ cosmicClauses }, content));
+
+  // The only clock on this screen, and it runs only while the fiscal year is counting down.
+  useEffect(() => {
+    if (left <= 0) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [left > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const onAudit = () => {
-    if (!confirming) { setConfirming(true); return; }
-    setConfirming(false);
+    if (confirming !== 'audit') { setConfirming('audit'); return; }
+    setConfirming(null);
     audit();
+  };
+  const onExpedite = () => {
+    if (confirming !== 'expedite') { setConfirming('expedite'); return; }
+    setConfirming(null);
+    expedite();
   };
   return (
     <div className="card audit-card" data-coach="audit">
       <h3>Fiscal Year Audit</h3>
       <p className="sub">Close the books. Staff, upgrades and departments reset; Seals, perks and vouchers stay.</p>
       {ready
-        ? <div className="mono">Audit now for <strong>+{preview} Seals</strong></div>
+        ? <div className="mono">Audit {waiting ? 'will pay' : 'now for'} <strong>+{preview} Seals</strong></div>
         : <div className="mono sub">Need {formatNumber(auditThreshold(year))} souls this run ({formatNumber(soulsRun)} so far)</div>}
+      {left > 0 && <div className="mono sub">Fiscal year closes in {fmtLeft(left)}</div>}
       <div className="modal-actions">
-        <button className={'btn ' + (confirming ? 'btn-primary' : '')} disabled={!ready} onClick={onAudit} aria-label="File Annual Audit">
-          {confirming ? 'Confirm audit (resets the run)' : 'File Annual Audit'}
+        <button className={'btn ' + (confirming === 'audit' ? 'btn-primary' : '')} disabled={!ready || waiting} onClick={onAudit} aria-label="File Annual Audit">
+          {confirming === 'audit' ? 'Confirm audit (resets the run)' : 'File Annual Audit'}
         </button>
-        {confirming && <button className="btn btn-ghost" onClick={() => setConfirming(false)}>Cancel</button>}
+        {waiting && (
+          <button className={'btn ' + (confirming === 'expedite' ? 'btn-primary' : '')} disabled={vouchers < cost} onClick={onExpedite} aria-label={`Expedite the audit for ${cost} vouchers`}>
+            {confirming === 'expedite'
+              ? <>Confirm: spend {cost} <VoucherIcon size={14} /> and audit</>
+              : <>Expedite now · {cost} <VoucherIcon size={14} /></>}
+          </button>
+        )}
+        {confirming && <button className="btn btn-ghost" onClick={() => setConfirming(null)}>Cancel</button>}
       </div>
     </div>
   );

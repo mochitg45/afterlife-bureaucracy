@@ -6,7 +6,7 @@ import { content } from '../data';
 import { loadContent } from '../engine/content';
 import intake from '../data/departments/intake.json';
 import { createInitialState, deserialize, serialize } from '../engine/state';
-import { AUDIT_BASE, SEAL_COEFF } from '../engine/prestige';
+import { AUDIT_BASE, SEAL_COEFF, MIN_FISCAL_YEAR_MS, expediteCost } from '../engine/prestige';
 import type { Ads } from '../platform/ads';
 
 async function make(opts: { saved?: string } = {}) {
@@ -320,7 +320,7 @@ describe('prestige and perks in the store', () => {
   it('audit resets the run and records the ceremony payload', async () => {
     const { store } = await make();
     await store.getState().boot();
-    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 5 } } });
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 5 }, runStartWall: -MIN_FISCAL_YEAR_MS } });
     store.getState().audit();
     const gained = Math.floor(SEAL_COEFF * 4 ** 0.4);
     const s = store.getState();
@@ -336,11 +336,33 @@ describe('prestige and perks in the store', () => {
     const { store } = await make();
     await store.getState().boot();
     store.setState({
-      state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4) },
+      state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), runStartWall: -MIN_FISCAL_YEAR_MS },
       pendingOffline: { elapsedSec: 3600, creditedSec: 3600, souls: new Decimal(10), kc: new Decimal(4), capped: false },
     });
     store.getState().audit();
     expect(store.getState().pendingOffline).toBeNull();
+    store.getState().stopLoop();
+  });
+  it('audit before the minimum fiscal year has passed is a no-op', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4) } });
+    const before = store.getState().state;
+    store.getState().audit();
+    expect(store.getState().state).toBe(before);
+    store.getState().stopLoop();
+  });
+  it('expediteAudit spends vouchers and files the audit', async () => {
+    const { store, clock } = await make();
+    await store.getState().boot();
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), vouchers: 100, runStartWall: clock.wall() } });
+    expect(expediteCost(store.getState().state, clock.wall())).toBe(16);
+    store.getState().expediteAudit();
+    const s = store.getState();
+    expect(s.lastAudit?.fiscalYear).toBe(2);
+    expect(s.state.stats.audits).toBe(1);
+    // 16 paid; the audit-count achievement it unlocks pays some back, so only "less than before".
+    expect(s.state.vouchers).toBeLessThan(100);
     store.getState().stopLoop();
   });
   it('audit below threshold is a no-op', async () => {
@@ -355,7 +377,7 @@ describe('prestige and perks in the store', () => {
   it('buyPerk spends seals and raises rates', async () => {
     const { store } = await make();
     await store.getState().boot();
-    store.setState({ state: { ...store.getState().state, seals: 5, staff: { dave: 1 } } });
+    store.setState({ state: { ...store.getState().state, seals: 10, staff: { dave: 1 } } });
     store.getState().buyPerk('throughput-1');
     expect(store.getState().state.seals).toBe(4);
     // 4 seals → ×1.08, perk ×1.1, plus the "First Perk Purchased" achievement (×1.01) it now also unlocks.
@@ -532,7 +554,7 @@ describe('prestige filings settle', () => {
     const { store } = await make();
     await store.getState().boot();
     store.setState({
-      state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 5 } },
+      state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), staff: { dave: 5 }, runStartWall: -MIN_FISCAL_YEAR_MS },
     });
     expect(store.getState().state.achievements).not.toContain('a-audits-1');
     store.getState().audit();

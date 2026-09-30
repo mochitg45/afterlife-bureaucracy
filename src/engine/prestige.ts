@@ -34,11 +34,34 @@ export function sealCap(sealMult = 1): number {
   return SEAL_CAP_PER_AUDIT * (Number.isFinite(sealMult) && sealMult > 0 ? sealMult : 1);
 }
 
-/** The Audit threshold for a given fiscal year: AUDIT_BASE × YEAR_GROWTH^(year − 1). */
+/**
+ * From this fiscal year on, the threshold grows polynomially instead of geometrically.
+ * Production grows roughly linearly with Seals (+2% each) while a geometric threshold compounds,
+ * so every long run used to hit a wall: audits slowed to days of play and Seal income dried up.
+ * The minimum fiscal year (below) is what paces the late game now; the taper just keeps the
+ * threshold reachable inside it.
+ */
+export const TAPER_FY = 12;
+/** Chosen so the yearly growth is continuous at TAPER_FY: (13/12)^5 ≈ 1.5. */
+export const TAPER_POWER = 5;
+
+/** AUDIT_BASE × YEAR_GROWTH^(year − 1) up to TAPER_FY, then × (year / TAPER_FY)^TAPER_POWER. */
 export function auditThreshold(fiscalYear: number): Decimal {
   const year = Number.isFinite(fiscalYear) ? Math.max(1, Math.floor(fiscalYear)) : 1;
-  return new Decimal(AUDIT_BASE).mul(Decimal.pow(YEAR_GROWTH, year - 1));
+  const geometric = Math.min(year, TAPER_FY);
+  const base = new Decimal(AUDIT_BASE).mul(Decimal.pow(YEAR_GROWTH, geometric - 1));
+  return year <= TAPER_FY ? base : base.mul(Decimal.pow(year / TAPER_FY, TAPER_POWER));
 }
+
+/**
+ * A fiscal year lasts at least this long in real time. The Seal loop feeds itself (Seals raise
+ * production, production reaches the next threshold sooner), so without a floor the late game
+ * collapsed into audits a few seconds apart; the floor makes Seal income predictable, which is
+ * what lets the Perk Ledger and Cosmic Restructuring be paced across a year.
+ */
+export const MIN_FISCAL_YEAR_MS = 8 * 3_600_000;
+/** Expediting costs one voucher per started block of this much remaining wait. */
+export const EXPEDITE_STEP_MS = 30 * 60_000;
 
 /**
  * Seals for closing a run. Measured against AUDIT_BASE rather than the year's own threshold,
@@ -53,8 +76,34 @@ export function sealsForRun(soulsRun: Decimal, fiscalYear: number, sealMult = 1)
   return Math.min(cap, Math.floor(raw));
 }
 
+/** The souls side of the Audit: this run has filed enough. The clock may still be running. */
 export function canAudit(state: { soulsRun: Decimal; fiscalYear: number }): boolean {
   return state.soulsRun.gte(auditThreshold(state.fiscalYear));
+}
+
+/** Milliseconds until the fiscal year may close; 0 once it is open. */
+export function auditTimeLeftMs(state: Pick<GameState, 'runStartWall'>, nowWall: number): number {
+  return Math.max(0, state.runStartWall + MIN_FISCAL_YEAR_MS - nowWall);
+}
+
+/** Both halves: enough souls and a full fiscal year. */
+export function canFileAudit(state: GameState, nowWall: number): boolean {
+  return canAudit(state) && auditTimeLeftMs(state, nowWall) === 0;
+}
+
+/** Vouchers to close the fiscal year now; 0 when there is nothing left to wait. */
+export function expediteCost(state: Pick<GameState, 'runStartWall'>, nowWall: number): number {
+  return Math.ceil(auditTimeLeftMs(state, nowWall) / EXPEDITE_STEP_MS);
+}
+
+/**
+ * Pays vouchers to end the wait. Only offered once the souls are in, so vouchers never buy the
+ * threshold itself; hands back the same state when refused.
+ */
+export function expediteAudit(state: GameState, nowWall: number): GameState {
+  const cost = expediteCost(state, nowWall);
+  if (cost === 0 || !canAudit(state) || state.vouchers < cost) return state;
+  return { ...state, vouchers: state.vouchers - cost, runStartWall: nowWall - MIN_FISCAL_YEAR_MS };
 }
 
 /**
@@ -84,8 +133,8 @@ export function resetRun(state: GameState, content: Content): GameState {
 
 export interface AuditResult { state: GameState; sealsGained: number; fiscalYear: number }
 
-export function fileAudit(state: GameState, content: Content): AuditResult {
-  if (!canAudit(state)) return { state, sealsGained: 0, fiscalYear: state.fiscalYear };
+export function fileAudit(state: GameState, content: Content, nowWall: number): AuditResult {
+  if (!canFileAudit(state, nowWall)) return { state, sealsGained: 0, fiscalYear: state.fiscalYear };
   // Computed here rather than asked of the caller, so every Audit route — store, sim, UI
   // preview — pays the Clause multiplier without having to remember it.
   const sealsGained = sealsForRun(state.soulsRun, state.fiscalYear, clauseSealMult(state, content));
@@ -94,6 +143,7 @@ export function fileAudit(state: GameState, content: Content): AuditResult {
     ...reset,
     seals: Math.min(Number.MAX_SAFE_INTEGER, state.seals + sealsGained),
     fiscalYear: state.fiscalYear + 1,
+    runStartWall: nowWall,
     stats: { ...state.stats, audits: state.stats.audits + 1 },
   };
   return { state: next, sealsGained, fiscalYear: next.fiscalYear };

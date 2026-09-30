@@ -4,9 +4,11 @@ import { content } from '../data';
 import {
   sealsForRun, canAudit, fileAudit, resetRun, auditThreshold,
   AUDIT_BASE, SEAL_COEFF, SEAL_CAP_PER_AUDIT, YEAR_GROWTH, sealCap,
+  MIN_FISCAL_YEAR_MS, auditTimeLeftMs, canFileAudit, expediteCost, expediteAudit,
 } from './prestige';
 
 const now = { wall: 0, mono: 0 };
+const LATE = MIN_FISCAL_YEAR_MS; // a wall clock a full fiscal year past the state's runStartWall of 0
 
 describe('auditThreshold', () => {
   it('is the base in year 1 and scales by YEAR_GROWTH each year after', () => {
@@ -121,17 +123,17 @@ describe('fileAudit', () => {
   const expected = Math.floor(SEAL_COEFF * 4 ** 0.4);
   it('refuses below the threshold', () => {
     const s = { ...rich(), soulsRun: new Decimal(10) };
-    const r = fileAudit(s, content);
+    const r = fileAudit(s, content, LATE);
     expect(r.state).toBe(s);
     expect(r.sealsGained).toBe(0);
   });
   it('refuses a year-1-sized run once the fiscal year has moved on', () => {
     const s = { ...rich(), soulsRun: new Decimal(AUDIT_BASE), fiscalYear: 4 };
-    expect(fileAudit(s, content).sealsGained).toBe(0);
+    expect(fileAudit(s, content, LATE).sealsGained).toBe(0);
   });
   it('resets the run, keeps the meta, grants seals', () => {
     const s = rich();
-    const r = fileAudit(s, content);
+    const r = fileAudit(s, content, LATE);
     expect(r.sealsGained).toBe(expected);
     expect(r.state.seals).toBe(expected);
     expect(r.state.fiscalYear).toBe(2);
@@ -152,14 +154,21 @@ describe('fileAudit', () => {
   });
   it('applies head-start perks after the reset', () => {
     const s = { ...rich(), perks: ['headstart-1', 'headstart-2', 'headstart-3'] };
-    const r = fileAudit(s, content);
+    const r = fileAudit(s, content, LATE);
     expect(r.state.staff).toEqual({ dave: 10, seraphine: 10 });
     expect(r.state.deptsUnlocked).toEqual(['intake', 'heaven']);
     expect(r.state.activeDept).toBe('intake');
   });
   it('keeps the Seal total inside the safe integer range', () => {
     const s = { ...rich(), soulsRun: new Decimal('1e200'), seals: Number.MAX_SAFE_INTEGER - 1 };
-    expect(fileAudit(s, content).state.seals).toBe(Number.MAX_SAFE_INTEGER);
+    expect(fileAudit(s, content, LATE).state.seals).toBe(Number.MAX_SAFE_INTEGER);
+  });
+  it('refuses until the minimum fiscal year has elapsed, then sets runStartWall', () => {
+    const s = rich();
+    expect(fileAudit(s, content, LATE - 1).state).toBe(s);
+    const r = fileAudit(s, content, LATE);
+    expect(r.sealsGained).toBe(expected);
+    expect(r.state.runStartWall).toBe(LATE);
   });
   it('trims equipped cards past the slot count the reset leaves behind', () => {
     const five = ['c-dave-overtime', 'c-seraphine-chipper', 'c-gary-break', 'c-cherub-choir', 'c-imp-qa'];
@@ -176,5 +185,43 @@ describe('fileAudit', () => {
   it('canAudit follows the threshold', () => {
     expect(canAudit({ ...rich(), soulsRun: new Decimal(AUDIT_BASE).mul(0.999) })).toBe(false);
     expect(canAudit(rich())).toBe(true);
+  });
+});
+
+describe('minimum fiscal year', () => {
+  const HALF_HOUR = 30 * 60 * 1000;
+  const ready = () => ({ ...createInitialState(now, content), soulsRun: new Decimal(AUDIT_BASE).mul(2), vouchers: 100 });
+  it('auditTimeLeftMs counts down to runStartWall + MIN_FISCAL_YEAR_MS and floors at 0', () => {
+    const s = ready();
+    expect(auditTimeLeftMs(s, 0)).toBe(MIN_FISCAL_YEAR_MS);
+    expect(auditTimeLeftMs(s, HALF_HOUR)).toBe(MIN_FISCAL_YEAR_MS - HALF_HOUR);
+    expect(auditTimeLeftMs(s, MIN_FISCAL_YEAR_MS * 2)).toBe(0);
+  });
+  it('canFileAudit needs both the souls threshold and the clock', () => {
+    const s = ready();
+    expect(canFileAudit(s, 0)).toBe(false);
+    expect(canFileAudit({ ...s, soulsRun: new Decimal(1) }, LATE)).toBe(false);
+    expect(canFileAudit(s, LATE)).toBe(true);
+  });
+  it('expediteCost is one voucher per started 30 minutes left', () => {
+    const s = ready();
+    expect(expediteCost(s, 0)).toBe(16);
+    expect(expediteCost(s, LATE - 29 * 60 * 1000)).toBe(1);
+    expect(expediteCost(s, LATE)).toBe(0);
+  });
+  it('expediteAudit pays vouchers and opens the audit', () => {
+    const s = ready();
+    const r = expediteAudit(s, 0);
+    expect(r.vouchers).toBe(100 - 16);
+    expect(canFileAudit(r, 0)).toBe(true);
+    expect(r.runStartWall).toBe(-MIN_FISCAL_YEAR_MS);
+  });
+  it('expediteAudit is refused without vouchers, without the souls, or with nothing to wait for', () => {
+    const s = ready();
+    const poor = { ...s, vouchers: 15 };
+    expect(expediteAudit(poor, 0)).toBe(poor);
+    const short = { ...s, soulsRun: new Decimal(1) };
+    expect(expediteAudit(short, 0)).toBe(short);
+    expect(expediteAudit(s, LATE)).toBe(s);
   });
 });

@@ -14,9 +14,10 @@ import { unlockDepartments } from './actions';
 import { globalMult } from './economy';
 import { offlineCapSeconds } from './offline';
 import { grantVouchers } from './vouchers';
-import { sealsForRun, fileAudit, auditThreshold, AUDIT_BASE, SEAL_COEFF } from './prestige';
+import { sealsForRun, fileAudit, auditThreshold, AUDIT_BASE, SEAL_COEFF, MIN_FISCAL_YEAR_MS } from './prestige';
 
 const now = { wall: 0, mono: 0 };
+const LATE = MIN_FISCAL_YEAR_MS; // a wall clock a full fiscal year past the state's runStartWall of 0
 
 /**
  * A state that has already earned its way to the Cosmic threshold, with things to lose. Four
@@ -46,14 +47,14 @@ function loaded(): GameState {
 
 describe('cosmicThreshold', () => {
   it('starts at COSMIC_THRESHOLD and grows by COSMIC_THRESHOLD_GROWTH per filing', () => {
-    expect(COSMIC_THRESHOLD).toBe(100);
-    expect(COSMIC_THRESHOLD_GROWTH).toBe(2.5);
-    expect([0, 1, 2, 3, 4].map(cosmicThreshold)).toEqual([100, 250, 625, 1563, 3906]);
+    expect(COSMIC_THRESHOLD).toBe(6000);
+    expect(COSMIC_THRESHOLD_GROWTH).toBe(1.4);
+    expect([0, 1, 2, 3, 4].map(cosmicThreshold)).toEqual([6000, 8400, 11760, 16464, 23050]);
   });
   it('treats a missing or nonsense filing count as none filed', () => {
-    expect(cosmicThreshold(-3)).toBe(100);
-    expect(cosmicThreshold(Number.NaN)).toBe(100);
-    expect(cosmicThreshold(2.9)).toBe(625);
+    expect(cosmicThreshold(-3)).toBe(6000);
+    expect(cosmicThreshold(Number.NaN)).toBe(6000);
+    expect(cosmicThreshold(2.9)).toBe(11760);
   });
 });
 
@@ -66,24 +67,24 @@ describe('canCosmic', () => {
     expect(canCosmic(wallet(COSMIC_THRESHOLD + 500, 0))).toBe(true);
   });
   it('asks for more after every filing', () => {
-    expect(canCosmic(wallet(100, 1))).toBe(false);
-    expect(canCosmic(wallet(249, 1))).toBe(false);
-    expect(canCosmic(wallet(250, 1))).toBe(true);
-    expect(canCosmic(wallet(624, 2))).toBe(false);
-    expect(canCosmic(wallet(625, 2))).toBe(true);
+    expect(canCosmic(wallet(6000, 1))).toBe(false);
+    expect(canCosmic(wallet(8399, 1))).toBe(false);
+    expect(canCosmic(wallet(8400, 1))).toBe(true);
+    expect(canCosmic(wallet(11759, 2))).toBe(false);
+    expect(canCosmic(wallet(11760, 2))).toBe(true);
   });
 });
 
 describe('fileCosmic', () => {
   it('is a no-op below the threshold, handing back the very same state', () => {
     const s = { ...loaded(), seals: cosmicThreshold(4) - 1 };
-    const r = fileCosmic(s, content);
+    const r = fileCosmic(s, content, LATE);
     expect(r.state).toBe(s);
     expect(r.pointsGained).toBe(0);
   });
   it('clears seals and perks, resets the run and grants one Cosmic Point', () => {
     const s = loaded();
-    const r = fileCosmic(s, content);
+    const r = fileCosmic(s, content, LATE);
     expect(r.pointsGained).toBe(1);
     expect(r.state.seals).toBe(0);
     expect(r.state.perks).toEqual([]);
@@ -101,11 +102,11 @@ describe('fileCosmic', () => {
     expect(s.fiscalYear).toBe(7);
     // The Seal bonus and the whole Perk Ledger are gone; a year-7 threshold against the office
     // that is left is a dead week, not a reward.
-    expect(fileCosmic(s, content).state.fiscalYear).toBe(1);
+    expect(fileCosmic(s, content, LATE).state.fiscalYear).toBe(1);
   });
   it('leaves lifetime souls, vouchers, cards and audit count alone', () => {
     const s = loaded();
-    const r = fileCosmic(s, content);
+    const r = fileCosmic(s, content, LATE);
     expect(r.state.soulsLifetime.eq(s.soulsLifetime)).toBe(true);
     expect(r.state.vouchers).toBe(11);
     expect(r.state.cards).toEqual(s.cards);
@@ -114,11 +115,11 @@ describe('fileCosmic', () => {
   it('clamps equipped cards back to the slots the perk-less state pays for', () => {
     const s = loaded();
     expect(s.equipped).toHaveLength(4);
-    expect(fileCosmic(s, content).state.equipped).toEqual(s.equipped.slice(0, 3));
+    expect(fileCosmic(s, content, LATE).state.equipped).toEqual(s.equipped.slice(0, 3));
   });
   it('keeps clauses and branches already bought', () => {
     const s = { ...loaded(), cosmicClauses: ['clause-throughput-1'], branchesUnlocked: ['valhalla'] };
-    const r = fileCosmic(s, content);
+    const r = fileCosmic(s, content, LATE);
     expect(r.state.cosmicClauses).toEqual(['clause-throughput-1']);
     expect(r.state.branchesUnlocked).toEqual(['valhalla']);
   });
@@ -224,8 +225,8 @@ describe('clauses applied across the engine', () => {
   });
   it('pays fileAudit at the clause seal multiplier without the caller asking', () => {
     const base = { ...createInitialState(now, content), soulsRun: auditThreshold(1) };
-    const plain = fileAudit(base, content).sealsGained;
-    const doubled = fileAudit({ ...base, cosmicClauses: ['clause-seals-1', 'clause-seals-2'] }, content).sealsGained;
+    const plain = fileAudit(base, content, LATE).sealsGained;
+    const doubled = fileAudit({ ...base, cosmicClauses: ['clause-seals-1', 'clause-seals-2'] }, content, LATE).sealsGained;
     expect(plain).toBe(SEAL_COEFF);
     expect(doubled).toBe(SEAL_COEFF * 3);
   });

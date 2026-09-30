@@ -19,3 +19,9 @@ export function relativeTime(fromWall: number, nowWall: number): string {
   const days = Math.floor(ms / DAY);
   return `${days} ${days === 1 ? 'day' : 'days'} ago`;
 }
+
+/** A countdown in whole minutes, rounded up: "3h 07m" reads as "3h 7m". */
+export function fmtLeft(ms: number): string {
+  const minutes = Math.max(0, Math.ceil(ms / 60_000));
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}

@@ -411,6 +411,7 @@ describe('exhaustive save round-trip', () => {
       deptsUnlocked: ['intake', 'heaven'],
       activeDept: 'heaven',
       fiscalYear: 6,
+      runStartWall: 1_699_990_000_000,
       boostUntilWall: 1_700_000_123_456,
       lastSeenWallClock: 1_700_000_000_000,
       uptimeAtSave: 98_765,

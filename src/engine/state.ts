@@ -117,6 +117,8 @@ export interface GameState {
   deptsUnlocked: string[];
   activeDept: string;
   fiscalYear: number;
+  /** Wall-clock ms the current fiscal year opened; its Audit waits MIN_FISCAL_YEAR_MS from here. */
+  runStartWall: number;
   /** Wall-clock ms-epoch deadline for the Overtime Boost; 0 when no boost is running. */
   boostUntilWall: number;
   lastSeenWallClock: number;
@@ -177,6 +179,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     deptsUnlocked,
     activeDept: deptsUnlocked[0],
     fiscalYear: 1,
+    runStartWall: now.wall,
     boostUntilWall: 0,
     lastSeenWallClock: now.wall,
     uptimeAtSave: now.mono,
@@ -526,6 +529,8 @@ export function deserialize(json: string, content: Content): GameState {
     deptsUnlocked,
     activeDept: deptsUnlocked.includes(raw.activeDept as string) ? (raw.activeDept as string) : deptsUnlocked[0],
     fiscalYear: num(raw.fiscalYear, 1),
+    // Saves from before the minimum fiscal year: 0 lets their current run audit right away.
+    runStartWall: num(raw.runStartWall, 0),
     boostUntilWall: num(raw.boostUntilWall, 0),
     lastSeenWallClock,
     uptimeAtSave: num(raw.uptimeAtSave, 0),

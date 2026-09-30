@@ -7,7 +7,7 @@ import {
   BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS,
 } from '../engine/economy';
 import { applyOffline } from '../engine/offline';
-import { canAudit, fileAudit } from '../engine/prestige';
+import { canAudit, canFileAudit, fileAudit } from '../engine/prestige';
 import { canBuyPerk, headStart } from '../engine/perks';
 import { rollover, claimDaily, skipDailyFree, isDone, dayKey } from '../engine/dailies';
 import { pull, equipCard, unequipCard, equipSlots, TEN_PULL_COST, PULL_COST, MAX_STARS } from '../engine/gacha';
@@ -298,11 +298,11 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       state = { ...state, dailies: { ...state.dailies, soulsPerSecSnapshot: rates.soulsPerSec.toString() } };
       // File the Audit as soon as it is available, spend the Seals on the cheapest affordable
       // perks, and restructure once the Bureau will hear it.
-      if (canAudit(state)) {
+      if (canFileAudit(state, wallMs)) {
         // Read before the filing: fileAudit pays the multiplier the run held, and Cosmic
         // Clauses survive an Audit, so this is also the multiplier the cap scales by.
         sealMultPerAudit.push(clauseSealMult(state, content));
-        const audit = fileAudit(state, content);
+        const audit = fileAudit(state, content, wallMs);
         state = audit.state;
         sealsPerAudit.push(audit.sealsGained);
         state = buyGreedyPerks(state, content);
@@ -311,7 +311,7 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
         note(day);
       }
       if (canCosmic(state)) {
-        state = fileCosmic(state, content).state;
+        state = fileCosmic(state, content, wallMs).state;
         cosmicDays.push(day);
         // Every Clause costs the same single Cosmic Point, so there is no cheapest: the
         // simulated player takes the Seal Clauses the moment their prerequisites allow it,

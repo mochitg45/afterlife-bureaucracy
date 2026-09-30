@@ -5,6 +5,7 @@ import { fakeClock } from '../engine/time';
 import { content } from '../data';
 import { computeRates } from '../engine/economy';
 import { serialize, type GameState } from '../engine/state';
+import { MIN_FISCAL_YEAR_MS } from '../engine/prestige';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { PLAY_ACHIEVEMENT_IDS } from '../platform/gameIds';
 import { AD_PLACEMENTS } from '../platform/ads';
@@ -557,7 +558,7 @@ describe('union membership in the store', () => {
 describe('cosmic restructuring in the store', () => {
   it('files a Cosmic, records the ceremony and clears it on dismiss', async () => {
     const { store, seed } = await make();
-    seed({ seals: 150, perks: ['throughput-1'], soulsRun: new Decimal('1e9'), fiscalYear: 4 });
+    seed({ seals: 6000, perks: ['throughput-1'], soulsRun: new Decimal('1e9'), fiscalYear: 4 });
     store.getState().cosmic();
     const s = store.getState().state;
     expect(store.getState().lastCosmic).toEqual({ pointsGained: 1 });
@@ -575,10 +576,10 @@ describe('cosmic restructuring in the store', () => {
 
   it('refuses a Cosmic below the Seal threshold', async () => {
     const { store, seed } = await make();
-    seed({ seals: 99 });
+    seed({ seals: 5999 });
     store.getState().cosmic();
     expect(store.getState().lastCosmic).toBeNull();
-    expect(store.getState().state.seals).toBe(99);
+    expect(store.getState().state.seals).toBe(5999);
     store.getState().stopLoop();
   });
 
@@ -617,7 +618,7 @@ describe('game services and the save code', () => {
 
   it('submits the lifetime-souls score on an audit', async () => {
     const { store, services, seed } = await make();
-    seed({ soulsRun: new Decimal('1e16'), soulsLifetime: new Decimal('1e12') });
+    seed({ soulsRun: new Decimal('1e16'), soulsLifetime: new Decimal('1e12'), runStartWall: -MIN_FISCAL_YEAR_MS });
     store.getState().audit();
     expect(services.scores).toEqual([['lb-lifetime-souls', 12_000]]);
     // Orders of magnitude, so a score always fits a 64-bit leaderboard.

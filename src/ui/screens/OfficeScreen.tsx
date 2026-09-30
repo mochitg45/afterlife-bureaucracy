@@ -12,6 +12,7 @@ import { UpgradeRow } from '../components/UpgradeRow';
 import { MemoTicker } from '../components/MemoTicker';
 import { useWatchAd } from '../hooks/useWatchAd';
 import { adsSupported } from '../../platform/ads';
+import { fmtLeft } from '../format';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
 
 type GoalTab = Extract<GoalWhere, { kind: 'tab' }>['tab'];
@@ -51,11 +52,6 @@ const MODES: BuyMode[] = [1, 10, 'max'];
  * Rounded up to the minute so a countdown never reads "0h 0m" while there is still time on
  * it, and so the text only changes once a minute however often the tick fires.
  */
-function fmtLeft(ms: number): string {
-  const minutes = Math.max(0, Math.ceil(ms / 60_000));
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-}
-
 /**
  * The Overtime Boost placement: four hours of double output for one rewarded ad, then a
  * cooldown. Both the running boost and the cooldown tick down live, so the only self-driven

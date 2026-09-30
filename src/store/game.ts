@@ -5,7 +5,7 @@ import { findDepartment } from '../engine/content';
 import { createInitialState, deserialize, serialize, RESET_EPOCH, type GameState, type Settings } from '../engine/state';
 import { staffBulkCost, canAfford, computeRates, BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS, type Rates } from '../engine/economy';
 import { tickWithRates, click, buyStaff, buyUpgrade, addSouls, unlockDepartments, buyPerk as buyPerkAction, type BuyMode } from '../engine/actions';
-import { canAudit, fileAudit } from '../engine/prestige';
+import { canFileAudit, fileAudit, expediteAudit as expediteAuditEngine } from '../engine/prestige';
 import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/offline';
 import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
@@ -239,6 +239,8 @@ export interface GameStore {
   rotateMemo(): void;
   audit(): void;
   dismissAudit(): void;
+  /** Pays vouchers to end the fiscal year's wait, then files the Audit. */
+  expediteAudit(): void;
   buyPerk(perkId: string): void;
   pull(count: 1 | 10): void;
   dismissPull(): void;
@@ -1142,8 +1144,8 @@ export function createGameStore(deps: StoreDeps) {
         set({ memoLine: pick(memoPool(dept, s.fiscalYear, s.storySeen), get().memoLine) });
       },
       audit() {
-        if (!canAudit(get().state)) return;
-        const r = fileAudit(get().state, content);
+        if (!canFileAudit(get().state, clock.wall())) return;
+        const r = fileAudit(get().state, content, clock.wall());
         const dept = findDepartment(content, r.state.activeDept);
         // Through `apply`, like every other write: filing the audit is what satisfies the
         // "file N audits" achievement and the story beats keyed to the fiscal year, so they
@@ -1162,6 +1164,12 @@ export function createGameStore(deps: StoreDeps) {
       },
       dismissAudit() {
         set({ lastAudit: null });
+      },
+      expediteAudit() {
+        const next = expediteAuditEngine(get().state, clock.wall());
+        if (next === get().state) return;
+        apply(next);
+        get().audit();
       },
       buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
       pull(count) {
@@ -1364,7 +1372,7 @@ export function createGameStore(deps: StoreDeps) {
 
       cosmic() {
         if (!canCosmic(get().state)) return;
-        const r = fileCosmic(get().state, content);
+        const r = fileCosmic(get().state, content, clock.wall());
         const dept = findDepartment(content, r.state.activeDept);
         // Settles for the same reason the Audit does: the cosmic-count achievement belongs
         // to the filing that earned it.

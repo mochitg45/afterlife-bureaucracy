@@ -8,9 +8,9 @@ const base = () => createInitialState(now, content);
 
 describe('perk ownership and purchase rules', () => {
   it('root perk needs only seals', () => {
-    const s = { ...base(), seals: 1 };
+    const s = { ...base(), seals: 6 };
     expect(canBuyPerk(s, content, 'throughput-1')).toEqual({ ok: true });
-    expect(canBuyPerk({ ...s, seals: 0 }, content, 'throughput-1')).toEqual({ ok: false, reason: 'seals' });
+    expect(canBuyPerk({ ...s, seals: 5 }, content, 'throughput-1')).toEqual({ ok: false, reason: 'seals' });
   });
   it('child perk is locked until prerequisites are owned', () => {
     const s = { ...base(), seals: 50 };
@@ -22,7 +22,7 @@ describe('perk ownership and purchase rules', () => {
     expect(canBuyPerk(s, content, 'throughput-1')).toEqual({ ok: false, reason: 'owned' });
   });
   it('buyPerk deducts seals and records the perk; refuses otherwise', () => {
-    const s0 = { ...base(), seals: 3 };
+    const s0 = { ...base(), seals: 8 };
     const s1 = buyPerk(s0, content, 'throughput-1');
     expect(s1.seals).toBe(2);
     expect(hasPerk(s1, 'throughput-1')).toBe(true);
@@ -36,8 +36,8 @@ describe('canBuyPerk wallet', () => {
   it('needs only the Seal count and the owned perk list', () => {
     // The Perk Ledger UI subscribes to these two fields alone, so the check must not
     // reach for anything else on GameState.
-    expect(canBuyPerk({ seals: 1, perks: [] }, content, 'throughput-1')).toEqual({ ok: true });
-    expect(canBuyPerk({ seals: 0, perks: [] }, content, 'throughput-1')).toEqual({ ok: false, reason: 'seals' });
+    expect(canBuyPerk({ seals: 6, perks: [] }, content, 'throughput-1')).toEqual({ ok: true });
+    expect(canBuyPerk({ seals: 5, perks: [] }, content, 'throughput-1')).toEqual({ ok: false, reason: 'seals' });
     expect(canBuyPerk({ seals: 99, perks: ['throughput-1'] }, content, 'throughput-1')).toEqual({ ok: false, reason: 'owned' });
     expect(canBuyPerk({ seals: 99, perks: [] }, content, 'throughput-2')).toEqual({ ok: false, reason: 'locked' });
   });
