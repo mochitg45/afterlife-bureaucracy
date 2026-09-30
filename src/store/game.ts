@@ -26,7 +26,6 @@ import { formatNumber } from '../engine/format';
 import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
-import { requestReview, shouldAskForReview } from '../platform/review';
 import { content as defaultContent } from '../data';
 
 /** Where an unreadable save is parked so a bad release cannot erase a player's run. */
@@ -1163,7 +1162,6 @@ export function createGameStore(deps: StoreDeps) {
       },
       dismissAudit() {
         set({ lastAudit: null });
-        if (shouldAskForReview(get().state.stats.audits)) void requestReview();
       },
       buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
       pull(count) {

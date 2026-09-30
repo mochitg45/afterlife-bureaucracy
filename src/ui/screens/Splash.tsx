@@ -77,9 +77,7 @@ export function Splash({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     document.addEventListener('keydown', finish);
-    // Studio jingle: 8-bit run, then "Inata!" lands as the name appears (1.7s).
-    const voice = setTimeout(() => new Audio(`${import.meta.env.BASE_URL}sfx/inata-voice.mp3`).play()?.catch(() => {}), 850);
-    return () => { document.removeEventListener('keydown', finish); clearTimeout(voice); };
+    return () => document.removeEventListener('keydown', finish);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
