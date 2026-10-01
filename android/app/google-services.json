@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1035420780939",
+    "project_id": "afterlife-bureaucracy",
+    "storage_bucket": "afterlife-bureaucracy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035420780939:android:89b962eff1a7ab7609c78e",
+        "android_client_info": {
+          "package_name": "com.afterlifebureaucracy.game"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMlbwmTdrYf1hUUr98L_X_LAFC_QrRuQY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
