@@ -51,7 +51,7 @@ export function EventBanner({ onOpen }: { onOpen: () => void }) {
   const now = useNow();
   const [imgOk, setImgOk] = useState(true);
   if (!occ) return null;
-  const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'depts/limbo' : 'events/' + occ.id}.webp`;
+  const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'events/weekly-' + occ.id : 'events/' + occ.id}.webp`;
   return (
     <div className="card event-banner" style={{ borderColor: occ.accent }}>
       {imgOk && <img className="event-art" src={art} alt="" onError={() => setImgOk(false)} />}
@@ -92,7 +92,7 @@ function EventStaffRow({ staff, occ, mode, onInfo }: { staff: StaffDef; occ: Eve
 function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
   const stamp = useGame((s) => s.eventStamp);
   const [floats, setFloats] = useState<{ id: number; x: number }[]>([]);
-  const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'depts/limbo' : 'events/' + occ.id}.webp`;
+  const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'events/weekly-' + occ.id : 'events/' + occ.id}.webp`;
   const onStamp = () => {
     stamp();
     const f = { id: Date.now() + Math.random(), x: 30 + Math.random() * 40 };

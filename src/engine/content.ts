@@ -126,7 +126,13 @@ const eventCommon = {
 
 const weeklySchema = z.object({
   ...eventCommon,
-  themes: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), blurb: z.string() })).min(1),
+  themes: z.array(z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    blurb: z.string(),
+    /** The week's look for each base staff, by position: same ids, costs and rates, new faces. */
+    staff: z.array(z.object({ name: z.string().min(1), role: z.string(), flavor: z.string(), character: z.string().min(1) })).optional(),
+  })).min(1),
 });
 
 const specialSchema = z.object({

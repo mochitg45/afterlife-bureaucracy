@@ -377,3 +377,19 @@ describe('event pacing', () => {
     expect(h).toBeLessThan(72);
   });
 });
+
+describe('weekly themes', () => {
+  it('each theme dresses all base staff, keeping ids, costs and rates', () => {
+    const w = content.events.weekly!;
+    for (const t of w.themes) {
+      expect(t.staff).toHaveLength(w.staff.length);
+    }
+    const occ = activeEvent(content, Date.UTC(2026, 9, 10, 12))!;
+    expect(occ.kind).toBe('weekly');
+    occ.staff.forEach((s, i) => {
+      expect(s.id).toBe(w.staff[i].id);
+      expect(s.baseCost).toBe(w.staff[i].baseCost);
+      expect(s.character).toMatch(/^wk-/);
+    });
+  });
+});

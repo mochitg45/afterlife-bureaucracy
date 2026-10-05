@@ -7,72 +7,352 @@
       {
         "id": "great-backlog",
         "name": "The Great Backlog",
-        "blurb": "A filing cabinet in Limbo burst. 40,000 souls are loose in the hallway."
+        "blurb": "A filing cabinet in Limbo burst. 40,000 souls are loose in the hallway.",
+        "staff": [
+          {
+            "name": "Soul Wrangler",
+            "role": "Hallway recovery",
+            "flavor": "Lassoes loose souls with a rope of red tape. Yee-haw, in triplicate.",
+            "character": "wk-great-backlog-1"
+          },
+          {
+            "name": "Cabinet Mimic",
+            "role": "Reformed filing cabinet",
+            "flavor": "Used to eat interns. Now only eats paperwork. Mostly.",
+            "character": "wk-great-backlog-2"
+          },
+          {
+            "name": "Hall Monitor Ghost",
+            "role": "Corridor patrol",
+            "flavor": "Has a whistle, a sash and absolutely no authority.",
+            "character": "wk-great-backlog-3"
+          }
+        ]
       },
       {
         "id": "tax-season",
         "name": "Tax Season in Purgatory",
-        "blurb": "Everyone died owing something. Everyone wants a receipt."
+        "blurb": "Everyone died owing something. Everyone wants a receipt.",
+        "staff": [
+          {
+            "name": "Receipt Goblin",
+            "role": "Expense hoarder",
+            "flavor": "Keeps every receipt. Every one. Since 1342.",
+            "character": "wk-tax-season-1"
+          },
+          {
+            "name": "Abacus Ghost",
+            "role": "Old-school accountant",
+            "flavor": "Refuses to use a calculator. Faster anyway.",
+            "character": "wk-tax-season-2"
+          },
+          {
+            "name": "Deduction Owl",
+            "role": "Night auditor",
+            "flavor": "Who? Who claimed a horse as a dependant?",
+            "character": "wk-tax-season-3"
+          }
+        ]
       },
       {
         "id": "retrograde",
         "name": "Mercury Retrograde Jam",
-        "blurb": "The forms are filing themselves backwards. Nobody can explain it."
+        "blurb": "The forms are filing themselves backwards. Nobody can explain it.",
+        "staff": [
+          {
+            "name": "Backwards Clerk",
+            "role": "Reverse filing",
+            "flavor": "Shirt on backwards, walks backwards, files forwards. Usually.",
+            "character": "wk-retrograde-1"
+          },
+          {
+            "name": "Astro-Intern",
+            "role": "Star chart reader",
+            "flavor": "Blames everything on the planets. Is often right.",
+            "character": "wk-retrograde-2"
+          },
+          {
+            "name": "Little Mercury",
+            "role": "The actual planet",
+            "flavor": "Sorry about all this. Brought snacks.",
+            "character": "wk-retrograde-3"
+          }
+        ]
       },
       {
         "id": "lost-socks",
         "name": "Lost Socks Amnesty",
-        "blurb": "Every sock ever lost has arrived for processing. With paperwork."
+        "blurb": "Every sock ever lost has arrived for processing. With paperwork.",
+        "staff": [
+          {
+            "name": "Sock Puppet Clerk",
+            "role": "Odd sock liaison",
+            "flavor": "Speaks for socks who cannot speak. Voice is a bit much.",
+            "character": "wk-lost-socks-1"
+          },
+          {
+            "name": "Laundry Golem",
+            "role": "Basket of everything",
+            "flavor": "Made entirely of lost laundry. Smells of fabric softener.",
+            "character": "wk-lost-socks-2"
+          },
+          {
+            "name": "Lint Sprite",
+            "role": "Dryer-vent spirit",
+            "flavor": "Small, fluffy, everywhere. Sneezes are a hazard.",
+            "character": "wk-lost-socks-3"
+          }
+        ]
       },
       {
         "id": "printer-exorcism",
         "name": "The Printer Exorcism",
-        "blurb": "The third-floor printer is possessed again. The queue backs up to Heaven."
+        "blurb": "The third-floor printer is possessed again. The queue backs up to Heaven.",
+        "staff": [
+          {
+            "name": "Exorcist Intern",
+            "role": "Holy toner splasher",
+            "flavor": "Armed with a spray bottle of holy water and a can-do attitude.",
+            "character": "wk-printer-exorcism-1"
+          },
+          {
+            "name": "Possessed Printer",
+            "role": "Reformed demon device",
+            "flavor": "PC LOAD LETTER. It knows what it did.",
+            "character": "wk-printer-exorcism-2"
+          },
+          {
+            "name": "Paper Jam Poltergeist",
+            "role": "Jam specialist",
+            "flavor": "Lives inside tray 2. Rattles when it is happy.",
+            "character": "wk-printer-exorcism-3"
+          }
+        ]
       },
       {
         "id": "casual-friday",
         "name": "Casual Friday, Eternally",
-        "blurb": "Hawaiian shirts approved for the rest of time. Productivity: unclear."
+        "blurb": "Hawaiian shirts approved for the rest of time. Productivity: unclear.",
+        "staff": [
+          {
+            "name": "Aloha Reaper",
+            "role": "Business-casual death",
+            "flavor": "Swapped the robe for a flower shirt. Kept the scythe.",
+            "character": "wk-casual-friday-1"
+          },
+          {
+            "name": "Flip-Flop Angel",
+            "role": "Relaxed seraph",
+            "flavor": "Halo tilted at a jaunty angle. Wings in sunscreen.",
+            "character": "wk-casual-friday-2"
+          },
+          {
+            "name": "Smoothie Demon",
+            "role": "Break-room barista",
+            "flavor": "Blends anything into a smoothie. Do not ask what is in the green one.",
+            "character": "wk-casual-friday-3"
+          }
+        ]
       },
       {
         "id": "valhalla-feast",
         "name": "The Feast of Valhalla",
-        "blurb": "Odin double-booked the mead hall. Every fallen warrior needs a seat assignment, in triplicate."
+        "blurb": "Odin double-booked the mead hall. Every fallen warrior needs a seat assignment, in triplicate.",
+        "staff": [
+          {
+            "name": "Valkyrie Usher",
+            "role": "Seat assignments",
+            "flavor": "Flies every fallen warrior to the right bench. Clipboard is also a shield.",
+            "character": "wk-valhalla-feast-1"
+          },
+          {
+            "name": "Mead Hall Steward",
+            "role": "Horn-tray server",
+            "flavor": "Horned helmet, endless drinking horn, perfect posture.",
+            "character": "wk-valhalla-feast-2"
+          },
+          {
+            "name": "Raven Messenger",
+            "role": "Odin's mail desk",
+            "flavor": "Remembers everything. Will tell everyone.",
+            "character": "wk-valhalla-feast-3"
+          }
+        ]
       },
       {
         "id": "sin-pride",
         "name": "Pride Before the Fall",
-        "blurb": "Every soul insists their file is the most important one. They are all wrong."
+        "blurb": "Every soul insists their file is the most important one. They are all wrong.",
+        "staff": [
+          {
+            "name": "Peacock Clerk",
+            "role": "Very important bird",
+            "flavor": "Fans its tail at every form. The forms are not impressed.",
+            "character": "wk-sin-pride-1"
+          },
+          {
+            "name": "Mirror Imp",
+            "role": "Reflection services",
+            "flavor": "Carries a hand mirror so souls can admire themselves while queueing.",
+            "character": "wk-sin-pride-2"
+          },
+          {
+            "name": "Lion Notary",
+            "role": "King of the stamp",
+            "flavor": "Wears a tiny crown. Stamps with great dignity.",
+            "character": "wk-sin-pride-3"
+          }
+        ]
       },
       {
         "id": "sin-greed",
         "name": "The Greed Ledger",
-        "blurb": "Souls keep trying to take it with them. Customs is overwhelmed."
+        "blurb": "Souls keep trying to take it with them. Customs is overwhelmed.",
+        "staff": [
+          {
+            "name": "Coin Goblin",
+            "role": "Pocket inspector",
+            "flavor": "Checks every pocket for coins souls try to sneak through.",
+            "character": "wk-sin-greed-1"
+          },
+          {
+            "name": "Piggy Bank Clerk",
+            "role": "Deposits only",
+            "flavor": "Accepts all coins. Returns none.",
+            "character": "wk-sin-greed-2"
+          },
+          {
+            "name": "Treasurer Dragon",
+            "role": "Hoard management",
+            "flavor": "Sleeps on the confiscated gold. Calls it filing.",
+            "character": "wk-sin-greed-3"
+          }
+        ]
       },
       {
         "id": "sin-wrath",
         "name": "Wrath Management",
-        "blurb": "The complaints department is on fire. Literally, this time."
+        "blurb": "The complaints department is on fire. Literally, this time.",
+        "staff": [
+          {
+            "name": "Extinguisher Imp",
+            "role": "Fire response",
+            "flavor": "Puts out tempers and desks. Mostly desks.",
+            "character": "wk-sin-wrath-1"
+          },
+          {
+            "name": "Calm Coach",
+            "role": "Anger management",
+            "flavor": "Breathe in. Breathe out. Fill in form 12-C.",
+            "character": "wk-sin-wrath-2"
+          },
+          {
+            "name": "Kettle-Head Clerk",
+            "role": "Steam vent",
+            "flavor": "Whistles when angry. Whistles a lot.",
+            "character": "wk-sin-wrath-3"
+          }
+        ]
       },
       {
         "id": "sin-envy",
         "name": "Green with Envy",
-        "blurb": "Everyone wants the afterlife of the soul in front of them."
+        "blurb": "Everyone wants the afterlife of the soul in front of them.",
+        "staff": [
+          {
+            "name": "Green-Eyed Cat",
+            "role": "Comparison desk",
+            "flavor": "Wants whatever is on your desk. Especially the sunny spot.",
+            "character": "wk-sin-envy-1"
+          },
+          {
+            "name": "Copycat Chameleon",
+            "role": "Form duplicator",
+            "flavor": "Copies every stamp it sees. Changes colour to match.",
+            "character": "wk-sin-envy-2"
+          },
+          {
+            "name": "Lawn Clerk",
+            "role": "Greener-grass inspector",
+            "flavor": "Measures the grass on the other side. It is the same grass.",
+            "character": "wk-sin-envy-3"
+          }
+        ]
       },
       {
         "id": "sin-gluttony",
         "name": "The Gluttony Buffet",
-        "blurb": "The break-room fridge is missing. All of it. Including the shelves."
+        "blurb": "The break-room fridge is missing. All of it. Including the shelves.",
+        "staff": [
+          {
+            "name": "Snack Cart Ghoul",
+            "role": "Trolley service",
+            "flavor": "Pushes the snack cart. Eats the snack cart.",
+            "character": "wk-sin-gluttony-1"
+          },
+          {
+            "name": "Fridge Slime",
+            "role": "Break-room inspector",
+            "flavor": "Found in the fridge. Is now staff. Nobody remembers hiring it.",
+            "character": "wk-sin-gluttony-2"
+          },
+          {
+            "name": "Pie Chart Chef",
+            "role": "Data catering",
+            "flavor": "Bakes the quarterly reports. Literally.",
+            "character": "wk-sin-gluttony-3"
+          }
+        ]
       },
       {
         "id": "sin-sloth",
         "name": "Sloth Shift",
-        "blurb": "Half the queue fell asleep in line. The other half is pretending."
+        "blurb": "Half the queue fell asleep in line. The other half is pretending.",
+        "staff": [
+          {
+            "name": "Sloth Clerk",
+            "role": "Very slow lane",
+            "flavor": "Has stamped one form since Monday. Beautifully.",
+            "character": "wk-sin-sloth-1"
+          },
+          {
+            "name": "Pillow Courier",
+            "role": "Nap delivery",
+            "flavor": "Delivers pillows to the queue. Making things worse.",
+            "character": "wk-sin-sloth-2"
+          },
+          {
+            "name": "Snooze Clock",
+            "role": "Alarm on strike",
+            "flavor": "Rings every nine minutes, then says never mind.",
+            "character": "wk-sin-sloth-3"
+          }
+        ]
       },
       {
         "id": "sin-lust",
         "name": "Lust for Paperwork",
-        "blurb": "Some souls are far too excited about forms. HR has been informed."
+        "blurb": "Some souls are far too excited about forms. HR has been informed.",
+        "staff": [
+          {
+            "name": "Cupid Compliance",
+            "role": "HR liaison",
+            "flavor": "Shoots arrows at forms that are getting too friendly.",
+            "character": "wk-sin-lust-1"
+          },
+          {
+            "name": "Heart-Eyed Intern",
+            "role": "Form enthusiast",
+            "flavor": "Has never been this excited about a stapler. HR has notes.",
+            "character": "wk-sin-lust-2"
+          },
+          {
+            "name": "Rose Stamp Clerk",
+            "role": "Romantic stamping",
+            "flavor": "Every approval comes with a rose-shaped stamp and a sigh.",
+            "character": "wk-sin-lust-3"
+          }
+        ]
       }
     ],
     "staff": [
