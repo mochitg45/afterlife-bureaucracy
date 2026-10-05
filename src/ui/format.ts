@@ -25,3 +25,9 @@ export function fmtLeft(ms: number): string {
   const minutes = Math.max(0, Math.ceil(ms / 60_000));
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
+
+/** A longer countdown: "3d 4h" from a day out, otherwise the hours-and-minutes of fmtLeft. */
+export function fmtCountdown(ms: number): string {
+  const hours = Math.floor(Math.max(0, ms) / 3_600_000);
+  return hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : fmtLeft(ms);
+}

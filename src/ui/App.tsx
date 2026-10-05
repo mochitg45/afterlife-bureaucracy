@@ -24,9 +24,10 @@ import { SaveCodeSheet } from './overlays/SaveCodeSheet';
 import { CloudNotice } from './components/CloudNotice';
 import { TitleScreen } from './screens/TitleScreen';
 import { Splash } from './screens/Splash';
+import { EventScreen } from './screens/EventScreen';
 
 export function App() {
-  const [tab, setTab] = useState<TabId>('office');
+  const [tab, setTab] = useState<TabId | 'event'>('office');
   // Every cold boot opens on the Inata Sun Soft splash, then the title screen: the title is
   // where the Play Games sign-in lives, and the sync it runs has to finish before the office
   // shows a desk that may be about to change.
@@ -99,7 +100,8 @@ export function App() {
           would be a dialog about a desk the player has not sat down at yet. */}
       {ready && phase === 'game' && (
         <>
-          {tab === 'office' && <OfficeScreen onSettings={openSettings} onGoTo={setTab} />}
+          {tab === 'office' && <OfficeScreen onSettings={openSettings} onGoTo={setTab} onOpenEvent={() => setTab('event')} />}
+          {tab === 'event' && <EventScreen onBack={() => setTab('office')} />}
           {tab === 'personnel' && <PersonnelScreen onSettings={openSettings} />}
           {tab === 'ledger' && <LedgerScreen onSettings={openSettings} />}
           {tab === 'tasks' && <TasksScreen onSettings={openSettings} />}
@@ -113,14 +115,14 @@ export function App() {
           <VisitorGift />
           <Intro />
           <Training />
-          <Tips tab={tab} />
+          <Tips tab={tab === 'event' ? 'office' : tab} />
           <AchievementToast />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
           <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
           {/* The opening cutscene is the one overlay allowed to be the first thing a new
               player sees; a permission prompt on top of it would be the second. */}
           {memosSeen && !settingsOpen && !saveCodeOpen && <NotifPrompt />}
-          <TabBar active={tab} onChange={setTab} />
+          <TabBar active={tab === 'event' ? 'office' : tab} onChange={setTab} />
         </>
       )}
     </div>

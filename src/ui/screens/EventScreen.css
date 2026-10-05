@@ -1,0 +1,22 @@
+.event-banner { border-width: 2px; border-style: solid; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; margin-bottom: 10px; }
+.event-banner .event-art { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; grid-row: span 3; }
+.event-banner h3 { font-size: 16px; }
+.event-tag { font-size: 10px; letter-spacing: .08em; font-weight: 700; }
+.event-banner .btn { grid-column: 1 / -1; }
+.event-screen .event-stats { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px; }
+/* the event's department painting, framed in the event colour */
+.event-scene { border: 2.5px solid var(--accent); }
+.event-screen .stamp { background: none; border: 0; cursor: pointer; }
+.event-tier { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; margin-bottom: 8px; }
+.event-tier .bar { grid-column: 1 / -1; }
+.event-tier.claimed { opacity: .6; }
+.event-reward { display: inline-flex; align-items: center; gap: 6px; }
+.event-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 4px 0 10px; }
+.event-card { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 10px 6px 8px; border-radius: var(--radius); border: 1.5px solid var(--line); background: var(--surface); }
+.event-card img { width: 84px; height: 84px; object-fit: contain; }
+.event-card-name { font-weight: 700; font-size: 13px; line-height: 1.15; }
+.event-card.rarity-senior { border-color: var(--teal); }
+.event-card.featured { border: 2.5px solid var(--brass); background: linear-gradient(160deg, #fff3c8, var(--surface) 70%); box-shadow: 0 0 0 3px rgb(232 193 100 / .35); }
+.event-card-tag { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); font-size: 9.5px; font-weight: 700; letter-spacing: .08em; background: var(--brass); color: #fff; padding: 2px 7px; border-radius: 999px; }
+.event-upcoming { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.tile-event { font-size: 10px; color: var(--brass); }

@@ -5,6 +5,8 @@ import cards from '../data/cards.json';
 import dailies from '../data/dailies.json';
 import achievements from '../data/achievements.json';
 import onboarding from '../data/onboarding.json';
+import eventCards from '../data/event-cards.json';
+import events from '../data/events.json';
 
 describe('content', () => {
   it('loads the intake department', () => {
@@ -178,5 +180,44 @@ describe('onboarding content', () => {
   });
   it('defaults to no onboarding when the content set ships none', () => {
     expect(loadContent([intake]).onboarding).toEqual({ intro: [], training: [], tips: [] });
+  });
+});
+
+describe('events content', () => {
+  const raw = () => JSON.parse(JSON.stringify(events)) as typeof events;
+  const load = (e: unknown, c: unknown[] = [...cards, ...eventCards]) => loadContent(content.departments, [], { cards: c, events: e });
+
+  it('loads the shipped events and merges event cards into content.cards', () => {
+    expect(content.events.specials.map((s) => s.id)).toEqual(['halloween', 'christmas', 'newyear', 'valentine', 'easter', 'summer']);
+    expect(content.events.weekly!.themes.length).toBeGreaterThanOrEqual(6);
+    expect(content.cards.filter((c) => c.event)).toHaveLength(eventCards.length);
+  });
+  it('defaults to no events', () => {
+    expect(loadContent([intake]).events).toEqual({ weekly: null, specials: [] });
+  });
+  it('rejects a track card reward that belongs to another event', () => {
+    const e = raw();
+    e.specials[0].track = e.specials[0].track.map((t) => (t.reward.type === 'card' ? { ...t, reward: { type: 'card', card: 'c-xm-gingerbread' } } : t)) as typeof e.specials[0]['track'];
+    expect(() => load(e)).toThrow(/not its own/);
+  });
+  it('rejects a banner whose featured card is not the event\'s', () => {
+    const e = raw();
+    e.specials[0].banner.featured = 'c-xm-gingerbread';
+    expect(() => load(e)).toThrow(/not its own/);
+  });
+  it('requires exactly one card per rarity per special', () => {
+    const missing = eventCards.filter((c) => !(c.event === 'halloween' && c.rarity === 'executive'));
+    expect(() => load(raw(), [...cards, ...missing])).toThrow(/exactly one executive/);
+  });
+  it('rejects an event card naming an unknown event', () => {
+    expect(() => load(raw(), [...cards, ...eventCards, { ...eventCards[0], id: 'c-stray', event: 'nope' }])).toThrow(/Unknown event/);
+  });
+  it('rejects event staff that clash with a department or another event', () => {
+    const e = raw();
+    e.weekly.staff[0].id = 'dave';
+    expect(() => load(e)).toThrow(/duplicate staff/i);
+    const f = raw();
+    f.specials[1].staff[0].id = f.specials[0].staff[0].id;
+    expect(() => load(f)).toThrow(/duplicate staff/i);
   });
 });

@@ -13,6 +13,9 @@ export const ART: Record<string, string> = {
   'c-petra-keys': 'petra', 'c-malphas-forks': 'malphas', 'c-pemberton': 'pemberton', 'c-ferro': 'ferro',
   'c-auditor-fruit': 'auditor-fine', 'c-harpist-hold': 'melodia', 'c-lilith-culture': 'lilith', 'c-nadia-odds': 'nadia', 'c-forgot': 'forgot',
   'c-bev-wings': 'bev', 'c-grax-fire': 'grax', 'c-wheel-tech': 'wheel-tech', 'c-obroin': 'obroin', 'c-dave-cooked': 'dave-cooked', 'c-grandma-liu': 'grandma-liu',
+  // event staff and event-only cards (the art file has the same name as the key)
+  'hw-ghost': 'hw-ghost', 'hw-mummy': 'hw-mummy', 'hw-pumpkin': 'hw-pumpkin', 'hw-vampire': 'hw-vampire', 'hw-headless': 'hw-headless',
+  'c-hw-trickster': 'c-hw-trickster', 'c-hw-bat': 'c-hw-bat', 'c-hw-witch': 'c-hw-witch', 'c-hw-pumpkin-cfo': 'c-hw-pumpkin-cfo',
   'c-seraph-board': 'seraph-board', 'c-duke-vassago': 'vassago', 'c-bodhisattva': 'bodhisattva', 'c-keeper': 'keeper', 'c-auditor-true': 'auditor-true',
 };
 

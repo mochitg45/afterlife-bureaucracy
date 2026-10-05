@@ -7,6 +7,8 @@ import limbo from './departments/limbo.json';
 import valhalla from './departments/valhalla.json';
 import perks from './perks.json';
 import cards from './cards.json';
+import eventCards from './event-cards.json';
+import events from './events.json';
 import dailies from './dailies.json';
 import achievements from './achievements.json';
 import story from './story.json';
@@ -15,7 +17,8 @@ import onboarding from './onboarding.json';
 
 export const content = loadContent([intake, heaven, hell, reincarnation, limbo, valhalla], perks, {
   clauses,
-  cards,
+  cards: [...cards, ...eventCards],
+  events,
   dailies,
   achievements,
   story,

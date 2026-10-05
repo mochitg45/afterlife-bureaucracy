@@ -34,6 +34,8 @@ function bonusLine(card: ReturnType<typeof findCard>, stars: number): string {
       return `+${amount}h offline cap`;
     case 'voucherMult':
       return `+${pct(amount)} voucher grants`;
+    case 'eventMult':
+      return `+${pct(amount)} event currency`;
   }
 }
 

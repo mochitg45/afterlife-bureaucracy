@@ -4,6 +4,7 @@ import type { Content } from './content';
 import { findStaff, findUpgrade, findPerk } from './content';
 import { computeRates, staffBulkCost, maxAffordable, upgradeCost, upgradeLevel, type Rates, canAfford } from './economy';
 import { canBuyPerk } from './perks';
+import { accrueEvent } from './events';
 
 export type BuyMode = 1 | 10 | 'max';
 
@@ -33,16 +34,17 @@ export function unlockDepartments(state: GameState, content: Content): GameState
 
 export interface TickResult { state: GameState; rates: Rates }
 
-export function tickWithRates(state: GameState, content: Content, dtSec: number, nowWall: number): TickResult {
+export function tickWithRates(state: GameState, content: Content, dtSec: number, nowWall: number, forceEvent?: string | null): TickResult {
   const rates = computeRates(state, content, nowWall);
-  if (!(dtSec > 0) || rates.soulsPerSec.eq(0)) return { state: unlockDepartments(state, content), rates };
-  const next = addSouls(state, rates.soulsPerSec.mul(dtSec), rates.kcPerSec.mul(dtSec));
-  return { state: unlockDepartments(next, content), rates };
+  if (!(dtSec > 0)) return { state: unlockDepartments(state, content), rates };
+  // The event accrues even in an office with no staff: its own staff pay for it.
+  const earned = rates.soulsPerSec.eq(0) ? state : addSouls(state, rates.soulsPerSec.mul(dtSec), rates.kcPerSec.mul(dtSec));
+  return { state: unlockDepartments(accrueEvent(earned, content, dtSec, nowWall, forceEvent), content), rates };
 }
 
-export function tick(state: GameState, content: Content, dtSec: number, nowWall: number): GameState {
+export function tick(state: GameState, content: Content, dtSec: number, nowWall: number, forceEvent?: string | null): GameState {
   if (!(dtSec > 0)) return state;
-  return tickWithRates(state, content, dtSec, nowWall).state;
+  return tickWithRates(state, content, dtSec, nowWall, forceEvent).state;
 }
 
 export function click(state: GameState, content: Content, nowWall: number): GameState {

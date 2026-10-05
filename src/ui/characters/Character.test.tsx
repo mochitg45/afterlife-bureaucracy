@@ -1,14 +1,7 @@
+import { existsSync } from 'node:fs';
 import { render } from '@testing-library/react';
 import { Character } from './Character';
 import { ART } from './art';
-
-const SPRITE_NAMES = new Set([
-  'auditor', 'auditor-fine', 'auditor-true', 'bev', 'bodhisattva', 'brynhildr', 'choir-cherub',
-  'dave', 'dave-cooked', 'dust-archivist', 'ferro', 'forgot', 'gary', 'gary-break', 'grandma-liu',
-  'grax', 'hjalti', 'karma-clerk', 'keeper', 'lilith', 'malphas', 'melodia', 'nadia', 'night-temp',
-  'obroin', 'ottar', 'pemberton', 'petra', 'petty-cash', 'qa-imp', 'seraph-board', 'seraphine',
-  'sigrun', 'temp-stapler', 'vassago', 'wheel-tech',
-]);
 
 describe('Character', () => {
   it('renders each known character with a mood attribute', () => {
@@ -54,9 +47,9 @@ describe('Character', () => {
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
-  it('maps every ART entry to one of the 36 sprite names produced by Task 1', () => {
+  it('points every ART entry at a sprite that exists in public/art/chars', () => {
     for (const name of Object.values(ART)) {
-      expect(SPRITE_NAMES.has(name)).toBe(true);
+      expect(existsSync(`public/art/chars/${name}.webp`), name).toBe(true);
     }
   });
 });

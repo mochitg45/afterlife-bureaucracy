@@ -448,6 +448,7 @@ describe('exhaustive save round-trip', () => {
       onboarding: { memosSeen: true, trainingStep: 2, tipsSeen: ['equip', 'offline'] },
       cloud: { lastSyncWall: 1_700_000_444_000, lastResult: 'downloaded' },
       savedAtWall: 1_700_000_888_000,
+      event: { key: 'halloween-2026', points: new Decimal('1.5e7'), earned: new Decimal('4e8'), staff: { 'hw-ghost': 4 }, claimed: [0, 1] },
     };
     const back = deserialize(serialize(s), content);
     expect(Object.keys(back).sort()).toEqual(Object.keys(s).sort());

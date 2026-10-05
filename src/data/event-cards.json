@@ -1,0 +1,338 @@
+[
+  {
+    "id": "c-hw-trickster",
+    "name": "Trick-or-Treat Temp",
+    "title": "Candy Collections",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "c-hw-trickster",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Asks every soul for candy. Files the wrappers.",
+    "event": "halloween"
+  },
+  {
+    "id": "c-hw-bat",
+    "name": "Bat Courier",
+    "title": "Night Mail",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "c-hw-bat",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Delivers upside down. Signs upside down.",
+    "event": "halloween"
+  },
+  {
+    "id": "c-hw-witch",
+    "name": "Witch of Accounts Payable",
+    "title": "Cauldron Budgeting",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "c-hw-witch",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Every spreadsheet is a spell. Every spell balances.",
+    "event": "halloween"
+  },
+  {
+    "id": "c-hw-pumpkin-cfo",
+    "name": "The Great Pumpkin",
+    "title": "Chief Financial Officer",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "c-hw-pumpkin-cfo",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Rises once a year to sign the budget. Never misses.",
+    "event": "halloween"
+  },
+  {
+    "id": "c-xm-gingerbread",
+    "name": "Gingerbread Intern",
+    "title": "Freshly Baked",
+    "rarity": "temp",
+    "dept": "heaven",
+    "character": "c-xm-gingerbread",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Run, run, as fast as the forms allow.",
+    "event": "christmas"
+  },
+  {
+    "id": "c-xm-caroler",
+    "name": "Caroling Cherub",
+    "title": "Seasonal Morale",
+    "rarity": "fulltime",
+    "dept": "heaven",
+    "character": "c-xm-caroler",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Sings the filing code. All of it.",
+    "event": "christmas"
+  },
+  {
+    "id": "c-xm-nutcracker",
+    "name": "Nutcracker Guard",
+    "title": "Front Desk Security",
+    "rarity": "senior",
+    "dept": "heaven",
+    "character": "c-xm-nutcracker",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Cracks cases. And walnuts.",
+    "event": "christmas"
+  },
+  {
+    "id": "c-xm-krampus-exec",
+    "name": "Krampus",
+    "title": "Director of Consequences",
+    "rarity": "executive",
+    "dept": "heaven",
+    "character": "c-xm-krampus-exec",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Keeps the naughty list. Laminated.",
+    "event": "christmas"
+  },
+  {
+    "id": "c-ny-confetti",
+    "name": "Confetti Clerk",
+    "title": "Celebration Intake",
+    "rarity": "temp",
+    "dept": "limbo",
+    "character": "c-ny-confetti",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Throws confetti at every approved form.",
+    "event": "newyear"
+  },
+  {
+    "id": "c-ny-countdown",
+    "name": "Countdown Officer",
+    "title": "Timekeeping",
+    "rarity": "fulltime",
+    "dept": "limbo",
+    "character": "c-ny-countdown",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Ten. Nine. Please take a number.",
+    "event": "newyear"
+  },
+  {
+    "id": "c-ny-champagne",
+    "name": "Champagne Auditor",
+    "title": "Bubbles and Balances",
+    "rarity": "senior",
+    "dept": "limbo",
+    "character": "c-ny-champagne",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Pops a cork for every closed ledger.",
+    "event": "newyear"
+  },
+  {
+    "id": "c-ny-father-time",
+    "name": "Father Time",
+    "title": "Chief Scheduling Officer",
+    "rarity": "executive",
+    "dept": "limbo",
+    "character": "c-ny-father-time",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "The deadline. The original.",
+    "event": "newyear"
+  },
+  {
+    "id": "c-vl-rose",
+    "name": "Rose Runner",
+    "title": "Flower Deliveries",
+    "rarity": "temp",
+    "dept": "heaven",
+    "character": "c-vl-rose",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Every rose comes with a receipt.",
+    "event": "valentine"
+  },
+  {
+    "id": "c-vl-lovebird",
+    "name": "Lovebird Pair",
+    "title": "Joint Filing",
+    "rarity": "fulltime",
+    "dept": "heaven",
+    "character": "c-vl-lovebird",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Only sign forms together.",
+    "event": "valentine"
+  },
+  {
+    "id": "c-vl-poet",
+    "name": "Sonnet Scribe",
+    "title": "Romantic Correspondence",
+    "rarity": "senior",
+    "dept": "heaven",
+    "character": "c-vl-poet",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Writes rejection letters in iambic pentameter.",
+    "event": "valentine"
+  },
+  {
+    "id": "c-vl-cupid-exec",
+    "name": "Cupid Prime",
+    "title": "Head of Matchmaking",
+    "rarity": "executive",
+    "dept": "heaven",
+    "character": "c-vl-cupid-exec",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Never misses. Has a spreadsheet for it.",
+    "event": "valentine"
+  },
+  {
+    "id": "c-es-basket",
+    "name": "Basket Weaver",
+    "title": "Egg Logistics",
+    "rarity": "temp",
+    "dept": "reincarnation",
+    "character": "c-es-basket",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Every basket counted twice.",
+    "event": "easter"
+  },
+  {
+    "id": "c-es-hunter",
+    "name": "Egg Hunter",
+    "title": "Lost Property",
+    "rarity": "fulltime",
+    "dept": "reincarnation",
+    "character": "c-es-hunter",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Finds anything. Mostly eggs.",
+    "event": "easter"
+  },
+  {
+    "id": "c-es-gardener",
+    "name": "Spring Gardener",
+    "title": "New Beginnings",
+    "rarity": "senior",
+    "dept": "reincarnation",
+    "character": "c-es-gardener",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Plants a form. A soul grows.",
+    "event": "easter"
+  },
+  {
+    "id": "c-es-phoenix-exec",
+    "name": "The Phoenix",
+    "title": "Director of Returns",
+    "rarity": "executive",
+    "dept": "reincarnation",
+    "character": "c-es-phoenix-exec",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Burned out. Came back. Burned out again.",
+    "event": "easter"
+  },
+  {
+    "id": "c-sm-sandcastle",
+    "name": "Sandcastle Clerk",
+    "title": "Temporary Structures",
+    "rarity": "temp",
+    "dept": "limbo",
+    "character": "c-sm-sandcastle",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Builds an archive. The tide files it.",
+    "event": "summer"
+  },
+  {
+    "id": "c-sm-icecream",
+    "name": "Ice Cream Imp",
+    "title": "Morale (Melting)",
+    "rarity": "fulltime",
+    "dept": "limbo",
+    "character": "c-sm-icecream",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Hands out cones. Collects sticky forms.",
+    "event": "summer"
+  },
+  {
+    "id": "c-sm-captain",
+    "name": "Ferry Captain",
+    "title": "Soul Transport",
+    "rarity": "senior",
+    "dept": "limbo",
+    "character": "c-sm-captain",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Ferries souls across. Charges a coin.",
+    "event": "summer"
+  },
+  {
+    "id": "c-sm-poseidon-exec",
+    "name": "Poseidon",
+    "title": "Head of Water Damage",
+    "rarity": "executive",
+    "dept": "limbo",
+    "character": "c-sm-poseidon-exec",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Every flood is technically his department.",
+    "event": "summer"
+  }
+]

@@ -100,6 +100,21 @@ export interface CloudMeta {
   lastResult: CloudSyncResult;
 }
 
+/**
+ * Progress in the event occurrence named by `key` (see engine/events.ts). A new key means a
+ * new occurrence, so everything but the owned cards and Seals paid out resets with it.
+ */
+export interface EventState {
+  key: string;
+  /** Spendable event currency. */
+  points: Decimal;
+  /** Total earned this occurrence; spending never lowers it. The reward track reads this. */
+  earned: Decimal;
+  staff: Record<string, number>;
+  /** Indexes of the reward-track tiers already taken. */
+  claimed: number[];
+}
+
 export interface GameState {
   saveVersion: number;
   /** See `RESET_EPOCH`: a save below the current epoch is loaded as a fresh game. */
@@ -149,6 +164,8 @@ export interface GameState {
   cloud: CloudMeta;
   /** Wall-clock ms-epoch of the last save() call; 0 until the store stamps it. */
   savedAtWall: number;
+  /** The event occurrence in progress, or null between events. */
+  event: EventState | null;
 }
 
 export interface Now { wall: number; mono: number }
@@ -216,6 +233,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     onboarding: { memosSeen: false, trainingStep: 0, tipsSeen: [] },
     cloud: { lastSyncWall: 0, lastResult: 'none' },
     savedAtWall: 0,
+    event: null,
   };
 }
 
@@ -224,6 +242,8 @@ const DECIMAL_FIELDS = ['kc', 'soulsRun', 'soulsLifetime'] as const;
 export function serialize(state: GameState): string {
   const raw: Record<string, unknown> = { ...state };
   for (const f of DECIMAL_FIELDS) raw[f] = state[f].toString();
+  // Nested, so it is not in DECIMAL_FIELDS.
+  raw.event = state.event ? { ...state.event, points: state.event.points.toString(), earned: state.event.earned.toString() } : null;
   return JSON.stringify(raw);
 }
 
@@ -451,6 +471,18 @@ function sanitizeCloud(v: unknown): CloudMeta {
   return { lastSyncWall: nonNeg(raw.lastSyncWall), lastResult };
 }
 
+/** A garbled event block is dropped: syncEvent opens the running event fresh. */
+function sanitizeEvent(v: unknown): EventState | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const raw = v as Record<string, unknown>;
+  if (typeof raw.key !== 'string' || raw.key === '') return null;
+  const earned = dec(raw.earned);
+  const claimed = Array.isArray(raw.claimed)
+    ? [...new Set((raw.claimed as unknown[]).filter((i): i is number => Number.isInteger(i) && (i as number) >= 0))]
+    : [];
+  return { key: raw.key, points: Decimal.min(dec(raw.points), earned), earned, staff: counts(raw.staff), claimed };
+}
+
 /**
  * Reads `resetEpoch` straight off a raw save payload, without running it through `migrate` or
  * `deserialize` -- so the cloud-sync guard can tell a stale snapshot apart from one that has
@@ -573,5 +605,6 @@ export function deserialize(json: string, content: Content): GameState {
     onboarding: sanitizeOnboarding(raw.onboarding),
     cloud: sanitizeCloud(raw.cloud),
     savedAtWall: nonNeg(raw.savedAtWall),
+    event: sanitizeEvent(raw.event),
   }, content);
 }

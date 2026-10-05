@@ -1,0 +1,886 @@
+{
+  "weekly": {
+    "currency": "Overflow Drops",
+    "deptName": "Overflow Department",
+    "accent": "#3B5B8C",
+    "themes": [
+      {
+        "id": "great-backlog",
+        "name": "The Great Backlog",
+        "blurb": "A filing cabinet in Limbo burst. 40,000 souls are loose in the hallway."
+      },
+      {
+        "id": "tax-season",
+        "name": "Tax Season in Purgatory",
+        "blurb": "Everyone died owing something. Everyone wants a receipt."
+      },
+      {
+        "id": "retrograde",
+        "name": "Mercury Retrograde Jam",
+        "blurb": "The forms are filing themselves backwards. Nobody can explain it."
+      },
+      {
+        "id": "lost-socks",
+        "name": "Lost Socks Amnesty",
+        "blurb": "Every sock ever lost has arrived for processing. With paperwork."
+      },
+      {
+        "id": "printer-exorcism",
+        "name": "The Printer Exorcism",
+        "blurb": "The third-floor printer is possessed again. The queue backs up to Heaven."
+      },
+      {
+        "id": "casual-friday",
+        "name": "Casual Friday, Eternally",
+        "blurb": "Hawaiian shirts approved for the rest of time. Productivity: unclear."
+      },
+      {
+        "id": "valhalla-feast",
+        "name": "The Feast of Valhalla",
+        "blurb": "Odin double-booked the mead hall. Every fallen warrior needs a seat assignment, in triplicate."
+      },
+      {
+        "id": "sin-pride",
+        "name": "Pride Before the Fall",
+        "blurb": "Every soul insists their file is the most important one. They are all wrong."
+      },
+      {
+        "id": "sin-greed",
+        "name": "The Greed Ledger",
+        "blurb": "Souls keep trying to take it with them. Customs is overwhelmed."
+      },
+      {
+        "id": "sin-wrath",
+        "name": "Wrath Management",
+        "blurb": "The complaints department is on fire. Literally, this time."
+      },
+      {
+        "id": "sin-envy",
+        "name": "Green with Envy",
+        "blurb": "Everyone wants the afterlife of the soul in front of them."
+      },
+      {
+        "id": "sin-gluttony",
+        "name": "The Gluttony Buffet",
+        "blurb": "The break-room fridge is missing. All of it. Including the shelves."
+      },
+      {
+        "id": "sin-sloth",
+        "name": "Sloth Shift",
+        "blurb": "Half the queue fell asleep in line. The other half is pretending."
+      },
+      {
+        "id": "sin-lust",
+        "name": "Lust for Paperwork",
+        "blurb": "Some souls are far too excited about forms. HR has been informed."
+      }
+    ],
+    "staff": [
+      {
+        "id": "w-temp",
+        "name": "Overtime Temp",
+        "role": "Clocked in, never out",
+        "flavor": "Has not seen daylight since Tuesday.",
+        "baseCost": 15,
+        "baseRate": 1,
+        "character": "night-temp"
+      },
+      {
+        "id": "w-stapler",
+        "name": "Temp Stapler",
+        "role": "Sentient office supply",
+        "flavor": "Staples anything. Anything.",
+        "baseCost": 250,
+        "baseRate": 9,
+        "character": "temp-stapler"
+      },
+      {
+        "id": "w-imp",
+        "name": "Mop-Duty Imp",
+        "role": "Spill containment",
+        "flavor": "Mopping up a lake of ink, one bucket at a time.",
+        "baseCost": 4000,
+        "baseRate": 80,
+        "character": "qa-imp"
+      }
+    ],
+    "track": [
+      {
+        "at": 200,
+        "reward": {
+          "type": "vouchers",
+          "amount": 3
+        }
+      },
+      {
+        "at": 2000,
+        "reward": {
+          "type": "vouchers",
+          "amount": 5
+        }
+      },
+      {
+        "at": 15000,
+        "reward": {
+          "type": "seals",
+          "amount": 10
+        }
+      },
+      {
+        "at": 60000,
+        "reward": {
+          "type": "vouchers",
+          "amount": 10
+        }
+      },
+      {
+        "at": 250000,
+        "reward": {
+          "type": "seals",
+          "amount": 20
+        }
+      },
+      {
+        "at": 1000000,
+        "reward": {
+          "type": "vouchers",
+          "amount": 15
+        }
+      }
+    ]
+  },
+  "specials": [
+    {
+      "id": "halloween",
+      "name": "Night of the Living Paperwork",
+      "blurb": "The dead are filing complaints about being dead. Again. The Haunted Records Annex is open until the candles burn out.",
+      "window": {
+        "type": "fixed",
+        "start": "10-23",
+        "end": "11-03"
+      },
+      "currency": "Candy Corn",
+      "deptName": "Haunted Records Annex",
+      "accent": "#E07A1F",
+      "staff": [
+        {
+          "id": "hw-ghost",
+          "name": "Ghost Intern",
+          "role": "Boo-reaucrat",
+          "flavor": "Walks through walls. Still cannot find the stapler.",
+          "baseCost": 12,
+          "baseRate": 1,
+          "character": "hw-ghost"
+        },
+        {
+          "id": "hw-mummy",
+          "name": "Mummy Archivist",
+          "role": "Wrapped in red tape",
+          "flavor": "Literally. It is load-bearing.",
+          "baseCost": 180,
+          "baseRate": 8,
+          "character": "hw-mummy"
+        },
+        {
+          "id": "hw-pumpkin",
+          "name": "Jack O'Clerk",
+          "role": "Head of Intake (removable)",
+          "flavor": "Carves a smile on every form.",
+          "baseCost": 2500,
+          "baseRate": 60,
+          "character": "hw-pumpkin"
+        },
+        {
+          "id": "hw-vampire",
+          "name": "Count Overdraft",
+          "role": "Night-shift accountant",
+          "flavor": "Never sees the sun. Never sees a balanced budget.",
+          "baseCost": 40000,
+          "baseRate": 520,
+          "character": "hw-vampire"
+        },
+        {
+          "id": "hw-headless",
+          "name": "The Headless Notary",
+          "role": "Signs everything",
+          "flavor": "Has no head for figures. Signs them anyway.",
+          "baseCost": 650000,
+          "baseRate": 4800,
+          "character": "hw-headless"
+        }
+      ],
+      "track": [
+        {
+          "at": 300,
+          "reward": {
+            "type": "vouchers",
+            "amount": 5
+          }
+        },
+        {
+          "at": 3000,
+          "reward": {
+            "type": "card",
+            "card": "c-hw-trickster"
+          }
+        },
+        {
+          "at": 25000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 10
+          }
+        },
+        {
+          "at": 120000,
+          "reward": {
+            "type": "seals",
+            "amount": 25
+          }
+        },
+        {
+          "at": 500000,
+          "reward": {
+            "type": "card",
+            "card": "c-hw-bat"
+          }
+        },
+        {
+          "at": 2000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 25
+          }
+        },
+        {
+          "at": 8000000,
+          "reward": {
+            "type": "card",
+            "card": "c-hw-witch"
+          }
+        },
+        {
+          "at": 30000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 50
+          }
+        }
+      ],
+      "banner": {
+        "name": "The Witching Hour",
+        "featured": "c-hw-pumpkin-cfo"
+      }
+    },
+    {
+      "id": "christmas",
+      "name": "Holiday Overtime",
+      "blurb": "The North Pole outsourced its naughty-or-nice list to us. Every soul wants a recount.",
+      "window": {
+        "type": "fixed",
+        "start": "12-18",
+        "end": "12-29"
+      },
+      "currency": "Gift Tags",
+      "deptName": "North Pole Processing",
+      "accent": "#2E7D4F",
+      "staff": [
+        {
+          "id": "xm-elf",
+          "name": "Elf Temp",
+          "role": "Seasonal hire",
+          "flavor": "Wraps every form in a bow. Nobody asked.",
+          "baseCost": 12,
+          "baseRate": 1,
+          "character": "xm-elf"
+        },
+        {
+          "id": "xm-snowman",
+          "name": "Snowman Clerk",
+          "role": "Cold storage",
+          "flavor": "Works fast. Has to.",
+          "baseCost": 180,
+          "baseRate": 8,
+          "character": "xm-snowman"
+        },
+        {
+          "id": "xm-reindeer",
+          "name": "Reindeer Courier",
+          "role": "Express delivery",
+          "flavor": "Nine reindeer, one shared lanyard.",
+          "baseCost": 2500,
+          "baseRate": 60,
+          "character": "xm-reindeer"
+        },
+        {
+          "id": "xm-krampus",
+          "name": "Krampus, Compliance",
+          "role": "Naughty-list enforcement",
+          "flavor": "Takes the audits personally.",
+          "baseCost": 40000,
+          "baseRate": 520,
+          "character": "xm-krampus"
+        },
+        {
+          "id": "xm-nick",
+          "name": "Saint Nick, Auditor",
+          "role": "Checks it twice",
+          "flavor": "Three times, actually. It is a big list.",
+          "baseCost": 650000,
+          "baseRate": 4800,
+          "character": "xm-nick"
+        }
+      ],
+      "track": [
+        {
+          "at": 300,
+          "reward": {
+            "type": "vouchers",
+            "amount": 5
+          }
+        },
+        {
+          "at": 3000,
+          "reward": {
+            "type": "card",
+            "card": "c-xm-gingerbread"
+          }
+        },
+        {
+          "at": 25000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 10
+          }
+        },
+        {
+          "at": 120000,
+          "reward": {
+            "type": "seals",
+            "amount": 25
+          }
+        },
+        {
+          "at": 500000,
+          "reward": {
+            "type": "card",
+            "card": "c-xm-caroler"
+          }
+        },
+        {
+          "at": 2000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 25
+          }
+        },
+        {
+          "at": 8000000,
+          "reward": {
+            "type": "card",
+            "card": "c-xm-nutcracker"
+          }
+        },
+        {
+          "at": 30000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 50
+          }
+        }
+      ],
+      "banner": {
+        "name": "Naughty or Nice",
+        "featured": "c-xm-krampus-exec"
+      }
+    },
+    {
+      "id": "newyear",
+      "name": "Fiscal New Year",
+      "blurb": "The books close at midnight. Every resolution needs a form, in triplicate.",
+      "window": {
+        "type": "fixed",
+        "start": "12-30",
+        "end": "01-06"
+      },
+      "currency": "Confetti",
+      "deptName": "Countdown Office",
+      "accent": "#C9A227",
+      "staff": [
+        {
+          "id": "ny-baby",
+          "name": "Baby New Year",
+          "role": "Intern, day one",
+          "flavor": "Already overqualified.",
+          "baseCost": 12,
+          "baseRate": 1,
+          "character": "ny-baby"
+        },
+        {
+          "id": "ny-resolution",
+          "name": "Resolution Officer",
+          "role": "Gym membership claims",
+          "flavor": "Has seen your January. And your February.",
+          "baseCost": 180,
+          "baseRate": 8,
+          "character": "ny-resolution"
+        },
+        {
+          "id": "ny-party",
+          "name": "Party Imp",
+          "role": "Confetti logistics",
+          "flavor": "Will be finding glitter until March.",
+          "baseCost": 2500,
+          "baseRate": 60,
+          "character": "ny-party"
+        },
+        {
+          "id": "ny-firework",
+          "name": "Firework Foreman",
+          "role": "Loud, briefly",
+          "flavor": "Goes off at midnight. Literally.",
+          "baseCost": 40000,
+          "baseRate": 520,
+          "character": "ny-firework"
+        },
+        {
+          "id": "ny-time",
+          "name": "Father Time",
+          "role": "Head of Scheduling",
+          "flavor": "Running late. Has been since the dawn of time.",
+          "baseCost": 650000,
+          "baseRate": 4800,
+          "character": "ny-time"
+        }
+      ],
+      "track": [
+        {
+          "at": 300,
+          "reward": {
+            "type": "vouchers",
+            "amount": 5
+          }
+        },
+        {
+          "at": 3000,
+          "reward": {
+            "type": "card",
+            "card": "c-ny-confetti"
+          }
+        },
+        {
+          "at": 25000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 10
+          }
+        },
+        {
+          "at": 120000,
+          "reward": {
+            "type": "seals",
+            "amount": 25
+          }
+        },
+        {
+          "at": 500000,
+          "reward": {
+            "type": "card",
+            "card": "c-ny-countdown"
+          }
+        },
+        {
+          "at": 2000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 25
+          }
+        },
+        {
+          "at": 8000000,
+          "reward": {
+            "type": "card",
+            "card": "c-ny-champagne"
+          }
+        },
+        {
+          "at": 30000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 50
+          }
+        }
+      ],
+      "banner": {
+        "name": "Midnight Requisition",
+        "featured": "c-ny-father-time"
+      }
+    },
+    {
+      "id": "valentine",
+      "name": "The Soulmates Registry",
+      "blurb": "Every soul claims to have a soulmate. Every claim needs a witness and two forms of ID.",
+      "window": {
+        "type": "fixed",
+        "start": "02-11",
+        "end": "02-18"
+      },
+      "currency": "Love Letters",
+      "deptName": "Soulmates Registry",
+      "accent": "#D9577A",
+      "staff": [
+        {
+          "id": "vl-cupid",
+          "name": "Cupid Temp",
+          "role": "Arrow logistics",
+          "flavor": "Missed again. Filed an incident report.",
+          "baseCost": 12,
+          "baseRate": 1,
+          "character": "vl-cupid"
+        },
+        {
+          "id": "vl-dove",
+          "name": "Courier Dove",
+          "role": "Letter delivery",
+          "flavor": "Coos the addresses out loud.",
+          "baseCost": 180,
+          "baseRate": 8,
+          "character": "vl-dove"
+        },
+        {
+          "id": "vl-chocolatier",
+          "name": "Chocolatier Clerk",
+          "role": "Bribery, approved",
+          "flavor": "Every form comes with a truffle.",
+          "baseCost": 2500,
+          "baseRate": 60,
+          "character": "vl-chocolatier"
+        },
+        {
+          "id": "vl-matchmaker",
+          "name": "The Matchmaker",
+          "role": "Compatibility audits",
+          "flavor": "Ninety-nine questions. Most about cheese.",
+          "baseCost": 40000,
+          "baseRate": 520,
+          "character": "vl-matchmaker"
+        },
+        {
+          "id": "vl-heart",
+          "name": "Heart of the Bureau",
+          "role": "Department head",
+          "flavor": "Beats once per approved form.",
+          "baseCost": 650000,
+          "baseRate": 4800,
+          "character": "vl-heart"
+        }
+      ],
+      "track": [
+        {
+          "at": 300,
+          "reward": {
+            "type": "vouchers",
+            "amount": 5
+          }
+        },
+        {
+          "at": 3000,
+          "reward": {
+            "type": "card",
+            "card": "c-vl-rose"
+          }
+        },
+        {
+          "at": 25000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 10
+          }
+        },
+        {
+          "at": 120000,
+          "reward": {
+            "type": "seals",
+            "amount": 25
+          }
+        },
+        {
+          "at": 500000,
+          "reward": {
+            "type": "card",
+            "card": "c-vl-lovebird"
+          }
+        },
+        {
+          "at": 2000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 25
+          }
+        },
+        {
+          "at": 8000000,
+          "reward": {
+            "type": "card",
+            "card": "c-vl-poet"
+          }
+        },
+        {
+          "at": 30000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 50
+          }
+        }
+      ],
+      "banner": {
+        "name": "Love Is Paperwork",
+        "featured": "c-vl-cupid-exec"
+      }
+    },
+    {
+      "id": "easter",
+      "name": "The Resurrection Desk",
+      "blurb": "Someone came back, and now everyone wants to. Applications open for one week only.",
+      "window": {
+        "type": "easter",
+        "before": 3,
+        "after": 4
+      },
+      "currency": "Painted Eggs",
+      "deptName": "Resurrection Desk",
+      "accent": "#8E7CC3",
+      "staff": [
+        {
+          "id": "es-chick",
+          "name": "Chick Intern",
+          "role": "Hatched this morning",
+          "flavor": "Learning fast. Peeping faster.",
+          "baseCost": 12,
+          "baseRate": 1,
+          "character": "es-chick"
+        },
+        {
+          "id": "es-bunny",
+          "name": "Bunny Clerk",
+          "role": "Fast filing",
+          "flavor": "Hops between desks. Productivity unclear.",
+          "baseCost": 180,
+          "baseRate": 8,
+          "character": "es-bunny"
+        },
+        {
+          "id": "es-egg",
+          "name": "Egg Auditor",
+          "role": "Shell inspection",
+          "flavor": "Cracks under pressure. Professionally.",
+          "baseCost": 2500,
+          "baseRate": 60,
+          "character": "es-egg"
+        },
+        {
+          "id": "es-lamb",
+          "name": "Lamb of Accounts",
+          "role": "Gentle collections",
+          "flavor": "Nobody refuses a lamb.",
+          "baseCost": 40000,
+          "baseRate": 520,
+          "character": "es-lamb"
+        },
+        {
+          "id": "es-phoenix",
+          "name": "The Phoenix",
+          "role": "Head of Returns",
+          "flavor": "Has been reborn more times than the printer.",
+          "baseCost": 650000,
+          "baseRate": 4800,
+          "character": "es-phoenix"
+        }
+      ],
+      "track": [
+        {
+          "at": 300,
+          "reward": {
+            "type": "vouchers",
+            "amount": 5
+          }
+        },
+        {
+          "at": 3000,
+          "reward": {
+            "type": "card",
+            "card": "c-es-basket"
+          }
+        },
+        {
+          "at": 25000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 10
+          }
+        },
+        {
+          "at": 120000,
+          "reward": {
+            "type": "seals",
+            "amount": 25
+          }
+        },
+        {
+          "at": 500000,
+          "reward": {
+            "type": "card",
+            "card": "c-es-hunter"
+          }
+        },
+        {
+          "at": 2000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 25
+          }
+        },
+        {
+          "at": 8000000,
+          "reward": {
+            "type": "card",
+            "card": "c-es-gardener"
+          }
+        },
+        {
+          "at": 30000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 50
+          }
+        }
+      ],
+      "banner": {
+        "name": "Second Chances",
+        "featured": "c-es-phoenix-exec"
+      }
+    },
+    {
+      "id": "summer",
+      "name": "Beach Purgatory",
+      "blurb": "Purgatory got a sand budget. The queue now has an ocean view and a lifeguard.",
+      "window": {
+        "type": "fixed",
+        "start": "07-17",
+        "end": "07-28"
+      },
+      "currency": "Seashells",
+      "deptName": "Beachfront Claims",
+      "accent": "#2C9AB7",
+      "staff": [
+        {
+          "id": "sm-crab",
+          "name": "Crab Clerk",
+          "role": "Sideways filing",
+          "flavor": "Pinches the forms to keep them flat.",
+          "baseCost": 12,
+          "baseRate": 1,
+          "character": "sm-crab"
+        },
+        {
+          "id": "sm-lifeguard",
+          "name": "Lifeguard Angel",
+          "role": "Soul rescue",
+          "flavor": "Halo doubles as a float.",
+          "baseCost": 180,
+          "baseRate": 8,
+          "character": "sm-lifeguard"
+        },
+        {
+          "id": "sm-surfer",
+          "name": "Surfer Ghost",
+          "role": "Rides the queue",
+          "flavor": "Totally dead, dude.",
+          "baseCost": 2500,
+          "baseRate": 60,
+          "character": "sm-surfer"
+        },
+        {
+          "id": "sm-mermaid",
+          "name": "Mermaid Notary",
+          "role": "Waterproof stamps",
+          "flavor": "Signs in squid ink.",
+          "baseCost": 40000,
+          "baseRate": 520,
+          "character": "sm-mermaid"
+        },
+        {
+          "id": "sm-sun",
+          "name": "The Sun, Middle Management",
+          "role": "Always watching",
+          "flavor": "Takes long lunches. Burns anyone who notices.",
+          "baseCost": 650000,
+          "baseRate": 4800,
+          "character": "sm-sun"
+        }
+      ],
+      "track": [
+        {
+          "at": 300,
+          "reward": {
+            "type": "vouchers",
+            "amount": 5
+          }
+        },
+        {
+          "at": 3000,
+          "reward": {
+            "type": "card",
+            "card": "c-sm-sandcastle"
+          }
+        },
+        {
+          "at": 25000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 10
+          }
+        },
+        {
+          "at": 120000,
+          "reward": {
+            "type": "seals",
+            "amount": 25
+          }
+        },
+        {
+          "at": 500000,
+          "reward": {
+            "type": "card",
+            "card": "c-sm-icecream"
+          }
+        },
+        {
+          "at": 2000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 25
+          }
+        },
+        {
+          "at": 8000000,
+          "reward": {
+            "type": "card",
+            "card": "c-sm-captain"
+          }
+        },
+        {
+          "at": 30000000,
+          "reward": {
+            "type": "vouchers",
+            "amount": 50
+          }
+        }
+      ],
+      "banner": {
+        "name": "Sun, Sand and Signatures",
+        "featured": "c-sm-poseidon-exec"
+      }
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import { MemoTicker } from '../components/MemoTicker';
 import { useWatchAd } from '../hooks/useWatchAd';
 import { adsSupported } from '../../platform/ads';
 import { fmtLeft } from '../format';
+import { EventBanner } from './EventScreen';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
 
 type GoalTab = Extract<GoalWhere, { kind: 'tab' }>['tab'];
@@ -92,7 +93,7 @@ function OvertimeBoost() {
   );
 }
 
-export function OfficeScreen({ onSettings, onGoTo }: { onSettings?: () => void; onGoTo?: (tab: GoalTab) => void }) {
+export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?: () => void; onGoTo?: (tab: GoalTab) => void; onOpenEvent?: () => void }) {
   const activeDept = useGame((s) => s.state.activeDept);
   const dept = findDepartment(content, activeDept);
   const [mode, setMode] = useState<BuyMode>(1);
@@ -100,6 +101,7 @@ export function OfficeScreen({ onSettings, onGoTo }: { onSettings?: () => void; 
   return (
     <section className="screen office" data-dept={dept.id} style={accentStyle}>
       <CurrencyBar onSettings={onSettings} />
+      {onOpenEvent && <EventBanner onOpen={onOpenEvent} />}
       <DeptChips />
       <h2 className="dept-title">{dept.name} Department</h2>
       <NextGoal onGoTo={onGoTo} />

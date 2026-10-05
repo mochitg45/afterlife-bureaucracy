@@ -10,6 +10,7 @@ import {
   cardDeptMult,
   cardClickMult,
   cardOfflineCapHours,
+  cardEventMult,
   cardVoucherMult,
   EXCHANGE_COST,
   EXCHANGE_CHANCE,
@@ -132,6 +133,7 @@ describe('CardSheet', () => {
           : e.type === 'deptMult' ? cardDeptMult(state, content, e.dept).toNumber() - 1
           : e.type === 'clickMult' ? cardClickMult(state, content)
           : e.type === 'offlineCapHours' ? cardOfflineCapHours(state, content)
+          : e.type === 'eventMult' ? cardEventMult(state, content)
           : cardVoucherMult(state, content);
         const tenths = Math.round(amount * 1000) / 10;
         const shown = e.type === 'offlineCapHours'

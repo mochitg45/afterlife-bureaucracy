@@ -14,7 +14,8 @@ import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
-import { pull as pullEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
+import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTier as claimEventTierEngine, type EventOccurrence } from '../engine/events';
+import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
@@ -26,7 +27,26 @@ import { formatNumber } from '../engine/format';
 import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
+import { useTestAds } from '../platform/adUnits';
 import { content as defaultContent } from '../data';
+
+/** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
+export const FORCE_EVENT_KEY = 'afterlife.forceEvent';
+
+/**
+ * The event a dev or test-ads build was asked to run now, read once at store creation: the
+ * `?event=` URL param wins over localStorage. A store build ignores both, so a player cannot
+ * open an event early by editing a URL.
+ */
+export function readForceEvent(): string | null {
+  if (!useTestAds()) return null;
+  try {
+    const fromUrl = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('event') : null;
+    return fromUrl || (typeof localStorage !== 'undefined' ? localStorage.getItem(FORCE_EVENT_KEY) : null) || null;
+  } catch {
+    return null;
+  }
+}
 
 /** Where an unreadable save is parked so a bad release cannot erase a player's run. */
 export const CORRUPT_SAVE_KEY = SAVE_KEY + '.corrupt';
@@ -230,6 +250,13 @@ export interface GameStore {
   resume(): Promise<void>;
   stamp(): void;
   hire(staffId: string, mode: BuyMode): void;
+  /** The event occurrence running now (or the forced preview), or null. Not reactive: read it where the clock ticks. */
+  activeEvent(): EventOccurrence | null;
+  eventStamp(): void;
+  buyEventStaff(staffId: string, mode: BuyMode): void;
+  claimEventTier(index: number): void;
+  /** Pulls the running special's banner; sets `pendingPull` like `pull`. */
+  pullEvent(count: 1 | 10): void;
   upgrade(upgradeId: string): void;
   setActiveDept(deptId: string): void;
   dismissOffline(): void;
@@ -312,6 +339,8 @@ export interface StoreDeps {
   gameServices?: GameServices;
   cloudSave?: CloudSave;
   audio?: Audio;
+  /** Overrides `readForceEvent()` (tests). */
+  forceEvent?: string | null;
 }
 
 function pick(lines: string[], avoid: string): string {
@@ -331,6 +360,7 @@ export function createGameStore(deps: StoreDeps) {
   const gameServices = deps.gameServices ?? pickGameServices();
   const cloudSave = deps.cloudSave ?? pickCloudSave();
   const audio = deps.audio ?? pickAudio();
+  const forceEvent = deps.forceEvent !== undefined ? deps.forceEvent : readForceEvent();
   const sfx = (name: SfxName) => audio.play(name);
   const tickMs = deps.tickMs ?? 100;
   const autosaveMs = deps.autosaveMs ?? 10_000;
@@ -430,6 +460,8 @@ export function createGameStore(deps: StoreDeps) {
       allow: boolean = allowRollover,
     ): { state: GameState; rates: Rates; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
       const wall = clock.wall();
+      // Rollover happens here, so a weekend ending (or a special starting) is picked up live.
+      next = syncEvent(next, content, wall, forceEvent);
       const member = unionActive(next, wall);
       // A rewound or jumped clock would otherwise hand out a fresh set of daily tasks on
       // demand, so the rollover stays frozen until the clock looks honest again.
@@ -562,7 +594,7 @@ export function createGameStore(deps: StoreDeps) {
       );
       const elapsedSec = assessment.creditSec;
       if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null, elapsedSec, assessment };
-      const r = applyOffline(state, content, elapsedSec, clock.wall());
+      const r = applyOffline(state, content, elapsedSec, clock.wall(), forceEvent);
       if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null, elapsedSec, assessment };
       return {
         state: r.state,
@@ -584,7 +616,7 @@ export function createGameStore(deps: StoreDeps) {
         const now = clock.mono();
         const dt = Math.min((now - lastMono) / 1000, maxTickSec);
         lastMono = now;
-        const r = tickWithRates(get().state, content, dt, clock.wall());
+        const r = tickWithRates(get().state, content, dt, clock.wall(), forceEvent);
         fires++;
         if (fires % SETTLE_EVERY_FIRES === 0) {
           apply(r.state);
@@ -1106,6 +1138,44 @@ export function createGameStore(deps: StoreDeps) {
         // untouched, and training with it.
         apply(withTraining(next, next !== s && s.onboarding.trainingStep === 1 ? 2 : 0));
         if (next !== s) sfx('hire');
+      },
+      activeEvent() { return activeEventEngine(content, clock.wall(), forceEvent); },
+      eventStamp() {
+        const occ = get().activeEvent();
+        if (!occ) return;
+        apply(stampEvent(get().state, content, occ));
+        sfx('stamp');
+      },
+      buyEventStaff(staffId, mode) {
+        const occ = get().activeEvent();
+        const s = get().state;
+        if (!occ) return;
+        const next = buyEventStaffEngine(s, content, occ, staffId, mode);
+        if (next === s) return;
+        apply(next);
+        sfx('hire');
+        void get().save();
+      },
+      claimEventTier(index) {
+        const occ = get().activeEvent();
+        const s = get().state;
+        if (!occ) return;
+        const next = claimEventTierEngine(s, content, occ, index);
+        if (next === s) return;
+        apply(next);
+        sfx('upgrade');
+        void get().save();
+      },
+      pullEvent(count) {
+        const occ = get().activeEvent();
+        if (!occ) return;
+        const r = pullEventEngine(get().state, content, occ, count, get().rates.kcPerSec);
+        if (!r.results.length) return;
+        apply(r.state, { pendingPull: r.results });
+        sfx('pull');
+        const best = (['executive', 'senior', 'fulltime', 'temp'] as const).find((rar) => r.results.some((x) => x.rarity === rar)) ?? 'temp';
+        sfx(('reveal-' + best) as SfxName);
+        void get().save();
       },
       upgrade(upgradeId) {
         const s = get().state;

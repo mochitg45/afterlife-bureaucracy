@@ -564,3 +564,56 @@ describe('prestige filings settle', () => {
     store.getState().stopLoop();
   });
 });
+
+describe('events', () => {
+  const FRI = Date.UTC(2026, 9, 9, 12); // weekly-2026-10-09
+  async function makeAt(wall: number, forceEvent?: string | null) {
+    const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, forceEvent });
+    await store.getState().boot();
+    return store;
+  }
+
+  it('opens the running event on boot and exposes its occurrence', async () => {
+    const store = await makeAt(FRI);
+    expect(store.getState().activeEvent()!.key).toBe('weekly-2026-10-09');
+    expect(store.getState().state.event!.key).toBe('weekly-2026-10-09');
+    store.getState().stopLoop();
+  });
+  it('has no event on a weekday', async () => {
+    const store = await makeAt(Date.UTC(2026, 9, 7));
+    expect(store.getState().activeEvent()).toBeNull();
+    expect(store.getState().state.event).toBeNull();
+    store.getState().stopLoop();
+  });
+  it('stamps, hires, claims and pulls through the store', async () => {
+    const store = await makeAt(Date.UTC(2026, 9, 25), null);
+    const g = store.getState;
+    for (let i = 0; i < 20; i++) g().eventStamp();
+    expect(g().state.event!.points.toNumber()).toBe(20);
+    g().buyEventStaff('hw-ghost', 1);
+    expect(g().state.event!.staff['hw-ghost']).toBe(1);
+    store.setState({ state: { ...g().state, event: { ...g().state.event!, earned: new Decimal(1000) }, vouchers: 100 } });
+    g().claimEventTier(0);
+    expect(g().state.vouchers).toBe(105);
+    g().pullEvent(10);
+    expect(g().pendingPull).toHaveLength(10);
+    expect(g().pendingPull!.every((r) => r.cardId.startsWith('c-hw-'))).toBe(true);
+    g().stopLoop();
+  });
+  it('rolls the event over live when the clock crosses the end', async () => {
+    const clock = fakeClock({ wall: Date.UTC(2026, 9, 25), mono: 0 });
+    const store = createGameStore({ content, storage: memoryStorage(), clock, tickMs: 1_000_000, autosaveMs: 1_000_000, forceEvent: null });
+    await store.getState().boot();
+    expect(store.getState().state.event!.key).toBe('halloween-2026');
+    clock.setWall(Date.UTC(2026, 10, 4));
+    store.getState().stamp(); // any action settles
+    expect(store.getState().state.event).toBeNull();
+    store.getState().stopLoop();
+  });
+  it('runs a forced event now', async () => {
+    const store = await makeAt(Date.UTC(2026, 9, 7), 'christmas');
+    expect(store.getState().activeEvent()!.key).toBe('christmas-preview');
+    expect(store.getState().state.event!.key).toBe('christmas-preview');
+    store.getState().stopLoop();
+  });
+});

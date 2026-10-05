@@ -1,6 +1,11 @@
 import type { CardDef } from '../../engine/content';
 import { Character } from '../characters/Character';
 import { dupesForNextStar, MAX_STARS } from '../../engine/gacha';
+
+/** Short names for the event a card came from, shown as a tag on the tile. */
+const EVENT_LABEL: Record<string, string> = {
+  halloween: 'Halloween', christmas: 'Christmas', newyear: 'New Year', valentine: "Valentine's", easter: 'Easter', summer: 'Summer',
+};
 import { Stars } from './Stars';
 
 /** Shared with PersonnelScreen's Odds card so the two never drift apart. */
@@ -34,6 +39,7 @@ export function CardTile({ card, stars, owned, equipped = false, onClick, shards
       <Character id={owned ? card.character : 'soul'} art={owned ? card.id : undefined} mood="ok" size={size} />
       <span className="tile-name">{card.name}</span>
       <span className="tile-rarity sub">{RARITY_LABEL[card.rarity]}</span>
+      {card.event && <span className="tile-event mono">{EVENT_LABEL[card.event] ?? card.event}</span>}
       <Stars stars={owned ? stars : 0} className="tile-stars" />
       {owned && shards !== undefined && stars < MAX_STARS && stars >= 1 && (
         <span className="tile-shards sub">{shards}/{dupesForNextStar(card.rarity, stars)}</span>

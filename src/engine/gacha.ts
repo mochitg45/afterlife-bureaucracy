@@ -3,6 +3,7 @@ import type { GameState } from './state';
 import type { Content, CardDef, Rarity } from './content';
 import { nextFloat } from './rng';
 import { perkSum } from './perks';
+import type { EventOccurrence } from './events';
 
 export const PULL_COST = 10;
 export const TEN_PULL_COST = 90;
@@ -86,6 +87,9 @@ export function rollRarity(
   return { seed: r.seed, rarity: natural, pityTriggered: null };
 }
 
+/** What the normal banner and Exchange can give: event cards come only from their own event. */
+const normalCards = (content: Content): CardDef[] => content.cards.filter((c) => !c.event);
+
 function pickCard(seed: number, pool: CardDef[]): { seed: number; card: CardDef } {
   const r = nextFloat(seed);
   return { seed: r.seed, card: pool[Math.min(pool.length - 1, Math.floor(r.value * pool.length))] };
@@ -103,7 +107,7 @@ export interface PullOptions {
  * `exchangeCard`, whose "you got a card" step is otherwise identical. Mutates `cards`,
  * `cardShards` and `cardSpares` in place; returns the new `kc` alongside the per-pull result bits.
  */
-function bankCard(
+export function bankCard(
   content: Content,
   cards: Record<string, number>,
   cardShards: Record<string, number>,
@@ -148,15 +152,18 @@ function bankCard(
   };
 }
 
-/** Spends vouchers, rolls `count` cards from a seeded RNG, and applies duplicate-to-KC conversion past 5 stars. Refuses (same state) if vouchers are short. */
-export function pull(
+/**
+ * The roll loop shared by the normal and event banners: they differ only in which cards a
+ * rolled rarity can land on. Pity is one counter across both, so banner-hopping buys nothing.
+ */
+function pullFrom(
   state: GameState,
   content: Content,
   count: 1 | 10,
   kcPerSec: Decimal,
-  opts: PullOptions = {},
+  cost: number,
+  poolFor: (rarity: Rarity) => CardDef[],
 ): { state: GameState; results: PullResult[] } {
-  const cost = opts.free ? 0 : count === 10 ? TEN_PULL_COST : PULL_COST;
   if (state.vouchers < cost) return { state, results: [] };
   let seed = state.rngSeed;
   let pity = { ...state.pity };
@@ -168,8 +175,7 @@ export function pull(
   for (let i = 0; i < count; i++) {
     const roll = rollRarity(seed, pity);
     seed = roll.seed;
-    const pool = content.cards.filter((c) => c.rarity === roll.rarity);
-    const picked = pickCard(seed, pool.length ? pool : content.cards);
+    const picked = pickCard(seed, poolFor(roll.rarity));
     seed = picked.seed;
     const id = picked.card.id;
     const banked = bankCard(content, cards, cardShards, cardSpares, id, kc, kcPerSec);
@@ -203,6 +209,43 @@ export function pull(
   };
 }
 
+/** Spends vouchers, rolls `count` cards from a seeded RNG, and applies duplicate-to-KC conversion past 5 stars. Refuses (same state) if vouchers are short. */
+export function pull(
+  state: GameState,
+  content: Content,
+  count: 1 | 10,
+  kcPerSec: Decimal,
+  opts: PullOptions = {},
+): { state: GameState; results: PullResult[] } {
+  const cost = opts.free ? 0 : count === 10 ? TEN_PULL_COST : PULL_COST;
+  const normal = normalCards(content);
+  return pullFrom(state, content, count, kcPerSec, cost, (rarity) => {
+    const pool = normal.filter((c) => c.rarity === rarity);
+    return pool.length ? pool : normal;
+  });
+}
+
+/**
+ * The event banner: the same price, rarity roll and shared pity as `pull`, but a rolled
+ * rarity lands on that event's one card of the rarity. Refuses (same state) outside a special
+ * event with a banner, or when vouchers are short.
+ */
+export function pullEvent(
+  state: GameState,
+  content: Content,
+  occ: EventOccurrence,
+  count: 1 | 10,
+  kcPerSec: Decimal,
+): { state: GameState; results: PullResult[] } {
+  if (occ.kind !== 'special' || !occ.banner) return { state, results: [] };
+  const mine = content.cards.filter((c) => c.event === occ.id);
+  if (!mine.length) return { state, results: [] };
+  return pullFrom(state, content, count, kcPerSec, count === 10 ? TEN_PULL_COST : PULL_COST, (rarity) => {
+    const pool = mine.filter((c) => c.rarity === rarity);
+    return pool.length ? pool : mine;
+  });
+}
+
 /**
  * Spends `EXCHANGE_COST` spare copies of `cardId` for a chance at a random card of the next
  * rarity up, handled exactly like pulling it (new → ★1; owned → shard/star-up; ★5 → spare, or
@@ -230,8 +273,9 @@ export function exchangeCard(
   if (roll.value < EXCHANGE_CHANCE[rarity]) {
     const cards = { ...state.cards };
     const cardShards = { ...state.cardShards };
-    const pool = content.cards.filter((c) => c.rarity === nextRarity);
-    const picked = pickCard(seed, pool.length ? pool : content.cards);
+    const normal = normalCards(content);
+    const pool = normal.filter((c) => c.rarity === nextRarity);
+    const picked = pickCard(seed, pool.length ? pool : normal);
     seed = picked.seed;
     const banked = bankCard(content, cards, cardShards, cardSpares, picked.card.id, state.kc, kcPerSec);
     return {
@@ -301,7 +345,7 @@ export function cardDeptMult(state: GameState, content: Content, deptId: string)
   return m;
 }
 
-function sumEffect(state: GameState, content: Content, type: 'clickMult' | 'offlineCapHours' | 'voucherMult'): number {
+function sumEffect(state: GameState, content: Content, type: 'clickMult' | 'offlineCapHours' | 'voucherMult' | 'eventMult'): number {
   let t = 0;
   for (const { def, stars } of equippedDefs(state, content)) {
     if (def.effect.type === type) t += def.effect.value * stars;
@@ -312,3 +356,4 @@ function sumEffect(state: GameState, content: Content, type: 'clickMult' | 'offl
 export const cardClickMult = (s: GameState, c: Content): number => sumEffect(s, c, 'clickMult');
 export const cardOfflineCapHours = (s: GameState, c: Content): number => sumEffect(s, c, 'offlineCapHours');
 export const cardVoucherMult = (s: GameState, c: Content): number => sumEffect(s, c, 'voucherMult');
+export const cardEventMult = (s: GameState, c: Content): number => sumEffect(s, c, 'eventMult');

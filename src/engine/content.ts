@@ -89,6 +89,8 @@ const cardEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('clickMult'), value: z.number().positive() }),
   z.object({ type: z.literal('offlineCapHours'), value: z.number().positive() }),
   z.object({ type: z.literal('voucherMult'), value: z.number().positive() }),
+  /** More event currency in every event, from an equipped card; scaled by stars like the rest. */
+  z.object({ type: z.literal('eventMult'), value: z.number().positive() }),
 ]);
 
 const cardSchema = z.object({
@@ -100,7 +102,46 @@ const cardSchema = z.object({
   character: z.string().min(1),
   effect: cardEffectSchema,
   flavor: z.string(),
+  /** Set on a card that only its own special event can give (id of that special). */
+  event: z.string().min(1).optional(),
 });
+
+const mmdd = z.string().regex(/^\d{2}-\d{2}$/);
+
+const eventRewardSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('vouchers'), amount: z.number().int().positive() }),
+  z.object({ type: z.literal('seals'), amount: z.number().int().positive() }),
+  z.object({ type: z.literal('card'), card: z.string().min(1) }),
+]);
+
+const eventTierSchema = z.object({ at: z.number().positive(), reward: eventRewardSchema });
+
+const eventCommon = {
+  currency: z.string().min(1),
+  deptName: z.string().min(1),
+  accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  staff: z.array(staffSchema).min(1),
+  track: z.array(eventTierSchema).min(1),
+};
+
+const weeklySchema = z.object({
+  ...eventCommon,
+  themes: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), blurb: z.string() })).min(1),
+});
+
+const specialSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  blurb: z.string(),
+  window: z.discriminatedUnion('type', [
+    z.object({ type: z.literal('fixed'), start: mmdd, end: mmdd }),
+    z.object({ type: z.literal('easter'), before: z.number().int().nonnegative(), after: z.number().int().positive() }),
+  ]),
+  ...eventCommon,
+  banner: z.object({ name: z.string().min(1), featured: z.string().min(1) }),
+});
+
+const eventsSchema = z.object({ weekly: weeklySchema, specials: z.array(specialSchema) });
 
 const dailySchema = z
   .object({
@@ -220,6 +261,11 @@ export type ClauseDef = z.infer<typeof clauseSchema>;
 export type CardEffect = z.infer<typeof cardEffectSchema>;
 export type CardDef = z.infer<typeof cardSchema>;
 export type Rarity = CardDef['rarity'];
+export type EventTier = z.infer<typeof eventTierSchema>;
+export type EventReward = z.infer<typeof eventRewardSchema>;
+export type WeeklyDef = z.infer<typeof weeklySchema>;
+export type SpecialDef = z.infer<typeof specialSchema>;
+export interface EventsContent { weekly: WeeklyDef | null; specials: SpecialDef[] }
 export type DailyDef = z.infer<typeof dailySchema>;
 export type DailyKind = DailyDef['kind'];
 export type AchievementCondition = z.infer<typeof achievementConditionSchema>;
@@ -240,8 +286,10 @@ export interface Content {
   achievements: AchievementDef[];
   story: StoryDef[];
   onboarding: OnboardingContent;
+  events: EventsContent;
 }
 export interface ContentExtras {
+  events?: unknown;
   clauses?: unknown[];
   cards?: unknown[];
   dailies?: unknown[];
@@ -306,10 +354,34 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   }
   // The gacha's rollRarity picks a rarity first, then a card from that rarity's pool; a rarity
   // with zero cards would leave that pool empty for every pull that rolls it.
+  // Event cards never drop from it, so the check is over the cards the normal banner can give.
+  const RARITIES: CardDef['rarity'][] = ['temp', 'fulltime', 'senior', 'executive'];
   if (cards.length > 0) {
-    const rarities: CardDef['rarity'][] = ['temp', 'fulltime', 'senior', 'executive'];
-    for (const rarity of rarities) {
-      if (!cards.some((c) => c.rarity === rarity)) throw new Error(`Content has no ${rarity} cards`);
+    for (const rarity of RARITIES) {
+      if (!cards.some((c) => c.rarity === rarity && !c.event)) throw new Error(`Content has no ${rarity} cards`);
+    }
+  }
+
+  const events: EventsContent =
+    extras.events === undefined ? { weekly: null, specials: [] } : eventsSchema.parse(extras.events);
+  assertUnique(events.specials.map((e) => e.id), 'event');
+  const eventStaff = [...(events.weekly?.staff ?? []), ...events.specials.flatMap((e) => e.staff)];
+  assertUnique([...departments.flatMap((d) => d.staff.map((s) => s.id)), ...eventStaff.map((s) => s.id)], 'staff');
+  const specialIds = new Set(events.specials.map((e) => e.id));
+  for (const c of cards) {
+    if (c.event && !specialIds.has(c.event)) throw new Error(`Unknown event ${c.event} on card ${c.id}`);
+  }
+  for (const e of events.specials) {
+    const mine = cards.filter((c) => c.event === e.id);
+    // The event banner rolls a rarity, then takes this event's one card of it.
+    for (const rarity of RARITIES) {
+      if (mine.filter((c) => c.rarity === rarity).length !== 1) {
+        throw new Error(`Event ${e.id} needs exactly one ${rarity} card`);
+      }
+    }
+    const refs = [e.banner.featured, ...e.track.flatMap((t) => (t.reward.type === 'card' ? [t.reward.card] : []))];
+    for (const ref of refs) {
+      if (!mine.some((c) => c.id === ref)) throw new Error(`Event ${e.id} references card ${ref} that is not its own`);
     }
   }
 
@@ -346,7 +418,7 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   assertUnique(onboarding.training.map((t) => String(t.step)), 'training step');
   assertUnique(onboarding.tips.map((t) => t.id), 'tip');
 
-  return { departments, perks, clauses, cards, dailies, achievements, story, onboarding };
+  return { departments, perks, clauses, cards, dailies, achievements, story, onboarding, events };
 }
 
 export function findCard(content: Content, cardId: string): CardDef {

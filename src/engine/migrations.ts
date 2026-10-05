@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 /**
  * Bumped once, by hand, whenever the owner wants every existing save wiped for a fresh test
@@ -121,6 +121,9 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
     cardShards: {},
     entitlements: { ...(raw.entitlements as Raw | undefined), firstBuyUsed: {} },
   }),
+  // 8 -> 9: timed events. No event is in progress in a save from before they existed;
+  // the first settle opens whichever one is running.
+  (raw) => ({ ...raw, event: null }),
 ];
 
 function num(v: unknown): number {
