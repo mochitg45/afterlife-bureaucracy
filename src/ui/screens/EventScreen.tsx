@@ -249,6 +249,8 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<EventTab>('staff');
   const [info, setInfo] = useState<Info | null>(null);
   const ownedCards = useGame((s) => s.state.cards);
+  const leaderboard = useGame((s) => s.leaderboardAvailable);
+  const openBoard = useGame((s) => s.openEventLeaderboard);
   // The event ended while open: back to the office.
   useEffect(() => { if (!occ) onBack(); }, [occ, onBack]);
   if (!occ || !ev) return null;
@@ -295,6 +297,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
       )}
       {tab === 'rewards' && (
         <>
+          {leaderboard && <button className="btn event-board" onClick={() => void openBoard()}>🏆 {occ.name} leaderboard</button>}
           <Track occ={occ} />
           <div className="section-head"><h3>Upcoming events</h3></div>
           {upcoming.map((o) => (

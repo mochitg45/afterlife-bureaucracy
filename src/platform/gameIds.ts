@@ -39,6 +39,20 @@ export const PLAY_ACHIEVEMENT_IDS: Record<string, string> = {
 /** Play Games leaderboard for lifetime souls filed. */
 export const LEADERBOARD_LIFETIME_SOULS: string = 'CgkIi5ONn5EeEAIQAQ';
 
+/**
+ * One Play Games leaderboard per event, ranked by currency earned in that occurrence. Weekends
+ * share one board (Play Games' own "This week" view lines up with them); each special has its own.
+ */
+export const EVENT_LEADERBOARD_IDS: Record<string, string> = {
+  weekly: 'CgkIi5ONn5EeEAIQRw',
+  halloween: 'CgkIi5ONn5EeEAIQQQ',
+  christmas: 'CgkIi5ONn5EeEAIQQg',
+  newyear: 'CgkIi5ONn5EeEAIQQw',
+  valentine: 'CgkIi5ONn5EeEAIQRQ',
+  easter: 'CgkIi5ONn5EeEAIQRA',
+  summer: 'CgkIi5ONn5EeEAIQRg',
+};
+
 function resolved(id: string | undefined): string | null {
   return id && id !== TODO_ID ? id : null;
 }
@@ -59,4 +73,9 @@ export function playAchievementIds(localIds: readonly string[]): string[] {
 /** The lifetime-souls leaderboard id, or `null` while it is unmapped. */
 export function lifetimeSoulsLeaderboardId(): string | null {
   return resolved(LEADERBOARD_LIFETIME_SOULS);
+}
+
+/** The leaderboard for an event occurrence (`kind` 'weekly' or a special's `id`), or `null`. */
+export function eventLeaderboardId(occ: { kind: string; id: string }): string | null {
+  return resolved(EVENT_LEADERBOARD_IDS[occ.kind === 'weekly' ? 'weekly' : occ.id]);
 }

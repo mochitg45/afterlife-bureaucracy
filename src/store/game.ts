@@ -24,7 +24,7 @@ import { pickGameServices, type GameServices } from '../platform/gameServices';
 import { pickCloudSave, type CloudLoad, type CloudSave, type SignInResult } from '../platform/cloudSave';
 import { pickWinner, summarize, type CloudSyncResult, type SaveSummary } from '../engine/cloudSync';
 import { formatNumber } from '../engine/format';
-import { lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
+import { eventLeaderboardId, lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { useTestAds } from '../platform/adUnits';
@@ -305,6 +305,8 @@ export interface GameStore {
   leaderboardAvailable: boolean;
   /** Signs in if needed, sends the latest score, then opens the lifetime-souls leaderboard. */
   openLeaderboard(): Promise<boolean>;
+  /** Same, for the running event's board. */
+  openEventLeaderboard(): Promise<boolean>;
   /** Signs into the cloud (which is also the Play Games prompt), then syncs. */
   signInCloud(): Promise<SignInResult>;
   /** Opens the platform's account picker; the next resume re-checks who is signed in. */
@@ -444,6 +446,15 @@ export function createGameStore(deps: StoreDeps) {
       const board = lifetimeSoulsLeaderboardId();
       if (!board) return;
       gameServices.submitScore(board, lifetimeSoulsScore(soulsLifetime)).catch(() => {});
+    };
+
+    /** The running event's board gets this occurrence's total earned; Play Games keeps the best. */
+    const submitEventScore = () => {
+      const occ = get().activeEvent();
+      const ev = get().state.event;
+      const board = occ && eventLeaderboardId(occ);
+      if (!board || !ev || ev.key !== occ!.key) return;
+      gameServices.submitScore(board, ev.earned.toNumber()).catch(() => {});
     };
 
     /**
@@ -1042,6 +1053,7 @@ export function createGameStore(deps: StoreDeps) {
         audio.suspend();
         // The board would otherwise only move on an audit, which can be days apart.
         submitLifetimeScore(s.soulsLifetime);
+        submitEventScore();
         if (s.settings.notifOptIn !== 'yes') {
           await get().save();
           void get().syncCloud('pause').catch(() => {});
@@ -1484,6 +1496,14 @@ export function createGameStore(deps: StoreDeps) {
         if (!board || !gameServices.available()) return false;
         if (!gameServices.isSignedIn() && !(await get().signInGameServices())) return false;
         await gameServices.submitScore(board, lifetimeSoulsScore(get().state.soulsLifetime)).catch(() => {});
+        return gameServices.showLeaderboard(board);
+      },
+      async openEventLeaderboard() {
+        const occ = get().activeEvent();
+        const board = occ && eventLeaderboardId(occ);
+        if (!board || !gameServices.available()) return false;
+        if (!gameServices.isSignedIn() && !(await get().signInGameServices())) return false;
+        submitEventScore();
         return gameServices.showLeaderboard(board);
       },
       async signInGameServices() {

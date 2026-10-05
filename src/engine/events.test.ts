@@ -371,7 +371,7 @@ describe('event pacing', () => {
     for (const sp of content.events.specials) expect(hoursToFinish(sp.staff, sp.track[sp.track.length - 1].at)).toBeGreaterThanOrEqual(72);
   });
   it('the weekend track takes about 60 of its 72 hours', () => {
-    const w = content.events.weekly;
+    const w = content.events.weekly!;
     const h = hoursToFinish(w.staff, w.track[w.track.length - 1].at);
     expect(h).toBeGreaterThanOrEqual(55);
     expect(h).toBeLessThan(72);
