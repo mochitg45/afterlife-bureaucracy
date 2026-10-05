@@ -18,7 +18,7 @@ function pct(value: number): string {
 
 /** The per-card contribution at a given star count — same `value * stars` the equipped-card
  * sums in gacha.ts (cardGlobalMult/cardDeptMult/sumEffect) use, kept in sync by inspection. */
-function bonusLine(card: ReturnType<typeof findCard>, stars: number): string {
+export function bonusLine(card: ReturnType<typeof findCard>, stars: number): string {
   const effect = card.effect;
   const amount = effect.value * stars;
   switch (effect.type) {

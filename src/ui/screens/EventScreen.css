@@ -26,3 +26,11 @@
 .event-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .event-tab-badge { min-width: 18px; padding: 0 5px; border-radius: 999px; background: var(--red, #a6402b); color: #fff; font-size: 11px; line-height: 18px; }
 .event-tab.active .event-tab-badge { background: #fff; color: var(--accent); }
+.event-info-btn { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 12px; }
+.event-info-btn:focus-visible, .event-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.event-screen .staff-info { cursor: pointer; }
+button.event-card { font: inherit; color: inherit; cursor: pointer; width: 100%; }
+.event-card-skill { font-size: 11px; color: var(--accent); font-weight: 700; line-height: 1.2; }
+.event-info-art { width: 140px; height: 140px; object-fit: contain; }
+.event-info-stats { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; margin: 8px 0; }
+.event-info-stats span:nth-child(even) { text-align: right; font-weight: 700; }

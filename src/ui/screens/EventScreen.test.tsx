@@ -114,6 +114,22 @@ describe('EventScreen', () => {
     expect(screen.getByRole('tab', { name: /rewards/i })).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Gacha' })).toBeNull();
   });
+  it('tapping a staff portrait opens its details', () => {
+    const occ = seed('halloween')!;
+    render(<EventScreen onBack={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: `About ${occ.staff[0].name}` }));
+    expect(screen.getByText('Each hire')).toBeInTheDocument();
+    expect(screen.getByText(occ.staff[0].flavor)).toBeInTheDocument();
+  });
+  it('tapping an unowned banner card shows its skill', () => {
+    const occ = seed('halloween')!;
+    render(<EventScreen onBack={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Gacha' }));
+    fireEvent.click(screen.getByTestId('featured-card'));
+    expect(screen.getByText('Skill ★1')).toBeInTheDocument();
+    expect(screen.getByText(/Not owned yet/)).toBeInTheDocument();
+    expect(occ.banner).toBeTruthy();
+  });
   it('falls back to the office when the event has ended', () => {
     seed(null);
     const back = vi.fn();

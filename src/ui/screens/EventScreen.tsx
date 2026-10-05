@@ -6,7 +6,7 @@ import { findCard } from '../../engine/content';
 import type { EventTier, StaffDef } from '../../engine/content';
 import { upcomingEvents, eventRate, eventTap, type EventOccurrence } from '../../engine/events';
 import { staffBulkCost, maxAffordable, canAfford } from '../../engine/economy';
-import { ODDS, PULL_COST, TEN_PULL_COST } from '../../engine/gacha';
+import { ODDS, PULL_COST, TEN_PULL_COST, MAX_STARS } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
 import { fmtCountdown } from '../format';
 import { StampSeal } from '../components/StampButton';
@@ -15,10 +15,13 @@ import { Character } from '../characters/Character';
 import { artUrl } from '../characters/art';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { VoucherIcon, SealIcon } from '../icons/Currency';
+import { Modal } from '../components/Modal';
+import { CardSheet, bonusLine } from '../overlays/CardSheet';
 import './EventScreen.css';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
 type EventTab = 'staff' | 'rewards' | 'gacha';
+type Info = { kind: 'staff'; staff: StaffDef } | { kind: 'card'; id: string };
 const RARITIES = ['temp', 'fulltime', 'senior', 'executive'] as const;
 const ZERO = new Decimal(0);
 
@@ -61,7 +64,7 @@ export function EventBanner({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-function EventStaffRow({ staff, occ, mode }: { staff: StaffDef; occ: EventOccurrence; mode: BuyMode }) {
+function EventStaffRow({ staff, occ, mode, onInfo }: { staff: StaffDef; occ: EventOccurrence; mode: BuyMode; onInfo: () => void }) {
   const owned = useGame((s) => s.state.event?.staff[staff.id] ?? 0);
   const points = useGame((s) => s.state.event?.points ?? ZERO, (a, b) => a.eq(b));
   const buy = useGame((s) => s.buyEventStaff);
@@ -69,8 +72,10 @@ function EventStaffRow({ staff, occ, mode }: { staff: StaffDef; occ: EventOccurr
   const cost = staffBulkCost(staff, owned, Math.max(count, 1));
   return (
     <div className="card staff-row">
-      <Character id="soul" art={staff.character} mood="ok" size={52} />
-      <div className="staff-info">
+      <button className="event-info-btn" onClick={onInfo} aria-label={`About ${staff.name}`}>
+        <Character id="soul" art={staff.character} mood="ok" size={52} />
+      </button>
+      <div className="staff-info" onClick={onInfo}>
         <div className="staff-name">{staff.name} <span className="mono owned">×{owned}</span></div>
         <div className="sub">{staff.role} — {staff.flavor}</div>
         <div className="mono sub">{owned ? `+${formatNumber(new Decimal(staff.baseRate * owned))}/s` : 'Hire to start filing'}</div>
@@ -146,7 +151,55 @@ function Track({ occ }: { occ: EventOccurrence }) {
   );
 }
 
-function Banner({ occ }: { occ: EventOccurrence }) {
+/** Tapped staff: what one hire files, what the whole team files, and the next price. */
+function StaffInfo({ staff, occ, onClose }: { staff: StaffDef; occ: EventOccurrence; onClose: () => void }) {
+  const owned = useGame((s) => s.state.event?.staff[staff.id] ?? 0);
+  const state = useGame((s) => s.state);
+  const each = new Decimal(staff.baseRate);
+  const team = each.mul(owned);
+  const total = eventRate(state, content, occ);
+  const share = total.gt(0) ? Math.round(team.div(total).toNumber() * 100) : 0;
+  const url = artUrl(staff.character);
+  return (
+    <Modal open title={staff.name} label={`${staff.name}, ${staff.role}`} onClose={onClose}>
+      <div className="card-sheet-head">
+        {url ? <img className="event-info-art" src={url} alt="" /> : <Character id="soul" mood="ok" size={96} />}
+        <span className="sub">{staff.role}</span>
+        <span className="mono sub">Hired ×{owned}</span>
+      </div>
+      <p>{staff.flavor}</p>
+      <div className="event-info-stats mono">
+        <span>Each hire</span><span>+{formatNumber(each)} {occ.currency}/s</span>
+        <span>This team</span><span>+{formatNumber(team)}/s{owned ? ` (${share}% of event)` : ''}</span>
+        <span>Next hire</span><span>{formatNumber(staffBulkCost(staff, owned, 1))} {occ.currency}</span>
+      </div>
+      <p className="sub">Event staff leave when {occ.name} ends. Cards from the banner stay forever.</p>
+    </Modal>
+  );
+}
+
+/** Tapped banner card the player does not own yet: its skill at ★1 and at max, and its odds. */
+function CardPreview({ id, onClose }: { id: string; onClose: () => void }) {
+  const card = findCard(content, id);
+  const url = artUrl(card.character);
+  return (
+    <Modal open title={card.name} label={`${card.name}, ${card.title}`} onClose={onClose}>
+      <div className="card-sheet-head">
+        {url ? <img className="event-info-art" src={url} alt="" /> : <Character id="soul" mood="ok" size={96} />}
+        <span className="sub">{card.title}</span>
+        <span className="sub">{RARITY_LABEL[card.rarity]} · {Math.round(ODDS[card.rarity] * 1000) / 10}% per pull</span>
+      </div>
+      <p>{card.flavor}</p>
+      <div className="event-info-stats mono">
+        <span>Skill ★1</span><span>{bonusLine(card, 1)}</span>
+        <span>Skill ★{MAX_STARS}</span><span>{bonusLine(card, MAX_STARS)}</span>
+      </div>
+      <p className="sub">{card.effect.type === 'eventMult' ? 'Works in every future event while equipped.' : 'Works all year while equipped.'} Not owned yet.</p>
+    </Modal>
+  );
+}
+
+function Banner({ occ, onInfo }: { occ: EventOccurrence; onInfo: (id: string) => void }) {
   const vouchers = useGame((s) => s.state.vouchers);
   const cards = useGame((s) => s.state.cards);
   const pullEvent = useGame((s) => s.pullEvent);
@@ -163,12 +216,13 @@ function Banner({ occ }: { occ: EventOccurrence }) {
             const url = artUrl(c.character);
             const featured = c.id === banner.featured;
             return (
-              <div key={c.id} className={'event-card rarity-' + c.rarity + (featured ? ' featured' : '')} data-testid={featured ? 'featured-card' : undefined}>
+              <button key={c.id} className={'event-card rarity-' + c.rarity + (featured ? ' featured' : '')} data-testid={featured ? 'featured-card' : undefined} onClick={() => onInfo(c.id)} aria-label={`About ${c.name}`}>
                 {featured && <span className="event-card-tag mono">FEATURED</span>}
                 {url ? <img src={url} alt="" /> : <Character id="soul" mood="ok" size={64} />}
                 <div className="event-card-name">{c.name}</div>
                 <div className="mono sub">{RARITY_LABEL[c.rarity]}{c.id in cards ? ` · ${'★'.repeat(cards[c.id])}` : ''}</div>
-              </div>
+                <div className="event-card-skill">{bonusLine(c, 1)}</div>
+              </button>
             );
           })}
         </div>
@@ -193,6 +247,8 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const ev = useGame((s) => s.state.event);
   const [mode, setMode] = useState<BuyMode>(1);
   const [tab, setTab] = useState<EventTab>('staff');
+  const [info, setInfo] = useState<Info | null>(null);
+  const ownedCards = useGame((s) => s.state.cards);
   // The event ended while open: back to the office.
   useEffect(() => { if (!occ) onBack(); }, [occ, onBack]);
   if (!occ || !ev) return null;
@@ -234,7 +290,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
               ))}
             </div>
           </div>
-          {occ.staff.map((s) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} />)}
+          {occ.staff.map((s) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} onInfo={() => setInfo({ kind: 'staff', staff: s })} />)}
         </>
       )}
       {tab === 'rewards' && (
@@ -249,7 +305,11 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
           ))}
         </>
       )}
-      {tab === 'gacha' && <Banner occ={occ} />}
+      {tab === 'gacha' && <Banner occ={occ} onInfo={(id) => setInfo({ kind: 'card', id })} />}
+      {info?.kind === 'staff' && <StaffInfo staff={info.staff} occ={occ} onClose={() => setInfo(null)} />}
+      {info?.kind === 'card' && (info.id in ownedCards
+        ? <CardSheet cardId={info.id} onClose={() => setInfo(null)} />
+        : <CardPreview id={info.id} onClose={() => setInfo(null)} />)}
     </section>
   );
 }
