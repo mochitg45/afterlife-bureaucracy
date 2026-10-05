@@ -32,6 +32,11 @@ one key; when the key changes the event state resets.
 - **Reward track.** Tiers by total currency *earned* this event (spending does not lower it):
   vouchers, Seals, and for specials three event cards. Claimed with a tap; tiers reached but not
   claimed are granted automatically when the event ends.
+- **Pacing.** The last tier takes the fastest card-less player (online and tapping nonstop, always
+  buying the best hire) 72 hours on a special and about 60 of the weekend's 72. A player who checks in
+  three times a day for half an hour finishes an 11-day special on its last day and gets 3–4 of the 6
+  weekend tiers; event cards (+10–35% each, more with stars) close the gap. Guarded by the
+  `event pacing` tests in `src/engine/events.test.ts`.
 - **Event banner (specials only).** Pulled with vouchers at the normal price (10 / 90). Each rarity
   roll gives that event's card of the rolled rarity; pity is shared with the normal banner. The
   executive card is banner-only. Event cards never drop from the normal banner.

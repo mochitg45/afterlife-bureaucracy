@@ -592,7 +592,7 @@ describe('events', () => {
     expect(g().state.event!.points.toNumber()).toBe(20);
     g().buyEventStaff('hw-ghost', 1);
     expect(g().state.event!.staff['hw-ghost']).toBe(1);
-    store.setState({ state: { ...g().state, event: { ...g().state.event!, earned: new Decimal(1000) }, vouchers: 100 } });
+    store.setState({ state: { ...g().state, event: { ...g().state.event!, earned: new Decimal(1e5) }, vouchers: 100 } });
     g().claimEventTier(0);
     expect(g().state.vouchers).toBe(105);
     g().pullEvent(10);

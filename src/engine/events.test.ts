@@ -111,7 +111,7 @@ describe('syncEvent', () => {
   it('pays the reached-but-unclaimed tiers of the old event on rollover, then resets', () => {
     const occ = activeEvent(content, d('2026-10-25'))!;
     // Reaches tiers 0 (5 vouchers), 1 (a card) and 2 (10 vouchers); tier 0 already taken.
-    const s = inEvent(occ, { earned: new Decimal(30_000), points: new Decimal(5), staff: { 'hw-ghost': 3 }, claimed: [0] });
+    const s = inEvent(occ, { earned: new Decimal(occ.track[2].at), points: new Decimal(5), staff: { 'hw-ghost': 3 }, claimed: [0] });
     const out = syncEvent({ ...s, vouchers: 1 }, content, d('2026-11-06') + 1000);
     expect(out.vouchers).toBe(1 + 10);
     expect(out.cards['c-hw-trickster']).toBe(1);
@@ -122,7 +122,7 @@ describe('syncEvent', () => {
   });
   it('resolves a weekly key to the weekly track', () => {
     const occ = activeEvent(content, d('2026-10-10'))!;
-    const s = inEvent(occ, { earned: new Decimal(200) });
+    const s = inEvent(occ, { earned: new Decimal(occ.track[0].at) });
     const out = syncEvent(s, content, d('2026-10-14'));
     expect(out.vouchers).toBe(3);
     expect(out.event).toBeNull();
@@ -239,7 +239,7 @@ describe('claimEventTier', () => {
     expect(claimEventTier(s, content, occ, 0)).toBe(s);
   });
   it('pays vouchers flat, ignoring the voucher multiplier', () => {
-    const s = { ...inEvent(occ, { earned: new Decimal(1e9) }), vouchers: 2 };
+    const s = { ...inEvent(occ, { earned: new Decimal(1e12) }), vouchers: 2 };
     s.cosmicClauses = []; // no multipliers in play; the grant is exact either way
     const out = claimEventTier(s, content, occ, idx('vouchers'));
     const tier = occ.track[idx('vouchers')].reward as { amount: number };
@@ -248,12 +248,12 @@ describe('claimEventTier', () => {
     expect(out.event!.claimed).toEqual([idx('vouchers')]);
   });
   it('pays Seals directly', () => {
-    const s = inEvent(occ, { earned: new Decimal(1e9) });
+    const s = inEvent(occ, { earned: new Decimal(1e12) });
     const tier = occ.track[idx('seals')].reward as { amount: number };
     expect(claimEventTier(s, content, occ, idx('seals')).seals).toBe(tier.amount);
   });
   it('banks a card like a pull: new is ★1, a duplicate adds a shard', () => {
-    const s = inEvent(occ, { earned: new Decimal(1e9) });
+    const s = inEvent(occ, { earned: new Decimal(1e12) });
     const i = idx('card');
     const id = (occ.track[i].reward as { card: string }).card;
     const first = claimEventTier(s, content, occ, i);
@@ -263,7 +263,7 @@ describe('claimEventTier', () => {
     expect(again.cardShards[id]).toBe(1);
   });
   it('pays each tier only once', () => {
-    const s = inEvent(occ, { earned: new Decimal(1e9) });
+    const s = inEvent(occ, { earned: new Decimal(1e12) });
     const once = claimEventTier(s, content, occ, 0);
     expect(claimEventTier(once, content, occ, 0)).toBe(once);
     expect(claimEventTier(s, content, occ, 999)).toBe(s);
@@ -341,5 +341,39 @@ describe('save', () => {
     expect(tolerant.earned.eq(0)).toBe(true);
     expect(tolerant.staff).toEqual({});
     expect(tolerant.claimed).toEqual([]);
+  });
+});
+
+describe('event pacing', () => {
+  /**
+   * The fastest card-less player: online every second, tapping once a second, always buying the
+   * best rate per cost (costs grow 15% a hire, as in economy.ts). The design floor is that the
+   * whole track takes this player 72 hours on a special and 60 on a weekend (which is 72 long).
+   */
+  function hoursToFinish(staff: { baseCost: number; baseRate: number }[], target: number): number {
+    let pts = 0, earned = 0;
+    const own = staff.map(() => 0);
+    for (let t = 1; t < 200 * 3600; t++) {
+      const rate = staff.reduce((a, s, i) => a + s.baseRate * own[i], 0);
+      const gain = rate + 1 + 0.05 * rate;
+      pts += gain; earned += gain;
+      if (earned >= target) return t / 3600;
+      for (;;) {
+        let best = -1, br = 0;
+        staff.forEach((s, i) => { const c = s.baseCost * 1.15 ** own[i]; if (c <= pts && s.baseRate / c > br) { br = s.baseRate / c; best = i; } });
+        if (best < 0) break;
+        pts -= staff[best].baseCost * 1.15 ** own[best]; own[best]++;
+      }
+    }
+    return Infinity;
+  }
+  it('no special track can be finished in under 72 hours without event cards', () => {
+    for (const sp of content.events.specials) expect(hoursToFinish(sp.staff, sp.track[sp.track.length - 1].at)).toBeGreaterThanOrEqual(72);
+  });
+  it('the weekend track takes about 60 of its 72 hours', () => {
+    const w = content.events.weekly;
+    const h = hoursToFinish(w.staff, w.track[w.track.length - 1].at);
+    expect(h).toBeGreaterThanOrEqual(55);
+    expect(h).toBeLessThan(72);
   });
 });
