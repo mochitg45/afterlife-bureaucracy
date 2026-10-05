@@ -54,10 +54,13 @@ describe('EventScreen', () => {
     const back = vi.fn();
     render(<EventScreen onBack={back} />);
     expect(screen.getByText(occ.staff[0].name)).toBeInTheDocument();
+    expect(screen.queryByTestId('tier-0')).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: /rewards/i }));
     expect(screen.getByTestId('tier-0')).toBeInTheDocument();
+    expect(screen.getByText('Live now')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Gacha' }));
     expect(screen.getByText(occ.banner!.name)).toBeInTheDocument();
     expect(screen.getByTestId('featured-card')).toBeInTheDocument();
-    expect(screen.getByText('Live now')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /back to office/i }));
     expect(back).toHaveBeenCalled();
   });
@@ -70,6 +73,10 @@ describe('EventScreen', () => {
   it('claims a reached tier', () => {
     const occ = seed('halloween', { earned: 1e12 })!;
     render(<EventScreen onBack={() => {}} />);
+    // The Rewards tab badges how many tiers are ready.
+    const rewards = screen.getByRole('tab', { name: /rewards/i });
+    expect(rewards).toHaveTextContent(String(occ.track.length));
+    fireEvent.click(rewards);
     fireEvent.click(screen.getAllByRole('button', { name: /claim tier 1/i })[0]);
     expect(useGame.getState().state.event!.claimed).toContain(0);
     expect(occ.track.length).toBeGreaterThan(0);
@@ -83,6 +90,7 @@ describe('EventScreen', () => {
   it('pull buttons disable without vouchers and call pullEvent with them', () => {
     seed('halloween', { vouchers: 0 });
     const { unmount } = render(<EventScreen onBack={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Gacha' }));
     expect(screen.getByRole('button', { name: /pull one event card/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /pull ten event cards/i })).toBeDisabled();
     unmount();
@@ -90,10 +98,21 @@ describe('EventScreen', () => {
     const pullEvent = vi.fn();
     useGame.setState({ pullEvent });
     render(<EventScreen onBack={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Gacha' }));
     fireEvent.click(screen.getByRole('button', { name: /pull one event card/i }));
     fireEvent.click(screen.getByRole('button', { name: /pull ten event cards/i }));
     expect(pullEvent).toHaveBeenNthCalledWith(1, 1);
     expect(pullEvent).toHaveBeenNthCalledWith(2, 10);
+  });
+  it('hides the Gacha tab for the weekly event, which has no banner', () => {
+    vi.setSystemTime(Date.UTC(2026, 9, 10, 12));
+    const occ = activeEvent(content, Date.UTC(2026, 9, 10, 12))!;
+    expect(occ.kind).toBe('weekly');
+    seed('weekly');
+    useGame.setState({ activeEvent: () => occ, state: { ...useGame.getState().state, event: { key: occ.key, points: new Decimal(0), earned: new Decimal(0), staff: {}, claimed: [] } } });
+    render(<EventScreen onBack={() => {}} />);
+    expect(screen.getByRole('tab', { name: /rewards/i })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Gacha' })).toBeNull();
   });
   it('falls back to the office when the event has ended', () => {
     seed(null);

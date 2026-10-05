@@ -18,6 +18,7 @@ import { VoucherIcon, SealIcon } from '../icons/Currency';
 import './EventScreen.css';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
+type EventTab = 'staff' | 'rewards' | 'gacha';
 const RARITIES = ['temp', 'fulltime', 'senior', 'executive'] as const;
 const ZERO = new Decimal(0);
 
@@ -191,6 +192,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const now = useNow();
   const ev = useGame((s) => s.state.event);
   const [mode, setMode] = useState<BuyMode>(1);
+  const [tab, setTab] = useState<EventTab>('staff');
   // The event ended while open: back to the office.
   useEffect(() => { if (!occ) onBack(); }, [occ, onBack]);
   if (!occ || !ev) return null;
@@ -198,6 +200,8 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const rate = eventRate(state, content, occ);
   const tap = eventTap(state, content, occ);
   const upcoming = upcomingEvents(content, now, 4);
+  const ready = occ.track.filter((t, i) => ev.earned.gte(t.at) && !ev.claimed.includes(i)).length;
+  const tabs: [EventTab, string][] = [['staff', 'Staff'], ['rewards', 'Rewards'], ...(occ.banner ? [['gacha', 'Gacha'] as [EventTab, string]] : [])];
   return (
     <section className="screen event-screen" style={{ '--accent': occ.accent } as CSSProperties}>
       <header className="screen-header">
@@ -213,24 +217,39 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
         <div className="mono sub">Earned {formatNumber(ev.earned)}</div>
       </div>
       <EventStamp occ={occ} tap={tap} />
-      <div className="section-head">
-        <h3>Staff</h3>
-        <div className="mode-switch" role="group" aria-label="Buy amount">
-          {MODES.map((m) => (
-            <button key={String(m)} className={'btn btn-ghost' + (mode === m ? ' active' : '')} onClick={() => setMode(m)} aria-label={`×${m}`}>×{m}</button>
-          ))}
-        </div>
+      <div className="event-tabs" role="tablist" aria-label="Event sections">
+        {tabs.map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={tab === id} className={'event-tab' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
+            {label}{id === 'rewards' && ready > 0 && <span className="event-tab-badge mono">{ready}</span>}
+          </button>
+        ))}
       </div>
-      {occ.staff.map((s) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} />)}
-      <Track occ={occ} />
-      <Banner occ={occ} />
-      <div className="section-head"><h3>Upcoming events</h3></div>
-      {upcoming.map((o) => (
-        <div key={o.key} className="event-upcoming">
-          <span>{o.name}</span>
-          <span className="mono sub">{o.key === occ.key ? 'Live now' : range(o)}</span>
-        </div>
-      ))}
+      {tab === 'staff' && (
+        <>
+          <div className="section-head">
+            <h3>Staff</h3>
+            <div className="mode-switch" role="group" aria-label="Buy amount">
+              {MODES.map((m) => (
+                <button key={String(m)} className={'btn btn-ghost' + (mode === m ? ' active' : '')} onClick={() => setMode(m)} aria-label={`×${m}`}>×{m}</button>
+              ))}
+            </div>
+          </div>
+          {occ.staff.map((s) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} />)}
+        </>
+      )}
+      {tab === 'rewards' && (
+        <>
+          <Track occ={occ} />
+          <div className="section-head"><h3>Upcoming events</h3></div>
+          {upcoming.map((o) => (
+            <div key={o.key} className="event-upcoming">
+              <span>{o.name}</span>
+              <span className="mono sub">{o.key === occ.key ? 'Live now' : range(o)}</span>
+            </div>
+          ))}
+        </>
+      )}
+      {tab === 'gacha' && <Banner occ={occ} />}
     </section>
   );
 }
