@@ -16,6 +16,11 @@ export const ART: Record<string, string> = {
   // event staff and event-only cards (the art file has the same name as the key)
   'hw-ghost': 'hw-ghost', 'hw-mummy': 'hw-mummy', 'hw-pumpkin': 'hw-pumpkin', 'hw-vampire': 'hw-vampire', 'hw-headless': 'hw-headless',
   'c-hw-trickster': 'c-hw-trickster', 'c-hw-bat': 'c-hw-bat', 'c-hw-witch': 'c-hw-witch', 'c-hw-pumpkin-cfo': 'c-hw-pumpkin-cfo',
+  'xm-elf': 'xm-elf', 'xm-snowman': 'xm-snowman', 'xm-reindeer': 'xm-reindeer', 'xm-krampus': 'xm-krampus', 'xm-nick': 'xm-nick', 'c-xm-gingerbread': 'c-xm-gingerbread', 'c-xm-caroler': 'c-xm-caroler', 'c-xm-nutcracker': 'c-xm-nutcracker', 'c-xm-krampus-exec': 'c-xm-krampus-exec',
+  'ny-baby': 'ny-baby', 'ny-resolution': 'ny-resolution', 'ny-party': 'ny-party', 'ny-firework': 'ny-firework', 'ny-time': 'ny-time', 'c-ny-confetti': 'c-ny-confetti', 'c-ny-countdown': 'c-ny-countdown', 'c-ny-champagne': 'c-ny-champagne', 'c-ny-father-time': 'c-ny-father-time',
+  'vl-cupid': 'vl-cupid', 'vl-dove': 'vl-dove', 'vl-chocolatier': 'vl-chocolatier', 'vl-matchmaker': 'vl-matchmaker', 'vl-heart': 'vl-heart', 'c-vl-rose': 'c-vl-rose', 'c-vl-lovebird': 'c-vl-lovebird', 'c-vl-poet': 'c-vl-poet', 'c-vl-cupid-exec': 'c-vl-cupid-exec',
+  'es-chick': 'es-chick', 'es-bunny': 'es-bunny', 'es-egg': 'es-egg', 'es-lamb': 'es-lamb', 'es-phoenix': 'es-phoenix', 'c-es-basket': 'c-es-basket', 'c-es-hunter': 'c-es-hunter', 'c-es-gardener': 'c-es-gardener', 'c-es-phoenix-exec': 'c-es-phoenix-exec',
+  'sm-crab': 'sm-crab', 'sm-lifeguard': 'sm-lifeguard', 'sm-surfer': 'sm-surfer', 'sm-mermaid': 'sm-mermaid', 'sm-sun': 'sm-sun', 'c-sm-sandcastle': 'c-sm-sandcastle', 'c-sm-icecream': 'c-sm-icecream', 'c-sm-captain': 'c-sm-captain', 'c-sm-poseidon-exec': 'c-sm-poseidon-exec',
   'c-seraph-board': 'seraph-board', 'c-duke-vassago': 'vassago', 'c-bodhisattva': 'bodhisattva', 'c-keeper': 'keeper', 'c-auditor-true': 'auditor-true',
 };
 

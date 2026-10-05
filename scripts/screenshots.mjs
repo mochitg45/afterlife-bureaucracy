@@ -63,6 +63,8 @@ async function seedSave(now) {
   const today = dayKey(now);
   return {
     saveVersion: 6,
+    // Without it the RESET_EPOCH migration wipes the seeded progress and the shots show a fresh save.
+    resetEpoch: 1,
     kc: '4.82e7',
     soulsRun: '9.4e9',
     soulsLifetime: '6.1e11',

@@ -128,7 +128,7 @@ function RevealBody({ results }: { results: PullResult[] }) {
         ))}
       </div>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={dismissPull}>Back to Personnel</button>
+        <button className="btn btn-primary" onClick={dismissPull}>Done</button>
       </div>
     </Modal>
   );

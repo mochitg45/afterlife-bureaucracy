@@ -19,7 +19,7 @@ describe('PullReveal', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows NEW, duplicate KC, foil executives and guaranteed pity, and dismisses on Back to Personnel', () => {
+  it('shows NEW, duplicate KC, foil executives and guaranteed pity, and dismisses on Done', () => {
     seed([
       { cardId: 'c-dave-overtime', rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 2, spareGained: false },
       { cardId: 'c-keeper', rarity: 'executive', starsAfter: 5, duplicateKc: new Decimal(6000), pityTriggered: 'executive', shards: 0, shardsNeeded: 0, spareGained: false },
@@ -37,9 +37,9 @@ describe('PullReveal', () => {
     expect(dialog.querySelector('.foil')).toBeInTheDocument();
 
     // The first tap only fast-forwards the reveal; the second one dismisses.
-    fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
     expect(useGame.getState().pendingPull).not.toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
     expect(useGame.getState().pendingPull).toBeNull();
   });
 
@@ -112,7 +112,7 @@ describe('PullReveal', () => {
       act(() => { vi.advanceTimersByTime(3000); });
       expect(play).not.toHaveBeenCalledWith('stamp');
       // Once settled, taps reach the UI again.
-      fireEvent.click(screen.getByRole('button', { name: /back to personnel/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
       expect(useGame.getState().pendingPull).toBeNull();
       play.mockRestore();
     });
