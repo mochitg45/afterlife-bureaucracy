@@ -28,6 +28,7 @@ import { formatNumber } from '../engine/format';
 import { eventLeaderboardId, lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
+import { requestReview, shouldAskForReview } from '../platform/review';
 import { useTestAds } from '../platform/adUnits';
 import { track } from '../platform/analytics';
 import { pickReferral, referralLink, type Referral } from '../platform/referral';
@@ -1310,6 +1311,7 @@ export function createGameStore(deps: StoreDeps) {
       },
       dismissAudit() {
         set({ lastAudit: null });
+        if (shouldAskForReview(get().state.stats.audits)) void requestReview();
       },
       expediteAudit() {
         const next = expediteAuditEngine(get().state, clock.wall());

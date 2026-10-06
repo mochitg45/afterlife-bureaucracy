@@ -348,6 +348,15 @@ label.settings-row { cursor: pointer; }
 }
 @keyframes titleDrift { from { transform: scale(1); } to { transform: scale(1.05); } }
 .title-art { overflow: hidden; }
+/* Wide screens (tablets in landscape): the portrait key art would be cropped to its middle
+   and lose the cast, so show all of it, over a blurred copy that fills the sides. */
+@media (min-aspect-ratio: 3/4) {
+  .title-art { background-size: contain; background-repeat: no-repeat; background-position: center bottom; }
+  .title-paper::before {
+    content: ''; position: fixed; inset: -40px; z-index: 0; pointer-events: none;
+    background: var(--title-art) center / cover; filter: blur(28px) brightness(0.9);
+  }
+}
 .title-art > * { position: absolute; pointer-events: none; }
 /* Heaven: slow-turning light rays from behind the gates, two soft clouds drifting across. */
 .fx-rays {
