@@ -104,7 +104,7 @@ describe('EventScreen', () => {
     expect(pullEvent).toHaveBeenNthCalledWith(1, 1);
     expect(pullEvent).toHaveBeenNthCalledWith(2, 10);
   });
-  it('hides the Gacha tab for the weekly event, which has no banner', () => {
+  it('shows the Gacha tab for the weekly event, which has its own banner', () => {
     vi.setSystemTime(Date.UTC(2026, 9, 10, 12));
     const occ = activeEvent(content, Date.UTC(2026, 9, 10, 12))!;
     expect(occ.kind).toBe('weekly');
@@ -112,7 +112,7 @@ describe('EventScreen', () => {
     useGame.setState({ activeEvent: () => occ, state: { ...useGame.getState().state, event: { key: occ.key, points: new Decimal(0), earned: new Decimal(0), staff: {}, claimed: [] } } });
     render(<EventScreen onBack={() => {}} />);
     expect(screen.getByRole('tab', { name: /rewards/i })).toBeInTheDocument();
-    expect(screen.queryByRole('tab', { name: 'Gacha' })).toBeNull();
+    expect(screen.getByRole('tab', { name: 'Gacha' })).toBeInTheDocument();
   });
   it('tapping a staff portrait opens its details', () => {
     const occ = seed('halloween')!;

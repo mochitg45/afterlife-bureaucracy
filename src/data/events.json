@@ -27,7 +27,11 @@
             "flavor": "Has a whistle, a sash and absolutely no authority.",
             "character": "wk-great-backlog-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "The Overdue Throne",
+          "featured": "c-wk-great-backlog-x"
+        }
       },
       {
         "id": "tax-season",
@@ -52,7 +56,11 @@
             "flavor": "Who? Who claimed a horse as a dependant?",
             "character": "wk-tax-season-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Deductible Destiny",
+          "featured": "c-wk-tax-season-x"
+        }
       },
       {
         "id": "retrograde",
@@ -77,7 +85,11 @@
             "flavor": "Sorry about all this. Brought snacks.",
             "character": "wk-retrograde-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Planetary Misalignment",
+          "featured": "c-wk-retrograde-x"
+        }
       },
       {
         "id": "lost-socks",
@@ -102,7 +114,11 @@
             "flavor": "Small, fluffy, everywhere. Sneezes are a hazard.",
             "character": "wk-lost-socks-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Pair Amnesty",
+          "featured": "c-wk-lost-socks-x"
+        }
       },
       {
         "id": "printer-exorcism",
@@ -127,7 +143,11 @@
             "flavor": "Lives inside tray 2. Rattles when it is happy.",
             "character": "wk-printer-exorcism-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Holy Toner",
+          "featured": "c-wk-printer-exorcism-x"
+        }
       },
       {
         "id": "casual-friday",
@@ -152,7 +172,11 @@
             "flavor": "Blends anything into a smoothie. Do not ask what is in the green one.",
             "character": "wk-casual-friday-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Dress Code: Eternal",
+          "featured": "c-wk-casual-friday-x"
+        }
       },
       {
         "id": "valhalla-feast",
@@ -177,7 +201,11 @@
             "flavor": "Remembers everything. Will tell everyone.",
             "character": "wk-valhalla-feast-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "The Great Hall Ledger",
+          "featured": "c-wk-valhalla-feast-x"
+        }
       },
       {
         "id": "sin-pride",
@@ -202,7 +230,11 @@
             "flavor": "Wears a tiny crown. Stamps with great dignity.",
             "character": "wk-sin-pride-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Mirror, Mirror",
+          "featured": "c-wk-sin-pride-x"
+        }
       },
       {
         "id": "sin-greed",
@@ -227,7 +259,11 @@
             "flavor": "Sleeps on the confiscated gold. Calls it filing.",
             "character": "wk-sin-greed-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Golden Hoard",
+          "featured": "c-wk-sin-greed-x"
+        }
       },
       {
         "id": "sin-wrath",
@@ -252,7 +288,11 @@
             "flavor": "Whistles when angry. Whistles a lot.",
             "character": "wk-sin-wrath-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Hot Tempers",
+          "featured": "c-wk-sin-wrath-x"
+        }
       },
       {
         "id": "sin-envy",
@@ -277,7 +317,11 @@
             "flavor": "Measures the grass on the other side. It is the same grass.",
             "character": "wk-sin-envy-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Green With Paperwork",
+          "featured": "c-wk-sin-envy-x"
+        }
       },
       {
         "id": "sin-gluttony",
@@ -302,7 +346,11 @@
             "flavor": "Bakes the quarterly reports. Literally.",
             "character": "wk-sin-gluttony-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "All You Can Audit",
+          "featured": "c-wk-sin-gluttony-x"
+        }
       },
       {
         "id": "sin-sloth",
@@ -327,7 +375,11 @@
             "flavor": "Rings every nine minutes, then says never mind.",
             "character": "wk-sin-sloth-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Do Not Disturb",
+          "featured": "c-wk-sin-sloth-x"
+        }
       },
       {
         "id": "sin-lust",
@@ -352,7 +404,11 @@
             "flavor": "Every approval comes with a rose-shaped stamp and a sigh.",
             "character": "wk-sin-lust-3"
           }
-        ]
+        ],
+        "banner": {
+          "name": "Love Is Blind, Audits Are Not",
+          "featured": "c-wk-sin-lust-x"
+        }
       }
     ],
     "staff": [

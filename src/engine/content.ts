@@ -132,6 +132,8 @@ const weeklySchema = z.object({
     blurb: z.string(),
     /** The week's look for each base staff, by position: same ids, costs and rates, new faces. */
     staff: z.array(z.object({ name: z.string().min(1), role: z.string(), flavor: z.string(), character: z.string().min(1) })).optional(),
+    /** The theme's own event-only gacha banner; its featured card is one of the theme's cards. */
+    banner: z.object({ name: z.string().min(1), featured: z.string().min(1) }).optional(),
   })).min(1),
 });
 
@@ -373,11 +375,17 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   assertUnique(events.specials.map((e) => e.id), 'event');
   const eventStaff = [...(events.weekly?.staff ?? []), ...events.specials.flatMap((e) => e.staff)];
   assertUnique([...departments.flatMap((d) => d.staff.map((s) => s.id)), ...eventStaff.map((s) => s.id)], 'staff');
-  const specialIds = new Set(events.specials.map((e) => e.id));
+  const themes = events.weekly?.themes ?? [];
+  const eventIds = new Set([...events.specials.map((e) => e.id), ...themes.map((t) => t.id)]);
   for (const c of cards) {
-    if (c.event && !specialIds.has(c.event)) throw new Error(`Unknown event ${c.event} on card ${c.id}`);
+    if (c.event && !eventIds.has(c.event)) throw new Error(`Unknown event ${c.event} on card ${c.id}`);
   }
-  for (const e of events.specials) {
+  // A weekly theme with a banner is checked exactly like a special.
+  const bannered = [
+    ...events.specials,
+    ...themes.filter((t) => t.banner).map((t) => ({ id: t.id, banner: t.banner!, track: [] as EventTier[] })),
+  ];
+  for (const e of bannered) {
     const mine = cards.filter((c) => c.event === e.id);
     // The event banner rolls a rarity, then takes this event's one card of it.
     for (const rarity of RARITIES) {

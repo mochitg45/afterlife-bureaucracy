@@ -115,6 +115,7 @@ function weeklyOccurrence(content: Content, startWall: number, key: string): Eve
     accent: w.accent,
     staff: w.staff.map((s, i) => ({ ...s, ...theme.staff?.[i] })),
     track: w.track,
+    banner: theme.banner,
     startWall,
     endWall: startWall + WEEKLY_LENGTH,
   };

@@ -1,7 +1,7 @@
 # Events — design and schedule
 
-Content: `src/data/events.json` (weekly + specials) and `src/data/event-cards.json` (24 event-only
-cards). The schedule is computed in code from date rules, so it repeats every year with no update
+Content: `src/data/events.json` (weekly + specials) and `src/data/event-cards.json` (24 special
+and 56 weekly event-only cards). The schedule is computed in code from date rules, so it repeats every year with no update
 and no server. All times are UTC.
 
 ## Schedule
@@ -19,6 +19,13 @@ and no server. All times are UTC.
 Weekly themes rotate one per week (weeks counted from Fri 2 Jan 2026): The Great Backlog, Tax
 Season in Purgatory, Mercury Retrograde Jam, Lost Socks Amnesty, The Printer Exorcism, Casual
 Friday Eternally. A weekend that overlaps a special event is skipped.
+
+Every weekly theme (14 in all, including the Valhalla feast and the seven sins) has its own
+event-only gacha banner, like a special: 4 cards per theme (temp/fulltime/senior are that theme's
+three staff, `c-wk-<theme>-1/2/3`; the featured executive is `c-wk-<theme>-x`). The banner is set
+per theme in `events.json` (`banner: { name, featured }`); `pullEvent` draws only cards whose
+`event` is that theme id. Every special and every banner-bearing theme must have exactly one card
+of each rarity (checked in `content.ts`).
 
 Occurrence keys: `halloween-2026`, `weekly-2026-10-09` (the Friday it starts). Progress belongs to
 one key; when the key changes the event state resets.

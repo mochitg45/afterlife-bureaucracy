@@ -227,8 +227,8 @@ export function pull(
 
 /**
  * The event banner: the same price, rarity roll and shared pity as `pull`, but a rolled
- * rarity lands on that event's one card of the rarity. Refuses (same state) outside a special
- * event with a banner, or when vouchers are short.
+ * rarity lands on that event's one card of the rarity. Refuses (same state) outside an
+ * event with a banner (a special or a weekly theme), or when vouchers are short.
  */
 export function pullEvent(
   state: GameState,
@@ -237,7 +237,7 @@ export function pullEvent(
   count: 1 | 10,
   kcPerSec: Decimal,
 ): { state: GameState; results: PullResult[] } {
-  if (occ.kind !== 'special' || !occ.banner) return { state, results: [] };
+  if (!occ.banner) return { state, results: [] };
   const mine = content.cards.filter((c) => c.event === occ.id);
   if (!mine.length) return { state, results: [] };
   return pullFrom(state, content, count, kcPerSec, count === 10 ? TEN_PULL_COST : PULL_COST, (rarity) => {

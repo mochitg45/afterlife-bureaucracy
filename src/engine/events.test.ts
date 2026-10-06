@@ -66,7 +66,8 @@ describe('schedule', () => {
     expect(sat.kind).toBe('weekly');
     expect(sat.startWall).toBe(d('2026-10-09'));
     expect(sat.endWall).toBe(d('2026-10-12'));
-    expect(sat.banner).toBeUndefined();
+    expect(sat.banner).toEqual(content.events.weekly!.themes.find((t) => t.id === sat.id)!.banner);
+    expect(sat.banner!.featured).toBe('c-wk-' + sat.id + '-x');
     expect(activeEvent(content, d('2026-10-12'))).toBeNull(); // Monday
     expect(activeEvent(content, d('2026-10-08'))).toBeNull(); // Thursday
   });
@@ -299,12 +300,21 @@ describe('event banner', () => {
     expect(r.results.some((x) => x.rarity === 'executive')).toBe(true);
     expect(r.state.pity.executive).toBeLessThan(58 + 10);
   });
-  it('refuses when short, for a weekly, and with no banner', () => {
+  it('refuses when short', () => {
     const poor = base();
     expect(pullEvent(poor, content, occ, 1, rate)).toEqual({ state: poor, results: [] });
+  });
+  it("a weekly weekend pulls only that theme's cards", () => {
     const weekly = activeEvent(content, d('2026-10-10'))!;
-    const rich = { ...base(), vouchers: 100 };
-    expect(pullEvent(rich, content, weekly, 1, rate).results).toEqual([]);
+    const own = new Set(content.cards.filter((c) => c.event === weekly.id).map((c) => c.id));
+    expect(own.size).toBe(4);
+    let s = { ...base(), vouchers: 5000, rngSeed: 9 };
+    for (let i = 0; i < 20; i++) {
+      const r = pullEvent(s, content, weekly, 10, rate);
+      expect(r.results).toHaveLength(10);
+      for (const x of r.results) expect(own.has(x.cardId)).toBe(true);
+      s = r.state;
+    }
   });
   it('never lets the normal banner roll an event card', () => {
     let s = { ...base(), vouchers: 100_000, rngSeed: 5, pity: { senior: 0, executive: 0 } };

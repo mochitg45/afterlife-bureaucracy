@@ -334,5 +334,789 @@
     },
     "flavor": "Every flood is technically his department.",
     "event": "summer"
+  },
+  {
+    "id": "c-wk-great-backlog-1",
+    "name": "Soul Wrangler",
+    "title": "Hallway recovery",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-great-backlog-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Lassoes loose souls with a rope of red tape. Yee-haw, in triplicate.",
+    "event": "great-backlog"
+  },
+  {
+    "id": "c-wk-great-backlog-2",
+    "name": "Cabinet Mimic",
+    "title": "Reformed filing cabinet",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-great-backlog-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Used to eat interns. Now only eats paperwork. Mostly.",
+    "event": "great-backlog"
+  },
+  {
+    "id": "c-wk-great-backlog-3",
+    "name": "Hall Monitor Ghost",
+    "title": "Corridor patrol",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-great-backlog-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Has a whistle, a sash and absolutely no authority.",
+    "event": "great-backlog"
+  },
+  {
+    "id": "c-wk-great-backlog-x",
+    "name": "The Backlog Baron",
+    "title": "Chief of Pending Items",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-great-backlog-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "A tower of folders in a paper crown. Every decree is stapled in triplicate.",
+    "event": "great-backlog"
+  },
+  {
+    "id": "c-wk-tax-season-1",
+    "name": "Receipt Goblin",
+    "title": "Expense hoarder",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-tax-season-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Keeps every receipt. Every one. Since 1342.",
+    "event": "tax-season"
+  },
+  {
+    "id": "c-wk-tax-season-2",
+    "name": "Abacus Ghost",
+    "title": "Old-school accountant",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-tax-season-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Refuses to use a calculator. Faster anyway.",
+    "event": "tax-season"
+  },
+  {
+    "id": "c-wk-tax-season-3",
+    "name": "Deduction Owl",
+    "title": "Night auditor",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-tax-season-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Who? Who claimed a horse as a dependant?",
+    "event": "tax-season"
+  },
+  {
+    "id": "c-wk-tax-season-x",
+    "name": "Chief Deduction Officer",
+    "title": "Head of Write-Offs",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-tax-season-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Itemizes everything, including your sighs. Counts them as a business expense.",
+    "event": "tax-season"
+  },
+  {
+    "id": "c-wk-retrograde-1",
+    "name": "Backwards Clerk",
+    "title": "Reverse filing",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-retrograde-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Shirt on backwards, walks backwards, files forwards. Usually.",
+    "event": "retrograde"
+  },
+  {
+    "id": "c-wk-retrograde-2",
+    "name": "Astro-Intern",
+    "title": "Star chart reader",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-retrograde-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Blames everything on the planets. Is often right.",
+    "event": "retrograde"
+  },
+  {
+    "id": "c-wk-retrograde-3",
+    "name": "Little Mercury",
+    "title": "The actual planet",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-retrograde-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Sorry about all this. Brought snacks.",
+    "event": "retrograde"
+  },
+  {
+    "id": "c-wk-retrograde-x",
+    "name": "The Retrograde Oracle",
+    "title": "Head of Cosmic Delays",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-retrograde-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Sees all your future paperwork. All of it is delayed.",
+    "event": "retrograde"
+  },
+  {
+    "id": "c-wk-lost-socks-1",
+    "name": "Sock Puppet Clerk",
+    "title": "Odd sock liaison",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-lost-socks-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Speaks for socks who cannot speak. Voice is a bit much.",
+    "event": "lost-socks"
+  },
+  {
+    "id": "c-wk-lost-socks-2",
+    "name": "Laundry Golem",
+    "title": "Basket of everything",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-lost-socks-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Made entirely of lost laundry. Smells of fabric softener.",
+    "event": "lost-socks"
+  },
+  {
+    "id": "c-wk-lost-socks-3",
+    "name": "Lint Sprite",
+    "title": "Dryer-vent spirit",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-lost-socks-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Small, fluffy, everywhere. Sneezes are a hazard.",
+    "event": "lost-socks"
+  },
+  {
+    "id": "c-wk-lost-socks-x",
+    "name": "The Sock Sovereign",
+    "title": "Ruler of the Odd Ones",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-lost-socks-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Wears one crown and zero matching pairs. Rules fairly, if sideways.",
+    "event": "lost-socks"
+  },
+  {
+    "id": "c-wk-printer-exorcism-1",
+    "name": "Exorcist Intern",
+    "title": "Holy toner splasher",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-printer-exorcism-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Armed with a spray bottle of holy water and a can-do attitude.",
+    "event": "printer-exorcism"
+  },
+  {
+    "id": "c-wk-printer-exorcism-2",
+    "name": "Possessed Printer",
+    "title": "Reformed demon device",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-printer-exorcism-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "PC LOAD LETTER. It knows what it did.",
+    "event": "printer-exorcism"
+  },
+  {
+    "id": "c-wk-printer-exorcism-3",
+    "name": "Paper Jam Poltergeist",
+    "title": "Jam specialist",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-printer-exorcism-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Lives inside tray 2. Rattles when it is happy.",
+    "event": "printer-exorcism"
+  },
+  {
+    "id": "c-wk-printer-exorcism-x",
+    "name": "The Toner Bishop",
+    "title": "Keeper of the Sacred Cartridge",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-printer-exorcism-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Blesses each jam with a swing of the censer. The paper still jams, but peacefully.",
+    "event": "printer-exorcism"
+  },
+  {
+    "id": "c-wk-casual-friday-1",
+    "name": "Aloha Reaper",
+    "title": "Business-casual death",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-casual-friday-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Swapped the robe for a flower shirt. Kept the scythe.",
+    "event": "casual-friday"
+  },
+  {
+    "id": "c-wk-casual-friday-2",
+    "name": "Flip-Flop Angel",
+    "title": "Relaxed seraph",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-casual-friday-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Halo tilted at a jaunty angle. Wings in sunscreen.",
+    "event": "casual-friday"
+  },
+  {
+    "id": "c-wk-casual-friday-3",
+    "name": "Smoothie Demon",
+    "title": "Break-room barista",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-casual-friday-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Blends anything into a smoothie. Do not ask what is in the green one.",
+    "event": "casual-friday"
+  },
+  {
+    "id": "c-wk-casual-friday-x",
+    "name": "The Weekend Executive",
+    "title": "Chief Relaxation Officer",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-casual-friday-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Holds every meeting from a pool float. Quarterly targets are mostly vibes.",
+    "event": "casual-friday"
+  },
+  {
+    "id": "c-wk-valhalla-feast-1",
+    "name": "Valkyrie Usher",
+    "title": "Seat assignments",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-valhalla-feast-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Flies every fallen warrior to the right bench. Clipboard is also a shield.",
+    "event": "valhalla-feast"
+  },
+  {
+    "id": "c-wk-valhalla-feast-2",
+    "name": "Mead Hall Steward",
+    "title": "Horn-tray server",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-valhalla-feast-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Horned helmet, endless drinking horn, perfect posture.",
+    "event": "valhalla-feast"
+  },
+  {
+    "id": "c-wk-valhalla-feast-3",
+    "name": "Raven Messenger",
+    "title": "Odin's mail desk",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-valhalla-feast-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Remembers everything. Will tell everyone.",
+    "event": "valhalla-feast"
+  },
+  {
+    "id": "c-wk-valhalla-feast-x",
+    "name": "Allfather of Accounts",
+    "title": "All-Seeing Auditor",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-valhalla-feast-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Lost an eye to a rounding error. Worth it for the ledger.",
+    "event": "valhalla-feast"
+  },
+  {
+    "id": "c-wk-sin-pride-1",
+    "name": "Peacock Clerk",
+    "title": "Very important bird",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-pride-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Fans its tail at every form. The forms are not impressed.",
+    "event": "sin-pride"
+  },
+  {
+    "id": "c-wk-sin-pride-2",
+    "name": "Mirror Imp",
+    "title": "Reflection services",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-pride-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Carries a hand mirror so souls can admire themselves while queueing.",
+    "event": "sin-pride"
+  },
+  {
+    "id": "c-wk-sin-pride-3",
+    "name": "Lion Notary",
+    "title": "King of the stamp",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-pride-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Wears a tiny crown. Stamps with great dignity.",
+    "event": "sin-pride"
+  },
+  {
+    "id": "c-wk-sin-pride-x",
+    "name": "Lucien the Magnificent",
+    "title": "Vice President of Reflection",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-pride-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Fell from heaven mostly to check the lighting. Looks great doing it.",
+    "event": "sin-pride"
+  },
+  {
+    "id": "c-wk-sin-greed-1",
+    "name": "Coin Goblin",
+    "title": "Pocket inspector",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-greed-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Checks every pocket for coins souls try to sneak through.",
+    "event": "sin-greed"
+  },
+  {
+    "id": "c-wk-sin-greed-2",
+    "name": "Piggy Bank Clerk",
+    "title": "Deposits only",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-greed-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Accepts all coins. Returns none.",
+    "event": "sin-greed"
+  },
+  {
+    "id": "c-wk-sin-greed-3",
+    "name": "Treasurer Dragon",
+    "title": "Hoard management",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-greed-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Sleeps on the confiscated gold. Calls it filing.",
+    "event": "sin-greed"
+  },
+  {
+    "id": "c-wk-sin-greed-x",
+    "name": "The Gilded Comptroller",
+    "title": "Keeper of the Vault",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-greed-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Sits on the coins to keep them warm. Has never once lent a penny.",
+    "event": "sin-greed"
+  },
+  {
+    "id": "c-wk-sin-wrath-1",
+    "name": "Extinguisher Imp",
+    "title": "Fire response",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-wrath-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Puts out tempers and desks. Mostly desks.",
+    "event": "sin-wrath"
+  },
+  {
+    "id": "c-wk-sin-wrath-2",
+    "name": "Calm Coach",
+    "title": "Anger management",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-wrath-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Breathe in. Breathe out. Fill in form 12-C.",
+    "event": "sin-wrath"
+  },
+  {
+    "id": "c-wk-sin-wrath-3",
+    "name": "Kettle-Head Clerk",
+    "title": "Steam vent",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-wrath-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Whistles when angry. Whistles a lot.",
+    "event": "sin-wrath"
+  },
+  {
+    "id": "c-wk-sin-wrath-x",
+    "name": "The Fury Supervisor",
+    "title": "Head of Escalations",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-wrath-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Erupts at 9:00 sharp. Cools down by lunch, then does it again.",
+    "event": "sin-wrath"
+  },
+  {
+    "id": "c-wk-sin-envy-1",
+    "name": "Green-Eyed Cat",
+    "title": "Comparison desk",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-envy-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Wants whatever is on your desk. Especially the sunny spot.",
+    "event": "sin-envy"
+  },
+  {
+    "id": "c-wk-sin-envy-2",
+    "name": "Copycat Chameleon",
+    "title": "Form duplicator",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-envy-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Copies every stamp it sees. Changes colour to match.",
+    "event": "sin-envy"
+  },
+  {
+    "id": "c-wk-sin-envy-3",
+    "name": "Lawn Clerk",
+    "title": "Greener-grass inspector",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-envy-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Measures the grass on the other side. It is the same grass.",
+    "event": "sin-envy"
+  },
+  {
+    "id": "c-wk-sin-envy-x",
+    "name": "The Green Monitor",
+    "title": "Director of Comparisons",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-envy-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Sees what you got. Wants it. Files a request in triplicate.",
+    "event": "sin-envy"
+  },
+  {
+    "id": "c-wk-sin-gluttony-1",
+    "name": "Snack Cart Ghoul",
+    "title": "Trolley service",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-gluttony-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Pushes the snack cart. Eats the snack cart.",
+    "event": "sin-gluttony"
+  },
+  {
+    "id": "c-wk-sin-gluttony-2",
+    "name": "Fridge Slime",
+    "title": "Break-room inspector",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-gluttony-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Found in the fridge. Is now staff. Nobody remembers hiring it.",
+    "event": "sin-gluttony"
+  },
+  {
+    "id": "c-wk-sin-gluttony-3",
+    "name": "Pie Chart Chef",
+    "title": "Data catering",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-gluttony-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Bakes the quarterly reports. Literally.",
+    "event": "sin-gluttony"
+  },
+  {
+    "id": "c-wk-sin-gluttony-x",
+    "name": "The Bottomless CFO",
+    "title": "Chief Feasting Officer",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-gluttony-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Budget meetings run on snacks. The snacks are never in the budget.",
+    "event": "sin-gluttony"
+  },
+  {
+    "id": "c-wk-sin-sloth-1",
+    "name": "Sloth Clerk",
+    "title": "Very slow lane",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-sloth-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Has stamped one form since Monday. Beautifully.",
+    "event": "sin-sloth"
+  },
+  {
+    "id": "c-wk-sin-sloth-2",
+    "name": "Pillow Courier",
+    "title": "Nap delivery",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-sloth-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Delivers pillows to the queue. Making things worse.",
+    "event": "sin-sloth"
+  },
+  {
+    "id": "c-wk-sin-sloth-3",
+    "name": "Snooze Clock",
+    "title": "Alarm on strike",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-sloth-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Rings every nine minutes, then says never mind.",
+    "event": "sin-sloth"
+  },
+  {
+    "id": "c-wk-sin-sloth-x",
+    "name": "The Eternal Napper",
+    "title": "Executive of Deferred Tasks",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-sloth-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Approves everything in his sleep. Somehow it is the fastest sign-off in the building.",
+    "event": "sin-sloth"
+  },
+  {
+    "id": "c-wk-sin-lust-1",
+    "name": "Cupid Compliance",
+    "title": "HR liaison",
+    "rarity": "temp",
+    "dept": "intake",
+    "character": "wk-sin-lust-1",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.1
+    },
+    "flavor": "Shoots arrows at forms that are getting too friendly.",
+    "event": "sin-lust"
+  },
+  {
+    "id": "c-wk-sin-lust-2",
+    "name": "Heart-Eyed Intern",
+    "title": "Form enthusiast",
+    "rarity": "fulltime",
+    "dept": "intake",
+    "character": "wk-sin-lust-2",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.2
+    },
+    "flavor": "Has never been this excited about a stapler. HR has notes.",
+    "event": "sin-lust"
+  },
+  {
+    "id": "c-wk-sin-lust-3",
+    "name": "Rose Stamp Clerk",
+    "title": "Romantic stamping",
+    "rarity": "senior",
+    "dept": "intake",
+    "character": "wk-sin-lust-3",
+    "effect": {
+      "type": "eventMult",
+      "value": 0.35
+    },
+    "flavor": "Every approval comes with a rose-shaped stamp and a sigh.",
+    "event": "sin-lust"
+  },
+  {
+    "id": "c-wk-sin-lust-x",
+    "name": "The Heart Auditor",
+    "title": "Manager of Affairs",
+    "rarity": "executive",
+    "dept": "intake",
+    "character": "wk-sin-lust-x",
+    "effect": {
+      "type": "globalMult",
+      "value": 0.06
+    },
+    "flavor": "Reviews every attachment with great care. Always signs with a rose.",
+    "event": "sin-lust"
   }
 ]

@@ -205,6 +205,16 @@ describe('events content', () => {
     e.specials[0].banner.featured = 'c-xm-gingerbread';
     expect(() => load(e)).toThrow(/not its own/);
   });
+  it('requires exactly one card per rarity per weekly theme with a banner', () => {
+    const id = raw().weekly.themes[0].id;
+    const missing = eventCards.filter((c) => !(c.event === id && c.rarity === 'executive'));
+    expect(() => load(raw(), [...cards, ...missing])).toThrow(/exactly one executive/);
+  });
+  it("rejects a weekly banner whose featured card is not the theme's", () => {
+    const e = raw();
+    e.weekly.themes[0].banner!.featured = 'c-xm-gingerbread';
+    expect(() => load(e)).toThrow(/not its own/);
+  });
   it('requires exactly one card per rarity per special', () => {
     const missing = eventCards.filter((c) => !(c.event === 'halloween' && c.rarity === 'executive'));
     expect(() => load(raw(), [...cards, ...missing])).toThrow(/exactly one executive/);
