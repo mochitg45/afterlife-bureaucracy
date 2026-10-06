@@ -72,7 +72,7 @@ describe('PullReveal', () => {
 
       act(() => { vi.advanceTimersByTime(400); });
       expect(play).toHaveBeenCalledWith('stamp');
-      act(() => { vi.advanceTimersByTime(2000); });
+      act(() => { vi.advanceTimersByTime(5000); });
       expect(dialog).not.toHaveClass('reveal-motion');
       expect(dialog.querySelector('.reveal-intro')).toBeNull();
       expect(vi.getTimerCount()).toBe(0);
@@ -101,19 +101,50 @@ describe('PullReveal', () => {
       const play = vi.spyOn(useGame.getState().audio, 'play');
       render(<PullReveal />);
       const dialog = screen.getByRole('dialog', { name: /requisition results/i });
-      // The reveal owns two timers (settle + stamp thunk); the skip must cancel both.
+      // The reveal owns four timers (settle, stamp thunk, rarity sting, spotlight off); the skip cancels all.
       const pending = vi.getTimerCount();
       fireEvent.click(dialog);
       expect(dialog).not.toHaveClass('reveal-motion');
       expect(dialog.querySelector('.reveal-intro')).toBeNull();
       expect(dialog.querySelectorAll('.reveal-cell')).toHaveLength(10);
-      expect(vi.getTimerCount()).toBe(pending - 2);
+      expect(vi.getTimerCount()).toBe(pending - 4);
+      expect(document.querySelector('.spot')).toBeNull();
       // Skipped before the slam, so no stamp sound after the fact.
       act(() => { vi.advanceTimersByTime(3000); });
       expect(play).not.toHaveBeenCalledWith('stamp');
       // Once settled, taps reach the UI again.
       fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
       expect(useGame.getState().pendingPull).toBeNull();
+      play.mockRestore();
+    });
+
+    it('spotlights the rarest card in its rarity colour and plays its sting on the flip', () => {
+      const pull = tenPull();
+      pull[6] = { ...pull[6], cardId: 'c-keeper', rarity: 'executive' };
+      seed(pull);
+      const play = vi.spyOn(useGame.getState().audio, 'play');
+      render(<PullReveal />);
+      const spot = document.querySelector('.spot');
+      expect(spot).toHaveClass('spot-executive');
+      expect(spot).toHaveTextContent('Executive');
+      act(() => { vi.advanceTimersByTime(1500); });
+      expect(play).not.toHaveBeenCalledWith('reveal-executive');
+      act(() => { vi.advanceTimersByTime(800); }); // build ends at 560 + 1300 = 1860ms, flip turns ~180ms later
+      expect(play).toHaveBeenCalledWith('reveal-executive');
+      act(() => { vi.advanceTimersByTime(1400); });
+      expect(document.querySelector('.spot')).toBeNull();
+      act(() => { vi.advanceTimersByTime(3000); });
+      expect(play.mock.calls.filter(([n]) => n === 'reveal-executive')).toHaveLength(1);
+      play.mockRestore();
+    });
+
+    it('still plays the sting once when the reveal is skipped before the flip', () => {
+      seed(tenPull());
+      const play = vi.spyOn(useGame.getState().audio, 'play');
+      render(<PullReveal />);
+      fireEvent.click(screen.getByRole('dialog', { name: /requisition results/i }));
+      act(() => { vi.advanceTimersByTime(5000); });
+      expect(play.mock.calls.filter(([n]) => String(n).startsWith('reveal-'))).toHaveLength(1);
       play.mockRestore();
     });
 

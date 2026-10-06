@@ -1,25 +1,47 @@
 import { t } from '../../i18n';
 import { useEffect, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import { formatNumber } from '../../engine/format';
 import type { PullResult } from '../../engine/gacha';
-import { CardTile } from '../components/CardTile';
+import { CardTile, RARITY_LABEL } from '../components/CardTile';
+import { Character } from '../characters/Character';
+import type { SfxName } from '../../platform/audio';
+import type { CardDef } from '../../engine/content';
 import { Modal } from '../components/Modal';
 import { KarmaIcon } from '../icons/Currency';
 import './PullReveal.css';
 
 /**
  * Reveal timeline (ms). Must stay in step with PullReveal.css: the form slides up, the stamp
- * lands at STAMP_HIT_MS, and the first card starts at CARDS_START_MS -- the whole opening beat
- * is under 700ms. Cards then follow STAGGER_MS apart and take CARD_MS each.
+ * lands at STAMP_HIT_MS, then the pull's best card gets the spotlight from SPOT_START_MS: it
+ * shakes while rays build (longer and harder the rarer it is), flips at the end of the build,
+ * holds for its banner, and fades. The grid of every result then flips in, STAGGER_MS apart,
+ * CARD_MS each.
  */
 const STAMP_HIT_MS = 330;
-const CARDS_START_MS = 560;
+const SPOT_START_MS = 560;
+const SPOT_FLIP_MS = 450;
+const SPOT_BUILD_MS: Record<Rarity, number> = { temp: 300, fulltime: 450, senior: 800, executive: 1300 };
+const SPOT_HOLD_MS: Record<Rarity, number> = { temp: 450, fulltime: 550, senior: 850, executive: 1250 };
 const STAGGER_MS = 70;
 const CARD_MS = 520; // card flip plus the NEW stamp that lands after it
 const REDUCED_MS = 220;
+const RARITY_ORDER = ['executive', 'senior', 'fulltime', 'temp'] as const;
+type Rarity = CardDef['rarity'];
+/** Spark count of the flip burst. */
+const BURST: Record<Rarity, number> = { temp: 8, fulltime: 12, senior: 16, executive: 22 };
+
+/** Index of the first result of the rarest rarity in the pull: that card gets the spotlight. */
+function bestIndex(results: PullResult[]): number {
+  for (const rar of RARITY_ORDER) {
+    const i = results.findIndex((r) => r.rarity === rar);
+    if (i >= 0) return i;
+  }
+  return 0;
+}
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -43,8 +65,9 @@ function resultLabel(r: PullResult) {
 }
 
 function glowClass(r: PullResult): string {
-  if (r.rarity === 'executive') return ' foil glow-exec';
-  if (r.rarity === 'senior') return ' glow-senior';
+  if (r.rarity === 'executive') return ' foil glow glow-exec';
+  if (r.rarity === 'senior') return ' glow glow-senior';
+  if (r.rarity === 'fulltime') return ' glow glow-fulltime';
   return '';
 }
 
@@ -64,6 +87,19 @@ function RevealBody({ results }: { results: PullResult[] }) {
   // choreography until the game is back on screen, or it would finish unseen behind the ad.
   const [onScreen, setOnScreen] = useState(() => typeof document === 'undefined' || document.visibilityState === 'visible');
   const grid = results.length > 1;
+  const best = results[bestIndex(results)];
+  const bestRarity = best.rarity;
+  const flipAt = SPOT_START_MS + SPOT_BUILD_MS[bestRarity];
+  const gridStart = flipAt + SPOT_FLIP_MS + SPOT_HOLD_MS[bestRarity];
+  const [spotOn, setSpotOn] = useState(true);
+  const [stung, setStung] = useState(false);
+  // The rarity sting belongs to the moment the best card turns over, or to the skip/fade-in.
+  useEffect(() => {
+    if (stung || !onScreen) return;
+    if (playing && !reduced) return;
+    setStung(true);
+    useGame.getState().audio?.play(('reveal-' + bestRarity) as SfxName);
+  }, [stung, onScreen, playing, reduced, bestRarity]);
 
   useEffect(() => {
     if (onScreen) return;
@@ -80,10 +116,17 @@ function RevealBody({ results }: { results: PullResult[] }) {
 
   useEffect(() => {
     if (!playing || !onScreen) return;
-    const total = reduced ? REDUCED_MS : CARDS_START_MS + (results.length - 1) * STAGGER_MS + CARD_MS;
+    const total = reduced ? REDUCED_MS : gridStart + (results.length - 1) * STAGGER_MS + CARD_MS;
     const timers = [setTimeout(() => setPlaying(false), total)];
     // No slam under reduced motion, so no thunk either.
-    if (!reduced) timers.push(setTimeout(() => useGame.getState().audio?.play('stamp'), STAMP_HIT_MS));
+    if (!reduced) {
+      timers.push(setTimeout(() => useGame.getState().audio?.play('stamp'), STAMP_HIT_MS));
+      timers.push(setTimeout(() => {
+        setStung(true);
+        useGame.getState().audio?.play(('reveal-' + bestRarity) as SfxName);
+      }, flipAt + SPOT_FLIP_MS * 0.4));
+      timers.push(setTimeout(() => setSpotOn(false), gridStart));
+    }
     // A tap anywhere while it plays jumps to the end state instead of acting on what was hit:
     // capture on document runs before React's own listener, so the Back button is not pressed
     // by the same tap that skipped.
@@ -97,7 +140,7 @@ function RevealBody({ results }: { results: PullResult[] }) {
       timers.forEach(clearTimeout);
       document.removeEventListener('click', skip, true);
     };
-  }, [playing, onScreen, reduced, results.length]);
+  }, [playing, onScreen, reduced, results.length, gridStart, flipAt, bestRarity]);
 
   // reveal-motion drives the full choreography; reveal-fade is the reduced-motion stand-in.
   // Dropping either class is the fast-forward: every element's resting style is its end state.
@@ -115,7 +158,11 @@ function RevealBody({ results }: { results: PullResult[] }) {
           </div>
         </div>
       )}
-      <div className={grid ? 'reveal-grid' : 'reveal-list'}>
+      {playing && onScreen && !reduced && spotOn && createPortal(
+        <Spotlight card={findCard(content, best.cardId)} />,
+        document.body,
+      )}
+      <div className={grid ? 'reveal-grid' : 'reveal-list'} style={{ '--start': `${gridStart}ms` } as CSSProperties}>
         {results.map((r, i) => (
           <div
             key={i}
@@ -132,5 +179,48 @@ function RevealBody({ results }: { results: PullResult[] }) {
         <button className="btn btn-primary" onClick={dismissPull}>{t('pull.done')}</button>
       </div>
     </Modal>
+  );
+}
+
+/**
+ * The best card's moment, after the promo's Executive reveal: a card back shakes while rays
+ * build, leans back, flips with an overshoot into a flash and a spark burst, then a shine
+ * sweeps the face and the rarity banner slams down. Colour and intensity come from the rarity
+ * (see the .spot-<rarity> tokens in PullReveal.css). Purely decorative: the results grid
+ * underneath carries the accessible content.
+ */
+function Spotlight({ card }: { card: CardDef }) {
+  const r = card.rarity;
+  const style = {
+    '--spot-start': `${SPOT_START_MS}ms`,
+    '--build': `${SPOT_BUILD_MS[r]}ms`,
+    '--flip': `${SPOT_FLIP_MS}ms`,
+    '--hold': `${SPOT_HOLD_MS[r]}ms`,
+  } as CSSProperties;
+  const n = BURST[r];
+  return (
+    <div className={`spot spot-${r}`} style={style} aria-hidden="true">
+      <div className="spot-rays" />
+      <div className="spot-stage">
+        <div className="spot-shake">
+          <div className="spot-card">
+            <div className="spot-face spot-back"><span>A·B</span></div>
+            <div className={`spot-face spot-front rarity-${r}`}>
+              <Character id={card.character} art={card.id} mood="ok" size={120} />
+              <span className="spot-name">{card.name}</span>
+              <span className="spot-title sub">{card.title}</span>
+              <span className="spot-shine" />
+            </div>
+          </div>
+        </div>
+        <div className="spot-burst">
+          {Array.from({ length: n }).map((_, i) => (
+            <i key={i} style={{ '--a': `${(360 / n) * i + (i % 2) * 9}deg`, '--d': `${110 + (i % 3) * 40}px` } as CSSProperties} />
+          ))}
+        </div>
+        <div className="spot-banner">{RARITY_LABEL[r]}</div>
+      </div>
+      <div className="spot-flash" />
+    </div>
   );
 }

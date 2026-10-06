@@ -1248,7 +1248,6 @@ export function createGameStore(deps: StoreDeps) {
         apply(r.state, { pendingPull: r.results });
         sfx('pull');
         const best = (['executive', 'senior', 'fulltime', 'temp'] as const).find((rar) => r.results.some((x) => x.rarity === rar)) ?? 'temp';
-        sfx(('reveal-' + best) as SfxName);
         track('gacha_pull', { banner: occ.id, count, best });
         void get().save();
       },
@@ -1332,7 +1331,6 @@ export function createGameStore(deps: StoreDeps) {
           apply(r.state, { pendingPull: r.results });
           sfx('pull');
           const best = (['executive', 'senior', 'fulltime', 'temp'] as const).find((rar) => r.results.some((x) => x.rarity === rar)) ?? 'temp';
-          sfx(('reveal-' + best) as SfxName);
           track('gacha_pull', { banner: 'normal', count, best });
         }
       },

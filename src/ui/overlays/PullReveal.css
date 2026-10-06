@@ -46,26 +46,29 @@
 /* Cards: one at a time, 70ms apart, flipping in from a slight scale (never scale(0)). */
 .reveal-motion .reveal-cell,
 .reveal-motion .reveal-row {
-  animation: reveal-card-in 320ms var(--ease-out) both;
-  animation-delay: calc(560ms + var(--i) * 70ms);
+  animation: reveal-card-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--start, 560ms) + var(--i) * 70ms);
 }
 @keyframes reveal-card-in {
   from { opacity: 0; transform: perspective(600px) rotateY(-75deg) scale(0.92); }
   to { opacity: 1; transform: perspective(600px) rotateY(0deg) scale(1); }
 }
 
-/* Rarity burst: a gold radial pulse behind the card, bigger and longer for executives. */
-.glow-senior, .glow-exec { position: relative; isolation: isolate; }
+/* Rarity burst: a radial pulse behind the card in its rarity colour, bigger for the rarer ones. */
+.glow-fulltime { --glow: 126 214 204; }
+.glow-senior { --glow: 190 160 255; }
+.glow-exec { --glow: 255 222 130; }
+.glow { position: relative; isolation: isolate; }
 /* The tile's own fill would hide the burst; inside a glowing cell the cell's surface shows instead. */
-.glow-senior .tile, .glow-exec .tile { background: transparent; }
-.glow-senior::before, .glow-exec::before {
+.glow .tile { background: transparent; }
+.glow::before {
   content: ''; position: absolute; inset: -2px; z-index: -1; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, rgb(232 198 106 / 0.9), rgb(232 198 106 / 0) 70%);
+  background: radial-gradient(circle, rgb(var(--glow) / 0.9), rgb(var(--glow) / 0) 70%);
   opacity: 0;
 }
-.glow-exec::before { inset: -6px; background: radial-gradient(circle, rgb(255 226 140 / 1), rgb(232 198 106 / 0.6) 40%, rgb(232 198 106 / 0) 72%); }
-.reveal-motion .glow-senior::before { animation: reveal-glow 620ms var(--ease-out) backwards; animation-delay: calc(600ms + var(--i) * 70ms); }
-.reveal-motion .glow-exec::before { animation: reveal-glow-big 900ms var(--ease-out) backwards; animation-delay: calc(600ms + var(--i) * 70ms); }
+.glow-exec::before { inset: -6px; background: radial-gradient(circle, rgb(var(--glow) / 1), rgb(var(--glow) / 0.6) 40%, rgb(var(--glow) / 0) 72%); }
+.reveal-motion .glow::before { animation: reveal-glow 620ms var(--ease-out) backwards; animation-delay: calc(var(--start, 560ms) + 40ms + var(--i) * 70ms); }
+.reveal-motion .glow-exec::before { animation-name: reveal-glow-big; animation-duration: 900ms; }
 @keyframes reveal-glow {
   0% { opacity: 0; transform: scale(0.6); }
   30% { opacity: 1; }
@@ -83,7 +86,7 @@
   color: var(--red); font-weight: 700; letter-spacing: 0.06em; line-height: 1.3;
   transform: rotate(-6deg);
 }
-.reveal-motion .reveal-new { animation: reveal-new-thunk 240ms var(--ease-out) backwards; animation-delay: calc(820ms + var(--i) * 70ms); }
+.reveal-motion .reveal-new { animation: reveal-new-thunk 240ms var(--ease-out) backwards; animation-delay: calc(var(--start, 560ms) + 260ms + var(--i) * 70ms); }
 @keyframes reveal-new-thunk {
   0% { opacity: 0; transform: rotate(-6deg) scale(1.8); }
   60% { opacity: 1; transform: rotate(-6deg) scale(0.92); }
@@ -97,3 +100,135 @@
 
 /* Waiting for the game to come back on screen (behind a rewarded ad): keep the cards unseen. */
 .reveal-waiting .reveal-grid, .reveal-waiting .reveal-list { opacity: 0; }
+
+/*
+ * Spotlight: the pull's best card, full screen, after the promo's Executive reveal.
+ * Timeline from PullReveal.tsx via --spot-start, --build (shake + rays), --flip, --hold.
+ * --c is the rarity colour (rays, sparks, banner), --c2 its pale tint (flash, shine).
+ */
+.spot {
+  --c: 160 178 198; --c2: 230 238 246; --ink-b: #3a4656;
+  --flip-at: calc(var(--spot-start) + var(--build));
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; overflow: hidden; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, rgb(var(--c) / 0.22), rgb(14 10 8 / 0.9) 62%);
+  animation: spot-in 200ms ease var(--spot-start) both, spot-out 220ms ease calc(var(--flip-at) + var(--flip) + var(--hold) - 220ms) forwards;
+}
+.spot-fulltime { --c: 62 190 176; --c2: 200 246 240; --ink-b: #1f4d48; }
+.spot-senior { --c: 150 104 230; --c2: 230 216 255; --ink-b: #3b2766; }
+.spot-executive { --c: 236 190 80; --c2: 255 244 200; --ink-b: #5a1f14; }
+@keyframes spot-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes spot-out { to { opacity: 0; } }
+
+.spot-rays {
+  position: absolute; left: 50%; top: 45%; width: 220vmax; height: 220vmax; translate: -50% -50%;
+  background: repeating-conic-gradient(rgb(var(--c) / 0.55) 0deg 7deg, transparent 7deg 22deg);
+  mask-image: radial-gradient(circle, #000 0, transparent 34%);
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 34%);
+  opacity: 0.15;
+  animation:
+    spot-spin 9s linear infinite,
+    spot-rays-build var(--build) ease-in var(--spot-start) forwards,
+    spot-rays-pop 500ms ease-out var(--flip-at) forwards;
+}
+@keyframes spot-spin { to { rotate: 360deg; } }
+@keyframes spot-rays-build { to { opacity: 0.55; } }
+@keyframes spot-rays-pop { 0% { opacity: 1; scale: 1.15; } 100% { opacity: 0.8; scale: 1; } }
+
+.spot-stage { position: relative; display: grid; place-items: center; }
+.spot-shake {
+  animation:
+    spot-build var(--build) ease-in var(--spot-start) both,
+    spot-impact 420ms ease-out calc(var(--flip-at) + 120ms);
+}
+/* Wobble that grows toward the flip, ending on a small anticipation squash. */
+@keyframes spot-build {
+  0% { transform: translateY(40px) scale(0.85); opacity: 0; }
+  12% { transform: none; opacity: 1; }
+  30% { transform: rotate(-1.5deg); }
+  45% { transform: rotate(2deg) translateX(2px); }
+  58% { transform: rotate(-3deg) translateX(-3px); }
+  70% { transform: rotate(4deg) translate(4px, -2px); }
+  80% { transform: rotate(-5deg) translate(-5px, 2px); }
+  90% { transform: rotate(5deg) translate(5px, -1px) scale(0.97); }
+  100% { transform: scale(0.93); }
+}
+@keyframes spot-impact {
+  0% { transform: translate(0, 0); } 20% { transform: translate(-7px, 4px); } 40% { transform: translate(6px, -5px); }
+  60% { transform: translate(-4px, 3px); } 80% { transform: translate(2px, -1px); } 100% { transform: none; }
+}
+/* Only Senior and Executive shake on impact. */
+.spot-temp .spot-shake, .spot-fulltime .spot-shake { animation: spot-build var(--build) ease-in var(--spot-start) both; }
+
+.spot-card {
+  position: relative; width: 168px; height: 236px; transform-style: preserve-3d;
+  animation: spot-flip var(--flip) cubic-bezier(0.34, 1.56, 0.64, 1) var(--flip-at) both;
+}
+@keyframes spot-flip {
+  0% { transform: perspective(900px) rotateY(0) scale(1); }
+  45% { transform: perspective(900px) rotateY(110deg) scale(1.18); }
+  100% { transform: perspective(900px) rotateY(180deg) scale(1); }
+}
+.spot-face {
+  position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.5), 0 0 26px rgb(var(--c) / 0.55);
+}
+.spot-back {
+  display: grid; place-items: center; border: 4px solid rgb(var(--c));
+  background:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 0.05) 0 6px, transparent 6px 12px),
+    radial-gradient(circle at 50% 45%, rgb(var(--c) / 0.5), var(--ink-b) 70%);
+}
+.spot-back span {
+  display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%;
+  border: 3px solid rgb(var(--c2)); color: rgb(var(--c2));
+  font-family: var(--font-display); font-size: 24px; letter-spacing: 0.06em;
+}
+.spot-front {
+  transform: rotateY(180deg); overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px;
+  background: var(--surface); border: 4px solid rgb(var(--c)); color: var(--ink); text-align: center;
+}
+.spot-name { font-family: var(--font-display); font-size: 18px; line-height: 1.1; }
+.spot-title { font-size: 12px; line-height: 1.2; }
+.spot-shine {
+  position: absolute; inset: -40% -60%; pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgb(var(--c2) / 0.85) 50%, transparent 60%);
+  translate: -70% 0;
+  animation: spot-shine 700ms ease-in-out calc(var(--flip-at) + var(--flip) + 80ms) both;
+}
+@keyframes spot-shine { to { translate: 70% 0; } }
+
+.spot-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.spot-burst i {
+  position: absolute; width: 10px; height: 10px; margin: -5px; border-radius: 2px;
+  background: rgb(var(--c2)); box-shadow: 0 0 10px rgb(var(--c));
+  opacity: 0;
+  animation: spot-spark 700ms cubic-bezier(0.2, 0.7, 0.3, 1) calc(var(--flip-at) + 160ms) forwards;
+}
+@keyframes spot-spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1.2); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) rotate(180deg) scale(0.3); }
+}
+
+.spot-banner {
+  position: absolute; top: calc(100% + 8px); white-space: nowrap;
+  padding: 4px 18px 3px; border-radius: 8px; border: 3px solid rgb(var(--c2));
+  background: rgb(var(--c)); color: #1c1712;
+  font-family: var(--font-display); font-size: 22px; letter-spacing: 0.12em; text-transform: uppercase;
+  box-shadow: 0 5px 0 rgb(0 0 0 / 0.35);
+  animation: spot-banner 380ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--flip-at) + var(--flip) - 60ms) both;
+}
+.spot-executive .spot-banner { background: var(--red); color: #F7F2E4; font-size: 26px; }
+@keyframes spot-banner {
+  0% { opacity: 0; transform: scale(2.4) rotate(-6deg); }
+  60% { opacity: 1; transform: scale(0.94) rotate(-2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-2deg); }
+}
+
+.spot-flash {
+  position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgb(var(--c2)), rgb(var(--c2) / 0) 70%);
+  opacity: 0;
+  animation: spot-flash 420ms ease-out calc(var(--flip-at) + 140ms) both;
+}
+.spot-temp .spot-flash { animation: none; }
+@keyframes spot-flash { 0% { opacity: 0; } 15% { opacity: 0.9; } 100% { opacity: 0; } }

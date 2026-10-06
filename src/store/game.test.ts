@@ -188,12 +188,12 @@ describe('game store', () => {
     store.getState().stopLoop();
   });
 
-  it('plays the reveal sting for the best rarity in a pull', async () => {
+  it('plays the pull sound (the rarity sting waits for the reveal flip)', async () => {
     const { store, audio } = await makeWithAudio(0); // wall 0 seeds an executive in the ten-pull (see PersonnelScreen.test)
     store.setState({ state: { ...store.getState().state, vouchers: 90 } });
     store.getState().pull(10);
     expect(audio.played).toContain('pull');
-    expect(audio.played).toContain('reveal-executive');
+    expect(audio.played).not.toContain('reveal-executive'); // the sting plays on the flip, in PullReveal
     store.getState().stopLoop();
   });
 });
