@@ -441,5 +441,12 @@
  "goal.hire": "{name}を雇おう",
  "goal.hireMore": "{name}をあと{n}人雇って速度×2",
  "goal.reachDept": "{souls}魂に到達して{name}を開放",
- "goal.stamp": "魂にスタンプしてカルマクレジットを稼ごう"
+ "goal.stamp": "魂にスタンプしてカルマクレジットを稼ごう",
+ "title.tagline": "番号札をお取りください。",
+ "title.clockIn": "出勤する",
+ "title.guest": "ゲストでプレイ",
+ "title.signIn": "Googleでログイン",
+ "title.signedIn": "Googleでログイン中",
+ "title.privacy": "プライバシー",
+ "title.unavailable": "この端末ではPlay ゲームを利用できません。"
 }

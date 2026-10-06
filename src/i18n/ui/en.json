@@ -441,5 +441,12 @@
  "goal.hire": "Hire {name}",
  "goal.hireMore": "Hire {n} more {name} for ×2 speed",
  "goal.reachDept": "Reach {souls} souls to open {name}",
- "goal.stamp": "Stamp souls to earn Karma Credits"
+ "goal.stamp": "Stamp souls to earn Karma Credits",
+ "title.tagline": "Please take a number.",
+ "title.clockIn": "Clock in",
+ "title.guest": "Play as guest",
+ "title.signIn": "Sign in with Google",
+ "title.signedIn": "Signed in with Google",
+ "title.privacy": "Privacy",
+ "title.unavailable": "Play Games is not available on this device."
 }

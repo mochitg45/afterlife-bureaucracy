@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useGame } from '../../store/game';
 import { StampSeal } from '../components/StampButton';
 import { APP_VERSION, PRIVACY_URL } from '../../version';
+import { t } from '../../i18n';
+import { LanguagePicker } from '../components/LanguagePicker';
 
 /**
  * The front door, shown on every cold boot. One tap gets a player to their desk; the
@@ -53,11 +55,11 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
       onEnter();
       return;
     }
-    setStatus(result === 'cancelled' ? 'Sign-in cancelled.' : 'Play Games is not available on this device.');
+    setStatus(result === 'cancelled' ? t('settings.signInCancelled') : t('title.unavailable'));
   };
 
   return (
-    <section className="screen title-paper">
+    <section className="screen title-paper" style={{ '--title-art': `url(${TITLE_ART})` } as CSSProperties}>
       <div className="title-art" style={{ backgroundImage: `url(${TITLE_ART})` }} aria-hidden="true">
         <div className="fx-rays" />
         <div className="fx-cloud fx-cloud-a" />
@@ -71,26 +73,30 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
         <div className="title-plate">
           <StampSeal className="title-seal pulse" />
           <h1 className="title-name">Afterlife Bureaucracy Inc.</h1>
-          <p className="sub title-tagline">Please take a number.</p>
+          <p className="sub title-tagline">{t('title.tagline')}</p>
         </div>
         <div className="title-panel">
-        {signedIn && <p className="btn-google title-chip"><GoogleG /><span>Signed in with Google</span></p>}
+        {signedIn && <p className="btn-google title-chip"><GoogleG /><span>{t('title.signedIn')}</span></p>}
         <p className="sub title-status" role="status" aria-live="polite">{status}</p>
         <div className="title-actions">
           {showSignIn && (
             <button className="btn btn-google" disabled={busy} onClick={() => void onSignIn()}>
               <GoogleG />
-              <span>Sign in with Google</span>
+              <span>{t('title.signIn')}</span>
             </button>
           )}
           <button className={'btn' + (showSignIn ? '' : ' btn-primary')} onClick={onEnter}>
-            {showSignIn ? 'Play as guest' : 'Clock in'}
+            {showSignIn ? t('title.guest') : t('title.clockIn')}
           </button>
         </div>
         <div className="sub title-footer">
           <span className="mono">v{APP_VERSION}</span>
-          <a href={PRIVACY_URL} target="_blank" rel="noreferrer">Privacy</a>
-          <button className="link" onClick={onGoToOdds}>Odds</button>
+          <label className="title-lang">
+            <span aria-hidden="true">🌐</span>
+            <LanguagePicker className="title-lang-select" />
+          </label>
+          <a href={PRIVACY_URL} target="_blank" rel="noreferrer">{t('title.privacy')}</a>
+          <button className="link" onClick={onGoToOdds}>{t('personnel.odds')}</button>
         </div>
         </div>
       </div>

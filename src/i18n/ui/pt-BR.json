@@ -441,5 +441,12 @@
  "goal.hire": "Contrate {name}",
  "goal.hireMore": "Contrate mais {n} {name} para velocidade ×2",
  "goal.reachDept": "Chegue a {souls} almas para abrir {name}",
- "goal.stamp": "Carimbe almas para ganhar Créditos de Karma"
+ "goal.stamp": "Carimbe almas para ganhar Créditos de Karma",
+ "title.tagline": "Por favor, pegue uma senha.",
+ "title.clockIn": "Bater o ponto",
+ "title.guest": "Jogar como convidado",
+ "title.signIn": "Entrar com o Google",
+ "title.signedIn": "Conectado com o Google",
+ "title.privacy": "Privacidade",
+ "title.unavailable": "O Play Games não está disponível neste dispositivo."
 }

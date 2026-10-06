@@ -441,5 +441,12 @@
  "goal.hire": "Rekrut {name}",
  "goal.hireMore": "Rekrut {n} {name} lagi untuk kecepatan ×2",
  "goal.reachDept": "Capai {souls} jiwa untuk membuka {name}",
- "goal.stamp": "Cap jiwa untuk dapat Kredit Karma"
+ "goal.stamp": "Cap jiwa untuk dapat Kredit Karma",
+ "title.tagline": "Silakan ambil nomor antrean.",
+ "title.clockIn": "Mulai Kerja",
+ "title.guest": "Main sebagai tamu",
+ "title.signIn": "Masuk dengan Google",
+ "title.signedIn": "Sudah masuk dengan Google",
+ "title.privacy": "Privasi",
+ "title.unavailable": "Play Games tidak tersedia di perangkat ini."
 }

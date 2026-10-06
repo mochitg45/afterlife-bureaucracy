@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { LANGS, getLang, isLang, setLang, t } from '../../i18n';
+import { t } from '../../i18n';
+import { LanguagePicker } from '../components/LanguagePicker';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
@@ -52,12 +53,6 @@ export function SettingsSheet({
   const restoreCloud = useGame((s) => s.restoreCloud);
   const [status, setStatus] = useState('');
   const [confirm, setConfirm] = useState<'upload' | 'restore' | null>(null);
-
-  const onLanguage = async (l: Parameters<typeof setLang>[0]) => {
-    // Content and every string are rebuilt on reload, so put the desk on disk first.
-    await useGame.getState().save();
-    setLang(l);
-  };
 
   const onRestore = async () => {
     setStatus(RESTORE_TEXT[await restorePurchases()]);
@@ -131,14 +126,7 @@ export function SettingsSheet({
       <label className="settings-row">
         <span>{t('settings.language')}</span>
         {/* Each language in its own name, so a wrong pick can still be undone. Switching reloads. */}
-        <select
-          className="lang-select"
-          aria-label={t('settings.language')}
-          value={getLang()}
-          onChange={(e) => { const l = e.target.value; if (isLang(l)) void onLanguage(l); }}
-        >
-          {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-        </select>
+        <LanguagePicker />
       </label>
       <div className="settings-row">
         <button className="btn btn-ghost" onClick={onGoToOdds}>{t('settings.odds')}</button>

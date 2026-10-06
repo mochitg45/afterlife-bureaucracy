@@ -441,5 +441,12 @@
  "goal.hire": "จ้าง {name}",
  "goal.hireMore": "จ้าง {name} อีก {n} คนเพื่อความเร็ว ×2",
  "goal.reachDept": "ถึง {souls} วิญญาณเพื่อเปิด {name}",
- "goal.stamp": "ประทับตราวิญญาณเพื่อรับเครดิตกรรม"
+ "goal.stamp": "ประทับตราวิญญาณเพื่อรับเครดิตกรรม",
+ "title.tagline": "กรุณารับบัตรคิว",
+ "title.clockIn": "ลงเวลาเข้างาน",
+ "title.guest": "เล่นแบบผู้เยี่ยมชม",
+ "title.signIn": "ลงชื่อเข้าใช้ด้วย Google",
+ "title.signedIn": "ลงชื่อเข้าใช้ด้วย Google แล้ว",
+ "title.privacy": "ความเป็นส่วนตัว",
+ "title.unavailable": "อุปกรณ์นี้ใช้ Play Games ไม่ได้"
 }

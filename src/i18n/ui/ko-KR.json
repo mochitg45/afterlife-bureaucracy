@@ -441,5 +441,12 @@
  "goal.hire": "{name} 고용하기",
  "goal.hireMore": "{name} {n}명 더 고용하면 속도 ×2",
  "goal.reachDept": "{souls}개의 영혼을 모아 {name} 열기",
- "goal.stamp": "영혼에 도장을 찍어 카르마 크레딧을 모으세요"
+ "goal.stamp": "영혼에 도장을 찍어 카르마 크레딧을 모으세요",
+ "title.tagline": "번호표를 뽑아 주세요.",
+ "title.clockIn": "출근하기",
+ "title.guest": "게스트로 플레이",
+ "title.signIn": "Google로 로그인",
+ "title.signedIn": "Google로 로그인됨",
+ "title.privacy": "개인정보",
+ "title.unavailable": "이 기기에서는 Play 게임즈를 사용할 수 없어요."
 }

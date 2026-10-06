@@ -441,5 +441,12 @@
  "goal.hire": "Embauche {name}",
  "goal.hireMore": "Embauche {n} {name} de plus pour une vitesse ×2",
  "goal.reachDept": "Atteins {souls} âmes pour ouvrir {name}",
- "goal.stamp": "Tamponne des âmes pour gagner des Crédits Karma"
+ "goal.stamp": "Tamponne des âmes pour gagner des Crédits Karma",
+ "title.tagline": "Merci de prendre un ticket.",
+ "title.clockIn": "Pointer",
+ "title.guest": "Jouer en invité",
+ "title.signIn": "Se connecter avec Google",
+ "title.signedIn": "Connecté avec Google",
+ "title.privacy": "Confidentialité",
+ "title.unavailable": "Play Jeux n'est pas disponible sur cet appareil."
 }

@@ -15,3 +15,8 @@ html:lang(de-DE) body, html:lang(id) body, html:lang(es-419) body, html:lang(pt-
 
 /* Settings language picker (kept here so theme.css stays untouched). */
 .lang-select { font: inherit; max-width: 62%; padding: 6px 8px; border: 1px solid var(--ink, #333); border-radius: 8px; background: var(--surface-2, #fff); color: var(--ink, #222); }
+
+/* Title-screen language switch, in the footer row beside Privacy and Odds. */
+.title-lang { display: inline-flex; align-items: center; gap: 2px; }
+.title-lang-select { field-sizing: content; border: 0; background: transparent; font: inherit; color: inherit; text-decoration: underline; padding: 0 2px; max-width: 140px; cursor: pointer; }
+.title-lang-select:focus-visible { outline: 2px solid #A6402B; border-radius: 6px; }

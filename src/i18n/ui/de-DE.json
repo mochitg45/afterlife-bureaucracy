@@ -441,5 +441,12 @@
  "goal.hire": "Stelle {name} ein",
  "goal.hireMore": "Stelle {n} weitere {name} ein für ×2 Tempo",
  "goal.reachDept": "Erreiche {souls} Seelen, um {name} zu öffnen",
- "goal.stamp": "Stempel Seelen für Karma-Credits"
+ "goal.stamp": "Stempel Seelen für Karma-Credits",
+ "title.tagline": "Bitte ziehen Sie eine Nummer.",
+ "title.clockIn": "Einstempeln",
+ "title.guest": "Als Gast spielen",
+ "title.signIn": "Mit Google anmelden",
+ "title.signedIn": "Mit Google angemeldet",
+ "title.privacy": "Datenschutz",
+ "title.unavailable": "Play Spiele ist auf diesem Gerät nicht verfügbar."
 }

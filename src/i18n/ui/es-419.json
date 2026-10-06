@@ -441,5 +441,12 @@
  "goal.hire": "Contrata a {name}",
  "goal.hireMore": "Contrata {n} {name} más para velocidad ×2",
  "goal.reachDept": "Llega a {souls} almas para abrir {name}",
- "goal.stamp": "Sella almas para ganar Créditos de Karma"
+ "goal.stamp": "Sella almas para ganar Créditos de Karma",
+ "title.tagline": "Por favor, tome un número.",
+ "title.clockIn": "Fichar entrada",
+ "title.guest": "Jugar como invitado",
+ "title.signIn": "Iniciar sesión con Google",
+ "title.signedIn": "Sesión iniciada con Google",
+ "title.privacy": "Privacidad",
+ "title.unavailable": "Play Juegos no está disponible en este dispositivo."
 }
