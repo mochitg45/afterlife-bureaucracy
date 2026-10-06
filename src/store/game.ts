@@ -29,6 +29,9 @@ import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { useTestAds } from '../platform/adUnits';
 import { track } from '../platform/analytics';
+import { pickReferral, referralLink, type Referral } from '../platform/referral';
+import { pickSharer, INVITE_PITCH, type Sharer } from '../platform/share';
+import { claimTier, grantShareReward } from '../engine/referral';
 import { content as defaultContent } from '../data';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -211,6 +214,15 @@ export interface CloudNotice {
   summary?: SaveSummary;
 }
 
+/** What the Invite sheet shows; the referral counters themselves live on the server. */
+export interface ReferralInfo {
+  available: boolean;
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  code: string | null;
+  /** Friends who installed from this player's link and filed their first Annual Audit. */
+  joined: number;
+}
+
 export interface GameStore {
   state: GameState;
   rates: Rates;
@@ -242,6 +254,8 @@ export interface GameStore {
   lastCosmic: { pointsGained: number } | null;
   cloud: CloudState;
   cloudNotice: CloudNotice | null;
+  /** Invite-and-share: Android only; `error` is the "couldn't reach the referral office" state. */
+  referralInfo: ReferralInfo;
   /** The letter Pip delivered, open in the popup until taken, declined or boosted by an ad. */
   pendingVisitor: VisitorLetter | null;
   /** Monotonic time Pip is next due; pushed forward whenever he is tapped or flies off. */
@@ -318,6 +332,12 @@ export interface GameStore {
   /** Explicit override: take the cloud's save, whichever run is further along. */
   restoreCloud(): Promise<CloudSyncResult>;
   dismissCloudNotice(): void;
+  /** Loads the player's referral code and genuine-join count for the Invite sheet. */
+  refreshReferral(): Promise<void>;
+  /** Opens the share sheet; pays the one-time reward when it resolves. True if it did. */
+  shareInvite(): Promise<boolean>;
+  /** Claims an invite tier by its friend count. */
+  claimReferralTier(friends: number): void;
   markMemosSeen(): void;
   /** Onboarding only ever moves forward, so a replayed step cannot rewind it. */
   advanceTraining(step: number): void;
@@ -341,6 +361,8 @@ export interface StoreDeps {
   billing?: Billing;
   gameServices?: GameServices;
   cloudSave?: CloudSave;
+  referral?: Referral;
+  sharer?: Sharer;
   audio?: Audio;
   /** Overrides `readForceEvent()` (tests). */
   forceEvent?: string | null;
@@ -362,6 +384,8 @@ export function createGameStore(deps: StoreDeps) {
   const billing = deps.billing ?? pickBilling();
   const gameServices = deps.gameServices ?? pickGameServices();
   const cloudSave = deps.cloudSave ?? pickCloudSave();
+  const referral = deps.referral ?? pickReferral();
+  const sharer = deps.sharer ?? pickSharer();
   const audio = deps.audio ?? pickAudio();
   const forceEvent = deps.forceEvent !== undefined ? deps.forceEvent : readForceEvent();
   const sfx = (name: SfxName) => audio.play(name);
@@ -504,7 +528,36 @@ export function createGameStore(deps: StoreDeps) {
       if (r.unlockedAch.length) sfx('achievement');
     };
 
-    const applySoundSettings = (s: GameState) => audio.setEnabled({ sfx: s.settings.sfx, music: s.settings.music });
+    /**
+     * Once the first Annual Audit is filed, tells the server this install's referral (if it
+     * has one) now counts for the friend who invited it. Retried on every audit and boot
+     * until the server answers; an install that was never invited never calls out.
+     */
+    const qualifyReferral = async () => {
+      const s = get().state;
+      if (!s.referral.joined || s.referral.qualified || s.stats.audits < 1) return;
+      if ((await referral.markQualified()) !== 'ok') return;
+      const cur = get().state;
+      apply({ ...cur, referral: { ...cur.referral, qualified: true } });
+      track('referral_qualified');
+      void get().save();
+    };
+
+    /** First launch: look at the Play install referrer once, and file a join if there is a code. */
+    const referralBoot = async () => {
+      if (!referral.available()) return;
+      if (!get().state.referral.joinChecked) {
+        const r = await referral.registerJoin();
+        if (r === 'error') return; // asked again next launch
+        const cur = get().state;
+        apply({ ...cur, referral: { ...cur.referral, joinChecked: true, joined: r === 'joined' } });
+        if (r === 'joined') track('referral_joined');
+        void get().save();
+      }
+      await qualifyReferral();
+    };
+
+    const applySoundSettings =(s: GameState) => audio.setEnabled({ sfx: s.settings.sfx, music: s.settings.music });
 
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 
@@ -903,6 +956,7 @@ export function createGameStore(deps: StoreDeps) {
         lastResult: 'none',
       },
       cloudNotice: null,
+      referralInfo: { available: referral.available(), status: 'idle', code: null, joined: 0 },
       leaderboardAvailable: gameServices.available() && lifetimeSoulsLeaderboardId() !== null,
       pendingVisitor: null,
       visitorDueMono: clock.mono() + VISITOR_FIRST_MS,
@@ -1042,6 +1096,8 @@ export function createGameStore(deps: StoreDeps) {
           // finds a suspended context: nothing else would rearm it until the next gesture.
           audio.resume();
           notifications.cancelAll().catch(() => {});
+          // Best-effort and off the boot path: a referral failure must not stall the office.
+          void referralBoot().catch(() => {});
         })();
         return booting;
       },
@@ -1245,6 +1301,7 @@ export function createGameStore(deps: StoreDeps) {
         });
         sfx('audit');
         track('level_up', { level: r.fiscalYear, character: 'office' });
+        void qualifyReferral().catch(() => {});
         submitLifetimeScore(get().state.soulsLifetime);
         void get().save();
       },
@@ -1596,6 +1653,43 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       dismissCloudNotice() { set({ cloudNotice: null }); },
+
+      async refreshReferral() {
+        if (!referral.available()) return;
+        set((cur) => ({ referralInfo: { ...cur.referralInfo, status: 'loading' } }));
+        const [code, joined] = await Promise.all([referral.myCode(), referral.countJoined()]);
+        set((cur) => ({
+          referralInfo: {
+            ...cur.referralInfo,
+            status: code !== null && joined !== null ? 'ready' : 'error',
+            code: code ?? cur.referralInfo.code,
+            joined: joined ?? cur.referralInfo.joined,
+          },
+        }));
+      },
+      async shareInvite() {
+        const code = get().referralInfo.code;
+        if (!code) return false;
+        const ok = await sharer.share(`${INVITE_PITCH}\n${referralLink(code)}`);
+        if (!ok) return false;
+        track('share', { method: 'system', content_type: 'invite' });
+        // Once ever: grantShareReward hands the state back untouched on a repeat share.
+        const s = get().state;
+        const next = grantShareReward(s);
+        if (next !== s) {
+          apply(next);
+          void get().save();
+        }
+        return true;
+      },
+      claimReferralTier(friends) {
+        const s = get().state;
+        const next = claimTier(s, friends, get().referralInfo.joined);
+        if (next === s) return;
+        apply(next);
+        track('referral_tier_claimed', { tier: friends });
+        void get().save();
+      },
 
       markMemosSeen() {
         const s = get().state;

@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     // In-repo plugins must be registered before the bridge starts.
     registerPlugin(CloudSavePlugin.class);
+    registerPlugin(ReferralPlugin.class);
     super.onCreate(savedInstanceState);
   }
 }

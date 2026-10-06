@@ -449,6 +449,7 @@ describe('exhaustive save round-trip', () => {
       cloud: { lastSyncWall: 1_700_000_444_000, lastResult: 'downloaded' },
       savedAtWall: 1_700_000_888_000,
       event: { key: 'halloween-2026', points: new Decimal('1.5e7'), earned: new Decimal('4e8'), staff: { 'hw-ghost': 4 }, claimed: [0, 1] },
+      referral: { shareRewarded: true, claimedTiers: [3, 10], joinChecked: true, joined: true, qualified: true },
     };
     const back = deserialize(serialize(s), content);
     expect(Object.keys(back).sort()).toEqual(Object.keys(s).sort());
@@ -458,6 +459,21 @@ describe('exhaustive save round-trip', () => {
       if (a instanceof Decimal) expect((b as Decimal).eq(a)).toBe(true);
       else expect(b).toEqual(a);
     }
+  });
+});
+
+describe('referral block', () => {
+  const fresh = createInitialState({ wall: 1, mono: 0 }, content);
+  it('migrates a v9 save to empty referral bookkeeping', () => {
+    const raw = JSON.parse(serialize(fresh));
+    delete raw.referral;
+    raw.saveVersion = 9;
+    expect(deserialize(JSON.stringify(raw), content).referral).toEqual(fresh.referral);
+  });
+  it('sanitises garbage: unknown tiers and duplicates dropped, non-booleans ignored', () => {
+    const raw = JSON.parse(serialize(fresh));
+    raw.referral = { shareRewarded: 'yes', claimedTiers: [3, 3, 4, 'x', 10], joined: 1 };
+    expect(deserialize(JSON.stringify(raw), content).referral).toEqual({ ...fresh.referral, claimedTiers: [3, 10] });
   });
 });
 

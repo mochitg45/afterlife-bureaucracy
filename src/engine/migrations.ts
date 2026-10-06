@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 /**
  * Bumped once, by hand, whenever the owner wants every existing save wiped for a fresh test
@@ -124,6 +124,11 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
   // 8 -> 9: timed events. No event is in progress in a save from before they existed;
   // the first settle opens whichever one is running.
   (raw) => ({ ...raw, event: null }),
+  // 9 -> 10: invite-and-share bookkeeping. Nothing was shared, joined or claimed before.
+  (raw) => ({
+    ...raw,
+    referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
+  }),
 ];
 
 function num(v: unknown): number {

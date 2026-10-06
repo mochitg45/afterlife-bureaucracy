@@ -1,0 +1,69 @@
+rules_version = '2';
+
+// Referral backend for Afterlife Bureaucracy. See docs/referrals.md for the model.
+// Everyone is an anonymous Firebase user; App Check (Play Integrity) is enforced separately.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // A player's invite code: 8 chars from the unambiguous alphabet (no 0/O, 1/I, L).
+    // Created once by its owner, never changed. Readable one at a time (get), never listed,
+    // so codes cannot be enumerated.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && code.matches('[A-HJKMNP-Z2-9]{8}')
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // One doc per physical device (hash of ANDROID_ID), create-only and unreadable: a device
+    // can be referred once, so uninstall/reinstall/new-account farming pays nothing.
+    match /devices/{deviceHash} {
+      allow get, list: if false;
+      allow create: if signedIn()
+        && deviceHash.matches('[0-9a-f]{64}')
+        && request.resource.data.keys().hasOnly(['uid', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.at == request.time;
+      allow update, delete: if false;
+    }
+
+    // One doc per invited install, keyed by the invitee's uid.
+    match /referrals/{inviteeUid} {
+      // Created by the invitee only, unqualified, naming someone else as inviter, and only in
+      // the same commit that creates the matching device doc (getAfter sees that doc).
+      allow create: if signedIn()
+        && request.auth.uid == inviteeUid
+        && request.resource.data.keys().hasOnly(['inviterUid', 'deviceHash', 'qualified', 'createdAt'])
+        && request.resource.data.inviterUid is string
+        && request.resource.data.inviterUid != request.auth.uid
+        && request.resource.data.deviceHash is string
+        && request.resource.data.qualified == false
+        && request.resource.data.createdAt == request.time
+        && getAfter(/databases/$(database)/documents/devices/$(request.resource.data.deviceHash)).data.uid == request.auth.uid;
+
+      // The invitee flips qualified false -> true, touching nothing else.
+      allow update: if signedIn()
+        && request.auth.uid == inviteeUid
+        && resource.data.qualified == false
+        && request.resource.data.qualified == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['qualified']);
+
+      allow delete: if false;
+      allow get: if false;
+
+      // The inviter counts their own joins: the query must filter on inviterUid == own uid.
+      allow list: if signedIn() && resource.data.inviterUid == request.auth.uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

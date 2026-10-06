@@ -3,6 +3,7 @@ import { migrate, SAVE_VERSION, RESET_EPOCH } from './migrations';
 import { clampEquipped } from './gacha';
 import { TIP_IDS, type Content } from './content';
 import type { CloudSyncResult } from './cloudSync';
+import { REFERRAL_TIERS } from './referral';
 
 export { SAVE_VERSION, RESET_EPOCH };
 
@@ -115,6 +116,23 @@ export interface EventState {
   claimed: number[];
 }
 
+/**
+ * Invite-and-share bookkeeping. Kept across a reset epoch like purchases: a reward the
+ * player already took must not be earnable twice.
+ */
+export interface ReferralState {
+  /** The one-time share reward has been paid. */
+  shareRewarded: boolean;
+  /** Tiers (by friend count) already claimed. */
+  claimedTiers: number[];
+  /** This install has looked at its Play install referrer, so it is not asked again. */
+  joinChecked: boolean;
+  /** This install joined through a friend's link and filed a referral record. */
+  joined: boolean;
+  /** The friend's record has been flipped to qualified after the first Annual Audit. */
+  qualified: boolean;
+}
+
 export interface GameState {
   saveVersion: number;
   /** See `RESET_EPOCH`: a save below the current epoch is loaded as a fresh game. */
@@ -166,6 +184,7 @@ export interface GameState {
   savedAtWall: number;
   /** The event occurrence in progress, or null between events. */
   event: EventState | null;
+  referral: ReferralState;
 }
 
 export interface Now { wall: number; mono: number }
@@ -234,6 +253,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     cloud: { lastSyncWall: 0, lastResult: 'none' },
     savedAtWall: 0,
     event: null,
+    referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
 
@@ -483,6 +503,20 @@ function sanitizeEvent(v: unknown): EventState | null {
   return { key: raw.key, points: Decimal.min(dec(raw.points), earned), earned, staff: counts(raw.staff), claimed };
 }
 
+function sanitizeReferral(v: unknown): ReferralState {
+  const raw = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  const tiers = new Set(REFERRAL_TIERS.map((t) => t.friends));
+  return {
+    shareRewarded: bool(raw.shareRewarded, false),
+    claimedTiers: Array.isArray(raw.claimedTiers)
+      ? [...new Set((raw.claimedTiers as unknown[]).filter((n): n is number => typeof n === 'number' && tiers.has(n)))]
+      : [],
+    joinChecked: bool(raw.joinChecked, false),
+    joined: bool(raw.joined, false),
+    qualified: bool(raw.qualified, false),
+  };
+}
+
 /**
  * Reads `resetEpoch` straight off a raw save payload, without running it through `migrate` or
  * `deserialize` -- so the cloud-sync guard can tell a stale snapshot apart from one that has
@@ -511,6 +545,7 @@ function applyResetEpoch(raw: Record<string, unknown>, content: Content): GameSt
     entitlements: sanitizeEntitlements(raw.entitlements),
     settings: sanitizeSettings(raw.settings),
     adState: sanitizeAdState(raw.adState),
+    referral: sanitizeReferral(raw.referral),
   };
 }
 
@@ -606,5 +641,6 @@ export function deserialize(json: string, content: Content): GameState {
     cloud: sanitizeCloud(raw.cloud),
     savedAtWall: nonNeg(raw.savedAtWall),
     event: sanitizeEvent(raw.event),
+    referral: sanitizeReferral(raw.referral),
   }, content);
 }
