@@ -15,20 +15,20 @@ import { KarmaIcon } from '../icons/Currency';
 import './PullReveal.css';
 
 /**
- * Reveal timeline (ms). Must stay in step with PullReveal.css: the form slides up, the stamp
- * lands at STAMP_HIT_MS, then the pull's best card gets the spotlight from SPOT_START_MS: it
- * shakes while rays build (longer and harder the rarer it is), flips at the end of the build,
- * holds for its banner, and fades. The grid of every result then flips in, STAGGER_MS apart,
- * CARD_MS each.
+ * Reveal timeline (ms). Must stay in step with PullReveal.css: the form slides up and the stamp
+ * lands at STAMP_HIT_MS; at CARDS_START_MS every card is on the table face down, and they turn
+ * over one at a time. Temp and Full-Time cards flip in place, STEP_MS apart. Senior and
+ * Executive cards take the spotlight on their turn (build, flip, hold), then land in the grid.
  */
 const STAMP_HIT_MS = 330;
-const SPOT_START_MS = 560;
+const CARDS_START_MS = 560;
+const STEP_MS: Record<Rarity, number> = { temp: 260, fulltime: 380, senior: 0, executive: 0 };
+const FLIP_TAIL_MS = 420; // the last in-place flip and its NEW stamp settling
 const SPOT_FLIP_MS = 450;
 const SPOT_BUILD_MS: Record<Rarity, number> = { temp: 300, fulltime: 450, senior: 800, executive: 1300 };
 const SPOT_HOLD_MS: Record<Rarity, number> = { temp: 450, fulltime: 550, senior: 850, executive: 1250 };
-const STAGGER_MS = 70;
-const CARD_MS = 520; // card flip plus the NEW stamp that lands after it
 const REDUCED_MS = 220;
+const hasSpot = (r: Rarity) => r === 'senior' || r === 'executive';
 const RARITY_ORDER = ['executive', 'senior', 'fulltime', 'temp'] as const;
 type Rarity = CardDef['rarity'];
 /** Spark count of the flip burst. */
@@ -87,18 +87,20 @@ function RevealBody({ results }: { results: PullResult[] }) {
   // choreography until the game is back on screen, or it would finish unseen behind the ad.
   const [onScreen, setOnScreen] = useState(() => typeof document === 'undefined' || document.visibilityState === 'visible');
   const grid = results.length > 1;
-  const best = results[bestIndex(results)];
-  const bestRarity = best.rarity;
-  const flipAt = SPOT_START_MS + SPOT_BUILD_MS[bestRarity];
-  const gridStart = flipAt + SPOT_FLIP_MS + SPOT_HOLD_MS[bestRarity];
-  const [spotOn, setSpotOn] = useState(true);
+  const bestRarity = results[bestIndex(results)].rarity;
+  /** Cards face up so far, and which one (if any) is in the spotlight right now. */
+  const [revealed, setRevealed] = useState(0);
+  const [spot, setSpot] = useState<number | null>(null);
   const [stung, setStung] = useState(false);
-  // The rarity sting belongs to the moment the best card turns over, or to the skip/fade-in.
+  const sting = (r: Rarity) => {
+    setStung(true);
+    useGame.getState().audio?.play(('reveal-' + r) as SfxName);
+  };
+  // Skipped (or reduced motion) before any sting played: the pull's best one, once.
   useEffect(() => {
     if (stung || !onScreen) return;
     if (playing && !reduced) return;
-    setStung(true);
-    useGame.getState().audio?.play(('reveal-' + bestRarity) as SfxName);
+    sting(bestRarity);
   }, [stung, onScreen, playing, reduced, bestRarity]);
 
   useEffect(() => {
@@ -116,20 +118,34 @@ function RevealBody({ results }: { results: PullResult[] }) {
 
   useEffect(() => {
     if (!playing || !onScreen) return;
-    const total = reduced ? REDUCED_MS : gridStart + (results.length - 1) * STAGGER_MS + CARD_MS;
-    const timers = [setTimeout(() => setPlaying(false), total)];
-    // No slam under reduced motion, so no thunk either.
-    if (!reduced) {
-      timers.push(setTimeout(() => useGame.getState().audio?.play('stamp'), STAMP_HIT_MS));
-      timers.push(setTimeout(() => {
-        setStung(true);
-        useGame.getState().audio?.play(('reveal-' + bestRarity) as SfxName);
-      }, flipAt + SPOT_FLIP_MS * 0.4));
-      timers.push(setTimeout(() => setSpotOn(false), gridStart));
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
+    if (reduced) {
+      at(REDUCED_MS, () => setPlaying(false));
+    } else {
+      at(STAMP_HIT_MS, () => useGame.getState().audio?.play('stamp'));
+      let time = CARDS_START_MS;
+      let spotted = false;
+      results.forEach((r, i) => {
+        if (hasSpot(r.rarity)) {
+          spotted = true;
+          const flipAt = time + SPOT_BUILD_MS[r.rarity];
+          at(time, () => setSpot(i));
+          at(flipAt + SPOT_FLIP_MS * 0.4, () => sting(r.rarity));
+          time = flipAt + SPOT_FLIP_MS + SPOT_HOLD_MS[r.rarity];
+          at(time, () => { setSpot(null); setRevealed(i + 1); });
+        } else {
+          at(time, () => setRevealed(i + 1));
+          time += STEP_MS[r.rarity];
+        }
+      });
+      // No spotlight in this pull: the best card's sting rings as the last card turns.
+      if (!spotted) at(time - STEP_MS[results[results.length - 1].rarity], () => sting(bestRarity));
+      at(time + FLIP_TAIL_MS, () => setPlaying(false));
     }
-    // A tap anywhere while it plays jumps to the end state instead of acting on what was hit:
-    // capture on document runs before React's own listener, so the Back button is not pressed
-    // by the same tap that skipped.
+    // A tap anywhere while it plays turns every card at once instead of acting on what was hit:
+    // capture on document runs before React's own listener, so Done is not pressed by the same
+    // tap that skipped.
     const skip = (e: MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
@@ -140,14 +156,15 @@ function RevealBody({ results }: { results: PullResult[] }) {
       timers.forEach(clearTimeout);
       document.removeEventListener('click', skip, true);
     };
-  }, [playing, onScreen, reduced, results.length, gridStart, flipAt, bestRarity]);
+    // sting is stable in effect: it only sets state and plays a sound.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, onScreen, reduced, results, bestRarity]);
 
-  // reveal-motion drives the full choreography; reveal-fade is the reduced-motion stand-in.
-  // Dropping either class is the fast-forward: every element's resting style is its end state.
+  const animating = playing && onScreen && !reduced;
   const cls = 'reveal' + (playing ? (!onScreen ? ' reveal-waiting' : reduced ? ' reveal-fade' : ' reveal-motion') : '');
   return (
     <Modal open title={t('pull.title')} className={cls}>
-      {playing && onScreen && !reduced && (
+      {animating && (
         <div className="reveal-intro" aria-hidden="true">
           <div className="reveal-form">
             <div className="reveal-form-title">{t('pull.form')}</div>
@@ -158,25 +175,29 @@ function RevealBody({ results }: { results: PullResult[] }) {
           </div>
         </div>
       )}
-      {playing && onScreen && !reduced && spotOn && createPortal(
-        <Spotlight card={findCard(content, best.cardId)} />,
+      {animating && spot !== null && createPortal(
+        <Spotlight key={spot} card={findCard(content, results[spot].cardId)} />,
         document.body,
       )}
-      <div className={grid ? 'reveal-grid' : 'reveal-list'} style={{ '--start': `${gridStart}ms` } as CSSProperties}>
-        {results.map((r, i) => (
-          <div
-            key={i}
-            className={(grid ? 'reveal-cell' : 'reveal-row') + glowClass(r)}
-            style={{ '--i': i } as CSSProperties}
-          >
-            <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} size={grid ? 40 : 48} />
-            <span className={'mono' + (grid ? ' reveal-cell-label' : '')}>{resultLabel(r)}</span>
-            {r.pityTriggered && <span className="sub brass">{t('pull.guaranteed')}</span>}
-          </div>
-        ))}
+      <div className={grid ? 'reveal-grid' : 'reveal-list'}>
+        {results.map((r, i) => {
+          const faceUp = !animating || i < revealed;
+          return (
+            <div
+              key={i}
+              className={(grid ? 'reveal-cell' : 'reveal-row') + (faceUp ? glowClass(r) + (animating ? ' flip-in' : '') : ' face-down')}
+              style={{ '--i': i } as CSSProperties}
+            >
+              <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} size={grid ? 40 : 48} />
+              <span className={'mono' + (grid ? ' reveal-cell-label' : '')}>{resultLabel(r)}</span>
+              {r.pityTriggered && <span className="sub brass">{t('pull.guaranteed')}</span>}
+            </div>
+          );
+        })}
       </div>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={dismissPull}>{t('pull.done')}</button>
+        {/* While cards are turning, the button skips (via the document listener); after, it closes. */}
+        <button className="btn btn-primary" onClick={playing ? undefined : dismissPull}>{t(playing ? 'pull.skip' : 'pull.done')}</button>
       </div>
     </Modal>
   );
@@ -192,7 +213,7 @@ function RevealBody({ results }: { results: PullResult[] }) {
 function Spotlight({ card }: { card: CardDef }) {
   const r = card.rarity;
   const style = {
-    '--spot-start': `${SPOT_START_MS}ms`,
+    '--spot-start': '0ms',
     '--build': `${SPOT_BUILD_MS[r]}ms`,
     '--flip': `${SPOT_FLIP_MS}ms`,
     '--hold': `${SPOT_HOLD_MS[r]}ms`,

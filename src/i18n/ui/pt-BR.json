@@ -349,6 +349,7 @@
  "pull.stamp": "Aprovada",
  "pull.guaranteed": "Garantida",
  "pull.done": "Pronto",
+ "pull.skip": "Pular",
  "save.copied": "Copiado para a área de transferência.",
  "save.clipboard": "A área de transferência recusou. Selecione o código e copie na mão.",
  "save.imported": "Save importado.",

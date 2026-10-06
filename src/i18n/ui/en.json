@@ -349,6 +349,7 @@
  "pull.stamp": "Approved",
  "pull.guaranteed": "Guaranteed",
  "pull.done": "Done",
+ "pull.skip": "Skip",
  "save.copied": "Copied to the clipboard.",
  "save.clipboard": "The clipboard refused. Select the code and copy it by hand.",
  "save.imported": "Save imported.",

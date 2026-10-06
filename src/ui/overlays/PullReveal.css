@@ -43,15 +43,24 @@
   100% { transform: rotate(-14deg) scale(1); }
 }
 
-/* Cards: one at a time, 70ms apart, flipping in from a slight scale (never scale(0)). */
-.reveal-motion .reveal-cell,
-.reveal-motion .reveal-row {
-  animation: reveal-card-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: calc(var(--start, 560ms) + var(--i) * 70ms);
+/* Cards: dealt face down, then each turns over on its turn (.flip-in is added as it does). */
+.reveal-cell, .reveal-row { position: relative; }
+.face-down > * { visibility: hidden; }
+.face-down::after {
+  content: 'A·B'; position: absolute; inset: 2px; display: grid; place-items: center; border-radius: 10px;
+  border: 2px solid var(--brass); color: rgb(255 244 200 / 0.85);
+  font-family: var(--font-display); font-size: 15px; letter-spacing: 0.08em;
+  background:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 0.06) 0 5px, transparent 5px 10px),
+    radial-gradient(circle at 50% 45%, #7a4a2a, #3a2416 75%);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.25);
 }
+.reveal-motion .face-down::after { animation: reveal-deal 260ms var(--ease-out) backwards; animation-delay: calc(500ms + var(--i) * 30ms); }
+@keyframes reveal-deal { from { opacity: 0; transform: translateY(-14px) scale(0.9); } }
+.flip-in { animation: reveal-card-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 @keyframes reveal-card-in {
-  from { opacity: 0; transform: perspective(600px) rotateY(-75deg) scale(0.92); }
-  to { opacity: 1; transform: perspective(600px) rotateY(0deg) scale(1); }
+  0% { transform: perspective(600px) rotateY(-90deg) scale(0.95); }
+  100% { transform: perspective(600px) rotateY(0deg) scale(1); }
 }
 
 /* Rarity burst: a radial pulse behind the card in its rarity colour, bigger for the rarer ones. */
@@ -67,8 +76,8 @@
   opacity: 0;
 }
 .glow-exec::before { inset: -6px; background: radial-gradient(circle, rgb(var(--glow) / 1), rgb(var(--glow) / 0.6) 40%, rgb(var(--glow) / 0) 72%); }
-.reveal-motion .glow::before { animation: reveal-glow 620ms var(--ease-out) backwards; animation-delay: calc(var(--start, 560ms) + 40ms + var(--i) * 70ms); }
-.reveal-motion .glow-exec::before { animation-name: reveal-glow-big; animation-duration: 900ms; }
+.flip-in.glow::before { animation: reveal-glow 620ms var(--ease-out) 60ms backwards; }
+.flip-in.glow-exec::before { animation-name: reveal-glow-big; animation-duration: 900ms; }
 @keyframes reveal-glow {
   0% { opacity: 0; transform: scale(0.6); }
   30% { opacity: 1; }
@@ -86,7 +95,7 @@
   color: var(--red); font-weight: 700; letter-spacing: 0.06em; line-height: 1.3;
   transform: rotate(-6deg);
 }
-.reveal-motion .reveal-new { animation: reveal-new-thunk 240ms var(--ease-out) backwards; animation-delay: calc(var(--start, 560ms) + 260ms + var(--i) * 70ms); }
+.flip-in .reveal-new { animation: reveal-new-thunk 240ms var(--ease-out) 220ms backwards; }
 @keyframes reveal-new-thunk {
   0% { opacity: 0; transform: rotate(-6deg) scale(1.8); }
   60% { opacity: 1; transform: rotate(-6deg) scale(0.92); }

@@ -27,6 +27,9 @@ describe('PullReveal', () => {
     ]);
     render(<PullReveal />);
     const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+    // The first tap only turns every card over; the second one dismisses.
+    fireEvent.click(screen.getByRole('button', { name: /^skip$/i }));
+    expect(useGame.getState().pendingPull).not.toBeNull();
     expect(screen.getByText('NEW')).toBeInTheDocument();
     // The duplicate payout shows the Karma icon and keeps "KC" for screen readers.
     const kcLabel = screen.getByText(/\+6,000/);
@@ -36,9 +39,6 @@ describe('PullReveal', () => {
     expect(screen.getByText('Guaranteed')).toBeInTheDocument();
     expect(dialog.querySelector('.foil')).toBeInTheDocument();
 
-    // The first tap only fast-forwards the reveal; the second one dismisses.
-    fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
-    expect(useGame.getState().pendingPull).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
     expect(useGame.getState().pendingPull).toBeNull();
   });
@@ -72,7 +72,7 @@ describe('PullReveal', () => {
 
       act(() => { vi.advanceTimersByTime(400); });
       expect(play).toHaveBeenCalledWith('stamp');
-      act(() => { vi.advanceTimersByTime(5000); });
+      act(() => { vi.advanceTimersByTime(30000); });
       expect(dialog).not.toHaveClass('reveal-motion');
       expect(dialog.querySelector('.reveal-intro')).toBeNull();
       expect(vi.getTimerCount()).toBe(0);
@@ -101,40 +101,62 @@ describe('PullReveal', () => {
       const play = vi.spyOn(useGame.getState().audio, 'play');
       render(<PullReveal />);
       const dialog = screen.getByRole('dialog', { name: /requisition results/i });
-      // The reveal owns four timers (settle, stamp thunk, rarity sting, spotlight off); the skip cancels all.
-      const pending = vi.getTimerCount();
+      // The skip cancels every timer the reveal scheduled: nothing turns or rings afterwards.
       fireEvent.click(dialog);
       expect(dialog).not.toHaveClass('reveal-motion');
       expect(dialog.querySelector('.reveal-intro')).toBeNull();
       expect(dialog.querySelectorAll('.reveal-cell')).toHaveLength(10);
-      expect(vi.getTimerCount()).toBe(pending - 4);
       expect(document.querySelector('.spot')).toBeNull();
+      expect(dialog.querySelector('.face-down')).toBeNull();
       // Skipped before the slam, so no stamp sound after the fact.
-      act(() => { vi.advanceTimersByTime(3000); });
+      act(() => { vi.advanceTimersByTime(30000); });
       expect(play).not.toHaveBeenCalledWith('stamp');
+      expect(document.querySelector('.spot')).toBeNull();
+      expect(play.mock.calls.filter(([n]) => String(n).startsWith('reveal-'))).toHaveLength(1);
       // Once settled, taps reach the UI again.
       fireEvent.click(screen.getByRole('button', { name: /^done$/i }));
       expect(useGame.getState().pendingPull).toBeNull();
       play.mockRestore();
     });
 
-    it('spotlights the rarest card in its rarity colour and plays its sting on the flip', () => {
-      const pull = tenPull();
-      pull[6] = { ...pull[6], cardId: 'c-keeper', rarity: 'executive' };
-      seed(pull);
+    function tempsWithExecAt(i: number): PullResult[] {
+      const temp = content.cards.find((c) => c.rarity === 'temp')!;
+      const pull = Array.from({ length: 10 }, (): PullResult => ({ cardId: temp.id, rarity: 'temp', starsAfter: 1, duplicateKc: null, pityTriggered: null, shards: 0, shardsNeeded: 2, spareGained: false }));
+      pull[i] = { ...pull[i], cardId: 'c-keeper', rarity: 'executive' };
+      return pull;
+    }
+
+    it('deals every card face down, then turns them over one at a time', () => {
+      seed(tempsWithExecAt(3));
+      render(<PullReveal />);
+      const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+      expect(dialog.querySelectorAll('.face-down')).toHaveLength(10);
+      expect(screen.getByRole('button', { name: /^skip$/i })).toBeInTheDocument();
+      act(() => { vi.advanceTimersByTime(1000); }); // cards 0 and 1 turned (560, 820 ms)
+      expect(dialog.querySelectorAll('.face-down')).toHaveLength(8);
+      expect(dialog.querySelectorAll('.flip-in')).toHaveLength(2);
+    });
+
+    it('gives an Executive the spotlight on its turn, with its sting on the flip', () => {
+      seed(tempsWithExecAt(3));
       const play = vi.spyOn(useGame.getState().audio, 'play');
       render(<PullReveal />);
+      const dialog = screen.getByRole('dialog', { name: /requisition results/i });
+      act(() => { vi.advanceTimersByTime(1300); });
+      expect(document.querySelector('.spot')).toBeNull();
+      act(() => { vi.advanceTimersByTime(100); }); // card 3's turn at 560 + 3 * 260 = 1340 ms
       const spot = document.querySelector('.spot');
       expect(spot).toHaveClass('spot-executive');
       expect(spot).toHaveTextContent('Executive');
-      act(() => { vi.advanceTimersByTime(1500); });
       expect(play).not.toHaveBeenCalledWith('reveal-executive');
-      act(() => { vi.advanceTimersByTime(800); }); // build ends at 560 + 1300 = 1860ms, flip turns ~180ms later
+      act(() => { vi.advanceTimersByTime(1500); }); // flip at 1340 + 1300, sting ~180 ms in
       expect(play).toHaveBeenCalledWith('reveal-executive');
-      act(() => { vi.advanceTimersByTime(1400); });
+      act(() => { vi.advanceTimersByTime(1600); }); // spotlight done at 1340 + 3000
       expect(document.querySelector('.spot')).toBeNull();
-      act(() => { vi.advanceTimersByTime(3000); });
-      expect(play.mock.calls.filter(([n]) => n === 'reveal-executive')).toHaveLength(1);
+      expect(dialog.querySelectorAll('.reveal-cell')[3]).not.toHaveClass('face-down');
+      act(() => { vi.advanceTimersByTime(10000); });
+      expect(dialog).not.toHaveClass('reveal-motion');
+      expect(play.mock.calls.filter(([n]) => String(n).startsWith('reveal-'))).toHaveLength(1);
       play.mockRestore();
     });
 
@@ -142,7 +164,8 @@ describe('PullReveal', () => {
       seed(tenPull());
       const play = vi.spyOn(useGame.getState().audio, 'play');
       render(<PullReveal />);
-      fireEvent.click(screen.getByRole('dialog', { name: /requisition results/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^skip$/i }));
+      expect(screen.getByRole('button', { name: /^done$/i })).toBeInTheDocument();
       act(() => { vi.advanceTimersByTime(5000); });
       expect(play.mock.calls.filter(([n]) => String(n).startsWith('reveal-'))).toHaveLength(1);
       play.mockRestore();

@@ -349,6 +349,7 @@
  "pull.stamp": "อนุมัติ",
  "pull.guaranteed": "รับประกัน",
  "pull.done": "เสร็จ",
+ "pull.skip": "ข้าม",
  "save.copied": "คัดลอกไปยังคลิปบอร์ดแล้ว",
  "save.clipboard": "คลิปบอร์ดไม่ยอม เลือกโค้ดแล้วคัดลอกเองนะ",
  "save.imported": "นำเข้าเซฟแล้ว",

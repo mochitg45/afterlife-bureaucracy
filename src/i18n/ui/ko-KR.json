@@ -349,6 +349,7 @@
  "pull.stamp": "승인",
  "pull.guaranteed": "확정",
  "pull.done": "완료",
+ "pull.skip": "건너뛰기",
  "save.copied": "클립보드에 복사했어요.",
  "save.clipboard": "클립보드가 거부했어요. 코드를 선택해서 직접 복사해 주세요.",
  "save.imported": "세이브를 불러왔어요.",

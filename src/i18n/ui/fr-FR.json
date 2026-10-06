@@ -349,6 +349,7 @@
  "pull.stamp": "Approuvé",
  "pull.guaranteed": "Garanti",
  "pull.done": "Terminé",
+ "pull.skip": "Passer",
  "save.copied": "Copié dans le presse-papiers.",
  "save.clipboard": "Le presse-papiers a refusé. Sélectionne le code et copie-le à la main.",
  "save.imported": "Sauvegarde importée.",

@@ -349,6 +349,7 @@
  "pull.stamp": "Aprobada",
  "pull.guaranteed": "Garantizada",
  "pull.done": "Listo",
+ "pull.skip": "Saltar",
  "save.copied": "Copiado al portapapeles.",
  "save.clipboard": "El portapapeles se negó. Selecciona el código y cópialo a mano.",
  "save.imported": "Partida importada.",

@@ -349,6 +349,7 @@
  "pull.stamp": "承認済み",
  "pull.guaranteed": "確定",
  "pull.done": "完了",
+ "pull.skip": "スキップ",
  "save.copied": "クリップボードにコピーしました。",
  "save.clipboard": "クリップボードに拒否されました。コードを選択して手動でコピーしてください。",
  "save.imported": "セーブを読み込みました。",

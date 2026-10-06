@@ -349,6 +349,7 @@
  "pull.stamp": "Genehmigt",
  "pull.guaranteed": "Garantiert",
  "pull.done": "Fertig",
+ "pull.skip": "Überspringen",
  "save.copied": "In die Zwischenablage kopiert.",
  "save.clipboard": "Die Zwischenablage hat abgelehnt. Markiere den Code und kopiere ihn von Hand.",
  "save.imported": "Spielstand importiert.",
