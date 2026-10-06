@@ -24,7 +24,7 @@ Register: Brazilian Portuguese, casual, "você". Terms reused from `docs/store/t
 | Clause | Cláusula | |
 | Overflow Drops | Gotas de Transbordo | weekly event currency |
 | Overflow Department | Departamento de Transbordo | |
-| Candy Corn | Candy Corn | kept as is (Halloween currency) |
+| Candy Corn | Balinhas | Halloween currency; local trick-or-treat sweets (was kept in English) |
 | Gift Tags | Etiquetas de Presente | Christmas |
 | Confetti | Confete | New Year |
 | Love Letters | Cartas de Amor | Valentine |
@@ -71,4 +71,16 @@ Register: Brazilian Portuguese, casual, "você". Terms reused from `docs/store/t
 - Beach Purgatory: Purgatório de Praia
 
 ## Names kept
-Dave, Seraphine, Gary, Petra, Malphas, Melodia, Pemberton, Ferro, Nadia, Lilith, Bev, Grax, Vassago, Brynhildr, Krampus, Poseidon, Jack O'Clerk, and all soul/pet names.
+Dave, Seraphine, Gary, Petra, Malphas, Melodia, Pemberton, Ferro, Nadia, Lilith, Bev, Grax, Vassago, Brynhildr, Krampus, Poseidon, and all soul/pet names.
+
+## Localized (not literal)
+- Candy Corn -> Balinhas: candy corn is unknown in Brazil; "balinhas" is what kids collect at doce-ou-travessura (currency, 1 string).
+- Jack O'Clerk -> Escriturário Abóbora: English pun dropped; follows the "Escriturário <animal/thing>" naming used by other event staff.
+- Count Overdraft: Conde Saldo Negativo -> Conde Cheque Especial: "cheque especial" is the Brazilian overdraft everyone dreads.
+- Cloud Nine Staffing: Nuvem Nove Terceirizada -> Sétimo Céu Terceirizados ("sétimo céu" is the local idiom for cloud nine); achievement a-seraphine-2 now "Hora Extra no Sétimo Céu" (5 strings).
+- PC LOAD LETTER -> IMPRESSORA OFFLINE: the classic Brazilian printer complaint (2 strings).
+- Saint Nick -> Papai Noel, Auditor: Papai Noel is the name every Brazilian uses.
+- "admin access / it's for a friend" gags (#31337, 2 strings): "é pra um amigo" / "só pra testar" in casual spoken register.
+- "X Deep" achievements: "de Fundura" (literal, nonsense in pt-BR) -> "na Conta" (2 strings).
+- Casual Friday banner: "Dress Code: Eterno" -> "Traje Livre: Eterno".
+- Kept on purpose: upgrade, backlog, call, QA, KPI, Wi-Fi (standard in Brazilian gaming/office talk).

@@ -11,8 +11,8 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 | Annual Audit / Audit | Audit Tahunan / Audit |
 | Fiscal Year | Tahun Fiskal |
 | Requisition (gacha pull) | Requisisi (tarikan) |
-| Perk | Perk |
-| Perk Ledger / the Ledger | Buku Besar Perk / Buku Besar |
+| Perk | Tunjangan |
+| Perk Ledger / the Ledger | Buku Besar Tunjangan / Buku Besar |
 | Department | Departemen |
 | Soul | Jiwa (nomor tetap: Jiwa #30001) |
 | Staff | Staf |
@@ -22,7 +22,7 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 | Daily tasks | Tugas harian |
 | Skip token | Token lewat |
 | Equip | Pasang |
-| Run (prestige reset) | run |
+| Run (prestige reset) | putaran |
 | Offline cap / rate | Batas offline / Laju offline |
 | Output | Output |
 | Throughput | Throughput |
@@ -34,7 +34,7 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 | Executive | Eksekutif |
 | Senior Staff | Staf Senior |
 | Full-Time | Karyawan Tetap |
-| Temp | Temp |
+| Temp | Honorer |
 
 ## Restrukturisasi Kosmik
 | English | Indonesia |
@@ -52,15 +52,15 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 | Hell Compliance | Kepatuhan Neraka |
 | Limbo Records | Arsip Limbo |
 | Reincarnation Desk | Meja Reinkarnasi |
-| Valhalla Intake Annex | Annex Intake Valhalla |
+| Valhalla Intake Annex | Cabang Intake Valhalla |
 
 ## Event spesial dan mata uang
 | English | Indonesia |
 |---|---|
 | Night of the Living Paperwork | Malam Berkas Berjalan |
-| Candy Corn (Halloween) | Candy Corn (tetap, nama permen) |
-| Haunted Records Annex | Annex Arsip Berhantu |
-| Holiday Overtime (Christmas) | Lembur Hari Raya |
+| Candy Corn (Halloween) | Permen Labu |
+| Haunted Records Annex | Cabang Arsip Berhantu |
+| Holiday Overtime (Christmas) | Lembur Natal |
 | Gift Tags | Label Hadiah |
 | North Pole Processing | Pemrosesan Kutub Utara |
 | Fiscal New Year | Tahun Baru Fiskal |
@@ -96,3 +96,50 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 - Awalan memo/pengumuman: MEMO, PENGUMUMAN (NOTICE), INSIDEN (INCIDENT), PENGINGAT (REMINDER), TANDA AUDIT (AUDIT FLAG). Tag seperti (FY2+) dibiarkan.
 - Placeholder ({n}, {next}, {pull}, {ten}, {free}, {pity}, {card}, {need}) tidak diubah.
 - Teknis: pada kata kerja bahasa Inggris "file" dipakai "ngefile/difile" (umum di kantor Indonesia).
+
+## Localized (not literal)
+Gaya: lokal, bukan terjemahan harfiah. Nama depan karakter tidak diubah. "Koin Overflow" dan "Departemen Overflow" tetap (keputusan user).
+
+| Sebelum | Sesudah | Alasan |
+|---|---|---|
+| Candy Corn (mata uang Halloween) | Permen Labu | Candy corn tidak dikenal di Indonesia; "Permen Labu" langsung paham |
+| Temp Trick-or-Treat | Honorer Minta Permen | Trick-or-treat tidak lazim di sini |
+| Pengumpul Permen | Pengumpul Permen Labu | Konsisten dengan mata uang |
+| Cloud Nine Staffing / Awan Sembilan | Langit Ketujuh Outsourcing / Langit Ketujuh | "Cloud nine" = idiom "langit ketujuh" |
+| PC LOAD LETTER (2 string printer) | PRINTER OFFLINE | Keluhan printer kantor paling dikenal di Indonesia |
+| Soul #31337 "akses admin dong, buat temen" / "minta akses admin" | "...titipan orang dalam" / "...katanya 'orang dalam'" | Gag hacker diganti budaya "orang dalam" |
+| Boo-rokrat | Birokrat Gaib | Plesetan lokal untuk hantu birokrat |
+| Jack O'Klerk | Klerk Labu Ukir | Pun jack-o'-lantern tidak jalan; deskriptif |
+| Count Saldo Minus | Drakula Saldo Minus | Vampir yang dikenal lokal: Drakula |
+| Santo Nick, Auditor | Sinterklas, Auditor | Nama lokal Santa |
+| Lembur Hari Raya | Lembur Natal | "Hari Raya" ambigu (Lebaran) |
+| Penulis Soneta / pentameter iambik | Penulis Pantun / bentuk pantun | Pantun adalah bentuk puisi lokal |
+| Yee-haw (2 string) | Hiyaa | Seruan koboi tidak dikenal |
+| stapler "nggak nemu stapler" (hantu) | "nyasar cari ruang rapat" | Ref. Office Space; ganti gag kantor lokal |
+| stapler "seantusias ini sama stapler" (2 string) | "...sama stempel" | Sama |
+| casserole | rantang | Makanan bawaan khas lokal |
+| DMV | Samsat | Padanan lokal antre kantor layanan kendaraan |
+| fruitcake / kue buah | toples nastar | Kue yang dikenal lokal |
+| flat-pack furniture | lemari bongkar-pasang | Lebih natural |
+| tiket umum | tiket ekonomi | Lebih natural |
+| madu fermentasi (mead, 11 string) | tuak | Minuman tradisional yang dikenal |
+| Annex (7 string) | Cabang | "Annex" tidak dipakai di sini |
+| HR (semua) | HRD | Istilah umum di kantor Indonesia |
+| Temp (18 string) | Honorer | Padanan lokal pegawai sementara |
+| Perk / perk (~10 string) | Tunjangan | Cocok dengan satir kantor; "perk" tidak umum |
+| run (11 string) | putaran | Istilah umum game idle/gacha lokal |
+| milestone (4 string) | tonggak | Natural |
+| Roster Lima Kartu / Roster Penuh | Tim Lima Kartu / Tim Penuh | "Roster" bukan istilah lokal |
+| Binder | Album kartu | Natural |
+| RNG | sistem gacha | Natural |
+| Kolam Kerub/Imp/Arsiparis/Einherjar/Buku Besar | Regu ... | "Pool" staf diterjemahkan "regu" |
+| Turnstile (3 string) | Pintu Putar | Natural |
+| chip-nya, bar, batch | tab-nya, bilah, tumpuk berkas | Natural |
+| Penyihir Hutang Usaha | Penyihir Utang Usaha | Ejaan baku |
+| Cakupan Akhir Pekan | Jaga Akhir Pekan | Natural |
+| "Ini baik-baik saja." (This is fine) | "Aman, aman aja." | Meme lokal |
+| Orang & Budaya | SDM & Budaya Kerja | Natural |
+| C-suite | Jajaran direksi | Natural |
+| iklan reward | iklan berhadiah | Natural |
+| Papan klik | Papan klip | Typo |
+| (36 queue string hewan) | prefix a-NN\| dikembalikan | Prefix hilang dari terjemahan lama |

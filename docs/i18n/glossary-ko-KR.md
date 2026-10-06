@@ -24,11 +24,11 @@ Register: friendly 해요체 for UI, free/dry style for jokes and memos. Terms r
 | Clause | 항 (제1.1항) | |
 | Overflow Drops | 넘침 방울 | weekly event currency |
 | Overflow Department | 넘침 부서 | |
-| Candy Corn | 캔디콘 | Halloween |
+| Candy Corn | 호박사탕 | Halloween (localized: pumpkin candy) |
 | Gift Tags | 선물 태그 | Christmas |
 | Confetti | 색종이 | New Year |
 | Love Letters | 러브레터 | Valentine |
-| Painted Eggs | 색칠한 달걀 | Easter |
+| Painted Eggs | 부활절 달걀 | Easter |
 | Seashells | 조개껍데기 | Summer |
 
 ## Card rarities
@@ -49,3 +49,17 @@ Night of the Living Paperwork 살아 있는 서류의 밤 / Holiday Overtime 연
 - The Auditor 감사관, The Keeper 관리인, The Bodhisattva 보살, The Seraph Board 세라프 이사회, Reaper 저승사자, Cherub 케루빔, Imp 임프, Intern 인턴.
 - Memo prefixes: MEMO 메모, NOTICE 공지, INCIDENT 사고, REMINDER 알림, AUDIT FLAG 감사 경고.
 - Pet queue entries keep the `a-NN|` id prefix untouched.
+
+## Localized (not literal)
+Local terms chosen on purpose (before -> after):
+- Candy Corn (Halloween currency) 캔디콘 -> 호박사탕. Candy corn is unknown in Korea; pumpkin candy is the usual Halloween sweet in Korean games and fits the pumpkin theme.
+- Painted Eggs 색칠한 달걀 -> 부활절 달걀 (the name Koreans actually use).
+- Cloud Nine Staffing 클라우드 나인 인력파견 -> 구름 인력사무소 (the Korean day-labor/temp office, 인력사무소). 3 strings.
+- stapler 스테이플러 -> 호치키스 (everyday Korean word for a stapler, 11 strings incl. Temp Stapler, Blessed Stapler, "stapled" gags).
+- Boo-reaucrat 부-로크라트 -> 귀신 공무원. Jack O'Clerk 잭 오 사무원 -> 호박등 사무관. Count Overdraft Overdraft 백작 -> 마통 백작 (마통 = 마이너스 통장, overdraft account slang).
+- PC LOAD LETTER (2 keys) 용지 걸림 -> 프린터가 오프라인 상태입니다 (the classic Korean office-printer error message).
+- Soul #31337 "admin access / it's for a friend" (hell queue.10, intake queue.17) -> "제가 컴퓨터 좀 하는데" (the classic Korean "I know computers" line).
+- Grandpa Joe's casserole 캐서롤 -> 찌개 냄비. Bingo at death -> 고스톱 ("고!"). Double-dipping at parties -> 회식 찌개에 먹던 숟가락 담그기, 전용 뚝배기. Fruitcake -> 곶감 (tiger-and-dried-persimmon folk tale). Valhalla potluck 포틀럭 -> 각자 음식 싸 오기.
+- Sonnet Scribe 소네트 필경사 -> 시조 필경사 (rejection letters in sijo meter instead of iambic pentameter).
+- Father Time 시간의 아버지 -> 시간 할아버지 (2 keys). Saint Nick 성 니콜라스 -> 산타 할아버지.
+- Pride Before the Fall 교만은 추락의 앞잡이 -> 교만은 패망의 선봉 (the Korean proverb).

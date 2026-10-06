@@ -43,11 +43,11 @@ Terms reused from `docs/store/translations/ja-JP.json` are marked (store).
 | English | Japanese |
 |---|---|
 | Overflow Drops (weekly) | あふれドロップ |
-| Candy Corn (Halloween) | キャンディコーン |
+| Candy Corn (Halloween) | かぼちゃキャンディ |
 | Gift Tags (Christmas) | ギフトタグ |
 | Confetti (New Year) | 紙吹雪 |
 | Love Letters (Valentine) | ラブレター |
-| Painted Eggs (Easter) | 彩色たまご |
+| Painted Eggs (Easter) | イースターエッグ |
 | Seashells (Summer) | 貝殻 |
 
 ## Events and departments
@@ -68,3 +68,25 @@ Dave, Seraphine, Gary, Petra, Malphas, Melodia, Pemberton (ペンバートン係
 
 ## Style
 Friendly です/ます for UI and onboarding; free, short, dry style for jokes and card flavor lines; numerals as Kanji in achievement titles (一万人) and Arabic in numbers with units.
+
+## Localized (not literal)
+| Key / term | Before -> After | Why |
+|---|---|---|
+| Candy Corn (currency, halloween) | キャンディコーン -> かぼちゃキャンディ | Candy corn is unknown in Japan; pumpkin candy is instantly Halloween. Trickster card title also -> かぼちゃキャンディ回収係 |
+| Painted Eggs (Easter currency) | 彩色たまご -> イースターエッグ | The word Japanese players actually use |
+| Cloud Nine Staffing (5 strings) | Cloud Nine派遣会社 / 九番雲 -> 雲の上スタッフ | Real-sounding Japanese temp agency name (雲の上 = heavenly) |
+| Boo-reaucrat (role) | お化けクラット -> お役所おばけ | Natural pun on お役所仕事 |
+| Jack O'Clerk | ジャック・オ・クラーク -> ジャック・オ・係長 | Keeps the jack-o'-lantern pun using a Japanese office title |
+| Saint Nick, Auditor | 聖ニコラウス監査官 -> サンタ監査官 | Japanese say サンタ |
+| PC LOAD LETTER (2 keys) | PC LOAD LETTER -> 「エラー:原因不明のエラー」 | Famous unhelpful printer error, local equivalent |
+| Soul #31337 admin access (hell queue.10, intake queue.17) | plain -> 「友達のぶんです。ほんとです」 / 自称ハッカー | Local hacker/"it's for a friend" gag |
+| Grandpa Joe casserole | キャセロール -> 肉じゃが | Home-cooked dish Japanese grandpas bring |
+| Yilmaz generous tipper | チップ -> おごり | Tipping is not Japanese culture |
+| Double-dipping chips | チップをダブルディップ -> ディップを二度づけ | Natural Japanese wording |
+| Garden gnomes (Brandt) | 庭小人 -> 信楽焼タヌキ | Japanese garden figurine |
+| Fruitcake | フルーツケーキ -> カステラ | Local cake |
+| Spelling bee (Enescu) | スペリングコンテスト -> 漢字の書き取り大会 | Local equivalent |
+| Lawn chair | ローンチェア -> 折りたたみ椅子 | Natural word |
+| Eye-roll line (hell queue.20) | 白目をむいた拍手に -> 白目をむいた拍子に | Typo/mistranslation fix |
+| 入国審査部 (heaven memo 12) | -> 天国審査部 | Match department name |
+| "each run" (8 headstart perks) | 毎周回 -> 毎期 | Run = fiscal year (決算期) |
