@@ -37,7 +37,7 @@ const PLATFORMS = [
 ];
 
 /** TODO: set false once the skill-tree Ledger redesign lands, then re-shoot. The old list-style ledger shot must not ship. */
-const SKIP_LEDGER = true;
+const SKIP_LEDGER = false;
 
 /** Must match `src/platform/storage.ts`; the web build persists the save under this key. */
 const SAVE_KEY = 'afterlife.save.v1';
@@ -149,7 +149,7 @@ const STILL_CSS = `
  */
 const PIN_RANDOM = () => { window.Math.random = () => 0.88; };
 
-async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor, stopAtTitle, drawTen, scrollInto, clock, openEvent, eventTab }) {
+async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor, stopAtTitle, drawTen, scrollInto, clock, openEvent, eventTab, clickTestId }) {
   const context = await browser.newContext({
     // The platform's own device-shaped viewport, so the app lays out as it does on that real
     // handset or tablet instead of stretching one shot over every listing's canvas.
@@ -183,6 +183,7 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor,
     // Every cold boot opens on the title screen, so the office is one tap behind it.
     await page.getByRole('button', { name: 'Clock in' }).click();
     if (tab) await page.getByRole('tab', { name: tab }).click();
+    if (clickTestId) await page.getByTestId(clickTestId).click();
     if (drawTen) await page.getByRole('button', { name: 'Draw ten requisitions' }).click();
     if (openEvent) {
       await page.locator('.event-banner button').click();
@@ -330,8 +331,9 @@ async function main() {
         exec: { char: 'keeper', side: 'left', say: 'Grow the tree!' },
         save: base,
         tab: 'Ledger',
-        waitFor: '.perk-tree',
-        scrollInto: { selector: '.perk-branch', index: 0 },
+        clickTestId: 'perk-branch-throughput',
+        waitFor: '.pt-tree',
+        scrollInto: { selector: '.pt-tree', index: 0 },
         headline: 'Grow a perk tree<br>nobody can audit.',
         sub: 'Spend Seals on permanent upgrades that survive every reset.',
         chips: ['40 permanent perks', 'Skill tree branches', 'Prestige by audit'],
