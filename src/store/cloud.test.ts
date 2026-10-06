@@ -39,7 +39,7 @@ function fakeAudio() {
   const enabled: { sfx: boolean; music: boolean }[] = [];
   return {
     enabled,
-    play: () => {}, setEnabled: (f: { sfx: boolean; music: boolean }) => { enabled.push(f); },
+    play: () => {}, setMusicTheme: () => {}, setEnabled: (f: { sfx: boolean; music: boolean }) => { enabled.push(f); },
     unlock: () => {}, suspend: () => {}, resume: () => {}, isRunning: () => true,
   };
 }

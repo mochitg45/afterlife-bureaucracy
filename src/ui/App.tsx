@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { useGame } from '../store/game';
+import { useTestAds } from '../platform/adUnits';
 import { TabBar, type TabId } from './components/TabBar';
 import { OfficeScreen } from './screens/OfficeScreen';
 import { LedgerScreen } from './screens/LedgerScreen';
@@ -66,6 +67,14 @@ export function App() {
     };
     events.forEach((e) => window.addEventListener(e, unlock));
     return () => events.forEach((e) => window.removeEventListener(e, unlock));
+  }, []);
+
+  // Dev/test-ads builds only: `?music=<themeId>` forces that music theme on the office screen
+  // so a theme can be auditioned without waiting for its event.
+  useEffect(() => {
+    if (!useTestAds()) return;
+    const id = new URLSearchParams(window.location.search).get('music');
+    if (id) useGame.getState().audio.setMusicTheme(id);
   }, []);
 
   useEffect(() => {
