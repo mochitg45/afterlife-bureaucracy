@@ -28,6 +28,7 @@ import { eventLeaderboardId, lifetimeSoulsLeaderboardId, playAchievementIds } fr
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { useTestAds } from '../platform/adUnits';
+import { track } from '../platform/analytics';
 import { content as defaultContent } from '../data';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -1175,6 +1176,7 @@ export function createGameStore(deps: StoreDeps) {
         const next = claimEventTierEngine(s, content, occ, index);
         if (next === s) return;
         apply(next);
+        track('event_tier_claimed', { event: occ.kind === 'weekly' ? 'weekly' : occ.id, theme: occ.id, tier: index });
         sfx('upgrade');
         void get().save();
       },
@@ -1187,6 +1189,7 @@ export function createGameStore(deps: StoreDeps) {
         sfx('pull');
         const best = (['executive', 'senior', 'fulltime', 'temp'] as const).find((rar) => r.results.some((x) => x.rarity === rar)) ?? 'temp';
         sfx(('reveal-' + best) as SfxName);
+        track('gacha_pull', { banner: occ.id, count, best });
         void get().save();
       },
       upgrade(upgradeId) {
@@ -1241,6 +1244,7 @@ export function createGameStore(deps: StoreDeps) {
           pendingOffline: null,
         });
         sfx('audit');
+        track('level_up', { level: r.fiscalYear, character: 'office' });
         submitLifetimeScore(get().state.soulsLifetime);
         void get().save();
       },
@@ -1261,6 +1265,7 @@ export function createGameStore(deps: StoreDeps) {
           sfx('pull');
           const best = (['executive', 'senior', 'fulltime', 'temp'] as const).find((rar) => r.results.some((x) => x.rarity === rar)) ?? 'temp';
           sfx(('reveal-' + best) as SfxName);
+          track('gacha_pull', { banner: 'normal', count, best });
         }
       },
       dismissPull() { set({ pendingPull: null }); },
@@ -1412,6 +1417,7 @@ export function createGameStore(deps: StoreDeps) {
           }
         }
         apply(next, extra);
+        track('ad_rewarded', { placement });
         void get().save();
         return 'rewarded';
       },
@@ -1433,6 +1439,7 @@ export function createGameStore(deps: StoreDeps) {
         }
         if (result !== 'ok') return result;
         apply(applyPurchase(get().state, content, id, clock.wall(), get().rates.kcPerSec));
+        track('iap_purchased', { item: id });
         void get().save();
         return 'ok';
       },
@@ -1465,6 +1472,7 @@ export function createGameStore(deps: StoreDeps) {
           // The run those souls belonged to is gone, exactly as after an Audit.
           pendingOffline: null,
         });
+        track('cosmic_filed', { points: r.pointsGained });
         void get().save();
       },
       dismissCosmic() { set({ lastCosmic: null }); },
@@ -1487,6 +1495,7 @@ export function createGameStore(deps: StoreDeps) {
         if (!v) return;
         const s = get().state;
         apply(v.from === 'angel' ? addSouls(s, new Decimal(0), v.kc) : { ...s, vouchers: s.vouchers + VISITOR_DEAL_VOUCHERS }, { pendingVisitor: null });
+        track('visitor_claimed', { from: v.from });
       },
       declineVisitor() { set({ pendingVisitor: null }); },
       buyClause(clauseId) { apply(buyClauseEngine(get().state, content, clauseId)); },
@@ -1602,6 +1611,7 @@ export function createGameStore(deps: StoreDeps) {
         const next = withTraining(state, step);
         if (next === state) return;
         set({ state: next });
+        if (step >= TRAINING_DONE) track('tutorial_complete');
         void get().save();
       },
 
@@ -1663,3 +1673,14 @@ export function createGameStore(deps: StoreDeps) {
 }
 
 export const useGame = createGameStore({ content: defaultContent, storage: pickStorage(), clock: realClock });
+
+// Department unlocks happen inside the tick, achievements inside settle: watching the store
+// catches every path once instead of threading track() through each of them.
+useGame.subscribe((cur, prev) => {
+  if (!prev.ready) return;
+  for (const d of cur.state.deptsUnlocked) if (!prev.state.deptsUnlocked.includes(d)) track('dept_unlocked', { dept: d });
+  if (cur.recentAchievements !== prev.recentAchievements) {
+    const seen = new Set(prev.recentAchievements.map((a) => a.id));
+    for (const a of cur.recentAchievements) if (!seen.has(a.id)) track('unlock_achievement', { achievement_id: a.id });
+  }
+});
