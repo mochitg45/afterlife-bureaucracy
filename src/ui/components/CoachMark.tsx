@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { t } from '../../i18n';
 
 interface Hole { top: number; left: number; width: number; height: number; card: { top?: string; bottom?: string }; above: boolean }
 
@@ -141,12 +142,12 @@ export function CoachMark({
         aria-label={title}
         aria-live="polite"
       >
-        <div className="label mono">{label ?? `Step ${(stepIndex ?? 0) + 1} of ${total ?? 1}`}</div>
+        <div className="label mono">{label ?? t('coach.step', { n: (stepIndex ?? 0) + 1, total: total ?? 1 })}</div>
         <h3 className="coach-title">{title}</h3>
         <p className="sub coach-text">{text}</p>
         <div className="coach-actions">
           {children}
-          <button className="btn btn-ghost coach-skip" onClick={onSkip}>Skip</button>
+          <button className="btn btn-ghost coach-skip" onClick={onSkip}>{t('coach.skip')}</button>
         </div>
       </div>
     </div>

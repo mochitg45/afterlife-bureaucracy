@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../../store/game';
+import { t } from '../../i18n';
 import './Visitor.css';
 
 /** How long Pip loops over the office before flying off untapped. */
@@ -11,12 +12,12 @@ const BOB = [0, 2, 4, 2];
 /** Closest the speech bubble may get to the screen edge, in px. */
 const EDGE = 8;
 export const PIP_LINES = [
-  'Special delivery!',
-  'Tap me! Blessing inside',
-  'Mail from upstairs!',
-  'Sign here. And here. And here.',
-  'Form 7-B, in triplicate!',
-  'Heaven says hi!',
+  t('pip.line1'),
+  t('pip.line2'),
+  t('pip.line3'),
+  t('pip.line4'),
+  t('pip.line5'),
+  t('pip.line6'),
 ];
 export const pipFrameUrl = (n: number) => `${import.meta.env.BASE_URL}art/flyers/pip-${n}.webp`;
 
@@ -88,7 +89,7 @@ export function Visitor() {
     <button
       ref={pip}
       className="visitor"
-      aria-label="Pip the courier has a delivery. Tap to open it."
+      aria-label={t('pip.aria')}
       onClick={() => { openVisitor(); setFlying(false); }}
     >
       <span ref={bubble} className="visitor-bubble" aria-hidden>{PIP_LINES[line]}</span>

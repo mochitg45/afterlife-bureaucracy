@@ -10,6 +10,7 @@ import { content } from '../../data';
 import { PerkTree } from '../components/PerkTree';
 import { CosmicPanel } from '../components/CosmicPanel';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { t } from '../../i18n';
 
 /**
  * The live half of the Ledger. Kept in its own component so the souls-this-run readout can
@@ -53,24 +54,24 @@ function AuditCard() {
   };
   return (
     <div className="card audit-card" data-coach="audit">
-      <h3>Fiscal Year Audit</h3>
-      <p className="sub">Close the books. Staff, upgrades and departments reset; Seals, perks and vouchers stay.</p>
+      <h3>{t('ledger.auditTitle')}</h3>
+      <p className="sub">{t('ledger.auditDesc')}</p>
       {ready
-        ? <div className="mono">Audit {waiting ? 'will pay' : 'now for'} <strong>+{preview} Seals</strong></div>
-        : <div className="mono sub">Need {formatNumber(auditThreshold(year, cosmics))} souls this run ({formatNumber(soulsRun)} so far)</div>}
-      {left > 0 && <div className="mono sub">Fiscal year closes in {fmtLeft(left)}</div>}
+        ? <div className="mono">{waiting ? t('ledger.willPay') : t('ledger.payNow')} <strong>{t('ledger.plusSeals', { n: preview })}</strong></div>
+        : <div className="mono sub">{t('ledger.needSouls', { need: formatNumber(auditThreshold(year, cosmics)), have: formatNumber(soulsRun) })}</div>}
+      {left > 0 && <div className="mono sub">{t('ledger.closesIn', { time: fmtLeft(left) })}</div>}
       <div className="modal-actions">
-        <button className={'btn ' + (confirming === 'audit' ? 'btn-primary' : '')} disabled={!ready || waiting} onClick={onAudit} aria-label="File Annual Audit">
-          {confirming === 'audit' ? 'Confirm audit (resets the run)' : 'File Annual Audit'}
+        <button className={'btn ' + (confirming === 'audit' ? 'btn-primary' : '')} disabled={!ready || waiting} onClick={onAudit} aria-label={t('ledger.fileAudit')}>
+          {confirming === 'audit' ? t('ledger.confirmAudit') : t('ledger.fileAudit')}
         </button>
         {waiting && (
-          <button className={'btn ' + (confirming === 'expedite' ? 'btn-primary' : '')} disabled={vouchers < cost} onClick={onExpedite} aria-label={`Expedite the audit for ${cost} vouchers`}>
+          <button className={'btn ' + (confirming === 'expedite' ? 'btn-primary' : '')} disabled={vouchers < cost} onClick={onExpedite} aria-label={t('ledger.expediteAria', { cost })}>
             {confirming === 'expedite'
-              ? <>Confirm: spend {cost} <VoucherIcon size={14} /> and audit</>
-              : <>Expedite now · {cost} <VoucherIcon size={14} /></>}
+              ? <>{t('ledger.confirmSpend', { cost })} <VoucherIcon size={14} /> {t('ledger.andAudit')}</>
+              : <>{t('ledger.expediteNow', { cost })} <VoucherIcon size={14} /></>}
           </button>
         )}
-        {confirming && <button className="btn btn-ghost" onClick={() => setConfirming(null)}>Cancel</button>}
+        {confirming && <button className="btn btn-ghost" onClick={() => setConfirming(null)}>{t('ledger.cancel')}</button>}
       </div>
     </div>
   );
@@ -90,8 +91,8 @@ function LeaderboardButton() {
   };
   return (
     <div className="leaderboard-row">
-      <button className="btn" disabled={busy} onClick={onClick}>🏆 Leaderboard: lifetime souls</button>
-      {failed && <span className="sub warn">Sign in to Play Games to see the leaderboard.</span>}
+      <button className="btn" disabled={busy} onClick={onClick}>{t('ledger.leaderboard')}</button>
+      {failed && <span className="sub warn">{t('ledger.signIn')}</span>}
     </div>
   );
 }
@@ -101,14 +102,14 @@ export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
   const year = useGame((s) => s.state.fiscalYear);
   return (
     <section className="screen ledger">
-      <ScreenHeader title="Ledger" onSettings={onSettings} />
+      <ScreenHeader title={t('ledger.title')} onSettings={onSettings} />
       <header className="currency-bar card">
-        <div><div className="label">Karma Seals</div><div className="mono value brass">{seals} <SealIcon size={20} /><span className="visually-hidden"> seals</span></div></div>
-        <div><div className="label">Fiscal Year</div><div className="mono value">{year}</div></div>
+        <div><div className="label">{t('ledger.karmaSeals')}</div><div className="mono value brass">{seals} <SealIcon size={20} /><span className="visually-hidden"> {t('ledger.sealsWord')}</span></div></div>
+        <div><div className="label">{t('ledger.fiscalYear')}</div><div className="mono value">{year}</div></div>
       </header>
       <LeaderboardButton />
       <AuditCard />
-      <div className="section-head"><h3>Perk Ledger</h3><span className="sub">Spend Seals. Permanent.</span></div>
+      <div className="section-head"><h3>{t('ledger.perkLedger')}</h3><span className="sub">{t('ledger.perkHint')}</span></div>
       <PerkTree />
       <CosmicPanel />
     </section>

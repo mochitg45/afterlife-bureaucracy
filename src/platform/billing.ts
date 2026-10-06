@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { Purchases, PRODUCT_CATEGORY, PURCHASES_ERROR_CODE } from '@revenuecat/purchases-capacitor';
 import type { CustomerInfo, PurchasesStoreProduct } from '@revenuecat/purchases-capacitor';
 import { isDevBuild } from './adUnits';
+import { t } from '../i18n';
 
 export type ProductId =
   | 'vouchers_10'
@@ -95,13 +96,13 @@ const NOTHING_RESTORED: Restored = { removeAds: false, unionUntilWall: 0, starte
 export const WEB_PURCHASE_DURATION_MS = 300;
 
 const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
-  vouchers_10: { price: '$0.99', title: '100 Requisition Vouchers' },
-  vouchers_55: { price: '$4.99', title: '550 Requisition Vouchers' },
-  vouchers_120: { price: '$9.99', title: '1200 Requisition Vouchers' },
-  vouchers_300: { price: '$19.99', title: '3000 Requisition Vouchers' },
-  remove_ads: { price: '$4.99', title: 'Exempt From Advertising' },
-  starter_pack: { price: '$2.99', title: 'New Clerk Starter Pack' },
-  union_monthly: { price: '$3.99', title: 'Union Membership (monthly)' },
+  vouchers_10: { price: '$0.99', title: t('product.vouchers_10') },
+  vouchers_55: { price: '$4.99', title: t('product.vouchers_55') },
+  vouchers_120: { price: '$9.99', title: t('product.vouchers_120') },
+  vouchers_300: { price: '$19.99', title: t('product.vouchers_300') },
+  remove_ads: { price: '$4.99', title: t('product.remove_ads') },
+  starter_pack: { price: '$2.99', title: t('product.starter_pack') },
+  union_monthly: { price: '$3.99', title: t('product.union_monthly') },
 };
 
 /**

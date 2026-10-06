@@ -1,6 +1,7 @@
 import { useGame } from '../../store/game';
 import { Character } from '../characters/Character';
 import { soulCard } from './soulFace';
+import { t } from '../../i18n';
 
 export function QueueCard() {
   const line = useGame((s) => s.queueLine);
@@ -15,7 +16,7 @@ export function QueueCard() {
         )
         : <Character id="soul" mood="ok" size={44} />}
       <div>
-        <div className="label">Now serving</div>
+        <div className="label">{t('queue.nowServing')}</div>
         <div className="queue-line">{text}</div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { GameState } from './state';
 import type { Content } from './content';
 import { findDepartment } from './content';
@@ -31,15 +32,15 @@ const NEAR_UNLOCK = 0.5;
  */
 export function nextGoal(state: GameState, content: Content): Goal {
   if (canAudit(state)) {
-    return { text: 'File an Audit in the Ledger for Seals', where: { kind: 'tab', tab: 'ledger' } };
+    return { text: t('goal.audit'), where: { kind: 'tab', tab: 'ledger' } };
   }
   const claimable = state.dailies.tasks.some((t) => {
     const def = content.dailies.find((d) => d.id === t.id);
     return !!def && !t.claimed && isDone(state, def);
   });
-  if (claimable) return { text: 'Claim your daily task', where: { kind: 'tab', tab: 'tasks' } };
+  if (claimable) return { text: t('goal.claimDaily'), where: { kind: 'tab', tab: 'tasks' } };
   if (state.vouchers >= PULL_COST) {
-    return { text: 'Draw a requisition in Personnel', where: { kind: 'tab', tab: 'personnel' } };
+    return { text: t('goal.draw'), where: { kind: 'tab', tab: 'personnel' } };
   }
 
   const dept = findDepartment(content, state.activeDept);
@@ -48,7 +49,7 @@ export function nextGoal(state: GameState, content: Content): Goal {
     return level < u.maxLevel && canAfford(upgradeCost(u, level), state.kc);
   });
   if (upgrade) {
-    return { text: `Buy upgrade ${upgrade.name}`, where: { kind: 'office', selector: `[data-goal="upgrade-${upgrade.id}"]` } };
+    return { text: t('goal.buyUpgrade', { name: upgrade.name }), where: { kind: 'office', selector: `[data-goal="upgrade-${upgrade.id}"]` } };
   }
 
   // Of the clerks one more Karma-worth can hire, the one fewest hires from its next ×2.
@@ -61,7 +62,7 @@ export function nextGoal(state: GameState, content: Content): Goal {
   }
   if (best) {
     const where: GoalWhere = { kind: 'office', selector: `[data-goal="staff-${best.id}"]` };
-    const text = best.owned === 0 ? `Hire ${best.name}` : `Hire ${best.left} more ${best.name} for ×2 speed`;
+    const text = best.owned === 0 ? t('goal.hire', { name: best.name }) : t('goal.hireMore', { n: best.left, name: best.name });
     return { text, where };
   }
 
@@ -72,7 +73,7 @@ export function nextGoal(state: GameState, content: Content): Goal {
       state.soulsRun.gte(d.unlockSouls * NEAR_UNLOCK),
   );
   if (near) {
-    return { text: `Reach ${formatNumber(near.unlockSouls)} souls to open ${near.name}`, where: { kind: 'office', selector: `[data-goal="dept-${near.id}"]` } };
+    return { text: t('goal.reachDept', { souls: formatNumber(near.unlockSouls), name: near.name }), where: { kind: 'office', selector: `[data-goal="dept-${near.id}"]` } };
   }
-  return { text: 'Stamp souls to earn Karma Credits', where: { kind: 'office', selector: '[data-coach="stamp"]' } };
+  return { text: t('goal.stamp'), where: { kind: 'office', selector: '[data-coach="stamp"]' } };
 }

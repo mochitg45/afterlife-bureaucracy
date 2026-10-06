@@ -1,11 +1,13 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { t } from '../i18n';
 
 /** The invitation picture shipped in the web bundle (public/art/share/invite.png). */
 export const INVITE_IMAGE = 'art/share/invite.png';
 
-export const INVITE_PITCH = 'I run a tiny afterlife office and it is weirdly addictive. Come file some souls with me!';
+/** The invitation text, in the language the page loaded with. */
+export const INVITE_PITCH = t('share.pitch');
 
 export interface Sharer {
   /**
@@ -38,7 +40,7 @@ export const systemSharer: Sharer = {
     try {
       if (Capacitor.isNativePlatform()) {
         const file = await imageFile();
-        await Share.share({ title: 'Afterlife Bureaucracy', text, dialogTitle: 'Invite friends', ...(file ? { files: [file] } : {}) });
+        await Share.share({ title: 'Afterlife Bureaucracy', text, dialogTitle: t('share.dialogTitle'), ...(file ? { files: [file] } : {}) });
         return true;
       }
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {

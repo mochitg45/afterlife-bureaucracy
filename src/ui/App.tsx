@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { t } from '../i18n';
 import { useGame } from '../store/game';
 import { useTestAds } from '../platform/adUnits';
 import { TabBar, type TabId } from './components/TabBar';
@@ -103,7 +104,7 @@ export function App() {
     <div className="app safe-area">
       {/* boot() runs underneath regardless of phase; the splash is a pure overlay, not a gate on it. */}
       {phase === 'splash' && <Splash onDone={() => setPhase('title')} />}
-      {phase !== 'splash' && !ready && <section className="screen"><h2>Opening the office…</h2></section>}
+      {phase !== 'splash' && !ready && <section className="screen"><h2>{t('app.opening')}</h2></section>}
       {phase !== 'splash' && ready && phase === 'title' && <TitleScreen onEnter={() => setPhase('game')} onGoToOdds={onGoToOdds} />}
       {/* The whole office, overlays included: a ceremony or a prompt over the title screen
           would be a dialog about a desk the player has not sat down at yet. */}

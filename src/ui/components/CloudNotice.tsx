@@ -1,19 +1,20 @@
+import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { relativeTime } from '../format';
 import type { CloudNotice as Notice } from '../../store/game';
 
 function line(notice: Notice): string | null {
-  if (notice.kind === 'error') return 'Cloud sync failed. Your desk is safe on this device.';
+  if (notice.kind === 'error') return t('cloud.failed');
   // This device would not vouch for its own save, so it was not allowed over the cloud's.
-  if (notice.kind === 'refused') return 'Not uploaded: clock check failed.';
+  if (notice.kind === 'refused') return t('cloud.refused');
   // An upload (plain, or a conflict won by this device) leaves the desk the player is looking
   // at unchanged, so it is not news: no notice.
   if (notice.kind !== 'downloaded') return null;
   const s = notice.summary;
-  if (!s) return 'Restored your desk from the cloud.';
+  if (!s) return t('cloud.restored');
   const souls = formatNumber(s.soulsLifetime);
-  return `Restored your desk from the cloud · ${souls} souls · FY ${s.fiscalYear} · saved ${relativeTime(s.savedAtWall, Date.now())}`;
+  return t('cloud.restoredDetail', { souls, year: s.fiscalYear, when: relativeTime(s.savedAtWall, Date.now()) });
 }
 
 /**
@@ -28,7 +29,7 @@ export function CloudNotice() {
   return (
     <div className="card cloud-notice" role="status" aria-live="polite">
       <span className="sub">{text}</span>
-      <button className="btn btn-ghost" onClick={dismiss}>Dismiss</button>
+      <button className="btn btn-ghost" onClick={dismiss}>{t('cloud.dismiss')}</button>
     </div>
   );
 }

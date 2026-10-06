@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LANGS, getLang, isLang, setLang, t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
@@ -9,12 +10,12 @@ import type { CloudSyncResult } from '../../engine/cloudSync';
 
 /** What each sync outcome is worth saying out loud after the player asked for it. */
 const SYNC_TEXT: Record<CloudSyncResult, string> = {
-  none: 'Nothing to sync.',
-  uploaded: 'Uploaded this device to the cloud.',
-  downloaded: 'Restored this device from the cloud.',
-  'kept-local': 'This device already had the newer desk.',
-  unavailable: 'Cloud saves are not available here.',
-  error: 'Cloud sync failed. Your desk is safe on this device.',
+  none: t('settings.sync.none'),
+  uploaded: t('settings.sync.uploaded'),
+  downloaded: t('settings.sync.downloaded'),
+  'kept-local': t('settings.sync.keptLocal'),
+  unavailable: t('settings.sync.unavailable'),
+  error: t('settings.sync.error'),
 };
 
 export function SettingsSheet({
@@ -52,6 +53,12 @@ export function SettingsSheet({
   const [status, setStatus] = useState('');
   const [confirm, setConfirm] = useState<'upload' | 'restore' | null>(null);
 
+  const onLanguage = async (l: Parameters<typeof setLang>[0]) => {
+    // Content and every string are rebuilt on reload, so put the desk on disk first.
+    await useGame.getState().save();
+    setLang(l);
+  };
+
   const onRestore = async () => {
     setStatus(RESTORE_TEXT[await restorePurchases()]);
   };
@@ -61,10 +68,10 @@ export function SettingsSheet({
     if (result === 'ok') {
       // signInCloud mirrors the sign-in into the achievements client and syncs before it
       // answers, so there is nothing left to do here but say so.
-      setStatus('Signed in to Play Games.');
+      setStatus(t('settings.signedIn'));
       return;
     }
-    setStatus(result === 'cancelled' ? 'Sign-in cancelled.' : 'Play Games is not available on this device.');
+    setStatus(result === 'cancelled' ? t('settings.signInCancelled') : t('settings.playGamesUnavailable'));
   };
 
   const onSync = async () => {
@@ -90,104 +97,116 @@ export function SettingsSheet({
   const syncDisabled = !cloudAvailable || !cloudSignedIn || cloudSyncing;
 
   const cloudStatus = !cloudAvailable
-    ? 'Not available on this platform'
+    ? t('settings.cloud.unavailable')
     : !cloudSignedIn
-      ? 'Not signed in'
+      ? t('settings.cloud.signedOut')
       : cloudLastResult === 'error'
-        ? 'Sync failed'
+        ? t('settings.cloud.failed')
         : cloudLastSyncWall > 0
-          ? `Synced ${relativeTime(cloudLastSyncWall, Date.now())}`
-          : 'Signed in';
+          ? t('settings.cloud.synced', { when: relativeTime(cloudLastSyncWall, Date.now()) })
+          : t('settings.cloud.signedIn');
 
   return (
-    <Modal open={open} title="Settings" onClose={onClose}>
+    <Modal open={open} title={t('settings.title')} onClose={onClose}>
       <p className="sub" role="status" aria-live="polite">{status}</p>
       <div className="settings-row">
-        <label htmlFor="notif-optin">Notifications</label>
+        <label htmlFor="notif-optin">{t('settings.notifications')}</label>
         <input
           id="notif-optin"
           type="checkbox"
-          aria-label="Reminder notifications"
+          aria-label={t('settings.notificationsAria')}
           checked={notifOptIn === 'yes'}
           onChange={(e) => void setNotifOptIn(e.target.checked ? 'yes' : 'no')}
         />
       </div>
       {/* Labels, not bare rows: the whole row is the hit target, which is the only usable size on a phone. */}
       <label className="settings-row">
-        <span>Sound effects</span>
-        <input type="checkbox" aria-label="Sound effects" checked={sfx} onChange={(e) => setSound({ sfx: e.target.checked })} />
+        <span>{t('settings.sfx')}</span>
+        <input type="checkbox" aria-label={t('settings.sfx')} checked={sfx} onChange={(e) => setSound({ sfx: e.target.checked })} />
       </label>
       <label className="settings-row">
-        <span>Music</span>
-        <input type="checkbox" aria-label="Music" checked={music} onChange={(e) => setSound({ music: e.target.checked })} />
+        <span>{t('settings.music')}</span>
+        <input type="checkbox" aria-label={t('settings.music')} checked={music} onChange={(e) => setSound({ music: e.target.checked })} />
+      </label>
+      <label className="settings-row">
+        <span>{t('settings.language')}</span>
+        {/* Each language in its own name, so a wrong pick can still be undone. Switching reloads. */}
+        <select
+          className="lang-select"
+          aria-label={t('settings.language')}
+          value={getLang()}
+          onChange={(e) => { const l = e.target.value; if (isLang(l)) void onLanguage(l); }}
+        >
+          {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+        </select>
       </label>
       <div className="settings-row">
-        <button className="btn btn-ghost" onClick={onGoToOdds}>See requisition odds</button>
+        <button className="btn btn-ghost" onClick={onGoToOdds}>{t('settings.odds')}</button>
       </div>
       <div className="settings-row">
         {/* Closes the sheet so the walkthrough it restarts is not hiding behind it. */}
-        <button className="btn btn-ghost" onClick={() => { replayTips(); onClose(); }}>Replay tips</button>
+        <button className="btn btn-ghost" onClick={() => { replayTips(); onClose(); }}>{t('settings.replayTips')}</button>
       </div>
       <div className="settings-row">
-        <button className="btn btn-ghost" onClick={() => void onRestore()}>Restore purchases</button>
+        <button className="btn btn-ghost" onClick={() => void onRestore()}>{t('settings.restorePurchases')}</button>
       </div>
       <div className="settings-row cloud-row">
-        <span>Cloud save</span>
+        <span>{t('settings.cloudSave')}</span>
         <span className="sub">{cloudStatus}</span>
       </div>
       <div className="settings-row cloud-actions">
         {cloudAvailable && !cloudSignedIn && (
-          <button className="btn btn-ghost" onClick={() => void onSignIn()}>Sign in</button>
+          <button className="btn btn-ghost" onClick={() => void onSignIn()}>{t('settings.signIn')}</button>
         )}
         {cloudAvailable && cloudSignedIn && (
-          <button className="btn btn-ghost" onClick={() => void changeAccount()}>Change account</button>
+          <button className="btn btn-ghost" onClick={() => void changeAccount()}>{t('settings.changeAccount')}</button>
         )}
         <button className="btn btn-ghost" disabled={syncDisabled} onClick={() => void onSync()}>
-          Sync now
+          {t('settings.syncNow')}
         </button>
         <button
           className={'btn ' + (confirm === 'upload' ? 'btn-primary' : 'btn-ghost')}
           disabled={syncDisabled}
           onClick={() => onOverride('upload')}
         >
-          {confirm === 'upload' ? 'Confirm upload' : 'Upload this device'}
+          {confirm === 'upload' ? t('settings.confirmUpload') : t('settings.upload')}
         </button>
         <button
           className={'btn ' + (confirm === 'restore' ? 'btn-primary' : 'btn-ghost')}
           disabled={syncDisabled}
           onClick={() => onOverride('restore')}
         >
-          {confirm === 'restore' ? 'Confirm restore' : 'Restore from cloud'}
+          {confirm === 'restore' ? t('settings.confirmRestore') : t('settings.restoreCloud')}
         </button>
       </div>
       {/* Three buttons that can only answer "not signed in" are three dead ends; the one
           button that does something is the Sign in above, so say so. */}
-      {cloudAvailable && !cloudSignedIn && <p className="sub">Sign in to sync.</p>}
+      {cloudAvailable && !cloudSignedIn && <p className="sub">{t('settings.signInToSync')}</p>}
       {cloudAvailable && cloudSignedIn && (
         <p className="sub">
-          {cloudPlayerName ? `Signed in as ${cloudPlayerName}. ` : ''}
-          Change account opens Google Play Games; pick the account there, then come back.
+          {cloudPlayerName ? t('settings.signedInAs', { name: cloudPlayerName }) + ' ' : ''}
+          {t('settings.changeAccountHelp')}
         </p>
       )}
       {confirm && (
         <p className="sub warn">
           {confirm === 'upload'
-            ? 'Overwrites the cloud save with this device, whichever run is further along.'
-            : 'Overwrites this device with the cloud save, whichever run is further along.'}
+            ? t('settings.warnUpload')
+            : t('settings.warnRestore')}
         </p>
       )}
       <div className="settings-row">
-        <button className="btn btn-ghost" onClick={onSaveCode}>Export or import a save code</button>
+        <button className="btn btn-ghost" onClick={onSaveCode}>{t('settings.saveCode')}</button>
       </div>
       <div className="settings-row mono sub">
-        Save v{saveVersion} · FY {fiscalYear} · {formatNumber(soulsLifetime)} souls lifetime
+        {t('settings.stats', { v: saveVersion, fy: fiscalYear, souls: formatNumber(soulsLifetime) })}
       </div>
       <div className="settings-row mono sub">{APP_VERSION}</div>
       <div className="settings-row">
-        <a href={PRIVACY_URL} target="_blank" rel="noreferrer">Privacy Policy</a>
+        <a href={PRIVACY_URL} target="_blank" rel="noreferrer">{t('settings.privacy')}</a>
       </div>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={onClose}>Close</button>
+        <button className="btn btn-primary" onClick={onClose}>{t('settings.close')}</button>
       </div>
     </Modal>
   );

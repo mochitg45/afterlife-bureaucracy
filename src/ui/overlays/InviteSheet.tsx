@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useEffect, useState } from 'react';
 import { useGame } from '../../store/game';
 import { Modal } from '../components/Modal';
@@ -5,7 +6,6 @@ import { VoucherIcon } from '../icons/Currency';
 import { REFERRAL_TIERS, SHARE_REWARD, nextTier } from '../../engine/referral';
 import { referralLink } from '../../platform/referral';
 
-const UNREACHABLE = "Couldn't reach the referral office, try later.";
 
 /**
  * Invite friends and share. The count of genuine friends (installed from this player's link,
@@ -29,66 +29,66 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
 
   const onShare = async () => {
     const ok = await shareInvite();
-    setStatus(ok ? '' : 'Nothing was shared.');
+    setStatus(ok ? '' : t('invite.none'));
   };
 
   const onCopy = async () => {
     if (!info.code) return;
     try {
       await navigator.clipboard.writeText(referralLink(info.code));
-      setStatus('Link copied.');
+      setStatus(t('invite.copied'));
     } catch {
-      setStatus('The clipboard refused. Use Share instead.');
+      setStatus(t('invite.clipboard'));
     }
   };
 
   return (
-    <Modal open={open} title="Invite friends" onClose={onClose}>
+    <Modal open={open} title={t('invite.title')} onClose={onClose}>
       <p className="sub">
-        A friend counts after they install from your link and file their first Annual Audit.
+        {t('invite.rule')}
       </p>
-      {info.status === 'error' && <p className="sub warn" role="status">{UNREACHABLE}</p>}
-      {info.status === 'loading' && <p className="sub" role="status">Calling the referral office...</p>}
+      {info.status === 'error' && <p className="sub warn" role="status">{t('invite.unreachable')}</p>}
+      {info.status === 'loading' && <p className="sub" role="status">{t('invite.loading')}</p>}
       <p className="sub" role="status" aria-live="polite">{status}</p>
 
       <div className="modal-actions">
         <button className="btn btn-primary" disabled={!ready} onClick={() => void onShare()}>
-          Share the game
-          {!referral.shareRewarded && <> · +{SHARE_REWARD} <VoucherIcon size={14} /><span className="visually-hidden">vouchers</span> (once)</>}
+          {t('invite.share')}
+          {!referral.shareRewarded && <> {t('invite.shareBonus', { n: SHARE_REWARD })} <VoucherIcon size={14} /><span className="visually-hidden">{t('invite.vouchers')}</span> {t('invite.once')}</>}
         </button>
       </div>
 
-      <p className="sub">Your code</p>
+      <p className="sub">{t('invite.code')}</p>
       <p className="mono">{info.code ?? '--------'}</p>
       <div className="modal-actions">
-        <button className="btn" disabled={!ready} onClick={() => void onCopy()}>Copy link</button>
+        <button className="btn" disabled={!ready} onClick={() => void onCopy()}>{t('invite.copy')}</button>
       </div>
 
       <p className="sub">
-        Genuine friends: <span className="mono">{info.joined}</span>
-        {next ? <> · next reward at {next.friends}</> : ' · all rewards reached'}
+        {t('invite.friends')} <span className="mono">{info.joined}</span>
+        {' '}{next ? t('invite.next', { n: next.friends }) : t('invite.allReached')}
       </p>
       <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={next?.friends ?? info.joined} aria-valuenow={info.joined}>
         <div className="bar-fill" style={{ width: Math.min(100, pct) + '%' }} />
       </div>
 
-      {REFERRAL_TIERS.map((t) => {
-        const taken = referral.claimedTiers.includes(t.friends);
+      {REFERRAL_TIERS.map((tier) => {
+        const taken = referral.claimedTiers.includes(tier.friends);
         return (
-          <div key={t.friends} className="daily-meta">
+          <div key={tier.friends} className="daily-meta">
             <span className="mono sub">
-              {t.friends} friends · +{t.vouchers} <VoucherIcon size={14} /><span className="visually-hidden">vouchers</span>
+              {t('invite.tier', { n: tier.friends, v: tier.vouchers })} <VoucherIcon size={14} /><span className="visually-hidden">{t('invite.vouchers')}</span>
             </span>
             {taken ? (
-              <span className="mono claimed-label">Claimed</span>
+              <span className="mono claimed-label">{t('invite.claimed')}</span>
             ) : (
               <button
                 className="btn btn-primary"
-                aria-label={`Claim ${t.friends} friends reward`}
-                disabled={info.joined < t.friends}
-                onClick={() => claimReferralTier(t.friends)}
+                aria-label={t('invite.claimAria', { n: tier.friends })}
+                disabled={info.joined < tier.friends}
+                onClick={() => claimReferralTier(tier.friends)}
               >
-                Claim
+                {t('invite.claim')}
               </button>
             )}
           </div>
@@ -96,7 +96,7 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
       })}
 
       <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={onClose}>Close</button>
+        <button className="btn btn-ghost" onClick={onClose}>{t('invite.close')}</button>
       </div>
     </Modal>
   );

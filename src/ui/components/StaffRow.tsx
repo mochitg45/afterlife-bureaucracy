@@ -7,6 +7,7 @@ import { staffBulkCost, maxAffordable, nextMilestone, prevMilestone, milestoneMu
 import { formatNumber } from '../../engine/format';
 import { Character } from '../characters/Character';
 import { KarmaIcon } from '../icons/Currency';
+import { t } from '../../i18n';
 
 const ZERO = new Decimal(0);
 
@@ -33,17 +34,17 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
   const idle = owned === 0;
   const maxSpeed = !idle && period < MAX_SPEED_THRESHOLD;
   const speedLabel = idle
-    ? 'Hire to start stamping'
+    ? t('staff.hireToStart')
     : maxSpeed
-      ? `+${formatNumber(rate)}/s · MAX`
-      : `+${formatNumber(rate.mul(period))} / ${period.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}s`;
+      ? t('staff.speedMax', { rate: formatNumber(rate) })
+      : t('staff.speedCycle', { amount: formatNumber(rate.mul(period)), period: period.toFixed(2).replace(/0+$/, '').replace(/\.$/, '') });
   return (
     <div className="card staff-row" data-goal={`staff-${staff.id}`}>
       <Character id={staff.character} art={staff.id} mood={mood} size={52} />
       <div className="staff-info">
         <div className="milestone-bar" {...(index === 0 ? { 'data-coach': 'milestone' } : {})}>
           <div className="bar"><div className="bar-fill" style={{ width: progress * 100 + '%' }} /></div>
-          <span className="mono milestone-label">×2 at {next}</span>
+          <span className="mono milestone-label">{t('staff.milestone', { next })}</span>
         </div>
         <div className="staff-name">{staff.name} <span className="mono owned">×{owned}</span></div>
         <div className="sub">{staff.role} — {staff.flavor}</div>
@@ -62,10 +63,10 @@ export function StaffRow({ staff, mode, index }: { staff: StaffDef; mode: BuyMod
         className="btn hire"
         disabled={!affordable}
         onClick={() => hire(staff.id, mode)}
-        aria-label={`Hire ${staff.name}`}
+        aria-label={t('staff.hireAria', { name: staff.name })}
         {...(staff.id === 'dave' ? { 'data-coach': 'hire' } : {})}
       >
-        <span>Hire {mode === 'max' ? (count || 1) : mode}</span>
+        <span>{t('staff.hireN', { n: mode === 'max' ? (count || 1) : mode })}</span>
         <span className="mono amt">{formatNumber(cost)} <KarmaIcon size={14} /></span>
       </button>
     </div>

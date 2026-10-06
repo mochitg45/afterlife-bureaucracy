@@ -1,3 +1,4 @@
+import { t, tn } from '../../i18n';
 import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
@@ -24,18 +25,18 @@ export function bonusLine(card: ReturnType<typeof findCard>, stars: number): str
   switch (effect.type) {
     case 'deptMult': {
       const dept = content.departments.find((d) => d.id === effect.dept);
-      return `+${pct(amount)} ${dept?.name ?? effect.dept} output`;
+      return t('card.bonus.dept', { pct: pct(amount), dept: dept?.name ?? effect.dept });
     }
     case 'globalMult':
-      return `+${pct(amount)} all income`;
+      return t('card.bonus.global', { pct: pct(amount) });
     case 'clickMult':
-      return `+${pct(amount)} per stamp`;
+      return t('card.bonus.click', { pct: pct(amount) });
     case 'offlineCapHours':
-      return `+${amount}h offline cap`;
+      return t('card.bonus.offline', { h: amount });
     case 'voucherMult':
-      return `+${pct(amount)} voucher grants`;
+      return t('card.bonus.voucher', { pct: pct(amount) });
     case 'eventMult':
-      return `+${pct(amount)} event currency`;
+      return t('card.bonus.event', { pct: pct(amount) });
   }
 }
 
@@ -58,21 +59,21 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
   const canExchange = stars >= MAX_STARS && card.rarity !== 'executive' && spares >= EXCHANGE_COST;
 
   return (
-    <Modal open title={card.name} label={`${card.name}, ${card.title}`} onClose={onClose}>
+    <Modal open title={card.name} label={t('card.label', { name: card.name, title: card.title })} onClose={onClose}>
       <div className="card-sheet-head">
         <Character id={card.character} art={card.id} mood="ok" size={96} />
         <span className="sub">{card.title}</span>
         <span className="sub">{RARITY_LABEL[card.rarity]}</span>
         <Stars stars={stars} className="tile-stars" />
         {stars < MAX_STARS ? (
-          <span className="sub">{shards} of {dupesForNextStar(card.rarity, stars)} duplicates to ★{stars + 1}</span>
+          <span className="sub">{t('card.dupes', { have: shards, need: dupesForNextStar(card.rarity, stars), next: stars + 1 })}</span>
         ) : (
-          <span className="sub">Max stars</span>
+          <span className="sub">{t('card.maxStars')}</span>
         )}
       </div>
       <p>{card.flavor}</p>
-      <p>Bonus now: {bonusLine(card, stars)}</p>
-      {stars < MAX_STARS && <p>Next star: {bonusLine(card, stars + 1)}</p>}
+      <p>{t('card.bonusNow', { line: bonusLine(card, stars) })}</p>
+      {stars < MAX_STARS && <p>{t('card.nextStar', { line: bonusLine(card, stars + 1) })}</p>}
       <div className="modal-actions">
         <button
           className="btn btn-primary"
@@ -82,25 +83,25 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
             onClose();
           }}
         >
-          {isEquipped ? 'Unequip' : 'Equip'}
+          {isEquipped ? t('card.unequip') : t('card.equip')}
         </button>
-        {full && <span className="sub warn">No free lanyard</span>}
+        {full && <span className="sub warn">{t('card.noLanyard')}</span>}
       </div>
       {canExchange && (
         <div className="modal-actions">
           <button className="btn" onClick={() => setOutcome(exchange(cardId))}>
-            Exchange {EXCHANGE_COST} spares ({pct(EXCHANGE_CHANCE[card.rarity as 'temp' | 'fulltime' | 'senior'])} chance)
+            {t('card.exchange', { cost: EXCHANGE_COST, chance: pct(EXCHANGE_CHANCE[card.rarity as 'temp' | 'fulltime' | 'senior']) })}
           </button>
-          <span className="sub">{spares} spare{spares === 1 ? '' : 's'}</span>
+          <span className="sub">{tn('card.spares', spares)}</span>
         </div>
       )}
       {outcome && (
         <p className="sub brass">
           {outcome.success
             ? outcome.duplicateKc
-              ? `Exchanged: ${findCard(content, outcome.cardId as string).name} is already maxed, +${formatNumber(outcome.duplicateKc)} KC`
-              : `Exchanged: got ${findCard(content, outcome.cardId as string).name}!`
-            : `No luck: +${formatNumber(outcome.duplicateKc as NonNullable<typeof outcome.duplicateKc>)} KC`}
+              ? t('card.exchanged.maxed', { name: findCard(content, outcome.cardId as string).name, kc: formatNumber(outcome.duplicateKc) })
+              : t('card.exchanged.got', { name: findCard(content, outcome.cardId as string).name })
+            : t('card.noLuck', { kc: formatNumber(outcome.duplicateKc as NonNullable<typeof outcome.duplicateKc>) })}
           {outcome.duplicateKc && <> <KarmaIcon size={14} /></>}
         </p>
       )}

@@ -2,6 +2,7 @@ import type { CSSProperties, ReactElement } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { formatNumber } from '../../engine/format';
+import { t } from '../../i18n';
 
 const OUTLINE = 'var(--ink)';
 const SW = 2.2;
@@ -67,7 +68,7 @@ export function DeptChips() {
   // until a Cosmic Clause opens the branch, so it must not spoil itself from day one.
   const visible = content.departments.filter((d) => !d.branch || branches.includes(d.branch));
   return (
-    <div className="dept-chips" role="group" aria-label="Departments">
+    <div className="dept-chips" role="group" aria-label={t('dept.groupAria')}>
       {visible.map((d) => {
         const style = { '--accent': d.accent } as CSSProperties;
         if (unlocked.includes(d.id)) {
@@ -85,13 +86,13 @@ export function DeptChips() {
         }
         const progress = Math.min(1, soulsRun.div(d.unlockSouls).toNumber());
         return (
-          <button key={d.id} className="chip locked" style={style} disabled data-goal={`dept-${d.id}`} aria-label={`${d.name} (locked, unlocks at ${formatNumber(d.unlockSouls)} souls this run; ${formatNumber(soulsRun)} so far)`}>
+          <button key={d.id} className="chip locked" style={style} disabled data-goal={`dept-${d.id}`} aria-label={t('dept.lockedAria', { name: d.name, need: formatNumber(d.unlockSouls), have: formatNumber(soulsRun) })}>
             <DeptIcon id={d.id} />
             <span className="chip-text">
               <span>{d.name}</span>
               {/* Souls this run, not the lifetime total in the header: an audit resets the run
                   and closes departments again, which read as a bug when only the target showed. */}
-              <span className="mono sub">{formatNumber(soulsRun)} / {formatNumber(d.unlockSouls)} this run</span>
+              <span className="mono sub">{t('dept.progress', { have: formatNumber(soulsRun), need: formatNumber(d.unlockSouls) })}</span>
             </span>
             <span className="bar"><span className="bar-fill" style={{ width: progress * 100 + '%' }} /></span>
           </button>

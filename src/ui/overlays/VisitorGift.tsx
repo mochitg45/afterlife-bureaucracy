@@ -1,3 +1,4 @@
+import { t, tn } from '../../i18n';
 import { useGame, VISITOR_AD_MULT, VISITOR_DEAL_AD_VOUCHERS, VISITOR_DEAL_VOUCHERS } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
@@ -22,38 +23,38 @@ export function VisitorGift() {
   const header = (
     <>
       <img className="visitor-sender" src={artUrl(angel ? 'seraphine' : 'gary') ?? ''} alt="" />
-      <div className="visitor-tag">{angel ? 'Divine Intervention' : 'Union Business'} · via Pip</div>
+      <div className="visitor-tag">{t('visitor.via', { from: angel ? t('visitor.angelTag') : t('visitor.devilTag') })}</div>
     </>
   );
   return (
     <Modal
       open
-      title={angel ? 'A Blessing Has Arrived' : 'Gary Has a Deal'}
+      title={angel ? t('visitor.angelTitle') : t('visitor.devilTitle')}
       header={header}
       className={'visitor-card' + (angel ? '' : ' devil')}
       backdropClassName="visitor-backdrop"
     >
       {angel ? (
         <>
-          <p>Heaven's paperwork cleared early. Take the bonus as it is, or watch a short ad to quintuple it.</p>
+          <p>{t('visitor.angelBody')}</p>
           <div className="visitor-reward">+{formatNumber(letter.kc)} <KarmaIcon size={20} /></div>
         </>
       ) : (
         <>
-          <p>"Found these in a drawer. Totally legit." Requisition Vouchers, no questions asked. Terms and conditions apply, eternally.</p>
+          <p>{t('visitor.devilBody')}</p>
           <div className="visitor-reward">+{VISITOR_DEAL_VOUCHERS} <VoucherIcon size={20} /></div>
         </>
       )}
       <div className="modal-actions">
         {ad && (
           <button className="btn btn-primary" disabled={busy} onClick={watch}>
-            ▶ Watch ad · {angel ? `×${VISITOR_AD_MULT} (+${formatNumber(letter.kc.mul(VISITOR_AD_MULT))} Karma)` : `+${VISITOR_DEAL_AD_VOUCHERS} vouchers`}
+            {angel ? t('visitor.watchAngel', { mult: VISITOR_AD_MULT, kc: formatNumber(letter.kc.mul(VISITOR_AD_MULT)) }) : t('visitor.watchDevil', { n: VISITOR_DEAL_AD_VOUCHERS })}
           </button>
         )}
         <button className="btn" disabled={busy} onClick={claim}>
-          Take +{angel ? formatNumber(letter.kc) : `${VISITOR_DEAL_VOUCHERS} voucher`}
+          {angel ? t('visitor.takeKc', { kc: formatNumber(letter.kc) }) : tn('visitor.takeVoucher', VISITOR_DEAL_VOUCHERS)}
         </button>
-        {!angel && <button className="btn btn-ghost" disabled={busy} onClick={decline}>No deal</button>}
+        {!angel && <button className="btn btn-ghost" disabled={busy} onClick={decline}>{t('visitor.decline')}</button>}
       </div>
     </Modal>
   );

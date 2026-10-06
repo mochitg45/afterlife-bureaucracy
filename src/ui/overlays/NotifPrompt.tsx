@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { Modal } from '../components/Modal';
 
@@ -13,11 +14,11 @@ export function NotifPrompt() {
   if (!visible) return null;
 
   return (
-    <Modal open title="Reminders">
-      <p>Get a nudge when the in-tray fills up or fresh tasks land?</p>
+    <Modal open title={t('notif.title')}>
+      <p>{t('notif.body')}</p>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={() => void setNotifOptIn('yes')}>Yes, remind me</button>
-        <button className="btn btn-ghost" onClick={() => void setNotifOptIn('no')}>Not now</button>
+        <button className="btn btn-primary" onClick={() => void setNotifOptIn('yes')}>{t('notif.yes')}</button>
+        <button className="btn btn-ghost" onClick={() => void setNotifOptIn('no')}>{t('notif.no')}</button>
       </div>
     </Modal>
   );

@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useGame, TRAINING_DONE } from '../../store/game';
 import { content } from '../../data';
 import { CoachMark } from '../components/CoachMark';
@@ -27,7 +28,7 @@ export function Training() {
       onSkip={skipTraining}
     >
       {step === TRAINING_DONE - 1 && (
-        <button className="btn btn-primary" onClick={() => advanceTraining(TRAINING_DONE)}>Got it</button>
+        <button className="btn btn-primary" onClick={() => advanceTraining(TRAINING_DONE)}>{t('tips.gotIt')}</button>
       )}
     </CoachMark>
   );
