@@ -46,8 +46,12 @@ let lang: Lang = 'en';
 let dict: Record<string, string> = en;
 let dataMap: Record<string, string> | null = null;
 
-const uiFiles = import.meta.glob<Record<string, string>>(['./ui/*.json', '!./ui/en.json'], { import: 'default' });
-const dataFiles = import.meta.glob<Record<string, string>>('./data/*.json', { import: 'default' });
+type Loaders = Record<string, () => Promise<Record<string, string>>>;
+// import.meta.glob exists only under Vite. Plain Node (the economy sim via tsx) has no
+// dictionaries to load and runs in English, so the call is allowed to fail there.
+const viteGlob = (f: () => Loaders): Loaders => { try { return f(); } catch { return {}; } };
+const uiFiles = viteGlob(() => import.meta.glob<Record<string, string>>(['./ui/*.json', '!./ui/en.json'], { import: 'default' }));
+const dataFiles = viteGlob(() => import.meta.glob<Record<string, string>>('./data/*.json', { import: 'default' }));
 
 function readStored(): string | null {
   try { return localStorage.getItem(LANG_KEY); } catch { return null; }
