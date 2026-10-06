@@ -5,7 +5,7 @@ import { OfficeScreen } from './OfficeScreen';
 import { useGame } from '../../store/game';
 import { createInitialState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
-import { activeEvent } from '../../engine/events';
+import { activeEvent, EVENT_UNLOCK_HIRES } from '../../engine/events';
 import { content } from '../../data';
 
 const NOW = Date.UTC(2026, 9, 25, 12);
@@ -14,11 +14,12 @@ const NOW = Date.UTC(2026, 9, 25, 12);
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(NOW); });
 afterEach(() => vi.useRealTimers());
 
-function seed(forceId: string | null, patch: { points?: number; earned?: number; vouchers?: number } = {}) {
+function seed(forceId: string | null, patch: { points?: number; earned?: number; vouchers?: number; hired?: number } = {}) {
   const occ = forceId ? activeEvent(content, NOW) : null;
   const base = createInitialState({ wall: 0, mono: 0 }, content);
   const state = {
     ...base,
+    stats: { ...base.stats, staffHired: patch.hired ?? EVENT_UNLOCK_HIRES },
     vouchers: patch.vouchers ?? 0,
     event: occ ? { key: occ.key, points: new Decimal(patch.points ?? 0), earned: new Decimal(patch.earned ?? 0), staff: {}, claimed: [] } : null,
   };
@@ -45,6 +46,13 @@ describe('Event banner', () => {
     expect(screen.getByText('SPECIAL EVENT')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: `Open ${occ.deptName}` }));
     expect(open).toHaveBeenCalled();
+  });
+
+  it('stays locked for a brand-new player until the first few hires', () => {
+    seed('halloween', { hired: 7 });
+    render(<OfficeScreen onOpenEvent={() => {}} />);
+    expect(screen.getByRole('button', { name: /hire 3 more staff to join/i })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /^open /i })).toBeNull();
   });
 });
 

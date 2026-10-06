@@ -39,7 +39,10 @@ export function AchievementToast() {
         {achievement.desc && <span className="ach-desc">{achievement.desc}</span>}
       </span>
       {paid > 0 && (
-        <span className="ach-reward" aria-label={t('ach.plusVouchers', { n: paid })}>+{paid} <VoucherIcon size={16} /></span>
+        <span className="ach-reward" aria-label={t('ach.plusVouchers', { n: paid })}>
+          <span className="ach-reward-label">{t('ach.reward')}</span>
+          <span className="ach-reward-amt">+{paid} <VoucherIcon size={16} /></span>
+        </span>
       )}
     </button>
   );

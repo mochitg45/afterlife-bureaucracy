@@ -124,6 +124,9 @@ function fakeServices() {
 
 const T0 = new Date(2026, 8, 14, 10).getTime();
 
+/** Every achievement already settled, for tests that count a single grant to the voucher. */
+const ALL_ACH = content.achievements.map((a) => a.id);
+
 async function make(wall = T0) {
   const storage = memoryStorage();
   const clock = fakeClock({ wall, mono: 0 });
@@ -195,7 +198,7 @@ describe('rewarded ads', () => {
 
   it('free-pull draws one card without spending a voucher, once a local day', async () => {
     const { store, clock, seed } = await make();
-    seed({ vouchers: 0 });
+    seed({ vouchers: 0, achievements: ALL_ACH });
     expect(store.getState().canWatch('free-pull')).toBe(true);
     expect(await store.getState().watchAd('free-pull')).toBe('rewarded');
     expect(store.getState().pendingPull).toHaveLength(1);
@@ -351,7 +354,7 @@ describe('rewarded ads', () => {
 describe('purchases', () => {
   it('grants each product exactly and counts the purchase', async () => {
     const { store, billing, seed } = await make();
-    seed({ perks: ['requisition-1'], staff: { dave: 20 } });
+    seed({ perks: ['requisition-1'], staff: { dave: 20 }, achievements: ALL_ACH });
     expect(await store.getState().buy('vouchers_55')).toBe('ok');
     expect(billing.bought).toEqual(['vouchers_55']);
     // The first purchase of a pack id pays double.
@@ -389,7 +392,8 @@ describe('purchases', () => {
   });
 
   it('refuses the starter pack outside its three-day window and after it is bought', async () => {
-    const { store, billing, clock } = await make();
+    const { store, billing, clock, seed } = await make();
+    seed({ achievements: ALL_ACH });
     expect(await store.getState().buy('starter_pack')).toBe('ok');
     expect(store.getState().state.entitlements.starterPackBought).toBe(true);
     // Already owned: never billed twice.
@@ -513,7 +517,7 @@ describe('union membership in the store', () => {
 
   it('grants two vouchers on every daily rollover while active', async () => {
     const { store, clock, seed, union } = await make();
-    seed({ vouchers: 0, perks: ['requisition-1'] });
+    seed({ vouchers: 0, perks: ['requisition-1'], achievements: ALL_ACH });
     union(3 * 86_400_000);
     clock.advance(86_400_000);
     store.getState().stamp();
@@ -530,6 +534,7 @@ describe('union membership in the store', () => {
       vouchers: 0,
       dailies: { ...s.dailies, tasks: [{ id: def.id, claimed: false }], baseline: { ...s.dailies.baseline, clicks: 0 } },
       stats: { ...s.stats, clicks: def.target },
+      achievements: ALL_ACH,
     });
     expect(store.getState().state.dailies.tasks[0].claimed).toBe(false);
     union();
@@ -804,7 +809,7 @@ describe("Gary's letter", () => {
   async function devilLetter() {
     const m = await make();
     const s = m.store.getState().state;
-    m.seed({ onboarding: { ...s.onboarding, memosSeen: true, trainingStep: TRAINING_DONE } });
+    m.seed({ onboarding: { ...s.onboarding, memosSeen: true, trainingStep: TRAINING_DONE }, achievements: ALL_ACH });
     m.clock.advance(VISITOR_FIRST_MS);
     vi.spyOn(Math, 'random').mockReturnValue(VISITOR_ANGEL_SHARE + 0.01);
     m.store.getState().openVisitor();

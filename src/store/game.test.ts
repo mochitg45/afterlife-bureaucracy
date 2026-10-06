@@ -355,14 +355,13 @@ describe('prestige and perks in the store', () => {
   it('expediteAudit spends vouchers and files the audit', async () => {
     const { store, clock } = await make();
     await store.getState().boot();
-    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), vouchers: 100, runStartWall: clock.wall() } });
+    store.setState({ state: { ...store.getState().state, soulsRun: new Decimal(AUDIT_BASE).mul(4), vouchers: 100, runStartWall: clock.wall(), achievements: content.achievements.map((a) => a.id) } });
     expect(expediteCost(store.getState().state, clock.wall())).toBe(16);
     store.getState().expediteAudit();
     const s = store.getState();
     expect(s.lastAudit?.fiscalYear).toBe(2);
     expect(s.state.stats.audits).toBe(1);
-    // 16 paid; the audit-count achievement it unlocks pays some back, so only "less than before".
-    expect(s.state.vouchers).toBeLessThan(100);
+    expect(s.state.vouchers).toBe(84);
     store.getState().stopLoop();
   });
   it('audit below threshold is a no-op', async () => {

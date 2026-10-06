@@ -4,7 +4,7 @@ import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import type { EventTier, StaffDef } from '../../engine/content';
-import { upcomingEvents, eventRate, eventTap, type EventOccurrence } from '../../engine/events';
+import { upcomingEvents, eventRate, eventTap, EVENT_UNLOCK_HIRES, type EventOccurrence } from '../../engine/events';
 import { staffBulkCost, maxAffordable, canAfford } from '../../engine/economy';
 import { ODDS, PULL_COST, TEN_PULL_COST, MAX_STARS } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
@@ -51,7 +51,9 @@ export function EventBanner({ onOpen }: { onOpen: () => void }) {
   const occ = useActiveEvent();
   const now = useNow();
   const [imgOk, setImgOk] = useState(true);
+  const hired = useGame((s) => s.state.stats.staffHired);
   if (!occ) return null;
+  const locked = hired < EVENT_UNLOCK_HIRES;
   const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'events/weekly-' + occ.id : 'events/' + occ.id}.webp`;
   return (
     <div className="card event-banner" style={{ borderColor: occ.accent }}>
@@ -60,7 +62,9 @@ export function EventBanner({ onOpen }: { onOpen: () => void }) {
       <h3>{occ.name}</h3>
       <div className="sub">{occ.blurb}</div>
       <div className="mono sub">{t('event.endsIn', { time: fmtCountdown(occ.endWall - now) })}</div>
-      <button className="btn btn-primary" style={{ background: occ.accent, borderColor: occ.accent }} onClick={onOpen}>{t('event.open', { dept: occ.deptName })}</button>
+      {locked
+        ? <button className="btn" disabled>🔒 {t('event.joinLocked', { n: EVENT_UNLOCK_HIRES - hired })}</button>
+        : <button className="btn btn-primary" style={{ background: occ.accent, borderColor: occ.accent }} onClick={onOpen}>{t('event.open', { dept: occ.deptName })}</button>}
     </div>
   );
 }

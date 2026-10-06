@@ -14,6 +14,11 @@ const WEEKLY_EPOCH = Date.UTC(2026, 0, 2);
 const WEEKLY_LENGTH = 3 * DAY;
 /** The tap is worth this share of the event rate on top of 1. */
 export const EVENT_TAP_FRACTION = 0.05;
+/** A brand-new player joins events after a few minutes of the main game: this many hires, ever. */
+export const EVENT_UNLOCK_HIRES = 10;
+export function eventUnlocked(state: GameState): boolean {
+  return state.stats.staffHired >= EVENT_UNLOCK_HIRES;
+}
 
 export interface EventOccurrence {
   /** Progress belongs to one key: `${specialId}-${startYear}` or `weekly-YYYY-MM-DD`. */

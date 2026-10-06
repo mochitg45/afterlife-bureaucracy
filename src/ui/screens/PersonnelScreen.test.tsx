@@ -30,9 +30,9 @@ describe('PersonnelScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /draw ten requisitions/i }));
     expect(useGame.getState().pendingPull).toHaveLength(10);
     // Spends the 90-voucher cost, but with this fixed rngSeed (wall: 0) the ten pulls always land
-    // an executive card, which settles the pre-existing "First Executive Card" achievement and
-    // its +10 voucher reward in the same apply() call.
-    expect(useGame.getState().state.vouchers).toBe(10);
+    // an executive card, which settles the "First Executive Card" achievement (+10) in the same
+    // apply() call, along with the first-pull, ten-pulls, first-card and five-cards ones (+5 each).
+    expect(useGame.getState().state.vouchers).toBe(30);
   });
   it('equips and unequips via the card sheet', () => {
     seed({ cards: { 'c-dave-overtime': 1 } });

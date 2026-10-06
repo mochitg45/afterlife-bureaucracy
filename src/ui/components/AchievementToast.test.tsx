@@ -58,15 +58,19 @@ describe('AchievementToast', () => {
     const ach = content.achievements.find((a) => a.vouchers)!;
     seed([ach]);
     render(<AchievementToast />);
-    expect(screen.getByRole('status')).toHaveTextContent(`+${ach.vouchers}`);
+    expect(screen.getByRole('status')).toHaveTextContent(`Reward+${ach.vouchers}`);
     act(() => { screen.getByRole('status').click(); });
     expect(useGame.getState().recentAchievements).toEqual([]);
   });
 
   it('shows no reward pill for an achievement that pays nothing', () => {
-    const ach = content.achievements.find((a) => !a.vouchers)!;
+    const ach = { ...content.achievements[0], vouchers: undefined };
     seed([ach]);
     const { container } = render(<AchievementToast />);
     expect(container.querySelector('.ach-reward')).toBeNull();
+  });
+
+  it('every achievement pays a prize, so every toast has one to show', () => {
+    expect(content.achievements.filter((a) => !a.vouchers).map((a) => a.id)).toEqual([]);
   });
 });

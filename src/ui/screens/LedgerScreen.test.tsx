@@ -29,7 +29,7 @@ describe('LedgerScreen', () => {
   });
   it('expedites on the second tap: spends the vouchers and files the audit', () => {
     const opened = Date.now() - (MIN_FISCAL_YEAR_MS - 2 * 3_600_000);
-    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(2), runStartWall: opened, vouchers: 10 });
+    seed({ soulsRun: new Decimal(AUDIT_BASE).mul(2), runStartWall: opened, vouchers: 10, achievements: content.achievements.map((a) => a.id) });
     render(<LedgerScreen />);
     const btn = screen.getByRole('button', { name: /expedite the audit for 4 vouchers/i });
     fireEvent.click(btn);
