@@ -300,7 +300,7 @@ function Banner({ occ, onInfo }: { occ: EventOccurrence; onInfo: (id: string) =>
             {t('event.pull10')} <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
           </button>
         </div>
-        <p className="sub">{t('event.cardsStay')}</p>
+        <p className="sub">{t('event.cardsLeave')}</p>
         <p className="sub mono">{RARITIES.map((r) => t('event.oddsItem', { rarity: RARITY_LABEL[r], pct: Math.round(ODDS[r] * 1000) / 10 })).join(' · ')}</p>
       </div>
     </>

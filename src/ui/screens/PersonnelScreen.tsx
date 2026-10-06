@@ -2,7 +2,7 @@ import { memo, useCallback, useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
-import type { Rarity } from '../../engine/content';
+import type { CardDef, Rarity } from '../../engine/content';
 import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, EXCHANGE_COST, EXCHANGE_CHANCE, equipSlots } from '../../engine/gacha';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -19,16 +19,21 @@ function pct(value: number): string {
   return (Number.isInteger(tenths) ? tenths.toString() : tenths.toFixed(1)) + '%';
 }
 
+/** The regular roster. Event cards live on their event's page and leave when it ends. */
+const BASE_CARDS = content.cards.filter((c) => !c.event);
+
 /**
- * Every shipped card, which changes only when one is drawn, equipped or unequipped. Memoised
+ * A grid of cards, which changes only when one is drawn, equipped or unequipped. Memoised
  * so the grid is not rebuilt by the tick loop behind it.
  */
 const Collection = memo(function Collection({
+  list,
   cards,
   cardShards,
   equipped,
   onCardClick,
 }: {
+  list: CardDef[];
   cards: Record<string, number>;
   cardShards: Record<string, number>;
   equipped: string[];
@@ -36,7 +41,7 @@ const Collection = memo(function Collection({
 }) {
   return (
     <div className="tile-grid" data-coach="collection">
-      {content.cards.map((card) => {
+      {list.map((card) => {
         const owned = card.id in cards;
         return (
           <CardTile
@@ -123,7 +128,8 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
       <div className="section-head">
         <h3>{t('personnel.collection')}</h3>
       </div>
-      <Collection cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
+      <Collection list={BASE_CARDS} cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
+
       {sheetCardId && <CardSheet cardId={sheetCardId} onClose={() => setSheetCardId(null)} />}
 
       <div className="card odds" ref={oddsRef}>

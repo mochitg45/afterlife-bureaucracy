@@ -247,8 +247,25 @@ export function syncEvent(state: GameState, content: Content, nowWall: number, f
   if (state.event?.key === occ?.key) return state;
   const paid = state.event ? grantReached(state, content, state.event, trackForKey(content, state.event.key)) : state;
   return {
-    ...paid,
+    ...dropEventCards(paid, content),
     event: occ ? { key: occ.key, points: new Decimal(0), earned: new Decimal(0), staff: {}, claimed: [] } : null,
+  };
+}
+
+/**
+ * Event cards belong to their run of the event: when it ends they leave with the event staff
+ * (stars, shards, spares and their equip slot), and the next run collects from scratch.
+ */
+export function dropEventCards(state: GameState, content: Content): GameState {
+  const gone = new Set(content.cards.filter((c) => c.event).map((c) => c.id));
+  const keep = <T,>(rec: Record<string, T>) => Object.fromEntries(Object.entries(rec).filter(([id]) => !gone.has(id)));
+  if (!Object.keys(state.cards).some((id) => gone.has(id)) && !state.equipped.some((id) => gone.has(id))) return state;
+  return {
+    ...state,
+    cards: keep(state.cards),
+    cardShards: keep(state.cardShards),
+    cardSpares: keep(state.cardSpares),
+    equipped: state.equipped.filter((id) => !gone.has(id)),
   };
 }
 

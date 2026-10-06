@@ -115,11 +115,30 @@ describe('syncEvent', () => {
     const s = inEvent(occ, { earned: new Decimal(occ.track[2].at), points: new Decimal(5), staff: { 'hw-ghost': 3 }, claimed: [0] });
     const out = syncEvent({ ...s, vouchers: 1 }, content, d('2026-11-06') + 1000);
     expect(out.vouchers).toBe(1 + 10);
-    expect(out.cards['c-hw-trickster']).toBe(1);
+    // The tier-1 card is paid, then leaves with the rest of Halloween's cards.
+    expect(out.cards['c-hw-trickster']).toBeUndefined();
     expect(out.event!.key).toBe('weekly-2026-11-06');
     expect(out.event!.staff).toEqual({});
     expect(out.event!.claimed).toEqual([]);
     expect(out.event!.earned.eq(0)).toBe(true);
+  });
+  it('clears every event card (stars, shards, spares, equip slot) when the event changes', () => {
+    const occ = activeEvent(content, d('2026-10-25'))!;
+    const s = inEvent(occ, {});
+    const keeper = content.cards.find((c) => !c.event)!.id;
+    const withCards = {
+      ...s,
+      cards: { 'c-hw-witch': 3, 'c-hw-bat': 1, [keeper]: 2 },
+      cardShards: { 'c-hw-bat': 1, [keeper]: 1 },
+      cardSpares: { 'c-hw-witch': 2 },
+      equipped: ['c-hw-witch', keeper],
+    };
+    expect(syncEvent(withCards, content, d('2026-10-26'))).toBe(withCards); // same event: untouched
+    const out = syncEvent(withCards, content, d('2026-11-06') + 1000);
+    expect(out.cards).toEqual({ [keeper]: 2 });
+    expect(out.cardShards).toEqual({ [keeper]: 1 });
+    expect(out.cardSpares).toEqual({});
+    expect(out.equipped).toEqual([keeper]);
   });
   it('resolves a weekly key to the weekly track', () => {
     const occ = activeEvent(content, d('2026-10-10'))!;
