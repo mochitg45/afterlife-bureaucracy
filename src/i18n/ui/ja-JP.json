@@ -468,5 +468,6 @@
  "rank.place2": "2位",
  "rank.place3": "3位",
  "rank.top": "上位{n}%",
- "rank.joinedRow": "参加賞"
+ "rank.joinedRow": "参加賞",
+ "card.eventActive": "イベントカード：イベント中は自動で働きます。装備枠は不要です。"
 }

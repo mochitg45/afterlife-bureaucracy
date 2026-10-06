@@ -468,5 +468,6 @@
  "rank.place2": "2nd place",
  "rank.place3": "3rd place",
  "rank.top": "Top {n}%",
- "rank.joinedRow": "Took part"
+ "rank.joinedRow": "Took part",
+ "card.eventActive": "Event card: on duty automatically during the event, no lanyard needed."
 }

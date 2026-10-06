@@ -468,5 +468,6 @@
  "rank.place2": "2위",
  "rank.place3": "3위",
  "rank.top": "상위 {n}%",
- "rank.joinedRow": "참가"
+ "rank.joinedRow": "참가",
+ "card.eventActive": "이벤트 카드: 이벤트 동안 자동으로 일해요. 장착 칸이 필요 없어요."
 }

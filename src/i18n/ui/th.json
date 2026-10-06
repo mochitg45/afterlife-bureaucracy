@@ -468,5 +468,6 @@
  "rank.place2": "อันดับ 2",
  "rank.place3": "อันดับ 3",
  "rank.top": "Top {n}%",
- "rank.joinedRow": "ร่วมสนุก"
+ "rank.joinedRow": "ร่วมสนุก",
+ "card.eventActive": "การ์ดอีเวนต์: ทำงานอัตโนมัติระหว่างอีเวนต์ ไม่ต้องใช้ช่องติดตั้ง"
 }

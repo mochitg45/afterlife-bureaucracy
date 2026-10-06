@@ -468,5 +468,6 @@
  "rank.place2": "Juara 2",
  "rank.place3": "Juara 3",
  "rank.top": "Top {n}%",
- "rank.joinedRow": "Ikut serta"
+ "rank.joinedRow": "Ikut serta",
+ "card.eventActive": "Kartu event: otomatis bertugas selama event, tanpa perlu slot."
 }

@@ -468,5 +468,6 @@
  "rank.place2": "2º lugar",
  "rank.place3": "3º lugar",
  "rank.top": "Top {n}%",
- "rank.joinedRow": "Participou"
+ "rank.joinedRow": "Participou",
+ "card.eventActive": "Carta de evento: trabalha sozinha durante o evento, sem usar espaço."
 }

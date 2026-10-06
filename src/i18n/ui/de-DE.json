@@ -468,5 +468,6 @@
  "rank.place2": "2. Platz",
  "rank.place3": "3. Platz",
  "rank.top": "Top {n} %",
- "rank.joinedRow": "Teilgenommen"
+ "rank.joinedRow": "Teilgenommen",
+ "card.eventActive": "Event-Karte: während des Events automatisch im Dienst, ohne Slot."
 }

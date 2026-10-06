@@ -17,7 +17,7 @@ import {
 } from './events';
 import { tick } from './actions';
 import { applyOffline } from './offline';
-import { pull, pullEvent, PULL_COST, TEN_PULL_COST } from './gacha';
+import { pull, pullEvent, equipCard, PULL_COST, TEN_PULL_COST } from './gacha';
 import { staffUnitCost } from './economy';
 import { migrate } from './migrations';
 import saveV8 from './fixtures/save-v8.json';
@@ -169,10 +169,16 @@ describe('event economy', () => {
     expect(eventTap(s, content, occ).toNumber()).toBeCloseTo(1 + 0.05 * 20);
     expect(eventTap(base(), content, occ).toNumber()).toBe(1);
   });
-  it('scales by equipped eventMult cards and their stars', () => {
-    const s = { ...inEvent(occ, { staff: { 'hw-ghost': 10 } }), cards: { 'c-hw-bat': 2 }, equipped: ['c-hw-bat'] };
+  it('scales by every owned event card and its stars, no equip needed', () => {
+    const s = { ...inEvent(occ, { staff: { 'hw-ghost': 10 } }), cards: { 'c-hw-bat': 2 }, equipped: [] };
     expect(eventRate(s, content, occ).toNumber()).toBeCloseTo(10 * (1 + 0.2 * 2));
-    expect(eventRate({ ...s, equipped: [] }, content, occ).toNumber()).toBeCloseTo(10);
+    expect(eventRate({ ...s, cards: {} }, content, occ).toNumber()).toBeCloseTo(10);
+    // A stale equip from an old save does not count the card twice.
+    expect(eventRate({ ...s, equipped: ['c-hw-bat'] }, content, occ).toNumber()).toBeCloseTo(10 * (1 + 0.2 * 2));
+  });
+  it('event cards cannot take a lanyard', () => {
+    const s = { ...inEvent(occ, {}), cards: { 'c-hw-bat': 1 }, equipped: [] };
+    expect(equipCard(s, content, 'c-hw-bat')).toBe(s);
   });
   it('charges baseCost × 1.15^owned, and refuses when short', () => {
     const poor = inEvent(occ, { points: new Decimal(5) });

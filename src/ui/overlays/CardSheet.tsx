@@ -74,7 +74,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
       <p>{card.flavor}</p>
       <p>{t('card.bonusNow', { line: bonusLine(card, stars) })}</p>
       {stars < MAX_STARS && <p>{t('card.nextStar', { line: bonusLine(card, stars + 1) })}</p>}
-      <div className="modal-actions">
+      {card.event ? <p className="sub brass">{t('card.eventActive')}</p> : <div className="modal-actions">
         <button
           className="btn btn-primary"
           disabled={full}
@@ -86,7 +86,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
           {isEquipped ? t('card.unequip') : t('card.equip')}
         </button>
         {full && <span className="sub warn">{t('card.noLanyard')}</span>}
-      </div>
+      </div>}
       {canExchange && (
         <div className="modal-actions">
           <button className="btn" onClick={() => setOutcome(exchange(cardId))}>

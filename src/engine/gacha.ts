@@ -315,6 +315,8 @@ export function clampEquipped(state: GameState, content: Content): GameState {
 /** Equips an owned card into a free slot. Refuses (same state) if not owned, already equipped, or no free slot. */
 export function equipCard(state: GameState, content: Content, cardId: string): GameState {
   if (!(cardId in state.cards) || state.equipped.includes(cardId)) return state;
+  // Event cards never take a lanyard: every one you own works during its event (see cardEventMult).
+  if (content.cards.find((c) => c.id === cardId)?.event) return state;
   if (state.equipped.length >= equipSlots(state, content)) return state;
   return { ...state, equipped: [...state.equipped, cardId], stats: { ...state.stats, equips: state.stats.equips + 1 } };
 }
@@ -356,4 +358,12 @@ function sumEffect(state: GameState, content: Content, type: 'clickMult' | 'offl
 export const cardClickMult = (s: GameState, c: Content): number => sumEffect(s, c, 'clickMult');
 export const cardOfflineCapHours = (s: GameState, c: Content): number => sumEffect(s, c, 'offlineCapHours');
 export const cardVoucherMult = (s: GameState, c: Content): number => sumEffect(s, c, 'voucherMult');
-export const cardEventMult = (s: GameState, c: Content): number => sumEffect(s, c, 'eventMult');
+/** Equipped regular cards, plus every owned event card: those are all on duty during their event. */
+export const cardEventMult = (s: GameState, c: Content): number => {
+  let t = 0;
+  for (const def of c.cards) {
+    if (!def.event || !(def.id in s.cards) || def.effect.type !== 'eventMult') continue;
+    t += def.effect.value * s.cards[def.id];
+  }
+  return t + sumEffect({ ...s, equipped: s.equipped.filter((id) => !c.cards.find((d) => d.id === id)?.event) }, c, 'eventMult');
+};
