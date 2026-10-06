@@ -139,6 +139,11 @@ describe('EventScreen', () => {
     expect(screen.getByText(/Not owned yet/)).toBeInTheDocument();
     expect(occ.banner).toBeTruthy();
   });
+  it('draws the ambient particles for the event', () => {
+    seed('halloween');
+    render(<EventScreen onBack={() => {}} />);
+    expect(screen.getByTestId('event-fx').querySelectorAll('span').length).toBeGreaterThan(5);
+  });
   it('falls back to the office when the event has ended', () => {
     seed(null);
     const back = vi.fn();

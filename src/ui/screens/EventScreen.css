@@ -35,3 +35,13 @@ button.event-card { font: inherit; color: inherit; cursor: pointer; width: 100%;
 .event-info-stats { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; margin: 8px 0; }
 .event-info-stats span:nth-child(even) { text-align: right; font-weight: 700; }
 .event-board { width: 100%; margin: 10px 0 2px; }
+/* Event ambient particles (see FX in EventScreen.tsx). */
+.event-fx > span { position: absolute; opacity: 0; line-height: 1; text-shadow: 0 0 6px rgb(0 0 0 / 0.25); animation-timing-function: linear; animation-iteration-count: infinite; }
+.event-fx .event-dot { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 0 8px 2px currentColor; }
+.fx-fall > span { top: -8%; animation-name: fxFall; }
+.fx-rise > span { bottom: -8%; animation-name: fxRise; }
+.fx-drift > span { left: -10% !important; animation-name: fxDrift; }
+@keyframes fxFall { 0% { transform: translate(0, 0) rotate(0); opacity: 0; } 10% { opacity: 0.95; } 50% { transform: translate(14px, 55cqh) rotate(160deg); } 90% { opacity: 0.8; } 100% { transform: translate(-10px, 110cqh) rotate(320deg); opacity: 0; } }
+@keyframes fxRise { 0% { transform: translate(0, 0) scale(0.7); opacity: 0; } 15% { opacity: 0.95; } 50% { transform: translate(10px, -50cqh) scale(1); } 85% { opacity: 0.6; } 100% { transform: translate(-8px, -105cqh) scale(0.8); opacity: 0; } }
+@keyframes fxDrift { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: 0.9; } 50% { transform: translate(60cqw, -18px); } 90% { opacity: 0.8; } 100% { transform: translate(125cqw, 6px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .event-fx { display: none; } }

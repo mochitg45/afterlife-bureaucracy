@@ -88,6 +88,49 @@ function EventStaffRow({ staff, occ, mode, onInfo }: { staff: StaffDef; occ: Eve
   );
 }
 
+/**
+ * Each event's ambient particles: a glyph (or a plain dot) and which way it travels. Fall and
+ * rise loop from off-scene edge to edge; drift crosses sideways. Unknown ids fall back to embers.
+ */
+const FX: Record<string, { glyph?: string; dir: 'fall' | 'rise' | 'drift'; color: string }> = {
+  halloween: { glyph: '🦇', dir: 'drift', color: '#2a1f3d' },
+  christmas: { glyph: '❄', dir: 'fall', color: '#ffffff' },
+  newyear: { glyph: '✦', dir: 'fall', color: '#ffd166' },
+  valentine: { glyph: '♥', dir: 'rise', color: '#ff7aa2' },
+  easter: { glyph: '✿', dir: 'fall', color: '#ffc0d9' },
+  summer: { dir: 'rise', color: 'rgb(255 255 255 / 0.85)' },
+  'great-backlog': { glyph: '▭', dir: 'fall', color: '#fffaf0' },
+  'tax-season': { glyph: '$', dir: 'fall', color: '#8fd18f' },
+  retrograde: { glyph: '✧', dir: 'rise', color: '#c9b8ff' },
+  'lost-socks': { dir: 'drift', color: '#d9d4cc' },
+  'printer-exorcism': { glyph: '▭', dir: 'drift', color: '#c8ffd8' },
+  'casual-friday': { dir: 'rise', color: 'rgb(255 255 255 / 0.85)' },
+  'valhalla-feast': { dir: 'rise', color: '#ffb347' },
+  'sin-pride': { glyph: '✦', dir: 'rise', color: '#ffe08a' },
+  'sin-greed': { glyph: '●', dir: 'fall', color: '#ffcf40' },
+  'sin-wrath': { dir: 'rise', color: '#ff6a3d' },
+  'sin-envy': { glyph: '❦', dir: 'fall', color: '#7bd67b' },
+  'sin-gluttony': { glyph: '•', dir: 'fall', color: '#e8b27a' },
+  'sin-sloth': { glyph: 'z', dir: 'rise', color: '#d8d0ff' },
+  'sin-lust': { glyph: '♥', dir: 'rise', color: '#ff8fb3' },
+};
+const FX_SLOTS = [6, 17, 29, 41, 52, 63, 74, 86, 95] as const;
+
+function EventFx({ id }: { id: string }) {
+  const fx = FX[id] ?? { dir: 'rise', color: '#ffb347' };
+  return (
+    <div className={`scene-fx event-fx fx-${fx.dir}`} aria-hidden="true" data-testid="event-fx">
+      {FX_SLOTS.map((x, i) => (
+        <span
+          key={i}
+          className={fx.glyph ? 'fx-glyph' : 'fx-dot event-dot'}
+          style={{ left: `${x}%`, top: fx.dir === 'drift' ? `${12 + ((i * 37) % 70)}%` : undefined, color: fx.color, background: fx.glyph ? undefined : fx.color, animationDelay: `${(i * 1.3) % 9}s`, animationDuration: `${7 + (i % 4) * 1.5}s`, fontSize: `${12 + (i % 3) * 5}px` }}
+        >{fx.glyph}</span>
+      ))}
+    </div>
+  );
+}
+
 /** The event's stamp, on its own department painting, with the office's floating +N. */
 function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
   const stamp = useGame((s) => s.eventStamp);
@@ -102,9 +145,7 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
   return (
     <div className="stamp-wrap">
       <div className="stamp-scene event-scene" style={{ backgroundImage: `url(${art})` }}>
-        <div className="scene-fx scene-ember" aria-hidden="true">
-          {[8, 22, 37, 51, 64, 79, 91].map((x, i) => <span key={i} className="fx-dot" style={{ left: `${x}%`, animationDelay: `${i * 1.1}s`, animationDuration: `${7 + (i % 3)}s` }} />)}
-        </div>
+        <EventFx id={occ.id} />
         {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>+{formatNumber(tap)}</span>)}
         <button className="stamp" onPointerDown={onStamp} onClick={(e) => { if (e.detail === 0) onStamp(); }} aria-label="Stamp event soul">
           <StampSeal />
