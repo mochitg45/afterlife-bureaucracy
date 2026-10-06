@@ -1,0 +1,17 @@
+/*
+ * Special Elite / IBM Plex / Nunito have no CJK or Thai glyphs. For those languages the system
+ * fonts take over, and long lines may break anywhere that is legal for the script.
+ * Loaded after theme.css so these win at equal specificity.
+ */
+html:lang(ja-JP) { --font-display: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Meiryo, system-ui, sans-serif; --font-body: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', Meiryo, system-ui, sans-serif; --font-mono: 'IBM Plex Mono', 'Noto Sans JP', ui-monospace, monospace; }
+html:lang(ko-KR) { --font-display: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif; --font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif; --font-mono: 'IBM Plex Mono', 'Noto Sans KR', ui-monospace, monospace; }
+html:lang(th) { --font-display: 'Noto Sans Thai', Thonburi, 'Leelawadee UI', system-ui, sans-serif; --font-body: 'Noto Sans Thai', Thonburi, 'Leelawadee UI', system-ui, sans-serif; --font-mono: 'IBM Plex Mono', 'Noto Sans Thai', ui-monospace, monospace; }
+
+html:lang(ja-JP) body, html:lang(ko-KR) body, html:lang(th) body { word-break: normal; overflow-wrap: anywhere; line-break: strict; }
+html:lang(ja-JP) h1, html:lang(ja-JP) h2, html:lang(ja-JP) h3,
+html:lang(ko-KR) h1, html:lang(ko-KR) h2, html:lang(ko-KR) h3,
+html:lang(th) h1, html:lang(th) h2, html:lang(th) h3 { letter-spacing: 0; font-weight: 700; }
+html:lang(de-DE) body, html:lang(id) body, html:lang(es-419) body, html:lang(pt-BR) body, html:lang(fr-FR) body { overflow-wrap: break-word; hyphens: auto; }
+
+/* Settings language picker (kept here so theme.css stays untouched). */
+.lang-select { font: inherit; max-width: 62%; padding: 6px 8px; border: 1px solid var(--ink, #333); border-radius: 8px; background: var(--surface-2, #fff); color: var(--ink, #222); }

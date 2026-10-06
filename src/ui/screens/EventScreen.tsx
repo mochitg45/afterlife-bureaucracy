@@ -18,6 +18,7 @@ import { VoucherIcon, SealIcon } from '../icons/Currency';
 import { Modal } from '../components/Modal';
 import { CardSheet, bonusLine } from '../overlays/CardSheet';
 import './EventScreen.css';
+import { t, fmtDate } from '../../i18n';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
 type EventTab = 'staff' | 'rewards' | 'gacha';
@@ -41,9 +42,9 @@ function useActiveEvent(): EventOccurrence | null {
   return useGame.getState().activeEvent();
 }
 
-const dayFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-const range = (o: EventOccurrence) => `${dayFmt.format(o.startWall)} – ${dayFmt.format(o.endWall - 1)}`;
-const tagOf = (o: EventOccurrence) => (o.kind === 'weekly' ? 'WEEKLY EVENT' : 'SPECIAL EVENT');
+const DAY: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', timeZone: 'UTC' };
+const range = (o: EventOccurrence) => `${fmtDate(o.startWall, DAY)} – ${fmtDate(o.endWall - 1, DAY)}`;
+const tagOf = (o: EventOccurrence) => (o.kind === 'weekly' ? t('event.tagWeekly') : t('event.tagSpecial'));
 
 /** Office entry point: shown only while an event is running. */
 export function EventBanner({ onOpen }: { onOpen: () => void }) {
@@ -58,8 +59,8 @@ export function EventBanner({ onOpen }: { onOpen: () => void }) {
       <span className="event-tag mono" style={{ color: occ.accent }}>{tagOf(occ)}</span>
       <h3>{occ.name}</h3>
       <div className="sub">{occ.blurb}</div>
-      <div className="mono sub">Ends in {fmtCountdown(occ.endWall - now)}</div>
-      <button className="btn btn-primary" style={{ background: occ.accent, borderColor: occ.accent }} onClick={onOpen}>Open {occ.deptName}</button>
+      <div className="mono sub">{t('event.endsIn', { time: fmtCountdown(occ.endWall - now) })}</div>
+      <button className="btn btn-primary" style={{ background: occ.accent, borderColor: occ.accent }} onClick={onOpen}>{t('event.open', { dept: occ.deptName })}</button>
     </div>
   );
 }
@@ -72,16 +73,16 @@ function EventStaffRow({ staff, occ, mode, onInfo }: { staff: StaffDef; occ: Eve
   const cost = staffBulkCost(staff, owned, Math.max(count, 1));
   return (
     <div className="card staff-row">
-      <button className="event-info-btn" onClick={onInfo} aria-label={`About ${staff.name}`}>
+      <button className="event-info-btn" onClick={onInfo} aria-label={t('event.about', { name: staff.name })}>
         <Character id="soul" art={staff.character} mood="ok" size={52} />
       </button>
       <div className="staff-info" onClick={onInfo}>
         <div className="staff-name">{staff.name} <span className="mono owned">×{owned}</span></div>
         <div className="sub">{staff.role} — {staff.flavor}</div>
-        <div className="mono sub">{owned ? `+${formatNumber(new Decimal(staff.baseRate * owned))}/s` : 'Hire to start filing'}</div>
+        <div className="mono sub">{owned ? `+${formatNumber(new Decimal(staff.baseRate * owned))}/s` : t('event.hireToStart')}</div>
       </div>
-      <button className="btn hire" disabled={count <= 0 || !canAfford(cost, points)} onClick={() => buy(staff.id, mode)} aria-label={`Hire ${staff.name}`}>
-        <span>Hire {mode === 'max' ? (count || 1) : mode}</span>
+      <button className="btn hire" disabled={count <= 0 || !canAfford(cost, points)} onClick={() => buy(staff.id, mode)} aria-label={t('event.hireAria', { name: staff.name })}>
+        <span>{t('event.hireN', { n: mode === 'max' ? (count || 1) : mode })}</span>
         <span className="mono amt">{formatNumber(cost)}</span>
       </button>
     </div>
@@ -147,10 +148,10 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
       <div className="stamp-scene event-scene" style={{ backgroundImage: `url(${art})` }}>
         <EventFx id={occ.id} />
         {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>+{formatNumber(tap)}</span>)}
-        <button className="stamp" onPointerDown={onStamp} onClick={(e) => { if (e.detail === 0) onStamp(); }} aria-label="Stamp event soul">
+        <button className="stamp" onPointerDown={onStamp} onClick={(e) => { if (e.detail === 0) onStamp(); }} aria-label={t('event.stampAria')}>
           <StampSeal />
         </button>
-        <div className="mono sub stamp-scene-pill">+{formatNumber(tap)} {occ.currency} per stamp</div>
+        <div className="mono sub stamp-scene-pill">{t('event.perStamp', { amount: formatNumber(tap), currency: occ.currency })}</div>
       </div>
     </div>
   );
@@ -158,8 +159,8 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
 
 function RewardLabel({ tier }: { tier: EventTier }) {
   const r = tier.reward;
-  if (r.type === 'vouchers') return <span className="event-reward amt">{r.amount} <VoucherIcon /> Vouchers</span>;
-  if (r.type === 'seals') return <span className="event-reward amt">{r.amount} <SealIcon /> Seals</span>;
+  if (r.type === 'vouchers') return <span className="event-reward amt">{r.amount} <VoucherIcon /> {t('event.vouchers')}</span>;
+  if (r.type === 'seals') return <span className="event-reward amt">{r.amount} <SealIcon /> {t('event.seals')}</span>;
   const card = findCard(content, r.card);
   return <span className="event-reward"><Character id="soul" art={card.id} mood="ok" size={28} /> {card.name}</span>;
 }
@@ -170,7 +171,7 @@ function Track({ occ }: { occ: EventOccurrence }) {
   const claim = useGame((s) => s.claimEventTier);
   return (
     <>
-      <div className="section-head"><h3>Reward track</h3></div>
+      <div className="section-head"><h3>{t('event.rewardTrack')}</h3></div>
       {occ.track.map((tier, i) => {
         const done = claimed?.includes(i) ?? false;
         const reached = earned.gte(tier.at);
@@ -181,9 +182,9 @@ function Track({ occ }: { occ: EventOccurrence }) {
               <RewardLabel tier={tier} />
               <div className="mono sub">{formatNumber(reached ? new Decimal(tier.at) : earned)} / {formatNumber(new Decimal(tier.at))}</div>
             </div>
-            {done ? <span className="mono sub">CLAIMED</span>
-              : reached ? <button className="btn btn-primary" onClick={() => claim(i)} aria-label={`Claim tier ${i + 1}`}>Claim</button>
-              : <span className="mono sub">Locked</span>}
+            {done ? <span className="mono sub">{t('event.claimed')}</span>
+              : reached ? <button className="btn btn-primary" onClick={() => claim(i)} aria-label={t('event.claimTier', { n: i + 1 })}>{t('event.claim')}</button>
+              : <span className="mono sub">{t('event.locked')}</span>}
             <div className="bar"><div className="bar-fill" style={{ width: pct + '%' }} /></div>
           </div>
         );
@@ -206,15 +207,15 @@ function StaffInfo({ staff, occ, onClose }: { staff: StaffDef; occ: EventOccurre
       <div className="card-sheet-head">
         {url ? <img className="event-info-art" src={url} alt="" /> : <Character id="soul" mood="ok" size={96} />}
         <span className="sub">{staff.role}</span>
-        <span className="mono sub">Hired ×{owned}</span>
+        <span className="mono sub">{t('event.hired', { n: owned })}</span>
       </div>
       <p>{staff.flavor}</p>
       <div className="event-info-stats mono">
-        <span>Each hire</span><span>+{formatNumber(each)} {occ.currency}/s</span>
-        <span>This team</span><span>+{formatNumber(team)}/s{owned ? ` (${share}% of event)` : ''}</span>
-        <span>Next hire</span><span>{formatNumber(staffBulkCost(staff, owned, 1))} {occ.currency}</span>
+        <span>{t('event.eachHire')}</span><span>{t('event.rateCur', { amount: formatNumber(each), currency: occ.currency })}</span>
+        <span>{t('event.thisTeam')}</span><span>{owned ? t('event.teamShare', { amount: formatNumber(team), share }) : t('event.teamRate', { amount: formatNumber(team) })}</span>
+        <span>{t('event.nextHire')}</span><span>{t('event.amountCur', { amount: formatNumber(staffBulkCost(staff, owned, 1)), currency: occ.currency })}</span>
       </div>
-      <p className="sub">Event staff leave when {occ.name} ends. Cards from the banner stay forever.</p>
+      <p className="sub">{t('event.staffLeave', { name: occ.name })}</p>
     </Modal>
   );
 }
@@ -228,14 +229,14 @@ function CardPreview({ id, onClose }: { id: string; onClose: () => void }) {
       <div className="card-sheet-head">
         {url ? <img className="event-info-art" src={url} alt="" /> : <Character id="soul" mood="ok" size={96} />}
         <span className="sub">{card.title}</span>
-        <span className="sub">{RARITY_LABEL[card.rarity]} · {Math.round(ODDS[card.rarity] * 1000) / 10}% per pull</span>
+        <span className="sub">{t('event.rarityPull', { rarity: RARITY_LABEL[card.rarity], pct: Math.round(ODDS[card.rarity] * 1000) / 10 })}</span>
       </div>
       <p>{card.flavor}</p>
       <div className="event-info-stats mono">
-        <span>Skill ★1</span><span>{bonusLine(card, 1)}</span>
-        <span>Skill ★{MAX_STARS}</span><span>{bonusLine(card, MAX_STARS)}</span>
+        <span>{t('event.skillStar', { n: 1 })}</span><span>{bonusLine(card, 1)}</span>
+        <span>{t('event.skillStar', { n: MAX_STARS })}</span><span>{bonusLine(card, MAX_STARS)}</span>
       </div>
-      <p className="sub">{card.effect.type === 'eventMult' ? 'Works in every future event while equipped.' : 'Works all year while equipped.'} Not owned yet.</p>
+      <p className="sub">{card.effect.type === 'eventMult' ? t('event.previewNoteEvent') : t('event.previewNoteYear')}</p>
     </Modal>
   );
 }
@@ -257,8 +258,8 @@ function Banner({ occ, onInfo }: { occ: EventOccurrence; onInfo: (id: string) =>
             const url = artUrl(c.character);
             const featured = c.id === banner.featured;
             return (
-              <button key={c.id} className={'event-card rarity-' + c.rarity + (featured ? ' featured' : '')} data-testid={featured ? 'featured-card' : undefined} onClick={() => onInfo(c.id)} aria-label={`About ${c.name}`}>
-                {featured && <span className="event-card-tag mono">FEATURED</span>}
+              <button key={c.id} className={'event-card rarity-' + c.rarity + (featured ? ' featured' : '')} data-testid={featured ? 'featured-card' : undefined} onClick={() => onInfo(c.id)} aria-label={t('event.about', { name: c.name })}>
+                {featured && <span className="event-card-tag mono">{t('event.featured')}</span>}
                 {url ? <img src={url} alt="" /> : <Character id="soul" mood="ok" size={64} />}
                 <div className="event-card-name">{c.name}</div>
                 <div className="mono sub">{RARITY_LABEL[c.rarity]}{c.id in cards ? ` · ${'★'.repeat(cards[c.id])}` : ''}</div>
@@ -268,15 +269,15 @@ function Banner({ occ, onInfo }: { occ: EventOccurrence; onInfo: (id: string) =>
           })}
         </div>
         <div className="modal-actions">
-          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pullEvent(1)} aria-label={`Pull one event card, ${PULL_COST} vouchers`}>
-            Pull ×1 <span className="amt">{PULL_COST} <VoucherIcon /></span>
+          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pullEvent(1)} aria-label={t('event.pullOneAria', { cost: PULL_COST })}>
+            {t('event.pull1')} <span className="amt">{PULL_COST} <VoucherIcon /></span>
           </button>
-          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pullEvent(10)} aria-label={`Pull ten event cards, ${TEN_PULL_COST} vouchers`}>
-            Pull ×10 <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
+          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pullEvent(10)} aria-label={t('event.pullTenAria', { cost: TEN_PULL_COST })}>
+            {t('event.pull10')} <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
           </button>
         </div>
-        <p className="sub">Event cards stay in your collection forever.</p>
-        <p className="sub mono">{RARITIES.map((r) => `${RARITY_LABEL[r]} ${Math.round(ODDS[r] * 1000) / 10}%`).join(' · ')}</p>
+        <p className="sub">{t('event.cardsStay')}</p>
+        <p className="sub mono">{RARITIES.map((r) => t('event.oddsItem', { rarity: RARITY_LABEL[r], pct: Math.round(ODDS[r] * 1000) / 10 })).join(' · ')}</p>
       </div>
     </>
   );
@@ -308,23 +309,23 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const tap = eventTap(state, content, occ);
   const upcoming = upcomingEvents(content, now, 4);
   const ready = occ.track.filter((t, i) => ev.earned.gte(t.at) && !ev.claimed.includes(i)).length;
-  const tabs: [EventTab, string][] = [['staff', 'Staff'], ['rewards', 'Rewards'], ...(occ.banner ? [['gacha', 'Gacha'] as [EventTab, string]] : [])];
+  const tabs: [EventTab, string][] = [['staff', t('event.tabStaff')], ['rewards', t('event.tabRewards')], ...(occ.banner ? [['gacha', t('event.tabGacha')] as [EventTab, string]] : [])];
   return (
     <section className="screen event-screen" style={{ '--accent': occ.accent } as CSSProperties}>
       <header className="screen-header">
-        <button className="btn btn-ghost" onClick={onBack} aria-label="Back to office">← Office</button>
+        <button className="btn btn-ghost" onClick={onBack} aria-label={t('event.backAria')}>{t('event.back')}</button>
         <h2>{occ.deptName}</h2>
       </header>
       <div className="card">
-        <div className="label">{occ.name} · Ends in {fmtCountdown(occ.endWall - now)}</div>
+        <div className="label">{t('event.headLine', { name: occ.name, time: fmtCountdown(occ.endWall - now) })}</div>
         <div className="event-stats">
-          <span className="mono value amt">{formatNumber(ev.points)} {occ.currency}</span>
+          <span className="mono value amt">{t('event.amountCur', { amount: formatNumber(ev.points), currency: occ.currency })}</span>
           <span className="mono sub">+{formatNumber(rate)}/s</span>
         </div>
-        <div className="mono sub">Earned {formatNumber(ev.earned)}</div>
+        <div className="mono sub">{t('event.earned', { n: formatNumber(ev.earned) })}</div>
       </div>
       <EventStamp occ={occ} tap={tap} />
-      <div className="event-tabs" role="tablist" aria-label="Event sections">
+      <div className="event-tabs" role="tablist" aria-label={t('event.sectionsAria')}>
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} className={'event-tab' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
             {label}{id === 'rewards' && ready > 0 && <span className="event-tab-badge mono">{ready}</span>}
@@ -334,8 +335,8 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
       {tab === 'staff' && (
         <>
           <div className="section-head">
-            <h3>Staff</h3>
-            <div className="mode-switch" role="group" aria-label="Buy amount">
+            <h3>{t('event.tabStaff')}</h3>
+            <div className="mode-switch" role="group" aria-label={t('event.buyAmountAria')}>
               {MODES.map((m) => (
                 <button key={String(m)} className={'btn btn-ghost' + (mode === m ? ' active' : '')} onClick={() => setMode(m)} aria-label={`×${m}`}>×{m}</button>
               ))}
@@ -346,13 +347,13 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
       )}
       {tab === 'rewards' && (
         <>
-          {leaderboard && <button className="btn event-board" onClick={() => void openBoard()}>🏆 {occ.name} leaderboard</button>}
+          {leaderboard && <button className="btn event-board" onClick={() => void openBoard()}>{t('event.leaderboard', { name: occ.name })}</button>}
           <Track occ={occ} />
-          <div className="section-head"><h3>Upcoming events</h3></div>
+          <div className="section-head"><h3>{t('event.upcoming')}</h3></div>
           {upcoming.map((o) => (
             <div key={o.key} className="event-upcoming">
               <span>{o.name}</span>
-              <span className="mono sub">{o.key === occ.key ? 'Live now' : range(o)}</span>
+              <span className="mono sub">{o.key === occ.key ? t('event.liveNow') : range(o)}</span>
             </div>
           ))}
         </>

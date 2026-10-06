@@ -4,6 +4,7 @@ import { content } from '../../data';
 import Decimal from 'break_infinity.js';
 import { upgradeLevelsLeft, progressOf, isDone, dailyVoucherReward, AD_SKIP_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
 import { formatNumber } from '../../engine/format';
+import { t } from '../../i18n';
 import { KarmaIcon, VoucherIcon } from '../icons/Currency';
 import type { DailyDef } from '../../engine/content';
 import { Badge } from '../components/Badge';
@@ -43,32 +44,32 @@ function TaskRow({ taskId, view }: { taskId: string; view: DailyProgressView }) 
         <span className="mono sub">{progress}/{def.target}</span>
         {!task.claimed && (
           <span className="mono sub daily-reward">
-            <span className="visually-hidden">Reward:</span>
-            <span className="amt">+{rewardVouchers} <VoucherIcon size={14} /><span className="visually-hidden">vouchers</span></span>
-            <span className="amt">+{rewardKc} <KarmaIcon size={14} /><span className="visually-hidden">Karma Credits</span></span>
+            <span className="visually-hidden">{t('tasks.reward')}</span>
+            <span className="amt">+{rewardVouchers} <VoucherIcon size={14} /><span className="visually-hidden">{t('tasks.vouchers')}</span></span>
+            <span className="amt">+{rewardKc} <KarmaIcon size={14} /><span className="visually-hidden">{t('tasks.karmaCredits')}</span></span>
           </span>
         )}
       </div>
       <div className="modal-actions">
         {task.claimed ? (
-          <span className="mono claimed-label">Claimed</span>
+          <span className="mono claimed-label">{t('tasks.claimed')}</span>
         ) : (
-          <button className="btn btn-primary" aria-label={`Claim: ${text}`} disabled={!done} onClick={() => claimDaily(taskId)}>
-            Claim
+          <button className="btn btn-primary" aria-label={t('tasks.claimAria', { text })} disabled={!done} onClick={() => claimDaily(taskId)}>
+            {t('tasks.claim')}
           </button>
         )}
         {view.dailies.skipTokens > 0 && !done && !task.claimed && (
-          <button className="btn btn-ghost" aria-label={`Skip: ${text}`} onClick={() => skipDaily(taskId)}>
-            Skip
+          <button className="btn btn-ghost" aria-label={t('tasks.skipAria', { text })} onClick={() => skipDaily(taskId)}>
+            {t('tasks.skip')}
           </button>
         )}
         {unfinishable && !task.claimed && (
-          <button className="btn btn-ghost" aria-label={`Write off: ${text}`} onClick={() => writeOffDaily(taskId)}>
-            Write off (no upgrades left)
+          <button className="btn btn-ghost" aria-label={t('tasks.writeOffAria', { text })} onClick={() => writeOffDaily(taskId)}>
+            {t('tasks.writeOff')}
           </button>
         )}
         {!done && !task.claimed && !unfinishable && (
-          <AdButton placement="daily-skip" taskId={taskId} label={`Skip with ad: ${text}`} text={`Skip with ad · +${AD_SKIP_VOUCHERS} vouchers`} />
+          <AdButton placement="daily-skip" taskId={taskId} label={t('tasks.skipAdAria', { text })} text={t('tasks.skipAd', { n: AD_SKIP_VOUCHERS })} />
         )}
       </div>
     </div>
@@ -120,35 +121,35 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
 
   return (
     <section className="screen tasks">
-      <ScreenHeader title="Tasks" onSettings={onSettings} />
+      <ScreenHeader title={t('tasks.title')} onSettings={onSettings} />
       {referralAvailable && (
         <div className="card">
-          <h3>Invite friends</h3>
-          <p className="sub">Share the game, earn vouchers when friends join.</p>
+          <h3>{t('tasks.invite')}</h3>
+          <p className="sub">{t('tasks.inviteDesc')}</p>
           <div className="modal-actions">
-            <button className="btn btn-primary" onClick={() => setInviteOpen(true)}>Invite friends</button>
+            <button className="btn btn-primary" onClick={() => setInviteOpen(true)}>{t('tasks.invite')}</button>
           </div>
         </div>
       )}
       <InviteSheet open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <div className="card" data-coach="tasks">
-        <h3>Daily tasks</h3>
-        <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>
-        <p className="sub">Skip tokens: {skipTokens}</p>
-        <p className="sub">A skipped task counts as finished — write one off and claim it like any other.</p>
+        <h3>{t('tasks.daily')}</h3>
+        <p className="sub">{t('tasks.streak', { streak, best: bestStreak })}</p>
+        <p className="sub">{t('tasks.skipTokens', { n: skipTokens })}</p>
+        <p className="sub">{t('tasks.skipNote')}</p>
         {clockSuspect && (
-          <p className="sub warn" role="status">Clock check failed — daily tasks are paused until the next launch.</p>
+          <p className="sub warn" role="status">{t('tasks.clockSuspect')}</p>
         )}
       </div>
       {tasks.map((t) => <TaskRow key={t.id} taskId={t.id} view={view} />)}
 
       <div className="section-head">
-        <h3>Achievements</h3>
+        <h3>{t('tasks.achievements')}</h3>
         <span className="sub mono">{achievements.length} / {total}</span>
       </div>
       <AchievementGrid unlocked={unlocked} expanded={expanded} />
       <button className="btn btn-ghost badge-toggle" aria-expanded={expanded} onClick={() => setExpanded((e) => !e)}>
-        {expanded ? 'Show less' : `Show all ${total}`}
+        {expanded ? t('tasks.showLess') : t('tasks.showAll', { n: total })}
       </button>
     </section>
   );

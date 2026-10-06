@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
@@ -35,12 +36,12 @@ export function Intro() {
   const [form, line] = scene.caption.includes(' — ') ? scene.caption.split(' — ') : [null, scene.caption];
 
   return (
-    <div className="intro" role="dialog" aria-label="Introduction" onClick={advance}>
+    <div className="intro" role="dialog" aria-label={t('intro.label')} onClick={advance}>
       <button
         className="btn btn-ghost intro-skip"
         onClick={(e) => { e.stopPropagation(); markMemosSeen(); }}
       >
-        Skip
+        {t('intro.skip')}
       </button>
       <div className="intro-stage" key={scene.id}>
         <div className="intro-art">
@@ -48,11 +49,11 @@ export function Intro() {
           <div className="intro-caption">
             {form && <div className="mono label intro-form">{form}</div>}
             <p>{line}</p>
-            <span className="intro-hint" aria-hidden="true">Tap to continue</span>
+            <span className="intro-hint" aria-hidden="true">{t('intro.hint')}</span>
           </div>
         </div>
         <button className="btn btn-primary intro-cta" onClick={(e) => { e.stopPropagation(); advance(); }}>
-          {scene.cta ?? 'Next'}
+          {scene.cta ?? t('intro.next')}
         </button>
       </div>
     </div>

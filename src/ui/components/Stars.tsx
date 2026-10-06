@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { MAX_STARS } from '../../engine/gacha';
 
 /**
@@ -9,7 +10,7 @@ export function Stars({ stars, className = '' }: { stars: number; className?: st
   const filled = Math.max(0, Math.min(MAX_STARS, stars));
   const empty = MAX_STARS - filled;
   return (
-    <span className={`stars mono ${className}`.trim()} aria-label={`${filled} of ${MAX_STARS} stars`}>
+    <span className={`stars mono ${className}`.trim()} aria-label={t('stars.label', { filled, max: MAX_STARS })}>
       <span className="stars-filled">{'★'.repeat(filled)}</span>
       <span className="stars-empty">{'☆'.repeat(empty)}</span>
     </span>

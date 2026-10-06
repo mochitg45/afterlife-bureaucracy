@@ -15,6 +15,7 @@ import { adsSupported } from '../../platform/ads';
 import { fmtLeft } from '../format';
 import { EventBanner } from './EventScreen';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
+import { t } from '../../i18n';
 
 type GoalTab = Extract<GoalWhere, { kind: 'tab' }>['tab'];
 
@@ -42,7 +43,7 @@ function NextGoal({ onGoTo }: { onGoTo?: (tab: GoalTab) => void }) {
   };
   return (
     <button type="button" className="next-goal" onClick={go} data-coach="next-goal">
-      <span className="label mono">Next:</span> <span>{goal.text}</span>
+      <span className="label mono">{t('office.next')}</span> <span>{goal.text}</span>
     </button>
   );
 }
@@ -77,18 +78,18 @@ function OvertimeBoost() {
   }, [counting]);
 
   const note = boostLeft > 0
-    ? `×2 for ${fmtLeft(boostLeft)}`
+    ? t('office.boostLeft', { time: fmtLeft(boostLeft) })
     : cooldownLeft > 0
-      ? `Available in ${fmtLeft(cooldownLeft)}`
-      : 'Watch an ad for four hours of double output.';
+      ? t('office.availableIn', { time: fmtLeft(cooldownLeft) })
+      : t('office.watchAd');
 
   return (
     <div className="card boost-card">
-      <button className="btn btn-primary" aria-label="Overtime Boost" disabled={!ready || busy} onClick={watch}>
-        Overtime Boost ×2
+      <button className="btn btn-primary" aria-label={t('office.boostAria')} disabled={!ready || busy} onClick={watch}>
+        {t('office.boost')}
       </button>
       <span className="mono sub">{note}</span>
-      {!adsReady && <span className="sub warn">Ad not available</span>}
+      {!adsReady && <span className="sub warn">{t('office.adUnavailable')}</span>}
     </div>
   );
 }
@@ -103,21 +104,21 @@ export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?:
       <CurrencyBar onSettings={onSettings} />
       {onOpenEvent && <EventBanner onOpen={onOpenEvent} />}
       <DeptChips />
-      <h2 className="dept-title">{dept.name} Department</h2>
+      <h2 className="dept-title">{t('office.deptTitle', { name: dept.name })}</h2>
       <NextGoal onGoTo={onGoTo} />
       <QueueCard />
       <StampButton />
       {adsSupported() && <OvertimeBoost />}
       <div className="section-head">
-        <h3>Staff</h3>
-        <div className="mode-switch" role="group" aria-label="Buy amount" data-coach="buy-mode">
+        <h3>{t('office.staff')}</h3>
+        <div className="mode-switch" role="group" aria-label={t('office.buyAmountAria')} data-coach="buy-mode">
           {MODES.map((m) => (
             <button key={String(m)} className={'btn btn-ghost' + (mode === m ? ' active' : '')} onClick={() => setMode(m)} aria-label={`×${m}`}>×{m}</button>
           ))}
         </div>
       </div>
       {dept.staff.map((s, i) => <StaffRow key={s.id} staff={s} mode={mode} index={i} />)}
-      <div className="section-head"><h3>Upgrades</h3></div>
+      <div className="section-head"><h3>{t('office.upgrades')}</h3></div>
       {dept.upgrades.map((u, i) => <UpgradeRow key={u.id} upgrade={u} first={i === 0} />)}
       <MemoTicker />
     </section>

@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { useWatchAd } from '../hooks/useWatchAd';
 import { adsSupported, type AdPlacement } from '../../platform/ads';
@@ -40,7 +41,7 @@ export function AdButton({
       >
         {text ?? label}
       </button>
-      {!adsReady && <span className="sub warn">Ad not available</span>}
+      {!adsReady && <span className="sub warn">{t('ad.unavailable')}</span>}
     </span>
   );
 }

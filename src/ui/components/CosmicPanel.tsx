@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { canBuyClause, canCosmic, CLAUSE_COST, cosmicThreshold } from '../../engine/cosmic';
@@ -22,13 +23,13 @@ const ClauseNode = memo(function ClauseNode({ clause }: { clause: ClauseDef }) {
     <div className={`card clause ${status}`}>
       <div className="perk-head">
         <span className="staff-name">{clause.name}</span>
-        <span className="mono seal-cost">{status === 'owned' ? 'ENACTED' : `${CLAUSE_COST} ✦`}</span>
+        <span className="mono seal-cost">{status === 'owned' ? t('cosmic.enacted') : `${CLAUSE_COST} ✦`}</span>
       </div>
       <div className="sub">{clause.desc}</div>
-      {status === 'locked' && <div className="sub">Requires {clause.requires.map(clauseName).join(', ')}</div>}
+      {status === 'locked' && <div className="sub">{t('cosmic.requires', { names: clause.requires.map(clauseName).join(', ') })}</div>}
       <div className="modal-actions">
-        <button className="btn" disabled={!check.ok} aria-label={`Enact ${clause.name}`} onClick={() => buyClause(clause.id)}>
-          Enact
+        <button className="btn" disabled={!check.ok} aria-label={t('cosmic.enactAria', { name: clause.name })} onClick={() => buyClause(clause.id)}>
+          {t('cosmic.enact')}
         </button>
       </div>
     </div>
@@ -64,41 +65,39 @@ export function CosmicPanel() {
   return (
     <section className="cosmic-panel">
       <div className={'card cosmic-card' + (ready ? ' ready' : '')}>
-        <h3>Cosmic Restructuring</h3>
+        <h3>{t('cosmic.title')}</h3>
         {ready ? (
           <>
-            <p className="sub">The Auditor has stopped asking questions. That is worse.</p>
+            <p className="sub">{t('cosmic.ready')}</p>
             {confirming && (
               <p className="sub warn">
-                Resets your Seals, every Perk, and the run: staff, upgrades and departments. Vouchers, cards,
-                lifetime souls, Clauses and the fiscal year stay.
+                {t('cosmic.warn')}
               </p>
             )}
             <div className="modal-actions">
               <button
                 className={'btn ' + (confirming ? 'btn-primary' : '')}
-                aria-label="Restructure (+1 Clause point)"
+                aria-label={t('cosmic.restructure')}
                 onClick={onRestructure}
               >
-                {confirming ? 'Confirm restructuring' : 'Restructure (+1 Clause point)'}
+                {confirming ? t('cosmic.confirm') : t('cosmic.restructure')}
               </button>
-              {confirming && <button className="btn btn-ghost" onClick={() => setConfirming(false)}>Cancel</button>}
+              {confirming && <button className="btn btn-ghost" onClick={() => setConfirming(false)}>{t('cosmic.cancel')}</button>}
             </div>
           </>
         ) : (
           <>
             <p className="sub">
-              {cosmics === 0 ? 'Unlocks at' : 'The next one is filed at'} {threshold} Seals. The Auditor has been
-              asking questions.
+              {cosmics === 0 ? t('cosmic.unlocksAt', { n: threshold }) : t('cosmic.nextAt', { n: threshold })}
             </p>
             <div className="bar"><div className="bar-fill" style={{ width: pct + '%' }} /></div>
-            <div className="mono sub">{seals} / {threshold} Seals</div>
+            <div className="mono sub">{t('cosmic.progress', { seals, threshold })}</div>
           </>
         )}
       </div>
       <div className="section-head">
-        <h3>Clauses</h3>
-        <span className="mono brass">Clause points: {cosmicPoints}</span>
+        <h3>{t('cosmic.clauses')}</h3>
+        <span className="mono brass">{t('cosmic.points', { n: cosmicPoints })}</span>
       </div>
       {content.clauses.map((c) => <ClauseNode key={c.id} clause={c} />)}
     </section>

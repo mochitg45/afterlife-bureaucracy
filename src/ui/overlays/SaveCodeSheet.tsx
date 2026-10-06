@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useMemo, useState } from 'react';
 import { useGame } from '../../store/game';
 import { Modal } from '../components/Modal';
@@ -19,9 +20,9 @@ export function SaveCodeSheet({ open, onClose }: { open: boolean; onClose: () =>
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
-      setStatus('Copied to the clipboard.');
+      setStatus(t('save.copied'));
     } catch {
-      setStatus('The clipboard refused. Select the code and copy it by hand.');
+      setStatus(t('save.clipboard'));
     }
   };
 
@@ -30,24 +31,24 @@ export function SaveCodeSheet({ open, onClose }: { open: boolean; onClose: () =>
     setConfirming(false);
     const result = await importSaveCode(typed.trim());
     if (result === 'ok') {
-      setStatus('Save imported.');
+      setStatus(t('save.imported'));
       onClose();
       return;
     }
-    setStatus('That code could not be read. Your current save is untouched.');
+    setStatus(t('save.badCode'));
   };
 
   return (
-    <Modal open={open} title="Save code" onClose={onClose}>
+    <Modal open={open} title={t('save.title')} onClose={onClose}>
       <p className="sub" role="status" aria-live="polite">{status}</p>
 
-      <label className="label" htmlFor="save-code-export">Your save code</label>
+      <label className="label" htmlFor="save-code-export">{t('save.yours')}</label>
       <textarea id="save-code-export" className="mono save-code" readOnly rows={4} value={code} />
       <div className="modal-actions">
-        <button className="btn" onClick={() => void onCopy()}>Copy</button>
+        <button className="btn" onClick={() => void onCopy()}>{t('save.copy')}</button>
       </div>
 
-      <label className="label" htmlFor="save-code-import">Paste a save code</label>
+      <label className="label" htmlFor="save-code-import">{t('save.paste')}</label>
       <textarea
         id="save-code-import"
         className="mono save-code"
@@ -55,16 +56,16 @@ export function SaveCodeSheet({ open, onClose }: { open: boolean; onClose: () =>
         value={typed}
         onChange={(e) => { setTyped(e.target.value); setConfirming(false); }}
       />
-      {confirming && <p className="sub warn">Importing replaces your current save. There is no undo.</p>}
+      {confirming && <p className="sub warn">{t('save.warn')}</p>}
       <div className="modal-actions">
         <button
           className={'btn ' + (confirming ? 'btn-primary' : '')}
           disabled={typed.trim().length === 0}
           onClick={() => void onImport()}
         >
-          Import
+          {t('save.import')}
         </button>
-        <button className="btn btn-ghost" onClick={onClose}>Close</button>
+        <button className="btn btn-ghost" onClick={onClose}>{t('save.close')}</button>
       </div>
     </Modal>
   );

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { voucherMult } from '../../engine/vouchers';
@@ -33,12 +34,12 @@ export function AchievementToast() {
     <button className="toast ach-toast" role="status" onClick={clearAchievementToast}>
       <Badge kind={achievement.badge} tier={achievement.tier} size={48} />
       <span className="ach-body">
-        <span className="ach-label">Achievement unlocked</span>
+        <span className="ach-label">{t('ach.unlocked')}</span>
         <span className="toast-name">{achievement.name}</span>
         {achievement.desc && <span className="ach-desc">{achievement.desc}</span>}
       </span>
       {paid > 0 && (
-        <span className="ach-reward" aria-label={`plus ${paid} vouchers`}>+{paid} <VoucherIcon size={16} /></span>
+        <span className="ach-reward" aria-label={t('ach.plusVouchers', { n: paid })}>+{paid} <VoucherIcon size={16} /></span>
       )}
     </button>
   );

@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
@@ -31,14 +32,14 @@ function resultLabel(r: PullResult) {
     return (
       <span className="amt">
         +{formatNumber(r.duplicateKc)} <KarmaIcon size={12} />
-        <span className="visually-hidden">KC</span>
+        <span className="visually-hidden">{t('pull.kc')}</span>
       </span>
     );
   }
-  if (r.spareGained) return '+1 spare copy';
-  if (r.starsAfter === 1 && r.shards === 0) return <span className="reveal-new">NEW</span>;
-  if (r.shards === 0) return `★ ${r.starsAfter}`;
-  return `+1 (${r.shards}/${r.shardsNeeded})`;
+  if (r.spareGained) return t('pull.spare');
+  if (r.starsAfter === 1 && r.shards === 0) return <span className="reveal-new">{t('pull.new')}</span>;
+  if (r.shards === 0) return t('pull.stars', { n: r.starsAfter });
+  return t('pull.shards', { have: r.shards, need: r.shardsNeeded });
 }
 
 function glowClass(r: PullResult): string {
@@ -102,15 +103,15 @@ function RevealBody({ results }: { results: PullResult[] }) {
   // Dropping either class is the fast-forward: every element's resting style is its end state.
   const cls = 'reveal' + (playing ? (!onScreen ? ' reveal-waiting' : reduced ? ' reveal-fade' : ' reveal-motion') : '');
   return (
-    <Modal open title="Requisition results" className={cls}>
+    <Modal open title={t('pull.title')} className={cls}>
       {playing && onScreen && !reduced && (
         <div className="reveal-intro" aria-hidden="true">
           <div className="reveal-form">
-            <div className="reveal-form-title">Requisition</div>
+            <div className="reveal-form-title">{t('pull.form')}</div>
             <div className="reveal-form-line" />
             <div className="reveal-form-line short" />
             <div className="reveal-form-line" />
-            <div className="reveal-stamp">Approved</div>
+            <div className="reveal-stamp">{t('pull.stamp')}</div>
           </div>
         </div>
       )}
@@ -123,12 +124,12 @@ function RevealBody({ results }: { results: PullResult[] }) {
           >
             <CardTile card={findCard(content, r.cardId)} stars={r.starsAfter} owned equipped={equipped.includes(r.cardId)} shards={r.shards} size={grid ? 40 : 48} />
             <span className={'mono' + (grid ? ' reveal-cell-label' : '')}>{resultLabel(r)}</span>
-            {r.pityTriggered && <span className="sub brass">Guaranteed</span>}
+            {r.pityTriggered && <span className="sub brass">{t('pull.guaranteed')}</span>}
           </div>
         ))}
       </div>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={dismissPull}>Done</button>
+        <button className="btn btn-primary" onClick={dismissPull}>{t('pull.done')}</button>
       </div>
     </Modal>
   );

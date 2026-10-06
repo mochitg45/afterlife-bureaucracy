@@ -4,6 +4,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { StoreArt } from '../components/StoreArt';
 import { adsSupported } from '../../platform/ads';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
+import { t, fmtDate } from '../../i18n';
 import { KarmaIcon } from '../icons/Currency';
 import {
   STARTER_PACK_VOUCHERS,
@@ -15,15 +16,14 @@ import {
 } from '../../engine/entitlements';
 
 /** Google Play requires both statements on any screen that sells a virtual currency. */
-export const STORE_FOOTNOTE =
-  'Requisition Vouchers are a virtual currency with no real-world value. Subscriptions renew monthly until cancelled in Google Play.';
+export const STORE_FOOTNOTE = t('store.footnote');
 
 const VOUCHER_PACK_IDS: ProductId[] = ['vouchers_10', 'vouchers_55', 'vouchers_120', 'vouchers_300'];
 
 const RESULT_TEXT: Record<PurchaseResult, string> = {
-  ok: 'Purchase filed. Thank you for your custom.',
-  cancelled: 'Purchase cancelled. Nothing was charged.',
-  error: 'The requisition desk could not complete that. Nothing was charged.',
+  ok: t('store.resultOk'),
+  cancelled: t('store.resultCancelled'),
+  error: t('store.resultError'),
 };
 
 /**
@@ -34,9 +34,9 @@ const RESULT_TEXT: Record<PurchaseResult, string> = {
  * Shared with the Settings sheet, which offers the same Restore button.
  */
 export const RESTORE_TEXT: Record<RestoreResult, string> = {
-  ok: 'Purchases restored.',
-  none: 'Nothing to restore for this account.',
-  error: 'The store did not respond. Try again later.',
+  ok: t('store.restoreOk'),
+  none: t('store.restoreNone'),
+  error: t('store.restoreError'),
 };
 
 /**
@@ -57,11 +57,11 @@ function PackRow({ product, onResult }: { product: Product; onResult: (r: Purcha
       <div>
         {!firstBuyUsed && (
           <span style={{ display: 'inline-block', background: 'var(--red)', color: '#F7F2E4', fontSize: '0.7em', fontWeight: 700, letterSpacing: '0.04em', borderRadius: 999, padding: '2px 8px', marginBottom: 4 }}>
-            2× FIRST PURCHASE
+            {t('store.firstPurchaseBadge')}
           </span>
         )}
         <BuyButton product={product} onResult={onResult} />
-        {!firstBuyUsed && <p className="sub">First purchase pays double: {doubleAmount} vouchers</p>}
+        {!firstBuyUsed && <p className="sub">{t('store.firstPurchaseDouble', { n: doubleAmount })}</p>}
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ function BuyButton({ product, primary, onResult }: { product: Product; primary?:
   return (
     <button
       className={'btn' + (primary ? ' btn-primary' : '')}
-      aria-label={`Buy ${product.title}`}
+      aria-label={t('store.buy', { title: product.title })}
       disabled={purchasePending !== null}
       onClick={() => void buy(product.id).then(onResult)}
     >
@@ -113,7 +113,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
   const starterOn = starterPackEligible({ entitlements, firstSeenWallClock }, now);
   // A purchase in flight outranks both; otherwise whichever of the two the player asked for
   // most recently is the one being reported, and `onRestore`/`setResult` clear the other.
-  const status = purchasePending ? 'Purchase pending…' : result ? RESULT_TEXT[result] : restore ? RESTORE_TEXT[restore] : '';
+  const status = purchasePending ? t('store.pending') : result ? RESULT_TEXT[result] : restore ? RESTORE_TEXT[restore] : '';
 
   const onPurchase = (r: PurchaseResult) => {
     setRestore(null);
@@ -122,17 +122,17 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
 
   return (
     <section className="screen store">
-      <ScreenHeader title="Store" onSettings={onSettings} />
+      <ScreenHeader title={t('store.title')} onSettings={onSettings} />
       <p className="sub" role="status" aria-live="polite">{status}</p>
 
       {products.length === 0 && (
-        <div className="card"><p className="sub">The requisition desk is closed. Try again once the office is back online.</p></div>
+        <div className="card"><p className="sub">{t('store.closed')}</p></div>
       )}
 
       {packs.length > 0 && (
         <>
-          <h3>Vouchers</h3>
-          <p className="sub">Spend them on requisitions in Personnel. Purchased vouchers are never multiplied by perks or bonuses; the first purchase of each pack pays double.</p>
+          <h3>{t('store.vouchers')}</h3>
+          <p className="sub">{t('store.vouchersDesc')}</p>
           {packs.map((p) => <PackRow product={p} onResult={onPurchase} key={p.id} />)}
         </>
       )}
@@ -142,15 +142,12 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
           <div className="store-row">
             <StoreArt productId="remove_ads" />
             <div>
-              <h3>Remove Ads</h3>
-              <p className="sub">
-                Permanent ×2 on the Overnight Backlog Report. Nothing is ever forced on you — the rewarded buttons
-                stay optional either way.
-              </p>
+              <h3>{t('store.removeAds')}</h3>
+              <p className="sub">{t('store.removeAdsDesc')}</p>
             </div>
           </div>
           {entitlements.removeAds
-            ? <div className="mono value brass">Owned</div>
+            ? <div className="mono value brass">{t('store.owned')}</div>
             : <div className="modal-actions"><BuyButton product={removeAds} onResult={onPurchase} /></div>}
         </div>
       )}
@@ -160,10 +157,9 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
           <div className="store-row">
             <StoreArt productId="starter_pack" />
             <div>
-              <h3>Starter Pack</h3>
+              <h3>{t('store.starterPack')}</h3>
               <p className="sub">
-                {STARTER_PACK_VOUCHERS} Requisition Vouchers, Grandma Liu at one star, and Karma Credits <KarmaIcon size={14} /> worth{' '}
-                {STARTER_PACK_KC_SECONDS / 60} minutes of your current income. Offered once, in your first three days.
+                {t('store.starterPackDesc', { vouchers: STARTER_PACK_VOUCHERS, minutes: STARTER_PACK_KC_SECONDS / 60 })} <KarmaIcon size={14} />
               </p>
             </div>
           </div>
@@ -176,14 +172,11 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
           <div className="store-row">
             <StoreArt productId="union_monthly" />
             <div>
-              <h3>Union Membership</h3>
-              <p className="sub">
-                +25% to everything the office earns, {UNION_ROLLOVER_VOUCHERS} vouchers on every daily rollover, and finished
-                daily tasks file themselves.
-              </p>
+              <h3>{t('store.union')}</h3>
+              <p className="sub">{t('store.unionDesc', { vouchers: UNION_ROLLOVER_VOUCHERS })}</p>
             </div>
           </div>
-          {unionOn && <div className="mono brass">Active until {new Date(entitlements.unionUntilWall).toLocaleDateString()}</div>}
+          {unionOn && <div className="mono brass">{t('store.unionActive', { date: fmtDate(entitlements.unionUntilWall, {}) })}</div>}
           <div className="modal-actions"><BuyButton product={union} primary={!unionOn} onResult={onPurchase} /></div>
         </div>
       )}
@@ -193,7 +186,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
           className="btn btn-ghost"
           onClick={() => void restorePurchases().then((r) => { setResult(null); setRestore(r); })}
         >
-          Restore purchases
+          {t('store.restore')}
         </button>
       </div>
       <p className="sub store-footnote">{STORE_FOOTNOTE}</p>

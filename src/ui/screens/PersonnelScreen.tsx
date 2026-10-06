@@ -9,6 +9,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
 import { CardSheet } from '../overlays/CardSheet';
 import { VoucherIcon } from '../icons/Currency';
+import { t } from '../../i18n';
 
 const RARITY_ORDER: Rarity[] = ['temp', 'fulltime', 'senior', 'executive'];
 
@@ -74,33 +75,33 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
 
   return (
     <section className="screen personnel">
-      <ScreenHeader title="Personnel" onSettings={onSettings} />
+      <ScreenHeader title={t('personnel.title')} onSettings={onSettings} />
       <header className="card">
-        <div className="label">Requisition Vouchers</div>
-        <div className="mono value brass amt" role="img" aria-label={`${vouchers} vouchers`}>
+        <div className="label">{t('personnel.vouchers')}</div>
+        <div className="mono value brass amt" role="img" aria-label={t('personnel.vouchersAria', { n: vouchers })}>
           {vouchers} <VoucherIcon size={22} />
         </div>
-        <p className="sub">Senior guaranteed in {PITY_SENIOR - pity.senior}</p>
-        <p className="sub">Executive guaranteed in {PITY_EXECUTIVE - pity.executive}</p>
+        <p className="sub">{t('personnel.seniorIn', { n: PITY_SENIOR - pity.senior })}</p>
+        <p className="sub">{t('personnel.execIn', { n: PITY_EXECUTIVE - pity.executive })}</p>
         <div className="modal-actions" data-coach="pull">
-          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label={`Draw one requisition, ${PULL_COST} vouchers`}>
+          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label={t('personnel.drawOne', { cost: PULL_COST })}>
             <span className="amt">{PULL_COST} <VoucherIcon /></span>
           </button>
-          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label={`Draw ten requisitions, ${TEN_PULL_COST} vouchers`}>
+          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label={t('personnel.drawTen', { cost: TEN_PULL_COST })}>
             <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
           </button>
-          <AdButton placement="free-pull" label="Free daily pull" />
+          <AdButton placement="free-pull" label={t('personnel.freePull')} />
           <button
             className="btn btn-ghost"
-            aria-label="See odds"
+            aria-label={t('personnel.seeOdds')}
             onClick={() => oddsRef.current?.scrollIntoView?.({ behavior: 'smooth' })}
           >
-            See odds
+            {t('personnel.seeOdds')}
           </button>
         </div>
       </header>
 
-      <div className="section-head"><h3>Equipped</h3></div>
+      <div className="section-head"><h3>{t('personnel.equipped')}</h3></div>
       <div className="tile-grid" data-coach="equipped">
         {Array.from({ length: slots }, (_, i) => equipped[i]).map((cardId, i) =>
           cardId ? (
@@ -114,32 +115,32 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
               shards={cardShards[cardId] ?? 0}
             />
           ) : (
-            <div key={`empty-${i}`} className="tile empty sub">Empty slot</div>
+            <div key={`empty-${i}`} className="tile empty sub">{t('personnel.emptySlot')}</div>
           ),
         )}
       </div>
 
       <div className="section-head">
-        <h3>Collection</h3>
+        <h3>{t('personnel.collection')}</h3>
       </div>
       <Collection cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
       {sheetCardId && <CardSheet cardId={sheetCardId} onClose={() => setSheetCardId(null)} />}
 
       <div className="card odds" ref={oddsRef}>
-        <h3>Odds</h3>
+        <h3>{t('personnel.odds')}</h3>
         {RARITY_ORDER.map((r) => (
           <div key={r} className="odds-row">
             <span>{RARITY_LABEL[r]}</span>
             <span className="mono">{pct(ODDS[r])}</span>
           </div>
         ))}
-        <p className="sub">Senior Staff or better is guaranteed within {PITY_SENIOR} pulls of the last one.</p>
-        <p className="sub">Executive is guaranteed within {PITY_EXECUTIVE} pulls of the last one.</p>
-        <h3>Exchange</h3>
-        <p className="sub">At ★5, spend {EXCHANGE_COST} spare copies for a chance at the next rarity up.</p>
+        <p className="sub">{t('personnel.pitySenior', { n: PITY_SENIOR })}</p>
+        <p className="sub">{t('personnel.pityExec', { n: PITY_EXECUTIVE })}</p>
+        <h3>{t('personnel.exchange')}</h3>
+        <p className="sub">{t('personnel.exchangeDesc', { n: EXCHANGE_COST })}</p>
         {(['temp', 'fulltime', 'senior'] as const).map((r) => (
           <div key={r} className="odds-row">
-            <span>{RARITY_LABEL[r]} → {RARITY_LABEL[RARITY_ORDER[RARITY_ORDER.indexOf(r) + 1]]}</span>
+            <span>{t('personnel.exchangeRow', { from: RARITY_LABEL[r], to: RARITY_LABEL[RARITY_ORDER[RARITY_ORDER.indexOf(r) + 1]] })}</span>
             <span className="mono">{pct(EXCHANGE_CHANCE[r])}</span>
           </div>
         ))}

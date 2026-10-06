@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { cosmicThreshold } from '../../engine/cosmic';
 import { Modal } from '../components/Modal';
@@ -19,15 +20,14 @@ export function CosmicCeremony() {
   const dismiss = useGame((s) => s.dismissCosmic);
   if (!last) return null;
   return (
-    <Modal open title="The Bureau has been restructured." label="Cosmic Restructuring" header={SEAL} backdropClassName="ceremony">
-      <div className="mono value brass">+{last.pointsGained} Clause point</div>
+    <Modal open title={t('cosmicCer.title')} label={t('cosmicCer.label')} header={SEAL} backdropClassName="ceremony">
+      <div className="mono value brass">{t('cosmicCer.points', { n: String(last.pointsGained) })}</div>
       <p className="sub">
-        Your Seals and Perks have been returned to the Bureau, and the calendar with them: it is fiscal year 1
-        again. The paperwork survives. It always does.
+        {t('cosmicCer.sub')}
       </p>
-      <p className="sub">The next restructuring will be heard at {cosmicThreshold(cosmics)} Seals.</p>
+      <p className="sub">{t('cosmicCer.next', { n: String(cosmicThreshold(cosmics)) })}</p>
       <div className="modal-actions">
-        <button className="btn btn-primary" onClick={dismiss}>Back to the office</button>
+        <button className="btn btn-primary" onClick={dismiss}>{t('cosmicCer.back')}</button>
       </div>
     </Modal>
   );

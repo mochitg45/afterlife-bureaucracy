@@ -31,6 +31,7 @@ import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { useTestAds } from '../platform/adUnits';
 import { track } from '../platform/analytics';
 import { pickReferral, referralLink, type Referral } from '../platform/referral';
+import { t } from '../i18n';
 import { pickSharer, INVITE_PITCH, type Sharer } from '../platform/share';
 import { claimTier, grantShareReward } from '../engine/referral';
 import { content as defaultContent } from '../data';
@@ -1133,8 +1134,8 @@ export function createGameStore(deps: StoreDeps) {
           items.push({
             id: NOTIF_INTRAY,
             atWall: wall + offlineCapSeconds(s, content) * 1000,
-            title: 'In-tray full',
-            body: 'Your staff have stopped stamping. The backlog is waiting.',
+            title: t('notif.intrayTitle'),
+            body: t('notif.intrayBody'),
           });
         }
         // Always re-scheduled, never counted: it reuses one id, so it replaces itself rather
@@ -1142,8 +1143,8 @@ export function createGameStore(deps: StoreDeps) {
         items.push({
           id: NOTIF_DAILY,
           atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
-          title: 'Daily tasks reset',
-          body: 'Three fresh tasks are on your desk.',
+          title: t('notif.dailyTitle'),
+          body: t('notif.dailyBody'),
         });
         try {
           await notifications.schedule(items);

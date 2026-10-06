@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../../store/game';
 import type { GameState } from '../../engine/state';
 import { formatNumber } from '../../engine/format';
+import { t } from '../../i18n';
 
 interface Float { id: number; x: number; text: string }
 
@@ -21,8 +22,8 @@ export function StampSeal({ className, size = 120 }: { className?: string; size?
     <svg className={className} viewBox="0 0 120 120" width={size} height={size} aria-hidden="true">
       <circle cx="60" cy="60" r="54" fill="var(--red)" stroke="var(--ink)" strokeWidth="4" />
       <circle cx="60" cy="60" r="42" fill="none" stroke="var(--surface)" strokeWidth="3" strokeDasharray="6 5" />
-      <text x="60" y="56" textAnchor="middle" fill="var(--surface)" fontFamily="var(--font-display)" fontSize="18">PROCESSED</text>
-      <text x="60" y="76" textAnchor="middle" fill="var(--surface)" fontFamily="var(--font-mono)" fontSize="12">FORM 7-B</text>
+      <text x="60" y="56" textAnchor="middle" fill="var(--surface)" fontFamily="var(--font-display)" fontSize="18">{t('stamp.processed')}</text>
+      <text x="60" y="76" textAnchor="middle" fill="var(--surface)" fontFamily="var(--font-mono)" fontSize="12">{t('stamp.form')}</text>
     </svg>
   );
 }
@@ -78,10 +79,10 @@ export function StampButton() {
           {PARTICLES.map(([x, delay, dur], i) => <span key={'p' + i} className="fx-dot" style={{ left: `${x}%`, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />)}
         </div>
         {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>{f.text}</span>)}
-        <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label="Stamp soul" data-coach="stamp">
+        <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label={t('stamp.aria')} data-coach="stamp">
           <StampSeal />
         </button>
-        <div className="mono sub stamp-scene-pill">+{formatNumber(clickPower)} per stamp</div>
+        <div className="mono sub stamp-scene-pill">{t('stamp.perStamp', { amount: formatNumber(clickPower) })}</div>
       </div>
     </div>
   );

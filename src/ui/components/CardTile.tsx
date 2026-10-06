@@ -1,19 +1,20 @@
 import type { CardDef } from '../../engine/content';
 import { Character } from '../characters/Character';
 import { dupesForNextStar, MAX_STARS } from '../../engine/gacha';
+import { t } from '../../i18n';
 
 /** Short names for the event a card came from, shown as a tag on the tile. */
 const EVENT_LABEL: Record<string, string> = {
-  halloween: 'Halloween', christmas: 'Christmas', newyear: 'New Year', valentine: "Valentine's", easter: 'Easter', summer: 'Summer',
+  halloween: t('card.event.halloween'), christmas: t('card.event.christmas'), newyear: t('card.event.newyear'), valentine: t('card.event.valentine'), easter: t('card.event.easter'), summer: t('card.event.summer'),
 };
 import { Stars } from './Stars';
 
 /** Shared with PersonnelScreen's Odds card so the two never drift apart. */
 export const RARITY_LABEL: Record<CardDef['rarity'], string> = {
-  temp: 'Temp',
-  fulltime: 'Full-Time',
-  senior: 'Senior Staff',
-  executive: 'Executive',
+  temp: t('card.rarity.temp'),
+  fulltime: t('card.rarity.fulltime'),
+  senior: t('card.rarity.senior'),
+  executive: t('card.rarity.executive'),
 };
 
 export interface CardTileProps {

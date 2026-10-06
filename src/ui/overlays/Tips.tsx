@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { adsSupported } from '../../platform/ads';
 import { useEffect, useRef, useState } from 'react';
 import { useGame, TRAINING_DONE } from '../../store/game';
@@ -50,7 +51,7 @@ function relevant(id: TipId, s: GameState, content: Content, ctx: TipContext): R
     case 'dept-unlock':
       return office && s.deptsUnlocked.length > 1 ? {} : null;
     case 'personnel-intro':
-      return ctx.tab === 'personnel' ? { pull: PULL_COST, ten: TEN_PULL_COST, pity: PITY_SENIOR, free: adsSupported() ? ' There is a free daily pull.' : '' } : null;
+      return ctx.tab === 'personnel' ? { pull: PULL_COST, ten: TEN_PULL_COST, pity: PITY_SENIOR, free: adsSupported() ? t('tips.freePull') : '' } : null;
     case 'equip':
       return ctx.tab === 'personnel' && s.stats.pulls > 0 ? {} : null;
     case 'stars': {
@@ -119,8 +120,8 @@ export function Tips({ tab }: { tab: TabId }) {
   if (!tip || modalOpen) return null;
   const done = () => markTipSeen(tip.id);
   return (
-    <CoachMark key={tip.id} target={tip.target} title={tip.title} text={tip.text} label="Tip" onSkip={done}>
-      <button className="btn btn-primary" onClick={done}>Got it</button>
+    <CoachMark key={tip.id} target={tip.target} title={tip.title} text={tip.text} label={t('tips.label')} onSkip={done}>
+      <button className="btn btn-primary" onClick={done}>{t('tips.gotIt')}</button>
     </CoachMark>
   );
 }

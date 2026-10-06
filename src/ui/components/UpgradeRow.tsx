@@ -3,6 +3,7 @@ import type { UpgradeDef } from '../../engine/content';
 import { upgradeCost, canAfford } from '../../engine/economy';
 import { formatNumber } from '../../engine/format';
 import { KarmaIcon } from '../icons/Currency';
+import { t } from '../../i18n';
 
 /** `first` marks the department's first upgrade as the beginner tip's spotlight target. */
 export function UpgradeRow({ upgrade, first = false }: { upgrade: UpgradeDef; first?: boolean }) {
@@ -17,7 +18,7 @@ export function UpgradeRow({ upgrade, first = false }: { upgrade: UpgradeDef; fi
         <div className="staff-name">{upgrade.name} <span className="mono owned">{level}/{upgrade.maxLevel}</span></div>
         <div className="sub">{upgrade.desc}</div>
       </div>
-      <div className="mono amt">{maxed ? 'MAX' : <>{formatNumber(cost)} <KarmaIcon size={14} /></>}</div>
+      <div className="mono amt">{maxed ? t('upgrade.max') : <>{formatNumber(cost)} <KarmaIcon size={14} /></>}</div>
     </button>
   );
 }
