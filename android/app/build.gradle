@@ -65,6 +65,8 @@ dependencies {
     // pin is set there: a lower pin is silently upgraded by the dynamic range and the pin
     // stops documenting what actually compiles. Raise it if the `+` ever resolves higher.
     implementation "com.google.android.gms:play-services-games-v2:22.1.0"
+    // Play Install Referrer API, used by the in-repo ReferralPlugin (invite-link attribution).
+    implementation "com.android.installreferrer:installreferrer:2.2"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

@@ -9,6 +9,7 @@ import type { DailyDef } from '../../engine/content';
 import { Badge } from '../components/Badge';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
+import { InviteSheet } from '../overlays/InviteSheet';
 
 function fillText(def: DailyDef): string {
   return def.text.replace('{n}', String(def.target));
@@ -114,10 +115,22 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   const view: DailyProgressView = { dailies, stats };
   const total = content.achievements.length;
   const [expanded, setExpanded] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const referralAvailable = useGame((s) => s.referralInfo.available);
 
   return (
     <section className="screen tasks">
       <ScreenHeader title="Tasks" onSettings={onSettings} />
+      {referralAvailable && (
+        <div className="card">
+          <h3>Invite friends</h3>
+          <p className="sub">Share the game, earn vouchers when friends join.</p>
+          <div className="modal-actions">
+            <button className="btn btn-primary" onClick={() => setInviteOpen(true)}>Invite friends</button>
+          </div>
+        </div>
+      )}
+      <InviteSheet open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <div className="card" data-coach="tasks">
         <h3>Daily tasks</h3>
         <p className="sub">Streak: {streak} days · Best: {bestStreak}</p>

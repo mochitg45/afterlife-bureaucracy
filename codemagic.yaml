@@ -58,6 +58,10 @@ workflows:
           # GoogleService-Info.plist, which the iOS app does not have.
           if grep -q CapacitorFirebaseAnalytics ios/App/Podfile; then sed -i '' "/CapacitorFirebaseAnalytics/d" ios/App/Podfile; fi
           grep -q CapacitorFirebaseAnalytics ios/App/Podfile && exit 1 || true
+          # Same for App Check (referrals are Android-only): its iOS pod pulls in Firebase
+          # core, which configures itself at launch and aborts without the plist.
+          if grep -q CapacitorFirebaseAppCheck ios/App/Podfile; then sed -i '' "/CapacitorFirebaseAppCheck/d" ios/App/Podfile; fi
+          grep -q CapacitorFirebaseAppCheck ios/App/Podfile && exit 1 || true
 
       - name: Install CocoaPods dependencies
         script: |
