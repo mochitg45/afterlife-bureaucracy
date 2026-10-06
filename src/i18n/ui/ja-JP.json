@@ -16,6 +16,8 @@
  "event.claimed": "受取済み",
  "event.claimTier": "ティア{n}を受け取る",
  "event.claim": "受け取る",
+ "event.prizeTitle": "イベント報酬！",
+ "event.collect": "受け取る",
  "event.locked": "ロック中",
  "event.hired": "雇用済み ×{n}",
  "event.eachHire": "1人あたり",

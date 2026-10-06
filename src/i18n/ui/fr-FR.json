@@ -16,6 +16,8 @@
  "event.claimed": "RÉCLAMÉ",
  "event.claimTier": "Réclamer le palier {n}",
  "event.claim": "Réclamer",
+ "event.prizeTitle": "Récompense d'événement !",
+ "event.collect": "Récupérer",
  "event.locked": "Verrouillé",
  "event.hired": "Embauchés ×{n}",
  "event.eachHire": "Par embauche",

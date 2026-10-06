@@ -16,6 +16,8 @@
  "event.claimed": "CLAIMED",
  "event.claimTier": "Claim tier {n}",
  "event.claim": "Claim",
+ "event.prizeTitle": "Event reward!",
+ "event.collect": "Collect",
  "event.locked": "Locked",
  "event.hired": "Hired ×{n}",
  "event.eachHire": "Each hire",

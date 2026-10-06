@@ -16,6 +16,8 @@
  "event.claimed": "수령 완료",
  "event.claimTier": "{n}단계 받기",
  "event.claim": "받기",
+ "event.prizeTitle": "이벤트 보상!",
+ "event.collect": "받기",
  "event.locked": "잠김",
  "event.hired": "고용 ×{n}",
  "event.eachHire": "1명당",

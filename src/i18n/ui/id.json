@@ -16,6 +16,8 @@
  "event.claimed": "DIKLAIM",
  "event.claimTier": "Klaim tingkat {n}",
  "event.claim": "Klaim",
+ "event.prizeTitle": "Hadiah event!",
+ "event.collect": "Ambil",
  "event.locked": "Terkunci",
  "event.hired": "Direkrut ×{n}",
  "event.eachHire": "Tiap rekrutan",

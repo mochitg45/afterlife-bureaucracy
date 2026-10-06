@@ -98,6 +98,26 @@ describe('EventScreen', () => {
     expect(useGame.getState().state.event!.claimed).toContain(0);
     expect(occ.track.length).toBeGreaterThan(0);
   });
+  it('shows what a claimed tier paid: a prize popup for vouchers, the card reveal for a card', () => {
+    const occ = seed('halloween', { earned: 1e12 })!;
+    useGame.setState({ pendingPull: null, pendingPrize: null });
+    render(<EventScreen onBack={() => {}} />);
+    fireEvent.click(screen.getByRole('tab', { name: /rewards/i }));
+    const v = occ.track.findIndex((tier) => tier.reward.type === 'vouchers');
+    const amount = (occ.track[v].reward as { amount: number }).amount;
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`claim tier ${v + 1}$`, 'i') }));
+    const popup = screen.getByRole('dialog', { name: /event reward/i });
+    expect(popup).toHaveTextContent(`+${amount}`);
+    expect(popup).toHaveTextContent('Vouchers');
+    fireEvent.click(screen.getByRole('button', { name: /^collect$/i }));
+    expect(useGame.getState().pendingPrize).toBeNull();
+
+    const c = occ.track.findIndex((tier) => tier.reward.type === 'card');
+    const cardId = (occ.track[c].reward as { card: string }).card;
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`claim tier ${c + 1}$`, 'i') }));
+    expect(useGame.getState().pendingPull).toEqual([expect.objectContaining({ cardId, starsAfter: 1 })]);
+    expect(useGame.getState().pendingPrize).toBeNull();
+  });
   it('buys event staff when affordable', () => {
     const occ = seed('halloween', { points: 1000, earned: 1000 })!;
     render(<EventScreen onBack={() => {}} />);

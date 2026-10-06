@@ -16,6 +16,8 @@
  "event.claimed": "ABGEHOLT",
  "event.claimTier": "Stufe {n} abholen",
  "event.claim": "Abholen",
+ "event.prizeTitle": "Event-Belohnung!",
+ "event.collect": "Einsammeln",
  "event.locked": "Gesperrt",
  "event.hired": "Eingestellt ×{n}",
  "event.eachHire": "Pro Einstellung",

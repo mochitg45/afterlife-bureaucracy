@@ -2,7 +2,7 @@ import Decimal from 'break_infinity.js';
 import type { EventState, GameState } from './state';
 import type { Content, EventTier, StaffDef } from './content';
 import { canAfford, staffBulkCost, maxAffordable } from './economy';
-import { bankCard, cardEventMult } from './gacha';
+import { bankCard, cardEventMult, type PullResult } from './gacha';
 import { grantVouchersExact } from './vouchers';
 
 const HOUR = 3_600_000;
@@ -205,19 +205,24 @@ function trackForKey(content: Content, key: string): EventTier[] {
 }
 
 /** Banks a card the way a pull does: a new card is ★1, a duplicate adds a shard. */
-function bankEventCard(state: GameState, content: Content, cardId: string): GameState {
+/** What a claimed tier paid, for the claim popup: a card reads like a one-card pull. */
+export type EventPrize = { kind: 'vouchers' | 'seals'; amount: number } | { kind: 'card'; result: PullResult };
+
+function bankEventCard(state: GameState, content: Content, cardId: string): { state: GameState; result: PullResult } {
   const cards = { ...state.cards };
   const cardShards = { ...state.cardShards };
   const cardSpares = { ...state.cardSpares };
-  const banked = bankCard(content, cards, cardShards, cardSpares, cardId, state.kc, new Decimal(0));
-  return { ...state, cards, cardShards, cardSpares, kc: banked.kc };
+  const { kc, ...banked } = bankCard(content, cards, cardShards, cardSpares, cardId, state.kc, new Decimal(0));
+  const rarity = content.cards.find((c) => c.id === cardId)?.rarity ?? 'temp';
+  return { state: { ...state, cards, cardShards, cardSpares, kc }, result: { cardId, rarity, pityTriggered: null, ...banked } };
 }
 
-function grantTier(state: GameState, content: Content, tier: EventTier): GameState {
+function grantTier(state: GameState, content: Content, tier: EventTier): { state: GameState; prize: EventPrize } {
   const r = tier.reward;
-  if (r.type === 'vouchers') return grantVouchersExact(state, r.amount);
-  if (r.type === 'seals') return { ...state, seals: state.seals + r.amount };
-  return bankEventCard(state, content, r.card);
+  if (r.type === 'vouchers') return { state: grantVouchersExact(state, r.amount), prize: { kind: 'vouchers', amount: r.amount } };
+  if (r.type === 'seals') return { state: { ...state, seals: state.seals + r.amount }, prize: { kind: 'seals', amount: r.amount } };
+  const { state: next, result } = bankEventCard(state, content, r.card);
+  return { state: next, prize: { kind: 'card', result } };
 }
 
 /** Grants every tier of `track` that `ev` has reached and not yet taken; marks them claimed. */
@@ -226,7 +231,7 @@ function grantReached(state: GameState, content: Content, ev: EventState, track:
   const claimed = [...ev.claimed];
   track.forEach((tier, i) => {
     if (claimed.includes(i) || ev.earned.lt(tier.at)) return;
-    next = grantTier(next, content, tier);
+    next = grantTier(next, content, tier).state;
     claimed.push(i);
   });
   return { ...next, event: { ...ev, claimed } };
@@ -301,9 +306,14 @@ export function buyEventStaff(
 
 /** Takes one reward-track tier: earned must have reached it, and it pays out once. */
 export function claimEventTier(state: GameState, content: Content, occ: EventOccurrence, index: number): GameState {
+  return claimEventTierPrize(state, content, occ, index).state;
+}
+
+/** `claimEventTier`, plus what it paid (null when nothing was claimable). */
+export function claimEventTierPrize(state: GameState, content: Content, occ: EventOccurrence, index: number): { state: GameState; prize: EventPrize | null } {
   const ev = state.event;
   const tier = occ.track[index];
-  if (!ev || ev.key !== occ.key || !tier || ev.claimed.includes(index) || ev.earned.lt(tier.at)) return state;
-  const paid = grantTier(state, content, tier);
-  return { ...paid, event: { ...ev, claimed: [...ev.claimed, index] } };
+  if (!ev || ev.key !== occ.key || !tier || ev.claimed.includes(index) || ev.earned.lt(tier.at)) return { state, prize: null };
+  const { state: paid, prize } = grantTier(state, content, tier);
+  return { state: { ...paid, event: { ...ev, claimed: [...ev.claimed, index] } }, prize };
 }

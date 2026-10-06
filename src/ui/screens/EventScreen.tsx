@@ -197,6 +197,26 @@ function Track({ occ }: { occ: EventOccurrence }) {
   );
 }
 
+/** A claimed voucher or seal tier: the prize, big, until the player collects it. */
+function PrizePopup() {
+  const prize = useGame((s) => s.pendingPrize);
+  const dismiss = useGame((s) => s.dismissPrize);
+  if (!prize) return null;
+  const Icon = prize.kind === 'vouchers' ? VoucherIcon : SealIcon;
+  return (
+    <Modal open title={t('event.prizeTitle')} className="event-prize" onClose={dismiss}>
+      <div className="event-prize-body">
+        <span className="event-prize-icon" aria-hidden="true"><Icon size={64} /></span>
+        <span className="event-prize-amt mono">+{prize.amount}</span>
+        <span className="sub">{t(prize.kind === 'vouchers' ? 'event.vouchers' : 'event.seals')}</span>
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-primary" onClick={dismiss}>{t('event.collect')}</button>
+      </div>
+    </Modal>
+  );
+}
+
 /** Tapped staff: what one hire files, what the whole team files, and the next price. */
 function StaffInfo({ staff, occ, onClose }: { staff: StaffDef; occ: EventOccurrence; onClose: () => void }) {
   const owned = useGame((s) => s.state.event?.staff[staff.id] ?? 0);
@@ -363,6 +383,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
         </>
       )}
       {tab === 'gacha' && <Banner occ={occ} onInfo={(id) => setInfo({ kind: 'card', id })} />}
+      <PrizePopup />
       {info?.kind === 'staff' && <StaffInfo staff={info.staff} occ={occ} onClose={() => setInfo(null)} />}
       {info?.kind === 'card' && (info.id in ownedCards
         ? <CardSheet cardId={info.id} onClose={() => setInfo(null)} />

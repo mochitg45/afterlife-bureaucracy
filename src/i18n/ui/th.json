@@ -16,6 +16,8 @@
  "event.claimed": "รับแล้ว",
  "event.claimTier": "รับรางวัลขั้น {n}",
  "event.claim": "รับ",
+ "event.prizeTitle": "รางวัลอีเวนต์!",
+ "event.collect": "รับ",
  "event.locked": "ล็อกอยู่",
  "event.hired": "จ้างแล้ว ×{n}",
  "event.eachHire": "ต่อคน",

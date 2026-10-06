@@ -16,6 +16,8 @@
  "event.claimed": "RESGATADO",
  "event.claimTier": "Resgatar nível {n}",
  "event.claim": "Resgatar",
+ "event.prizeTitle": "Prêmio do evento!",
+ "event.collect": "Coletar",
  "event.locked": "Bloqueado",
  "event.hired": "Contratados ×{n}",
  "event.eachHire": "Cada contratado",

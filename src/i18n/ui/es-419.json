@@ -16,6 +16,8 @@
  "event.claimed": "RECLAMADO",
  "event.claimTier": "Reclamar nivel {n}",
  "event.claim": "Reclamar",
+ "event.prizeTitle": "¡Premio del evento!",
+ "event.collect": "Recoger",
  "event.locked": "Bloqueado",
  "event.hired": "Contratado ×{n}",
  "event.eachHire": "Cada contratación",

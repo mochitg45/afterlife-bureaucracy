@@ -14,7 +14,7 @@ import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
-import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTier as claimEventTierEngine, type EventOccurrence } from '../engine/events';
+import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTierPrize, type EventOccurrence, type EventPrize } from '../engine/events';
 import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { upgradePerk as upgradePerkEngine } from '../engine/perks';
@@ -273,6 +273,9 @@ export interface GameStore {
   eventStamp(): void;
   buyEventStaff(staffId: string, mode: BuyMode): void;
   claimEventTier(index: number): void;
+  /** A claimed voucher or seal tier, shown until dismissed (card tiers reuse `pendingPull`). */
+  pendingPrize: Extract<EventPrize, { kind: 'vouchers' | 'seals' }> | null;
+  dismissPrize(): void;
   /** Pulls the running special's banner; sets `pendingPull` like `pull`. */
   pullEvent(count: 1 | 10): void;
   upgrade(upgradeId: string): void;
@@ -963,6 +966,8 @@ export function createGameStore(deps: StoreDeps) {
       referralInfo: { available: referral.available(), status: 'idle', code: null, joined: 0 },
       leaderboardAvailable: gameServices.available() && lifetimeSoulsLeaderboardId() !== null,
       pendingVisitor: null,
+      pendingPrize: null,
+      dismissPrize() { set({ pendingPrize: null }); },
       visitorDueMono: clock.mono() + VISITOR_FIRST_MS,
 
       boot() {
@@ -1233,11 +1238,11 @@ export function createGameStore(deps: StoreDeps) {
         const occ = get().activeEvent();
         const s = get().state;
         if (!occ) return;
-        const next = claimEventTierEngine(s, content, occ, index);
-        if (next === s) return;
-        apply(next);
+        const { state: next, prize } = claimEventTierPrize(s, content, occ, index);
+        if (!prize) return;
+        apply(next, prize.kind === 'card' ? { pendingPull: [prize.result] } : { pendingPrize: prize });
         track('event_tier_claimed', { event: occ.kind === 'weekly' ? 'weekly' : occ.id, theme: occ.id, tier: index });
-        sfx('upgrade');
+        if (prize.kind !== 'card') sfx('achievement'); // a card gets the reveal's own stamp and sting
         void get().save();
       },
       pullEvent(count) {
