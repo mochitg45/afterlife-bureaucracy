@@ -66,6 +66,7 @@ describe('LedgerScreen', () => {
   it('refreshes the audit readout on a tick without re-rendering the perk tree', () => {
     seed({ seals: 2 });
     render(<LedgerScreen />);
+    fireEvent.click(screen.getByTestId('perk-branch-throughput'));
     const before = screen.getByRole('button', { name: /stamped memo pads/i });
     expect(screen.getByText(startingWith(needPrefix(1)))).toHaveTextContent('(0 so far)');
     act(() => {
@@ -79,14 +80,16 @@ describe('LedgerScreen', () => {
     const rootCost = content.perks.find((p) => p.id === 'throughput-1')!.cost;
     seed({ seals: rootCost + 1 });
     render(<LedgerScreen />);
-    const root = screen.getByRole('button', { name: /stamped memo pads/i });
-    expect(root).toBeEnabled();
-    expect(screen.getByRole('button', { name: /two-sided forms/i })).toBeDisabled();
+    fireEvent.click(screen.getByTestId('perk-branch-throughput'));
+    const root = screen.getByTestId('perk-node-throughput-1');
+    expect(root).toHaveAttribute('data-status', 'available');
+    expect(screen.getByTestId('perk-node-throughput-2')).toHaveAttribute('data-status', 'locked');
     fireEvent.click(root);
+    fireEvent.click(screen.getByTestId('perk-buy'));
     expect(useGame.getState().state.perks).toEqual(['throughput-1']);
     expect(useGame.getState().state.seals).toBe(1);
-    expect(screen.getByRole('button', { name: /stamped memo pads/i })).toHaveClass('owned');
-    expect(screen.getByRole('button', { name: /two-sided forms/i })).toHaveClass('unaffordable');
+    expect(screen.getByTestId('perk-node-throughput-1')).toHaveAttribute('data-status', 'owned');
+    expect(screen.getByTestId('perk-node-throughput-2')).toHaveAttribute('data-status', 'unaffordable');
   });
   it('applies the clause seal multiplier to the audit preview', () => {
     const mult = 1.5; // clause-seals-1
