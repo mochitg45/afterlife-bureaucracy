@@ -62,7 +62,7 @@ async function seedSave(now) {
   const owned = [...byRarity('temp').slice(0, 5), ...byRarity('fulltime').slice(0, 4), ...byRarity('senior').slice(0, 2), ...byRarity('executive').slice(0, 1)];
   const today = dayKey(now);
   return {
-    saveVersion: 6,
+    saveVersion: 10,
     // Without it the RESET_EPOCH migration wipes the seeded progress and the shots show a fresh save.
     resetEpoch: 1,
     kc: '4.82e7',
@@ -83,7 +83,7 @@ async function seedSave(now) {
       clicks: 2140, staffHired: 329, upgradesBought: 15, audits: 3, pulls: 41,
       equips: 6, dailiesClaimed: 19, adsWatched: 12, perksBought: 7, cosmics: 0, purchases: 0,
     },
-    perks: ['throughput-1', 'throughput-2', 'throughput-3', 'overtime-1', 'overtime-2', 'stapler-1'],
+    perks: ['throughput-1', 'throughput-2', 'overtime-1', 'stapler-1', 'requisition-1'],
     cards: Object.fromEntries(owned.map((id, i) => [id, (i % 4) + 1])),
     equipped: owned.slice(0, 3),
     pity: { senior: 6, executive: 23 },
@@ -111,6 +111,9 @@ async function seedSave(now) {
     cosmicClauses: [],
     branchesUnlocked: [],
     processId: 'screenshot',
+    // Intro, training and every first-time tip are marked done: none of them belongs on a store frame.
+    onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: (await json('src/data/onboarding.json')).tips.map((t) => t.id) },
+    event: null,
   };
 }
 
@@ -125,7 +128,10 @@ const STILL_CSS = `
    * that parks itself over the memo ticker. It is real UI, just not what any of these frames
    * is about, and which badge wins the race varies run to run.
    */
-  .toast { display: none !important; }
+  .toast, .coach-overlay { display: none !important; }
+  /* The composed frame draws a notch over the top ~48px: keep headings and event headers clear of it. */
+  * { scroll-margin-top: 56px; }
+  .event-screen { padding-top: 48px !important; }
 `;
 
 /**
@@ -140,7 +146,7 @@ const STILL_CSS = `
  */
 const PIN_RANDOM = () => { window.Math.random = () => 0.88; };
 
-async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor, stopAtTitle, drawTen, scrollInto }) {
+async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor, stopAtTitle, drawTen, scrollInto, clock, openEvent, eventTab }) {
   const context = await browser.newContext({
     // The platform's own device-shaped viewport, so the app lays out as it does on that real
     // handset or tablet instead of stretching one shot over every listing's canvas.
@@ -150,12 +156,14 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor,
     reducedMotion: 'reduce',
   });
   await context.addInitScript(PIN_RANDOM);
+  // Pinning the wall clock puts a weekly or seasonal event inside its window; no test-ads build needed.
+  if (clock) await context.clock.install({ time: clock });
   if (save) {
     // Re-stamped to "now" at shoot time, not left at whatever `now` main() captured before the
     // build: this pipeline shoots three platforms end to end, and by the second or third one
     // enough real time has passed that the original timestamp reads as an offline gap over
     // MIN_OFFLINE_SECONDS (60s) — which pops an uninvited Backlog Report over every office shot.
-    const freshSave = { ...save, lastSeenWallClock: Date.now() };
+    const freshSave = { ...save, lastSeenWallClock: clock ?? Date.now() };
     await context.addInitScript(
       ([key, value]) => {
         try { window.localStorage.setItem(key, value); } catch { /* seeding is best-effort */ }
@@ -173,9 +181,13 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor,
     await page.getByRole('button', { name: 'Clock in' }).click();
     if (tab) await page.getByRole('tab', { name: tab }).click();
     if (drawTen) await page.getByRole('button', { name: 'Draw ten requisitions' }).click();
+    if (openEvent) {
+      await page.locator('.event-banner button').click();
+      if (eventTab) await page.getByRole('tab', { name: eventTab }).click();
+    }
   }
   await page.waitForSelector(waitFor, { state: 'visible', timeout: 15000 });
-  if (scrollInto) await page.locator(scrollInto.selector).nth(scrollInto.index ?? 0).scrollIntoViewIfNeeded();
+  if (scrollInto) await page.locator(scrollInto.selector).nth(scrollInto.index ?? 0).evaluate((el, block) => el.scrollIntoView({ block }), scrollInto.block ?? 'start');
   // The store's tick writes numbers a frame or two after mount; one settle beats a flaky race.
   await page.waitForTimeout(600);
   await page.screenshot({ path: path.join(rawDir, file) });
@@ -246,6 +258,19 @@ async function main() {
   try {
     const now = Date.now();
     const base = await seedSave(now);
+    // Pinned clocks: a Friday inside the Valhalla weekly window, and a Wednesday inside Halloween.
+    const VALHALLA = Date.UTC(2026, 11, 4, 12); // weekly-2026-12-04, "The Feast of Valhalla"
+    const HALLOWEEN = Date.UTC(2026, 9, 28, 12); // halloween-2026, Haunted Records Annex
+    const weeklySave = {
+      ...base,
+      lastSeenWallClock: VALHALLA,
+      event: { key: 'weekly-2026-12-04', points: '2.4e6', earned: '3.1e7', staff: { 'w-temp': 48, 'w-stapler': 21, 'w-imp': 7 }, claimed: [0, 1] },
+    };
+    const haunted = {
+      ...base,
+      lastSeenWallClock: HALLOWEEN,
+      event: { key: 'halloween-2026', points: '4.2e5', earned: '6.8e6', staff: { 'hw-ghost': 52, 'hw-mummy': 24, 'hw-pumpkin': 9 }, claimed: [0] },
+    };
     const shots = [
       {
         file: '00-title.png',
@@ -259,62 +284,73 @@ async function main() {
         file: '01-intake.png',
         save: base,
         waitFor: '.tabbar',
-        headline: 'Stamp souls. Meet quota.',
+        headline: 'Stamp souls.<br>Meet quota.',
         sub: 'Every soul is a face and a form. Every form needs a stamp.',
-        chips: ['Idle clicker', 'Staff earn while you tap', 'Pets welcome'],
+        chips: ['Tap to stamp', 'Staff earn while you tap', 'Pets welcome'],
       },
       {
-        file: '02-heaven.png',
-        save: { ...base, activeDept: 'heaven' },
-        waitFor: '.tabbar',
-        scrollInto: { selector: '.staff-row', index: 1 },
-        headline: 'Even angels clock in.',
-        sub: 'Cherubs to archangels, each with a milestone to hit.',
-        chips: ['5 heavenly ranks', '×2 milestones', 'Idle speed bars'],
-      },
-      {
-        file: '03-hell.png',
-        save: { ...base, activeDept: 'hell' },
-        waitFor: '.tabbar',
-        scrollInto: { selector: '.staff-row', index: 1 },
-        headline: 'Hell has quotas too.',
-        sub: 'Imps to dukes, all filing the same forms upstairs does.',
-        chips: ['5 infernal ranks', '×2 milestones', 'Idle speed bars'],
-      },
-      {
-        file: '04-personnel.png',
+        file: '02-personnel.png',
         save: base,
         tab: 'Personnel',
         waitFor: '.tabbar',
-        headline: 'Recruit the damned and the blessed.',
-        sub: 'Collectible cards, each starring up to five stars.',
-        chips: ['30 collectible cards', 'Star up with duplicates', 'Free daily pull'],
+        headline: 'Hire the damned<br>and the blessed.',
+        sub: 'Collectible staff cards, each starring up to five stars.',
+        chips: ['30+ collectible cards', 'Star up with duplicates', 'Free daily pull'],
       },
       {
-        file: '05-requisition.png',
+        file: '03-requisition.png',
         save: { ...base, vouchers: 120 },
         tab: 'Personnel',
         drawTen: true,
         waitFor: '[role="dialog"]',
-        headline: 'Ten souls, drawn at once.',
+        headline: 'Pull ten.<br>Reveal them all.',
         sub: 'A requisition never comes back empty-handed.',
-        chips: ['Pity timers included', 'Duplicates bank as shards', 'Rarity exchange'],
+        chips: ['Gacha pulls', 'Pity timers included', 'Duplicates bank as shards'],
       },
       {
-        file: '06-story.png',
-        waitFor: '.intro',
-        headline: 'Every hire starts with a memo.',
-        sub: 'A painted introduction before your first shift.',
-        chips: ['Story intro', 'Voiced in triplicate', 'Skippable, but why would you'],
-      },
-      {
-        file: '07-tasks.png',
+        file: '04-ledger.png',
         save: base,
-        tab: 'Tasks',
-        waitFor: '.tabbar',
-        headline: 'Daily forms. Daily rewards.',
-        sub: 'Vouchers for showing up. Bureaucracy rewards loyalty.',
-        chips: ['Daily tasks', 'Login streaks', '80 achievements'],
+        tab: 'Ledger',
+        waitFor: '.perk-tree',
+        scrollInto: { selector: '.perk-branch', index: 0 },
+        headline: 'Grow a perk tree<br>nobody can audit.',
+        sub: 'Spend Seals on permanent upgrades that survive every reset.',
+        chips: ['40 permanent perks', 'Skill tree branches', 'Prestige by audit'],
+      },
+      {
+        file: '05-weekly-staff.png',
+        save: weeklySave,
+        clock: VALHALLA,
+        openEvent: true,
+        eventTab: 'Staff',
+        waitFor: '.event-screen',
+        scrollInto: { selector: '.event-tabs' },
+        headline: 'A new theme<br>every weekend.',
+        sub: 'Limited-time staff, fresh art and prizes, Friday to Sunday.',
+        chips: ['Weekly events', 'New staff every week', 'Free rewards'],
+      },
+      {
+        file: '06-weekly-gacha.png',
+        save: weeklySave,
+        clock: VALHALLA,
+        openEvent: true,
+        eventTab: 'Gacha',
+        waitFor: '.event-screen',
+        scrollInto: { selector: '.event-tabs' },
+        headline: 'Chase the featured<br>weekend executive.',
+        sub: 'Every theme has its own event-only banner.',
+        chips: ['Event-only banner', 'Featured executive', 'Limited time'],
+      },
+      {
+        file: '07-halloween.png',
+        save: haunted,
+        clock: HALLOWEEN,
+        openEvent: true,
+        eventTab: 'Staff',
+        waitFor: '.event-screen',
+        headline: 'Seasonal specials.<br>Halloween is haunted.',
+        sub: 'Holiday rooms, holiday staff, holiday prizes.',
+        chips: ['Halloween', 'Christmas', 'Easter and more'],
       },
     ];
     for (const platform of PLATFORMS) {

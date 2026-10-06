@@ -73,8 +73,8 @@ A cozy, satirical office tycoon for fans of idle games, clicker games and increm
 
 | Asset | Requirement | Where it comes from |
 |---|---|---|
-| App icon | 512×512 PNG, 32-bit | `docs/store/icon-512.png` (`npm run icon`) — Dave's hood and face inside the seal; see `docs/store/icon-candidates/` for the three drafts compared at 48px |
-| Feature graphic | 1024×500 PNG or JPG | `docs/store/play-games/feature-1024x500.png` (`npm run play-assets`) |
+| App icon | 512×512 PNG, 32-bit | `docs/store/icon-512.png` (`npm run icon`) — full-bleed close-up of Dave on a golden sunburst with a red PROCESSED stamp (`scripts/make-icon-v3.mjs`); older drafts in `docs/store/icon-candidates/` |
+| Feature graphic | 1024×500 PNG or JPG | `docs/store/feature-graphic.png` (`node scripts/feature-graphic.mjs`) |
 | Phone screenshots | 2–8, min 320 px, max 3840 px | `docs/store/screenshots/*.png`, 1080×1920 (`npm run screenshots`) |
 | Tablet screenshots | optional | not planned for v1.0 (portrait phone game) |
 
