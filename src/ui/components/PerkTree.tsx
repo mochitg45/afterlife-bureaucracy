@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { SealIcon } from '../icons/Currency';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
-import { canBuyPerk } from '../../engine/perks';
+import { canBuyPerk, canUpgradePerk, perkLevel, perkUpgradable, perkValueAt, upgradeCost, MAX_PERK_LEVEL, type PerkWallet } from '../../engine/perks';
 import { Modal } from './Modal';
 import type { PerkBranch, PerkDef } from '../../engine/content';
 import './PerkTree.css';
@@ -19,6 +19,24 @@ type Status = 'owned' | 'available' | 'unaffordable' | 'locked';
 
 const art = (file: string) => `${import.meta.env.BASE_URL}art/perks/${file}.webp`;
 const perkName = (id: string) => content.perks.find((p) => p.id === id)?.name ?? id;
+
+const trim = (n: number) => String(Math.round(n * 100) / 100);
+const pct = (v: number) => `+${trim(v * 100)}%`;
+
+/** The effect a perk delivers at a level, in the same words the perk's own description uses. */
+function effectText(perk: PerkDef, level: number): string {
+  const e = perk.effect;
+  const v = perkValueAt(perk, level);
+  switch (e.type) {
+    case 'globalMult': return `All output ${pct(v)}`;
+    case 'deptMult': return `${content.departments.find((d) => d.id === e.dept)?.name ?? e.dept} output ${pct(v)}`;
+    case 'offlineCapHours': return `Offline cap +${trim(v)}h`;
+    case 'offlineRate': return `Offline earnings ${pct(v)}`;
+    case 'click': return `Stamp power +${trim(v)}`;
+    case 'voucherMult': return `Voucher grants ${pct(v)}`;
+    default: return perk.desc;
+  }
+}
 
 const ROW_H = 106;
 const NODE_PAD = 44; // medallion centre of the first row, px from the top of the canvas
@@ -85,19 +103,23 @@ function Edges({ nodes, status }: { nodes: Placed[]; status: (p: PerkDef) => Sta
 
 const STATE_WORD: Record<Status, string> = { owned: 'owned', locked: 'locked', available: 'ready to buy', unaffordable: 'not enough seals' };
 
-function BranchTree({ branch, status, onPick }: { branch: PerkBranch; status: (p: PerkDef) => Status; onPick: (p: PerkDef) => void }) {
+function BranchTree({ branch, status, wallet, onPick }: { branch: PerkBranch; status: (p: PerkDef) => Status; wallet: PerkWallet; onPick: (p: PerkDef) => void }) {
   const nodes = useMemo(() => layout(content.perks.filter((p) => p.branch === branch)), [branch]);
   return (
     <div className="pt-board pt-tree" style={{ height: canvasHeight(nodes) }}>
       <Edges nodes={nodes} status={status} />
       {nodes.map(({ perk, depth, x }) => {
         const s = status(perk);
-        const label = `${perk.name}, ${STATE_WORD[s]}${s === 'owned' ? '' : `, ${perk.cost} seals`}`;
+        const level = perkLevel(wallet, perk.id);
+        const showLevel = s === 'owned' && perkUpgradable(perk);
+        const canUp = s === 'owned' && canUpgradePerk(wallet, content, perk.id).ok;
+        const label = `${perk.name}, ${STATE_WORD[s]}${s === 'owned' ? (showLevel ? `, level ${level}${canUp ? ', upgrade ready' : ''}` : '') : `, ${perk.cost} seals`}`;
         return (
-          <button key={perk.id} className={`pt-node ${s}`} style={{ left: `${x}%`, top: NODE_PAD + depth * ROW_H }} onClick={() => onPick(perk)} aria-label={label} data-testid={`perk-node-${perk.id}`} data-status={s}>
+          <button key={perk.id} className={`pt-node ${s}${canUp ? ' upgradable' : ''}`} style={{ left: `${x}%`, top: NODE_PAD + depth * ROW_H }} onClick={() => onPick(perk)} aria-label={label} data-testid={`perk-node-${perk.id}`} data-status={s} data-level={level} data-upgradable={canUp}>
             <span className="pt-med">
               <img src={art(branch)} alt="" draggable={false} />
               {s !== 'owned' && <span className="pt-price"><img src={art('hub')} alt="" />{perk.cost}</span>}
+              {showLevel && <span className="pt-lv" data-testid={`perk-level-${perk.id}`}>Lv {level}</span>}
             </span>
             <span className="pt-plate">{perk.name}</span>
           </button>
@@ -137,9 +159,13 @@ function Overview({ owned, onPick, seals }: { owned: Set<string>; onPick: (b: Pe
   );
 }
 
-function Sheet({ perk, status, seals, onClose }: { perk: PerkDef; status: Status; seals: number; onClose: () => void }) {
+function Sheet({ perk, status, wallet, onClose }: { perk: PerkDef; status: Status; wallet: PerkWallet; onClose: () => void }) {
   const buy = useGame((s) => s.buyPerk);
-  const owned = useGame((s) => s.state.perks);
+  const upgrade = useGame((s) => s.upgradePerk);
+  const { seals, perks: owned } = wallet;
+  const level = perkLevel(wallet, perk.id);
+  const upCheck = canUpgradePerk(wallet, content, perk.id);
+  const upCost = upgradeCost(perk, level);
   const branch = BRANCHES.find((b) => b.id === perk.branch)!;
   const tier = layout(content.perks.filter((p) => p.branch === perk.branch)).find((n) => n.perk.id === perk.id)!.depth + 1;
   const missing = perk.requires.filter((r) => !owned.includes(r));
@@ -151,7 +177,15 @@ function Sheet({ perk, status, seals, onClose }: { perk: PerkDef; status: Status
     <Modal open title={perk.name} onClose={onClose} className={`perk-sheet ${status}`} backdropClassName="perk-sheet-bd"
       header={<span className="pt-big"><img src={art(perk.branch)} alt="" /></span>}>
       <div className="pt-br">{branch.title} · tier {tier} · {status === 'unaffordable' ? 'short of seals' : status === 'available' ? 'ready to buy' : status}</div>
-      <div className="pt-fx">{perk.desc}</div>
+      <div className="pt-fx">{status === 'owned' && perkUpgradable(perk) ? effectText(perk, level) : perk.desc}</div>
+      {status === 'owned' && perkUpgradable(perk) && (
+        <div className="pt-req" data-testid="perk-levels">
+          <div><span>Level</span><span>{level} / {MAX_PERK_LEVEL}</span></div>
+          <div><span>Now</span><span>{effectText(perk, level)}</span></div>
+          {level < MAX_PERK_LEVEL && <div><span>Next level</span><span>{effectText(perk, level + 1)}</span></div>}
+          {level < MAX_PERK_LEVEL && <div><span>Upgrade <SealIcon size={14} /></span><span className={upCheck.ok ? 'ok' : 'no'}>{upCost} (you have {seals})</span></div>}
+        </div>
+      )}
       <div className="pt-req">
         {perk.requires.map((r) => (
           <div key={r}><span>{perkName(r)}</span><span className={owned.includes(r) ? 'ok' : 'no'}>{owned.includes(r) ? 'Owned' : 'Missing'}</span></div>
@@ -159,10 +193,17 @@ function Sheet({ perk, status, seals, onClose }: { perk: PerkDef; status: Status
         {perk.requires.length === 0 && <div><span>Starting perk</span><span className="ok">No prerequisite</span></div>}
         <div><span>Price <SealIcon size={14} /></span><span className={status === 'owned' || seals >= perk.cost ? 'ok' : 'no'}>{perk.cost} (you have {seals})</span></div>
       </div>
-      <button className="btn btn-primary pt-buy" data-testid="perk-buy" disabled={status !== 'available'}
-        onClick={() => { buy(perk.id); onClose(); }}>
-        {status === 'available' ? <>Buy for {perk.cost} <SealIcon size={16} /></> : reason}
-      </button>
+      {status === 'owned' && perkUpgradable(perk) ? (
+        <button className="btn btn-primary pt-buy" data-testid="perk-upgrade" disabled={!upCheck.ok} onClick={() => upgrade(perk.id)}>
+          {upCheck.ok ? <>Upgrade to Lv {level + 1} for {upCost} <SealIcon size={16} /></>
+            : upCheck.reason === 'max' ? 'Max level' : `Need ${upCost - seals} more seals`}
+        </button>
+      ) : (
+        <button className="btn btn-primary pt-buy" data-testid="perk-buy" disabled={status !== 'available'}
+          onClick={() => { buy(perk.id); onClose(); }}>
+          {status === 'available' ? <>Buy for {perk.cost} <SealIcon size={16} /></> : reason}
+        </button>
+      )}
       <button className="btn btn-ghost pt-close" onClick={onClose}>Close</button>
     </Modal>
   );
@@ -171,6 +212,8 @@ function Sheet({ perk, status, seals, onClose }: { perk: PerkDef; status: Status
 export function PerkTree() {
   const seals = useGame((s) => s.state.seals);
   const perks = useGame((s) => s.state.perks);
+  const perkLevels = useGame((s) => s.state.perkLevels);
+  const wallet: PerkWallet = { seals, perks, perkLevels };
   const [view, setView] = useState<'all' | PerkBranch>('all');
   const [picked, setPicked] = useState<PerkDef | null>(null);
   const owned = useMemo(() => new Set(perks), [perks]);
@@ -193,12 +236,12 @@ export function PerkTree() {
           </button>
         ))}
       </div>
-      {branch ? <BranchTree branch={branch.id} status={status} onPick={setPicked} /> : <Overview owned={owned} seals={seals} onPick={setView} />}
+      {branch ? <BranchTree branch={branch.id} status={status} wallet={wallet} onPick={setPicked} /> : <Overview owned={owned} seals={seals} onPick={setView} />}
       <div className="pt-foot">
         <span>{branch ? `${branch.title} ${count(branch.id)} / ${total(branch.id)}` : `All ${perks.length} / ${content.perks.length}`}</span>
         <span>{branch ? branch.blurb : 'Tap a branch to open it.'}</span>
       </div>
-      {picked && <Sheet perk={picked} status={status(picked)} seals={seals} onClose={() => setPicked(null)} />}
+      {picked && <Sheet perk={picked} status={status(picked)} wallet={wallet} onClose={() => setPicked(null)} />}
     </div>
   );
 }

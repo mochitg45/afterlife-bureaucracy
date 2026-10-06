@@ -41,7 +41,10 @@ const ClauseNode = memo(function ClauseNode({ clause }: { clause: ClauseDef }) {
  * it is never one stray tap away.
  */
 export function CosmicPanel() {
-  const seals = useGame((s) => s.state.seals);
+  const held = useGame((s) => s.state.seals);
+  const invested = useGame((s) => s.state.sealsInvested);
+  // Seals sunk into perk levels count toward the threshold, so the bar shows the same total.
+  const seals = held + invested;
   // The threshold grows with every filing, so the panel has to know how many have been filed
   // to show the number the engine will actually check. One more narrow number subscription.
   const cosmics = useGame((s) => s.state.stats.cosmics);
@@ -49,7 +52,7 @@ export function CosmicPanel() {
   const restructure = useGame((s) => s.cosmic);
   const [confirming, setConfirming] = useState(false);
   const threshold = cosmicThreshold(cosmics);
-  const ready = canCosmic({ seals, stats: { cosmics } });
+  const ready = canCosmic({ seals: held, sealsInvested: invested, stats: { cosmics } });
   const pct = Math.min(100, (seals / threshold) * 100);
 
   const onRestructure = () => {

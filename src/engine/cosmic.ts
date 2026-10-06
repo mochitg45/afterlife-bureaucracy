@@ -38,10 +38,11 @@ export function cosmicThreshold(cosmics: number): number {
 }
 
 /** Only the fields the check reads, so a React caller can subscribe to those alone. */
-export type CosmicWallet = Pick<GameState, 'seals'> & { stats: Pick<GameState['stats'], 'cosmics'> };
+export type CosmicWallet = Pick<GameState, 'seals'> & { sealsInvested?: number; stats: Pick<GameState['stats'], 'cosmics'> };
 
 export function canCosmic(state: CosmicWallet): boolean {
-  return state.seals >= cosmicThreshold(state.stats.cosmics);
+  // Seals spent on perk levels still count: the level sink must not stop the Restructuring.
+  return state.seals + (state.sealsInvested ?? 0) >= cosmicThreshold(state.stats.cosmics);
 }
 
 export interface CosmicResult { state: GameState; pointsGained: number }
@@ -62,7 +63,7 @@ export interface CosmicResult { state: GameState; pointsGained: number }
  */
 export function fileCosmic(state: GameState, content: Content, nowWall: number): CosmicResult {
   if (!canCosmic(state)) return { state, pointsGained: 0 };
-  const reset = resetRun({ ...state, seals: 0, perks: [] }, content);
+  const reset = resetRun({ ...state, seals: 0, perks: [], perkLevels: {}, sealsInvested: 0 }, content);
   return {
     state: {
       ...reset,

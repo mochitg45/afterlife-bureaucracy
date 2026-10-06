@@ -17,6 +17,7 @@ import { checkStory } from '../engine/story';
 import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTier as claimEventTierEngine, type EventOccurrence } from '../engine/events';
 import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
+import { upgradePerk as upgradePerkEngine } from '../engine/perks';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
 import { pickBilling, type Billing, type Product, type ProductId, type PurchaseResult, type Restored } from '../platform/billing';
@@ -284,6 +285,7 @@ export interface GameStore {
   /** Pays vouchers to end the fiscal year's wait, then files the Audit. */
   expediteAudit(): void;
   buyPerk(perkId: string): void;
+  upgradePerk(perkId: string): void;
   pull(count: 1 | 10): void;
   dismissPull(): void;
   /** Null if the card wasn't ★5, executive, or short of EXCHANGE_COST spares. */
@@ -1315,6 +1317,12 @@ export function createGameStore(deps: StoreDeps) {
         get().audit();
       },
       buyPerk(perkId) { apply(buyPerkAction(get().state, content, perkId)); },
+      upgradePerk(perkId) {
+        const next = upgradePerkEngine(get().state, content, perkId);
+        if (next === get().state) return;
+        apply(next);
+        track('perk_upgraded', { perk: perkId, level: next.perkLevels[perkId] });
+      },
       pull(count) {
         const r = pullEngine(get().state, content, count, get().rates.kcPerSec);
         if (r.results.length) {

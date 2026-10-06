@@ -406,6 +406,8 @@ describe('exhaustive save round-trip', () => {
       vouchers: 17,
       voucherFraction: 0.25,
       perks: ['throughput-1', 'headstart-1'],
+      perkLevels: { 'throughput-1': 3 },
+      sealsInvested: 5,
       staff: { dave: 11, seraphine: 3 },
       upgrades: { 'faster-stapler': 2 },
       deptsUnlocked: ['intake', 'heaven'],

@@ -42,15 +42,38 @@ export function sealCap(sealMult = 1): number {
  * threshold reachable inside it.
  */
 export const TAPER_FY = 12;
-/** Chosen so the yearly growth is continuous at TAPER_FY: (13/12)^5 ≈ 1.5. */
-export const TAPER_POWER = 5;
+/**
+ * Exponent of the post-taper growth. Perk levels make late income grow roughly with the fiscal
+ * year (Seals and levels both accrue per Audit), so 5 outran income and turned deep runs into
+ * 8-14 hour waits; 3.6 keeps the check-in player's time-to-audit flat across a Cosmic cycle.
+ */
+export const TAPER_POWER = 3.6;
 
-/** AUDIT_BASE × YEAR_GROWTH^(year − 1) up to TAPER_FY, then × (year / TAPER_FY)^TAPER_POWER. */
-export function auditThreshold(fiscalYear: number): Decimal {
+/**
+ * log10 of the extra Audit threshold after N Cosmic Restructurings (index N; the last entry
+ * holds beyond it). Each Restructuring leaves the player with permanent income the fiscal-year
+ * curve knows nothing about (Clauses, cards, a faster rebuild), so without this the souls
+ * requirement was met in 3-6 seconds of play and the eight-hour clock was the only gate.
+ * Fitted with `npx tsx src/sim/year.ts` so a check-in player (five 3-minute sessions a day)
+ * meets the threshold about 5 hours into the 8-hour window; re-fit it if income changes.
+ */
+export const COSMIC_AUDIT_LOG10 = [0, 0.9, 2.6, 2.4, 2.5, 3.1, 2.9, 2.5];
+/** The cosmic factor ramps in over this many fiscal years, so the first books after a Restructuring stay quick. */
+export const COSMIC_AUDIT_RAMP_FY = 16;
+
+/**
+ * AUDIT_BASE × YEAR_GROWTH^(year − 1) up to TAPER_FY, then × (year / TAPER_FY)^TAPER_POWER,
+ * then × 10^(COSMIC_AUDIT_LOG10[cosmics] × ramp). With `cosmics` 0 (a new player's first
+ * cycle) the factor is 1.
+ */
+export function auditThreshold(fiscalYear: number, cosmics = 0): Decimal {
   const year = Number.isFinite(fiscalYear) ? Math.max(1, Math.floor(fiscalYear)) : 1;
   const geometric = Math.min(year, TAPER_FY);
   const base = new Decimal(AUDIT_BASE).mul(Decimal.pow(YEAR_GROWTH, geometric - 1));
-  return year <= TAPER_FY ? base : base.mul(Decimal.pow(year / TAPER_FY, TAPER_POWER));
+  const grown = year <= TAPER_FY ? base : base.mul(Decimal.pow(year / TAPER_FY, TAPER_POWER));
+  const c = Number.isFinite(cosmics) ? Math.max(0, Math.floor(cosmics)) : 0;
+  const log10 = COSMIC_AUDIT_LOG10[Math.min(c, COSMIC_AUDIT_LOG10.length - 1)];
+  return log10 === 0 ? grown : grown.mul(Decimal.pow(10, log10 * Math.min(1, (year - 1) / COSMIC_AUDIT_RAMP_FY)));
 }
 
 /**
@@ -68,8 +91,8 @@ export const EXPEDITE_STEP_MS = 30 * 60_000;
  * so a late fiscal year still pays more for the same effort; the sub-sqrt exponent softens a
  * hugely overshot run and `sealCap(sealMult)` is the hard ceiling above it.
  */
-export function sealsForRun(soulsRun: Decimal, fiscalYear: number, sealMult = 1): number {
-  if (soulsRun.lt(auditThreshold(fiscalYear))) return 0;
+export function sealsForRun(soulsRun: Decimal, fiscalYear: number, sealMult = 1, cosmics = 0): number {
+  if (soulsRun.lt(auditThreshold(fiscalYear, cosmics))) return 0;
   const cap = sealCap(sealMult);
   const raw = soulsRun.div(AUDIT_BASE).pow(SEAL_EXP).mul(SEAL_COEFF).mul(sealMult).toNumber();
   if (!Number.isFinite(raw)) return cap;
@@ -77,8 +100,8 @@ export function sealsForRun(soulsRun: Decimal, fiscalYear: number, sealMult = 1)
 }
 
 /** The souls side of the Audit: this run has filed enough. The clock may still be running. */
-export function canAudit(state: { soulsRun: Decimal; fiscalYear: number }): boolean {
-  return state.soulsRun.gte(auditThreshold(state.fiscalYear));
+export function canAudit(state: { soulsRun: Decimal; fiscalYear: number; stats?: { cosmics: number } }): boolean {
+  return state.soulsRun.gte(auditThreshold(state.fiscalYear, state.stats?.cosmics ?? 0));
 }
 
 /** Milliseconds until the fiscal year may close; 0 once it is open. */
@@ -137,7 +160,7 @@ export function fileAudit(state: GameState, content: Content, nowWall: number): 
   if (!canFileAudit(state, nowWall)) return { state, sealsGained: 0, fiscalYear: state.fiscalYear };
   // Computed here rather than asked of the caller, so every Audit route — store, sim, UI
   // preview — pays the Clause multiplier without having to remember it.
-  const sealsGained = sealsForRun(state.soulsRun, state.fiscalYear, clauseSealMult(state, content));
+  const sealsGained = sealsForRun(state.soulsRun, state.fiscalYear, clauseSealMult(state, content), state.stats.cosmics);
   const reset = resetRun(state, content);
   const next: GameState = {
     ...reset,

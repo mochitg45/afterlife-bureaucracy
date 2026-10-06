@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 
 /**
  * Bumped once, by hand, whenever the owner wants every existing save wiped for a fresh test
@@ -129,6 +129,8 @@ const steps: Array<((raw: Raw) => Raw) | undefined> = [
     ...raw,
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   }),
+  // 10 -> 11: perk levels. Every perk already owned is level 1, which is the sparse default.
+  (raw) => ({ ...raw, perkLevels: {}, sealsInvested: 0 }),
 ];
 
 function num(v: unknown): number {

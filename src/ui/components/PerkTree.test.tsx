@@ -70,6 +70,49 @@ describe('PerkTree', () => {
     expect(useGame.getState().state.perks).toEqual([]);
   });
 
+  it('shows the level badge on owned upgradable nodes and glows only when an upgrade is affordable', () => {
+    seed({ seals: 6, perks: ['throughput-1', 'throughput-2'], perkLevels: { 'throughput-2': 3 } });
+    render(<PerkTree />);
+    openBranch('throughput');
+    expect(screen.getByTestId('perk-level-throughput-1')).toHaveTextContent('Lv 1');
+    expect(screen.getByTestId('perk-level-throughput-2')).toHaveTextContent('Lv 3');
+    expect(screen.getByTestId('perk-node-throughput-1')).toHaveClass('upgradable'); // costs 6
+    expect(screen.getByTestId('perk-node-throughput-2')).not.toHaveClass('upgradable'); // costs 48
+    expect(screen.queryByTestId('perk-level-throughput-3')).not.toBeInTheDocument();
+  });
+
+  it('upgrades through the detail sheet, showing now, next and the price', () => {
+    seed({ seals: 20, perks: ['throughput-1'] });
+    render(<PerkTree />);
+    openBranch('throughput');
+    fireEvent.click(screen.getByTestId('perk-node-throughput-1'));
+    const sheet = screen.getByTestId('perk-levels');
+    expect(sheet).toHaveTextContent('All output +10%');
+    expect(sheet).toHaveTextContent('All output +12.5%');
+    expect(sheet).toHaveTextContent('6 (you have 20)');
+    fireEvent.click(screen.getByTestId('perk-upgrade'));
+    const s = useGame.getState().state;
+    expect(s.perkLevels['throughput-1']).toBe(2);
+    expect(s.seals).toBe(14);
+    expect(screen.getByTestId('perk-levels')).toHaveTextContent('Level2 / 10');
+  });
+
+  it('disables Upgrade when short of seals or at the max level, with the reason', () => {
+    seed({ seals: 2, perks: ['throughput-1'] });
+    const { unmount } = render(<PerkTree />);
+    openBranch('throughput');
+    fireEvent.click(screen.getByTestId('perk-node-throughput-1'));
+    expect(screen.getByTestId('perk-upgrade')).toBeDisabled();
+    expect(screen.getByTestId('perk-upgrade')).toHaveTextContent('Need 4 more seals');
+    unmount();
+    seed({ seals: 1e6, perks: ['throughput-1'], perkLevels: { 'throughput-1': 10 } });
+    render(<PerkTree />);
+    openBranch('throughput');
+    fireEvent.click(screen.getByTestId('perk-node-throughput-1'));
+    expect(screen.getByTestId('perk-upgrade')).toBeDisabled();
+    expect(screen.getByTestId('perk-upgrade')).toHaveTextContent('Max level');
+  });
+
   it('disables Buy when the player is short of seals', () => {
     seed({ seals: 2 });
     render(<PerkTree />);
