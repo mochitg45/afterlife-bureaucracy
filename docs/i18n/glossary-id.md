@@ -11,8 +11,8 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 | Annual Audit / Audit | Audit Tahunan / Audit |
 | Fiscal Year | Tahun Fiskal |
 | Requisition (gacha pull) | Requisisi (tarikan) |
-| Perk | Tunjangan |
-| Perk Ledger / the Ledger | Buku Besar Tunjangan / Buku Besar |
+| Perk | Perk |
+| Perk Ledger / the Ledger | Buku Besar Perk / Buku Besar |
 | Department | Departemen |
 | Soul | Jiwa (nomor tetap: Jiwa #30001) |
 | Staff | Staf |
@@ -126,7 +126,7 @@ Gaya: lokal, bukan terjemahan harfiah. Nama depan karakter tidak diubah. "Koin O
 | Annex (7 string) | Cabang | "Annex" tidak dipakai di sini |
 | HR (semua) | HRD | Istilah umum di kantor Indonesia |
 | Temp (18 string) | Honorer | Padanan lokal pegawai sementara |
-| Perk / perk (~10 string) | Tunjangan | Cocok dengan satir kantor; "perk" tidak umum |
+| Perk (game term) | Perk | Keputusan pemilik: gamer Indonesia kenal kata "perk"; sama dengan store listing. ("tunjangan" hanya dipakai untuk arti benefit kerja di formulir lowongan) |
 | run (11 string) | putaran | Istilah umum game idle/gacha lokal |
 | milestone (4 string) | tonggak | Natural |
 | Roster Lima Kartu / Roster Penuh | Tim Lima Kartu / Tim Penuh | "Roster" bukan istilah lokal |
