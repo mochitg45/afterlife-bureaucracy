@@ -1,6 +1,7 @@
 import Decimal from 'break_infinity.js';
 import { migrate, SAVE_VERSION, RESET_EPOCH } from './migrations';
 import { clampEquipped } from './gacha';
+import { MAX_PERK_LEVEL } from './perks';
 import { TIP_IDS, type Content } from './content';
 import type { CloudSyncResult } from './cloudSync';
 import { REFERRAL_TIERS } from './referral';
@@ -145,6 +146,10 @@ export interface GameState {
   /** Carried remainder of a fractional voucher grant, 0 <= f < 1. Keeps the faucet honest. */
   voucherFraction: number;
   perks: string[];
+  /** Perk levels above 1 (sparse: an owned perk with no entry is level 1). Cleared with `perks`. */
+  perkLevels: Record<string, number>;
+  /** Seals sunk into perk levels since the last Cosmic Restructuring; they still count toward its threshold. */
+  sealsInvested: number;
   staff: Record<string, number>;
   upgrades: Record<string, number>;
   deptsUnlocked: string[];
@@ -210,6 +215,8 @@ export function createInitialState(now: Now, content: Content): GameState {
     vouchers: 0,
     voucherFraction: 0,
     perks: [],
+    perkLevels: {},
+    sealsInvested: 0,
     staff: {},
     upgrades: {},
     deptsUnlocked,
@@ -288,6 +295,16 @@ function dec(v: unknown): Decimal {
 }
 
 /** Owned-count maps: coerce to numbers, drop anything non-finite or negative. */
+/** Only owned perks keep a level, clamped to 2..MAX_PERK_LEVEL (level 1 is the absent default). */
+function perkLevelMap(v: unknown, owned: string[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [id, n] of Object.entries(counts(v))) {
+    const lvl = Math.min(MAX_PERK_LEVEL, Math.floor(n));
+    if (owned.includes(id) && lvl >= 2) out[id] = lvl;
+  }
+  return out;
+}
+
 function counts(v: unknown): Record<string, number> {
   const out: Record<string, number> = {};
   if (!v || typeof v !== 'object' || Array.isArray(v)) return out;
@@ -574,6 +591,7 @@ export function deserialize(json: string, content: Content): GameState {
   const knownDailyIds = new Set(content.dailies.map((d) => d.id));
   const knownAchievementIds = new Set(content.achievements.map((a) => a.id));
   const knownStoryIds = new Set(content.story.map((s) => s.id));
+  const perks = stringIds(raw.perks, new Set(content.perks.map((p) => p.id)));
   const cards = cardCounts(raw.cards, knownCardIds);
   const rawPity = raw.pity && typeof raw.pity === 'object' && !Array.isArray(raw.pity) ? (raw.pity as Record<string, unknown>) : {};
   // A save written before a slot-granting perk was refunded (or by a build with more slots)
@@ -590,7 +608,9 @@ export function deserialize(json: string, content: Content): GameState {
     // Filtered against the shipped perk ids like every other collection: a perk this build
     // does not know would otherwise sit in the tree forever, unrefundable and unpriced, and
     // a duplicated id would apply its effect twice.
-    perks: stringIds(raw.perks, new Set(content.perks.map((p) => p.id))),
+    perks,
+    perkLevels: perkLevelMap(raw.perkLevels, perks),
+    sealsInvested: nonNeg(raw.sealsInvested),
     staff: counts(raw.staff),
     upgrades: counts(raw.upgrades),
     deptsUnlocked,

@@ -21,17 +21,18 @@ function AuditCard() {
   // Narrow on purpose: the preview needs the Clause seal multiplier, not the whole state.
   const cosmicClauses = useGame((s) => s.state.cosmicClauses);
   const runStartWall = useGame((s) => s.state.runStartWall);
+  const cosmics = useGame((s) => s.state.stats.cosmics);
   const vouchers = useGame((s) => s.state.vouchers);
   const audit = useGame((s) => s.audit);
   const expedite = useGame((s) => s.expediteAudit);
   // Which button is waiting on its second tap: both reset the run, so both confirm.
   const [confirming, setConfirming] = useState<'audit' | 'expedite' | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const ready = canAudit({ soulsRun, fiscalYear: year });
+  const ready = canAudit({ soulsRun, fiscalYear: year, stats: { cosmics } });
   const left = auditTimeLeftMs({ runStartWall }, now);
   const waiting = ready && left > 0;
   const cost = expediteCost({ runStartWall }, now);
-  const preview = sealsForRun(soulsRun, year, clauseSealMult({ cosmicClauses }, content));
+  const preview = sealsForRun(soulsRun, year, clauseSealMult({ cosmicClauses }, content), cosmics);
 
   // The only clock on this screen, and it runs only while the fiscal year is counting down.
   useEffect(() => {
@@ -56,7 +57,7 @@ function AuditCard() {
       <p className="sub">Close the books. Staff, upgrades and departments reset; Seals, perks and vouchers stay.</p>
       {ready
         ? <div className="mono">Audit {waiting ? 'will pay' : 'now for'} <strong>+{preview} Seals</strong></div>
-        : <div className="mono sub">Need {formatNumber(auditThreshold(year))} souls this run ({formatNumber(soulsRun)} so far)</div>}
+        : <div className="mono sub">Need {formatNumber(auditThreshold(year, cosmics))} souls this run ({formatNumber(soulsRun)} so far)</div>}
       {left > 0 && <div className="mono sub">Fiscal year closes in {fmtLeft(left)}</div>}
       <div className="modal-actions">
         <button className={'btn ' + (confirming === 'audit' ? 'btn-primary' : '')} disabled={!ready || waiting} onClick={onAudit} aria-label="File Annual Audit">

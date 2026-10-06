@@ -107,7 +107,8 @@ export function deptMult(state: GameState, content: Content, dept: DepartmentDef
 }
 
 export function globalMult(state: GameState, content: Content, nowWall: number): Decimal {
-  const sealBonus = 1 + 0.02 * state.seals;
+  // Seals sunk into perk levels keep paying the bonus: upgrading must never cost output.
+  const sealBonus = 1 + 0.02 * (state.seals + state.sealsInvested);
   const boost = state.boostUntilWall > nowWall ? 2 : 1;
   return new Decimal(sealBonus)
     .mul(boost)

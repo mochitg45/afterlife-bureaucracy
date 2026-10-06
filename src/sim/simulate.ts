@@ -2,13 +2,14 @@ import Decimal from 'break_infinity.js';
 import type { Content } from '../engine/content';
 import { createInitialState, type GameState } from '../engine/state';
 import { tick, click, buyStaff, buyUpgrade, buyPerk, addSouls, unlockDepartments } from '../engine/actions';
+import { upgradePerk } from '../engine/perks';
 import {
   computeRates, staffBulkCost, upgradeCost, upgradeLevel,
   BOOST_AD_DURATION_MS, BOOST_AD_COOLDOWN_MS,
 } from '../engine/economy';
 import { applyOffline } from '../engine/offline';
-import { canAudit, canFileAudit, fileAudit } from '../engine/prestige';
-import { canBuyPerk, headStart } from '../engine/perks';
+import { canAudit, canFileAudit, fileAudit, auditThreshold } from '../engine/prestige';
+import { canBuyPerk, canUpgradePerk, upgradeCost as perkUpgradeCost, perkLevel, perkUpgradable, MAX_PERK_LEVEL, headStart } from '../engine/perks';
 import { rollover, claimDaily, skipDailyFree, isDone, dayKey } from '../engine/dailies';
 import { pull, equipCard, unequipCard, equipSlots, TEN_PULL_COST, PULL_COST, MAX_STARS } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause, canBuyClause, clauseSealMult } from '../engine/cosmic';
@@ -63,6 +64,10 @@ export interface DaySnapshot {
   dailiesClaimed: number;
   /** Perk Ledger nodes owned right now (a Cosmic Restructuring clears them). */
   perks: number;
+  /** Sum of owned perk levels (an owned perk counts its level, so 40 perks at level 1 = 40). */
+  perkLevelSum: number;
+  /** Owned upgradable perks still below the level cap. */
+  upgradesLeft: number;
   /** Cards at MAX_STARS. */
   cardsMaxed: number;
   cosmics: number;
@@ -78,6 +83,10 @@ export interface SimResult {
   firstAuditReadySec: number | null;
   /** Played seconds from each run's start until that run first met its Audit threshold. */
   auditReadySecByRun: number[];
+  /** Real elapsed seconds (offline gaps included) from each run's start until its threshold was met. */
+  auditReadyWallSecByRun: number[];
+  /** Per filed Audit: fiscal year, Restructurings filed so far, and log10(souls this run / threshold) at filing. */
+  auditTrail: Array<{ fy: number; cosmics: number; headroomLog10: number }>;
   /** Seals paid out by each Audit, in order. */
   sealsPerAudit: number[];
   /** The Clause Seal multiplier in force at each Audit, in the same order — the cap scales with it. */
@@ -114,16 +123,26 @@ function buyGreedy(state: GameState, content: Content): GameState {
   }
 }
 
-/** Greedily buy the cheapest affordable perk (by Seal cost) until none remain affordable. */
+/**
+ * Greedily spend Seals on the cheapest affordable new perk; once the tree is complete, on the next level of an
+ * owned one, until nothing is affordable. Cheapest-first keeps the wallet empty, which is the
+ * point of the level sink.
+ */
 function buyGreedyPerks(state: GameState, content: Content): GameState {
   for (;;) {
-    let best: string | null = null;
+    // The tree comes first: levels only once every node is owned (Head Start perks drive the pace).
+    const allOwned = content.perks.every((p) => state.perks.includes(p.id));
+    let best: { id: string; upgrade: boolean } | null = null;
     let bestCost = Infinity;
     for (const p of content.perks) {
-      if (p.cost < bestCost && canBuyPerk(state, content, p.id).ok) { bestCost = p.cost; best = p.id; }
+      if (p.cost < bestCost && canBuyPerk(state, content, p.id).ok) { bestCost = p.cost; best = { id: p.id, upgrade: false }; }
+      if (allOwned && canUpgradePerk(state, content, p.id).ok) {
+        const c = perkUpgradeCost(p, perkLevel(state, p.id));
+        if (c < bestCost) { bestCost = c; best = { id: p.id, upgrade: true }; }
+      }
     }
     if (!best) return state;
-    state = buyPerk(state, content, best);
+    state = best.upgrade ? upgradePerk(state, content, best.id) : buyPerk(state, content, best.id);
   }
 }
 
@@ -238,7 +257,10 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
   let firstAuditReadyDay: number | null = null;
   let firstAuditReadySec: number | null = null;
   const auditReadySecByRun: number[] = [];
+  const auditReadyWallSecByRun: number[] = [];
+  let runStartWallMs = opts.startWallMs ?? SIM_EPOCH;
   const sealsPerAudit: number[] = [];
+  const auditTrail: SimResult['auditTrail'] = [];
   const sealMultPerAudit: number[] = [];
   const cosmicDays: number[] = [];
   let runStartSec = 0;
@@ -247,7 +269,7 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
   let wallMs = opts.startWallMs ?? SIM_EPOCH;
   const days: DaySnapshot[] = [];
   const gapSec = (86_400 - opts.sessionsPerDay * opts.sessionSec) / opts.sessionsPerDay;
-  const note = (day: number) => {
+  const note = (day: number, readyWallSec?: number) => {
     for (const id of state.deptsUnlocked) {
       if (!(id in firstUnlockSec) && id !== 'intake') {
         firstUnlockSec[id] = played;
@@ -257,6 +279,7 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
     if (!runReady && canAudit(state)) {
       runReady = true;
       auditReadySecByRun.push(played - runStartSec);
+      auditReadyWallSecByRun.push(readyWallSec ?? (wallMs - runStartWallMs) / 1000);
       if (firstAuditReadyDay === null) { firstAuditReadyDay = day; firstAuditReadySec = played; }
     }
   };
@@ -273,11 +296,19 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       // rewarded `offline-double` ad this session is assumed to watch.
       if (played > 0) {
         wallMs += gapSec * 1000;
+        const before = state.soulsRun;
         const off = applyOffline(state, content, gapSec, wallMs);
         state = unlockDepartments(addSouls(off.state, off.souls, off.kc), content);
         state = { ...state, stats: { ...state.stats, adsWatched: state.stats.adsWatched + 1 } };
+        // Crossing the threshold during the gap: place the moment by linear interpolation so the
+        // report is not quantised to the session spacing.
+        let readyAt: number | undefined;
+        if (!runReady && canAudit(state) && state.soulsRun.gt(before)) {
+          const frac = auditThreshold(state.fiscalYear, state.stats.cosmics).sub(before).div(state.soulsRun.sub(before)).toNumber();
+          readyAt = (wallMs - gapSec * 1000 - runStartWallMs) / 1000 + gapSec * Math.min(1, Math.max(0, frac));
+        }
         state = buyGreedy(state, content);
-        note(day);
+        note(day, readyAt);
       }
       // `overtime-boost`: taken at the top of every session, subject to the same eight-hour
       // cooldown the store enforces — on a five-session day that is roughly every other one.
@@ -302,11 +333,13 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
         // Read before the filing: fileAudit pays the multiplier the run held, and Cosmic
         // Clauses survive an Audit, so this is also the multiplier the cap scales by.
         sealMultPerAudit.push(clauseSealMult(state, content));
+        auditTrail.push({ fy: state.fiscalYear, cosmics: state.stats.cosmics, headroomLog10: state.soulsRun.div(auditThreshold(state.fiscalYear, state.stats.cosmics)).log10() });
         const audit = fileAudit(state, content, wallMs);
         state = audit.state;
         sealsPerAudit.push(audit.sealsGained);
         state = buyGreedyPerks(state, content);
         runStartSec = played;
+        runStartWallMs = wallMs;
         runReady = false;
         note(day);
       }
@@ -322,6 +355,7 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
         const clause = affordable.find((c) => c.effect.type === 'sealMult') ?? affordable[0];
         if (clause) state = buyClause(state, content, clause.id);
         runStartSec = played;
+        runStartWallMs = wallMs;
         runReady = false;
         note(day);
       }
@@ -378,6 +412,8 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
       clauses: state.cosmicClauses.length,
       dailiesClaimed: state.stats.dailiesClaimed,
       perks: state.perks.length,
+      perkLevelSum: state.perks.reduce((t, id) => t + perkLevel(state, id), 0),
+      upgradesLeft: content.perks.filter((p) => state.perks.includes(p.id) && perkUpgradable(p) && perkLevel(state, p.id) < MAX_PERK_LEVEL).length,
       cardsMaxed: Object.values(state.cards).filter((s) => s >= MAX_STARS).length,
       cosmics: state.stats.cosmics,
       soulsLifetime: state.soulsLifetime.toString(),
@@ -390,6 +426,8 @@ export function simulate(opts: SimOptions, content: Content): SimResult {
     firstAuditReadyDay,
     firstAuditReadySec,
     auditReadySecByRun,
+    auditReadyWallSecByRun,
+    auditTrail,
     sealsPerAudit,
     sealMultPerAudit,
     cosmicDays,

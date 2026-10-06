@@ -384,6 +384,21 @@ describe('prestige and perks in the store', () => {
     expect(store.getState().rates.soulsPerSec.toNumber()).toBeCloseTo(0.5 * 1.08 * 1.1 * 1.01);
     store.getState().stopLoop();
   });
+  it('upgradePerk spends seals, levels the perk and raises rates; refuses when short', async () => {
+    const { store } = await make();
+    await store.getState().boot();
+    store.setState({ state: { ...store.getState().state, seals: 8, perks: ['throughput-1'], staff: { dave: 1 } } });
+    store.getState().upgradePerk('throughput-1');
+    const s = store.getState().state;
+    expect(s.seals).toBe(2);
+    expect(s.perkLevels['throughput-1']).toBe(2);
+    const rate = store.getState().rates.soulsPerSec.toNumber();
+    store.getState().upgradePerk('throughput-1'); // costs 12, has 2
+    expect(store.getState().state).toBe(s);
+    // 10 seals' worth of bonus (spent ones still count) x perk 1.125.
+    expect(rate).toBeCloseTo(0.5 * 1.2 * 1.125, 1);
+    store.getState().stopLoop();
+  });
   it('memo pool includes late memos from fiscal year 2', async () => {
     const dept = content.departments[0];
     const late = ['MEMO: year two only'];
