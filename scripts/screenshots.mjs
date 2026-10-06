@@ -36,6 +36,9 @@ const PLATFORMS = [
   { id: 'ios-ipad-13', outDir: path.join(storeDir, 'ios-ipad-13'), width: 2064, height: 2752, raw: { width: 768, height: 1024, dsf: 2 }, frame: 'tablet' },
 ];
 
+/** TODO: set false once the skill-tree Ledger redesign lands, then re-shoot. The old list-style ledger shot must not ship. */
+const SKIP_LEDGER = true;
+
 /** Must match `src/platform/storage.ts`; the web build persists the save under this key. */
 const SAVE_KEY = 'afterlife.save.v1';
 
@@ -204,12 +207,16 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor,
  * DOM, and PNG screenshots only carry alpha where the source had it — so these come out with no
  * alpha channel, which the App Store requires.
  */
-async function compose(browser, rawDir, platform, { file, headline, sub, chips }) {
+async function compose(browser, rawDir, platform, { file, headline, sub, chips, exec }) {
   const { width: W, height: H, frame } = platform;
   const s = W / 1080; // scale factor against the tuned-for-Android baseline
   const font = (await readFile(fontFile)).toString('base64');
   const shot = (await readFile(path.join(rawDir, file))).toString('base64');
-  const bezelW = 820 * s;
+  const bezelW = 620 * s;
+  const charImg = (await readFile(path.join(root, 'docs', 'store', 'characters', `${exec.char}.png`))).toString('base64');
+  const right = exec.side === 'right';
+  // Character box: ~40% of canvas height, capped by width so the squarer iPad does not overflow.
+  const charSize = Math.min(690 * s, 0.42 * H);
   // The screen inside the bezel has exactly the capture's aspect, so object-fit never crops the
   // app's left and right edges.
   const pad = 26 * s;
@@ -226,22 +233,38 @@ async function compose(browser, rawDir, platform, { file, headline, sub, chips }
     .chips { display: flex; justify-content: center; flex-wrap: wrap; gap: ${14 * s}px; margin: ${30 * s}px ${60 * s}px 0; }
     .chip { font-size: ${26 * s}px; padding: ${12 * s}px ${24 * s}px; border: ${3 * s}px solid #1F3B33; border-radius: 999px; background: #F7F2E4; color: #1F3B33; white-space: nowrap; }
     .chip.red { border-color: #A6402B; color: #A6402B; }
-    .phone { position: absolute; left: 50%; bottom: ${-260 * s}px; transform: translateX(-50%); width: ${bezelW}px; height: ${bezelH}px; border-radius: ${(frame === 'phone' ? 96 : 48) * s}px; background: #2A2620; padding: ${pad}px; box-sizing: border-box; box-shadow: 0 ${40 * s}px ${80 * s}px rgba(42,38,32,.35); }
+    .phone { position: absolute; ${right ? 'left' : 'right'}: ${44 * s}px; bottom: ${-260 * s}px; width: ${bezelW}px; height: ${bezelH}px; border-radius: ${(frame === 'phone' ? 96 : 48) * s}px; background: #2A2620; padding: ${pad}px; box-sizing: border-box; box-shadow: 0 ${40 * s}px ${80 * s}px rgba(42,38,32,.35); }
     .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: ${(frame === 'phone' ? 72 : 30) * s}px; display: block; }
+    .exec { position: absolute; bottom: ${10 * s}px; ${right ? 'right' : 'left'}: ${-90 * s}px; width: ${charSize}px; height: ${charSize}px; filter: drop-shadow(${8 * s}px ${14 * s}px ${14 * s}px rgba(42,38,32,.4)); ${right ? '' : 'transform: scaleX(-1);'} }
+    .bubble { position: absolute; max-width: ${400 * s}px; padding: ${22 * s}px ${30 * s}px; background: #FFFDF4; border: ${5 * s}px solid #1F3B33; border-radius: ${34 * s}px; font-size: ${44 * s}px; line-height: 1.15; color: #1F3B33; box-shadow: ${6 * s}px ${8 * s}px 0 rgba(31,59,51,.25); transform: rotate(${right ? 3 : -3}deg); }
+    .bubble::after { content: ''; position: absolute; bottom: ${-26 * s}px; ${right ? 'right' : 'left'}: ${70 * s}px; width: ${40 * s}px; height: ${40 * s}px; background: #FFFDF4; border: solid #1F3B33; border-width: 0 ${5 * s}px ${5 * s}px 0; transform: rotate(${right ? 55 : 35}deg) skew(${right ? -10 : 10}deg); }
   </style><body><h1>${headline}</h1><p>${sub}</p>
   <div class="chips">${chips.map((c, i) => `<span class="chip${i === 0 ? ' red' : ''}">${c}</span>`).join('')}</div>
-  <div class="phone"><img src="data:image/png;base64,${shot}">${notch}</div></body>`;
+  <div class="phone"><img src="data:image/png;base64,${shot}">${notch}</div>
+  <img class="exec" src="data:image/png;base64,${charImg}"><div class="bubble">${exec.say}</div></body>`;
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   await page.setContent(html);
   await page.evaluate(() => document.fonts.ready);
   // A headline that wraps pushes its subtitle and chips down; the device must start below the
   // last line of text, never over it. It may run further off the bottom edge instead.
-  await page.evaluate((gap) => {
+  await page.evaluate(({ gap, W: cw, H: ch, k, pad: pd, ratio, floorW }) => {
     const phone = document.querySelector('.phone');
     const textBottom = Math.max(...[...document.querySelectorAll('h1, p, .chips')].map((e) => e.getBoundingClientRect().bottom));
     const top = textBottom + gap;
-    Object.assign(phone.style, { top: `${top}px`, bottom: 'auto' });
-  }, 44 * s);
+    // Taller canvases (iPhone 6.9") have room to grow the device so it reaches the bottom edge; width is capped so the character still fits beside it.
+    const w = Math.max(floorW, Math.min(0.64 * cw, (ch - top + 260 * k - 2 * pd) / ratio + 2 * pd));
+    const h = (w - 2 * pd) * ratio + 2 * pd;
+    Object.assign(phone.style, { top: `${top}px`, bottom: 'auto', width: `${w}px`, height: `${h}px` });
+    // The character stands on the device's bottom edge, or the canvas edge when the device bleeds off it.
+    document.querySelector('.exec').style.bottom = `${Math.max(10 * k, ch - (top + h) - 60 * k)}px`;
+  }, { gap: 44 * s, W, H, k: s, pad, ratio: platform.raw.height / platform.raw.width, floorW: bezelW });
+  // Bubble sits just above the character's head (the sprite's top ~10% is empty margin), on the outer side.
+  await page.evaluate(({ size, right: r, s: k }) => {
+    const b = document.querySelector('.bubble');
+    const c = document.querySelector('.exec').getBoundingClientRect();
+    b.style.top = `${c.top + size * 0.10 - b.offsetHeight - 30 * k}px`;
+    b.style[r ? 'right' : 'left'] = `${28 * k}px`;
+  }, { size: charSize, right, s });
   await page.screenshot({ path: path.join(platform.outDir, file) });
   await page.close();
   console.log(`  [${platform.id}] ${file}`);
@@ -271,17 +294,10 @@ async function main() {
       lastSeenWallClock: HALLOWEEN,
       event: { key: 'halloween-2026', points: '4.2e5', earned: '6.8e6', staff: { 'hw-ghost': 52, 'hw-mummy': 24, 'hw-pumpkin': 9 }, claimed: [0] },
     };
-    const shots = [
-      {
-        file: '00-title.png',
-        stopAtTitle: true,
-        waitFor: '.title-name',
-        headline: 'Welcome to the afterlife.<br>Please take a number.',
-        sub: 'Heaven, Hell and everything filed in between.',
-        chips: ['Idle clicker', '6 departments to unlock', 'Free to play'],
-      },
+    const allShots = [
       {
         file: '01-intake.png',
+        exec: { char: 'vassago', side: 'right', say: 'Stamp faster!' },
         save: base,
         waitFor: '.tabbar',
         headline: 'Stamp souls.<br>Meet quota.',
@@ -290,6 +306,7 @@ async function main() {
       },
       {
         file: '02-personnel.png',
+        exec: { char: 'bodhisattva', side: 'left', say: 'Hire weirder!' },
         save: base,
         tab: 'Personnel',
         waitFor: '.tabbar',
@@ -299,6 +316,7 @@ async function main() {
       },
       {
         file: '03-requisition.png',
+        exec: { char: 'seraph-board', side: 'right', say: 'Pull for legends!' },
         save: { ...base, vouchers: 120 },
         tab: 'Personnel',
         drawTen: true,
@@ -309,6 +327,7 @@ async function main() {
       },
       {
         file: '04-ledger.png',
+        exec: { char: 'keeper', side: 'left', say: 'Grow the tree!' },
         save: base,
         tab: 'Ledger',
         waitFor: '.perk-tree',
@@ -319,6 +338,7 @@ async function main() {
       },
       {
         file: '05-weekly-staff.png',
+        exec: { char: 'allfather', side: 'right', say: 'New theme every weekend!' },
         save: weeklySave,
         clock: VALHALLA,
         openEvent: true,
@@ -331,6 +351,7 @@ async function main() {
       },
       {
         file: '06-weekly-gacha.png',
+        exec: { char: 'greed-toad', side: 'left', say: 'Rare executives!' },
         save: weeklySave,
         clock: VALHALLA,
         openEvent: true,
@@ -343,6 +364,7 @@ async function main() {
       },
       {
         file: '07-halloween.png',
+        exec: { char: 'pumpkin-cfo', side: 'right', say: 'Spooky season!' },
         save: haunted,
         clock: HALLOWEEN,
         openEvent: true,
@@ -353,6 +375,7 @@ async function main() {
         chips: ['Halloween', 'Christmas', 'Easter and more'],
       },
     ];
+    const shots = allShots.filter((sh) => !(SKIP_LEDGER && sh.file === '04-ledger.png'));
     for (const platform of PLATFORMS) {
       const rawDir = path.join(rawRoot, platform.id);
       await mkdir(rawDir, { recursive: true });
