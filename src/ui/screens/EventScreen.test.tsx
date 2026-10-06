@@ -64,6 +64,15 @@ describe('EventScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /back to office/i }));
     expect(back).toHaveBeenCalled();
   });
+  it('sets the event music theme on mount and clears it on unmount', () => {
+    const occ = seed('halloween')!;
+    const setMusicTheme = vi.fn();
+    useGame.setState({ audio: { ...useGame.getState().audio, setMusicTheme } });
+    const { unmount } = render(<EventScreen onBack={() => {}} />);
+    expect(setMusicTheme).toHaveBeenLastCalledWith(occ.id);
+    unmount();
+    expect(setMusicTheme).toHaveBeenLastCalledWith(null);
+  });
   it('stamping raises points', () => {
     seed('halloween');
     render(<EventScreen onBack={() => {}} />);

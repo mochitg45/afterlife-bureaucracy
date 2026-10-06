@@ -52,7 +52,7 @@ describe('App shell', () => {
   it('keeps trying to unlock audio until the context is running', () => {
     const unlock = vi.fn();
     let running = false;
-    useGame.setState({ audio: { unlock, play: () => {}, setEnabled: () => {}, suspend: () => {}, resume: () => {}, isRunning: () => running } });
+    useGame.setState({ audio: { unlock, play: () => {}, setEnabled: () => {}, setMusicTheme: () => {}, suspend: () => {}, resume: () => {}, isRunning: () => running } });
     render(<App />);
     // A gesture the WebView refused: the context is still not running, so the listeners stay armed.
     fireEvent.pointerDown(document.body);

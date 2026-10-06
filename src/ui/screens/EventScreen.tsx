@@ -253,6 +253,14 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const openBoard = useGame((s) => s.openEventLeaderboard);
   // The event ended while open: back to the office.
   useEffect(() => { if (!occ) onBack(); }, [occ, onBack]);
+  // Each event has its own music while its screen is open; leaving restores the office loop.
+  const themeId = occ?.id ?? null;
+  useEffect(() => {
+    if (!themeId) return;
+    const { audio } = useGame.getState();
+    audio?.setMusicTheme(themeId);
+    return () => audio?.setMusicTheme(null);
+  }, [themeId]);
   if (!occ || !ev) return null;
   const state = useGame.getState().state;
   const rate = eventRate(state, content, occ);

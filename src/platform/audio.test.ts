@@ -1,4 +1,6 @@
 import { createAudio } from './audio';
+import { THEMES, DEFAULT_THEME } from './musicThemes';
+import { content } from '../data';
 
 /** The smallest fake graph that records what the module asked for. */
 function fakeContext() {
@@ -166,5 +168,44 @@ describe('audio', () => {
     expect(connections).toContain('gain->limiter');
     expect(connections).toContain('limiter->destination');
     expect(connections).not.toContain('gain->destination');
+  });
+
+  it('has a music theme for every special and weekly event, in sane ranges', () => {
+    const ids = [...content.events.specials.map((e) => e.id), ...content.events.weekly!.themes.map((e) => e.id)];
+    expect(ids).toHaveLength(20);
+    for (const id of ids) expect(THEMES[id], id).toBeDefined();
+    for (const [id, th] of [['office', DEFAULT_THEME], ...Object.entries(THEMES)] as const) {
+      expect(th.bpm, id).toBeGreaterThanOrEqual(50);
+      expect(th.bpm, id).toBeLessThanOrEqual(130);
+      expect([3, 4], id).toContain(th.beats);
+      expect(th.chords.length, id).toBeGreaterThan(0);
+      // Same loudness as the office loop: voices never exceed its peaks.
+      expect(th.pad.gain, id).toBeLessThanOrEqual(0.11);
+      expect(th.bass.gain, id).toBeLessThanOrEqual(0.36);
+      for (const v of [th.lead, th.comp, th.sparkle]) if (v) expect(v.gain, id).toBeLessThanOrEqual(0.15);
+      for (const h of th.perc) expect(h.gain, id).toBeLessThanOrEqual(0.4);
+      for (const h of th.perc) for (const b of h.beats) expect(b).toBeLessThan(th.beats);
+    }
+  });
+
+  it('plays every theme and crossfades between them without throwing', () => {
+    vi.useFakeTimers();
+    try {
+      const ctx = fakeContext();
+      const audio = createAudio(() => ctx as unknown as AudioContext);
+      audio.unlock();
+      vi.advanceTimersByTime(10);
+      for (const id of [...Object.keys(THEMES), 'nope', null]) {
+        audio.setMusicTheme(id);
+        vi.advanceTimersByTime(10);
+      }
+      expect(ctx.started.length).toBeGreaterThan(0);
+      audio.setEnabled({ sfx: true, music: false });
+      expect(() => audio.setMusicTheme('halloween')).not.toThrow();
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('accepts a theme before the context exists', () => {
+    expect(() => createAudio(() => null).setMusicTheme('summer')).not.toThrow();
   });
 });

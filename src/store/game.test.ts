@@ -24,7 +24,7 @@ function fakeAudio() {
     played, enabled,
     play: (n: string) => { played.push(n); },
     setEnabled: (f: { sfx: boolean; music: boolean }) => { enabled.push(f); },
-    unlock: vi.fn(), suspend: vi.fn(), resume: vi.fn(), isRunning: () => true,
+    unlock: vi.fn(), suspend: vi.fn(), resume: vi.fn(), setMusicTheme: vi.fn(), isRunning: () => true,
   };
 }
 
