@@ -117,6 +117,14 @@ export interface EventState {
   claimed: number[];
 }
 
+/** A finished event occurrence whose ranking prize has not been paid yet. */
+export interface RankPending {
+  key: string;
+  /** The occurrence's display name, kept because a weekly theme cannot be looked up later cheaply. */
+  name: string;
+  special: boolean;
+}
+
 /**
  * Invite-and-share bookkeeping. Kept across a reset epoch like purchases: a reward the
  * player already took must not be earnable twice.
@@ -189,6 +197,8 @@ export interface GameState {
   savedAtWall: number;
   /** The event occurrence in progress, or null between events. */
   event: EventState | null;
+  /** Ended occurrences (with a score) whose ranking prize is still to collect. */
+  rankPending: RankPending[];
   referral: ReferralState;
 }
 
@@ -260,6 +270,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     cloud: { lastSyncWall: 0, lastResult: 'none' },
     savedAtWall: 0,
     event: null,
+    rankPending: [],
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -508,6 +519,18 @@ function sanitizeCloud(v: unknown): CloudMeta {
   return { lastSyncWall: nonNeg(raw.lastSyncWall), lastResult };
 }
 
+function sanitizeRankPending(v: unknown): RankPending[] {
+  if (!Array.isArray(v)) return [];
+  const out: RankPending[] = [];
+  for (const x of v) {
+    if (!x || typeof x !== 'object') continue;
+    const r = x as Record<string, unknown>;
+    if (typeof r.key !== 'string' || !r.key || out.some((p) => p.key === r.key)) continue;
+    out.push({ key: r.key, name: typeof r.name === 'string' ? r.name : '', special: r.special === true });
+  }
+  return out.slice(-8); // ponytail: a player away for months collects the last 8, not a backlog
+}
+
 /** A garbled event block is dropped: syncEvent opens the running event fresh. */
 function sanitizeEvent(v: unknown): EventState | null {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
@@ -661,6 +684,7 @@ export function deserialize(json: string, content: Content): GameState {
     cloud: sanitizeCloud(raw.cloud),
     savedAtWall: nonNeg(raw.savedAtWall),
     event: sanitizeEvent(raw.event),
+    rankPending: sanitizeRankPending(raw.rankPending),
     referral: sanitizeReferral(raw.referral),
   }, content);
 }

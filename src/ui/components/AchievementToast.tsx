@@ -18,7 +18,7 @@ export function AchievementToast() {
   const clearAchievementToast = useGame((s) => s.clearAchievementToast);
   // Held while a popup is open (pull reveal, backlog report, audit, restructuring, Pip's gift):
   // the toast would sit on top of it. It shows, and starts its timer, once the popup closes.
-  const held = useGame((s) => s.pendingPull !== null || s.pendingPrize !== null || s.pendingOffline !== null || s.lastAudit !== null || s.lastCosmic !== null || s.pendingVisitor !== null);
+  const held = useGame((s) => s.pendingPull !== null || s.pendingPrize !== null || s.pendingRank !== null || s.pendingOffline !== null || s.lastAudit !== null || s.lastCosmic !== null || s.pendingVisitor !== null);
   // What the grant paid at the player's current multiplier (the engine carries fractions, so
   // this can be one off from the exact payout; close enough for a headline).
   const paid = useGame((s) => (achievement?.vouchers ? Math.floor(achievement.vouchers * voucherMult(s.state, content)) : 0));

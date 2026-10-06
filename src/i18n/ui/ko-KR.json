@@ -453,5 +453,20 @@
  "title.signIn": "Google로 로그인",
  "title.signedIn": "Google로 로그인됨",
  "title.privacy": "개인정보",
- "title.unavailable": "이 기기에서는 Play 게임즈를 사용할 수 없어요."
+ "title.unavailable": "이 기기에서는 Play 게임즈를 사용할 수 없어요.",
+ "rank.title": "랭킹 보상",
+ "rank.you": "{total}명 중 {rank}위",
+ "rank.prizeNow": "지금 보상: {row}",
+ "rank.unranked": "이벤트 포인트를 모으면 랭킹에 올라요.",
+ "rank.loading": "순위 확인 중…",
+ "rank.noServer": "랭킹은 안드로이드에서만 열려요. 참여하면 참가 보상은 받아요.",
+ "rank.seeAll": "랭킹 보상 전체 보기",
+ "rank.paidAfter": "이벤트가 끝나면 최종 순위로 지급돼요.",
+ "rank.final": "{name}: 최종 랭킹",
+ "rank.thanks": "참여해 줘서 고마워요!",
+ "rank.place1": "1위",
+ "rank.place2": "2위",
+ "rank.place3": "3위",
+ "rank.top": "상위 {n}%",
+ "rank.joinedRow": "참가"
 }

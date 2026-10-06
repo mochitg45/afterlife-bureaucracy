@@ -204,10 +204,19 @@ function trackForKey(content: Content, key: string): EventTier[] {
   return content.events.specials.find((s) => s.id === id)?.track ?? [];
 }
 
-/** Banks a card the way a pull does: a new card is ★1, a duplicate adds a shard. */
+/** An ended key's display name and kind, for its ranking-prize popup. */
+function keyInfo(content: Content, key: string): { name: string; special: boolean } {
+  const m = /^weekly-(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (m) return { name: weeklyOccurrence(content, Date.UTC(+m[1], +m[2] - 1, +m[3]), key)?.name ?? '', special: false };
+  if (key.startsWith('weekly-')) return { name: content.events.weekly?.deptName ?? '', special: false };
+  const id = /^(.*)-(\d{4}|preview)$/.exec(key)?.[1];
+  return { name: content.events.specials.find((s) => s.id === id)?.name ?? '', special: true };
+}
+
 /** What a claimed tier paid, for the claim popup: a card reads like a one-card pull. */
 export type EventPrize = { kind: 'vouchers' | 'seals'; amount: number } | { kind: 'card'; result: PullResult };
 
+/** Banks a card the way a pull does: a new card is ★1, a duplicate adds a shard. */
 function bankEventCard(state: GameState, content: Content, cardId: string): { state: GameState; result: PullResult } {
   const cards = { ...state.cards };
   const cardShards = { ...state.cardShards };
@@ -245,9 +254,14 @@ function grantReached(state: GameState, content: Content, ev: EventState, track:
 export function syncEvent(state: GameState, content: Content, nowWall: number, forceId?: string | null): GameState {
   const occ = activeEvent(content, nowWall, forceId);
   if (state.event?.key === occ?.key) return state;
-  const paid = state.event ? grantReached(state, content, state.event, trackForKey(content, state.event.key)) : state;
+  const old = state.event;
+  const paid = old ? grantReached(state, content, old, trackForKey(content, old.key)) : state;
+  // Anyone who scored is ranked; their prize waits until the final standings can be read.
+  const rankPending = old && old.earned.gt(0) && !paid.rankPending.some((p) => p.key === old.key)
+    ? [...paid.rankPending, { key: old.key, ...keyInfo(content, old.key) }]
+    : paid.rankPending;
   return {
-    ...dropEventCards(paid, content),
+    ...dropEventCards({ ...paid, rankPending }, content),
     event: occ ? { key: occ.key, points: new Decimal(0), earned: new Decimal(0), staff: {}, claimed: [] } : null,
   };
 }

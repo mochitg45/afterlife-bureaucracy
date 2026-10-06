@@ -453,5 +453,20 @@
  "title.signIn": "Mit Google anmelden",
  "title.signedIn": "Mit Google angemeldet",
  "title.privacy": "Datenschutz",
- "title.unavailable": "Play Spiele ist auf diesem Gerät nicht verfügbar."
+ "title.unavailable": "Play Spiele ist auf diesem Gerät nicht verfügbar.",
+ "rank.title": "Ranglisten-Preise",
+ "rank.you": "#{rank} von {total}",
+ "rank.prizeNow": "Dein Preis gerade: {row}",
+ "rank.unranked": "Sammle Event-Punkte, um in die Rangliste zu kommen.",
+ "rank.loading": "Platz wird geprüft…",
+ "rank.noServer": "Ranglisten gibt es auf Android. Wer mitmacht, bekommt trotzdem den Teilnahmepreis.",
+ "rank.seeAll": "Alle Ranglisten-Preise",
+ "rank.paidAfter": "Ausgezahlt nach dem Endplatz, wenn das Event endet.",
+ "rank.final": "{name}: Endstand",
+ "rank.thanks": "Danke fürs Mitmachen!",
+ "rank.place1": "1. Platz",
+ "rank.place2": "2. Platz",
+ "rank.place3": "3. Platz",
+ "rank.top": "Top {n} %",
+ "rank.joinedRow": "Teilgenommen"
 }

@@ -55,3 +55,14 @@ button.event-card { font: inherit; color: inherit; cursor: pointer; width: 100%;
 @keyframes prize-pop { 0% { transform: scale(0.3) rotate(-25deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @keyframes prize-thunk { 0% { transform: scale(1.8); opacity: 0; } 70% { transform: scale(0.94); opacity: 1; } 100% { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .event-prize-icon, .event-prize-amt { animation: none; } }
+
+/* Ranking card: your standing, what it pays now, and the full prize table under a fold. */
+.event-ranking { display: flex; flex-direction: column; gap: 6px; }
+.event-ranking-you { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.event-ranking-you .mono { font-size: 18px; font-weight: 700; }
+.event-ranking-table > summary { cursor: pointer; color: var(--brass); font-weight: 600; }
+.event-ranking-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-radius: 6px; }
+.event-ranking-row:nth-child(even) { background: var(--surface-2); }
+.event-ranking-row.mine { outline: 2px solid var(--brass); }
+.rank-prize-medal { font-size: 64px; line-height: 1; animation: prize-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@media (prefers-reduced-motion: reduce) { .rank-prize-medal { animation: none; } }

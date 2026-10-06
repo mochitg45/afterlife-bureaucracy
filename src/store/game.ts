@@ -35,6 +35,8 @@ import { pickReferral, referralLink, type Referral } from '../platform/referral'
 import { t } from '../i18n';
 import { pickSharer, INVITE_PITCH, type Sharer } from '../platform/share';
 import { claimTier, grantShareReward } from '../engine/referral';
+import { prizeFor, payRankPrize, type RankPrize } from '../engine/eventRank';
+import { pickEventRanking, type EventRanking, type Standing } from '../platform/eventRanking';
 import { content as defaultContent } from '../data';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -259,6 +261,17 @@ export interface GameStore {
   cloudNotice: CloudNotice | null;
   /** Invite-and-share: Android only; `error` is the "couldn't reach the referral office" state. */
   referralInfo: ReferralInfo;
+  /** The running event's ranking as last read (null: not ranked yet, or no ranking server). */
+  eventStanding: Standing | null;
+  /** True where a ranking server exists (Android); elsewhere only the took-part prize pays. */
+  rankingAvailable: boolean;
+  /** A finished event's final standing and prize, open in its popup until collected. */
+  pendingRank: { key: string; name: string; special: boolean; standing: Standing | null; prize: RankPrize } | null;
+  /** Re-reads the running event's standing (sends the current score first). */
+  refreshEventStanding(): Promise<void>;
+  /** Opens the next finished event's ranking prize, once its final standing can be read. */
+  checkRankPrizes(): Promise<void>;
+  collectRankPrize(): void;
   /** The letter Pip delivered, open in the popup until taken, declined or boosted by an ad. */
   pendingVisitor: VisitorLetter | null;
   /** Monotonic time Pip is next due; pushed forward whenever he is tapped or flies off. */
@@ -369,6 +382,7 @@ export interface StoreDeps {
   gameServices?: GameServices;
   cloudSave?: CloudSave;
   referral?: Referral;
+  eventRanking?: EventRanking;
   sharer?: Sharer;
   audio?: Audio;
   /** Overrides `readForceEvent()` (tests). */
@@ -392,6 +406,7 @@ export function createGameStore(deps: StoreDeps) {
   const gameServices = deps.gameServices ?? pickGameServices();
   const cloudSave = deps.cloudSave ?? pickCloudSave();
   const referral = deps.referral ?? pickReferral();
+  const eventRanking = deps.eventRanking ?? pickEventRanking();
   const sharer = deps.sharer ?? pickSharer();
   const audio = deps.audio ?? pickAudio();
   const forceEvent = deps.forceEvent !== undefined ? deps.forceEvent : readForceEvent();
@@ -487,6 +502,7 @@ export function createGameStore(deps: StoreDeps) {
       const board = occ && eventLeaderboardId(occ);
       if (!board || !ev || ev.key !== occ!.key) return;
       gameServices.submitScore(board, ev.earned.toNumber()).catch(() => {});
+      void eventRanking.submit(ev.key, ev.earned.toNumber());
     };
 
     /**
@@ -504,7 +520,12 @@ export function createGameStore(deps: StoreDeps) {
     ): { state: GameState; rates: Rates; unlockedAch: AchievementDef[]; unlockedStory: StoryDef[] } => {
       const wall = clock.wall();
       // Rollover happens here, so a weekend ending (or a special starting) is picked up live.
+      const before = next;
       next = syncEvent(next, content, wall, forceEvent);
+      if (next.rankPending.length > before.rankPending.length) {
+        // The old run's final score, then its prize once the store has committed this state.
+        void eventRanking.submit(before.event!.key, before.event!.earned.toNumber()).then(() => get().checkRankPrizes());
+      }
       const member = unionActive(next, wall);
       // A rewound or jumped clock would otherwise hand out a fresh set of daily tasks on
       // demand, so the rollover stays frozen until the clock looks honest again.
@@ -964,6 +985,9 @@ export function createGameStore(deps: StoreDeps) {
       },
       cloudNotice: null,
       referralInfo: { available: referral.available(), status: 'idle', code: null, joined: 0 },
+      eventStanding: null,
+      rankingAvailable: eventRanking.available(),
+      pendingRank: null,
       leaderboardAvailable: gameServices.available() && lifetimeSoulsLeaderboardId() !== null,
       pendingVisitor: null,
       pendingPrize: null,
@@ -1100,6 +1124,7 @@ export function createGameStore(deps: StoreDeps) {
           // that has not started yet.
           startTimers();
           set({ ready: true });
+          void get().checkRankPrizes();
           applySoundSettings(get().state);
           // A boot that follows a resume() (the app came back before it had finished booting)
           // finds a suspended context: nothing else would rearm it until the next gesture.
@@ -1667,6 +1692,38 @@ export function createGameStore(deps: StoreDeps) {
       },
 
       dismissCloudNotice() { set({ cloudNotice: null }); },
+
+      async refreshEventStanding() {
+        const ev = get().state.event;
+        if (!ev || !eventRanking.available()) return;
+        if (ev.earned.gt(0)) await eventRanking.submit(ev.key, ev.earned.toNumber());
+        const s = await eventRanking.standing(ev.key);
+        if (get().state.event?.key === ev.key) set({ eventStanding: s && s !== 'none' ? s : null });
+      },
+
+      async checkRankPrizes() {
+        const p = get().state.rankPending[0];
+        if (!p || get().pendingRank) return;
+        let standing: Standing | null = null;
+        if (eventRanking.available()) {
+          const s = await eventRanking.standing(p.key);
+          if (s === null) return; // unreachable: ask again on the next launch or rollover
+          standing = s === 'none' ? null : s;
+        }
+        if (get().pendingRank || get().state.rankPending[0]?.key !== p.key) return;
+        const prize = prizeFor(p.special ? 'special' : 'weekly', standing?.rank ?? null, standing?.total ?? 0);
+        set({ pendingRank: { ...p, standing, prize } });
+      },
+
+      collectRankPrize() {
+        const pr = get().pendingRank;
+        if (!pr) return;
+        apply(payRankPrize(get().state, pr.key, pr.prize), { pendingRank: null });
+        sfx('achievement');
+        track('event_rank_prize', { event: pr.key, rank: pr.standing?.rank ?? 0 });
+        void get().save();
+        void get().checkRankPrizes();
+      },
 
       async refreshReferral() {
         if (!referral.available()) return;

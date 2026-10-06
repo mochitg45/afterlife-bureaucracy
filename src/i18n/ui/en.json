@@ -453,5 +453,20 @@
  "title.signIn": "Sign in with Google",
  "title.signedIn": "Signed in with Google",
  "title.privacy": "Privacy",
- "title.unavailable": "Play Games is not available on this device."
+ "title.unavailable": "Play Games is not available on this device.",
+ "rank.title": "Ranking prizes",
+ "rank.you": "#{rank} of {total}",
+ "rank.prizeNow": "Your prize now: {row}",
+ "rank.unranked": "Earn event points to get ranked.",
+ "rank.loading": "Checking your rank…",
+ "rank.noServer": "Rankings run on Android. Everyone who takes part still gets the took-part prize.",
+ "rank.seeAll": "See all ranking prizes",
+ "rank.paidAfter": "Paid by final rank when the event ends.",
+ "rank.final": "{name}: final ranking",
+ "rank.thanks": "Thanks for taking part!",
+ "rank.place1": "1st place",
+ "rank.place2": "2nd place",
+ "rank.place3": "3rd place",
+ "rank.top": "Top {n}%",
+ "rank.joinedRow": "Took part"
 }

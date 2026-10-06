@@ -140,6 +140,16 @@ describe('syncEvent', () => {
     expect(out.cardSpares).toEqual({});
     expect(out.equipped).toEqual([keeper]);
   });
+  it('queues a ranking prize for an ended run that scored, with its name and kind', () => {
+    const occ = activeEvent(content, d('2026-10-25'))!;
+    const scored = syncEvent(inEvent(occ, { earned: new Decimal(5) }), content, d('2026-11-06') + 1000);
+    expect(scored.rankPending).toEqual([{ key: occ.key, name: occ.name, special: true }]);
+    const idle = syncEvent(inEvent(occ, {}), content, d('2026-11-06') + 1000);
+    expect(idle.rankPending).toEqual([]);
+    const weekly = activeEvent(content, d('2026-10-10'))!;
+    const w = syncEvent(inEvent(weekly, { earned: new Decimal(5) }), content, d('2026-10-14'));
+    expect(w.rankPending).toEqual([{ key: weekly.key, name: weekly.name, special: false }]);
+  });
   it('resolves a weekly key to the weekly track', () => {
     const occ = activeEvent(content, d('2026-10-10'))!;
     const s = inEvent(occ, { earned: new Decimal(occ.track[0].at) });

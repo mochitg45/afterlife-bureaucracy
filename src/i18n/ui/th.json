@@ -453,5 +453,20 @@
  "title.signIn": "ลงชื่อเข้าใช้ด้วย Google",
  "title.signedIn": "ลงชื่อเข้าใช้ด้วย Google แล้ว",
  "title.privacy": "ความเป็นส่วนตัว",
- "title.unavailable": "อุปกรณ์นี้ใช้ Play Games ไม่ได้"
+ "title.unavailable": "อุปกรณ์นี้ใช้ Play Games ไม่ได้",
+ "rank.title": "รางวัลอันดับ",
+ "rank.you": "อันดับ {rank} จาก {total}",
+ "rank.prizeNow": "รางวัลตอนนี้: {row}",
+ "rank.unranked": "สะสมแต้มอีเวนต์เพื่อติดอันดับ",
+ "rank.loading": "กำลังเช็กอันดับ…",
+ "rank.noServer": "ระบบอันดับมีบน Android ผู้ที่เข้าร่วมทุกคนยังได้รางวัลผู้เข้าร่วม",
+ "rank.seeAll": "ดูรางวัลอันดับทั้งหมด",
+ "rank.paidAfter": "แจกตามอันดับสุดท้ายเมื่ออีเวนต์จบ",
+ "rank.final": "{name}: อันดับสุดท้าย",
+ "rank.thanks": "ขอบคุณที่ร่วมสนุก!",
+ "rank.place1": "อันดับ 1",
+ "rank.place2": "อันดับ 2",
+ "rank.place3": "อันดับ 3",
+ "rank.top": "Top {n}%",
+ "rank.joinedRow": "ร่วมสนุก"
 }

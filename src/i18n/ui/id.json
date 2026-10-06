@@ -453,5 +453,20 @@
  "title.signIn": "Masuk dengan Google",
  "title.signedIn": "Sudah masuk dengan Google",
  "title.privacy": "Privasi",
- "title.unavailable": "Play Games tidak tersedia di perangkat ini."
+ "title.unavailable": "Play Games tidak tersedia di perangkat ini.",
+ "rank.title": "Hadiah peringkat",
+ "rank.you": "#{rank} dari {total}",
+ "rank.prizeNow": "Hadiahmu sekarang: {row}",
+ "rank.unranked": "Kumpulkan poin event untuk masuk peringkat.",
+ "rank.loading": "Mengecek peringkatmu…",
+ "rank.noServer": "Peringkat berjalan di Android. Semua yang ikut tetap dapat hadiah peserta.",
+ "rank.seeAll": "Lihat semua hadiah peringkat",
+ "rank.paidAfter": "Dibayar sesuai peringkat akhir saat event selesai.",
+ "rank.final": "{name}: peringkat akhir",
+ "rank.thanks": "Terima kasih sudah ikut!",
+ "rank.place1": "Juara 1",
+ "rank.place2": "Juara 2",
+ "rank.place3": "Juara 3",
+ "rank.top": "Top {n}%",
+ "rank.joinedRow": "Ikut serta"
 }

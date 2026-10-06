@@ -453,5 +453,20 @@
  "title.signIn": "Se connecter avec Google",
  "title.signedIn": "Connecté avec Google",
  "title.privacy": "Confidentialité",
- "title.unavailable": "Play Jeux n'est pas disponible sur cet appareil."
+ "title.unavailable": "Play Jeux n'est pas disponible sur cet appareil.",
+ "rank.title": "Prix du classement",
+ "rank.you": "#{rank} sur {total}",
+ "rank.prizeNow": "Ton prix actuel : {row}",
+ "rank.unranked": "Gagne des points d'événement pour être classé.",
+ "rank.loading": "Vérification de ton rang…",
+ "rank.noServer": "Le classement fonctionne sur Android. Tous les participants reçoivent quand même le prix de participation.",
+ "rank.seeAll": "Voir tous les prix",
+ "rank.paidAfter": "Versé selon le classement final à la fin de l'événement.",
+ "rank.final": "{name} : classement final",
+ "rank.thanks": "Merci d'avoir participé !",
+ "rank.place1": "1re place",
+ "rank.place2": "2e place",
+ "rank.place3": "3e place",
+ "rank.top": "Top {n} %",
+ "rank.joinedRow": "Participation"
 }

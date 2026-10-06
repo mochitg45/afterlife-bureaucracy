@@ -453,5 +453,20 @@
  "title.signIn": "Googleでログイン",
  "title.signedIn": "Googleでログイン中",
  "title.privacy": "プライバシー",
- "title.unavailable": "この端末ではPlay ゲームを利用できません。"
+ "title.unavailable": "この端末ではPlay ゲームを利用できません。",
+ "rank.title": "ランキング報酬",
+ "rank.you": "{total}人中 {rank}位",
+ "rank.prizeNow": "今の報酬：{row}",
+ "rank.unranked": "イベントポイントを稼ぐとランキングに載ります。",
+ "rank.loading": "順位を確認中…",
+ "rank.noServer": "ランキングはAndroid版のみです。参加した人には参加賞が届きます。",
+ "rank.seeAll": "ランキング報酬をすべて見る",
+ "rank.paidAfter": "イベント終了時の最終順位で配られます。",
+ "rank.final": "{name}：最終ランキング",
+ "rank.thanks": "参加ありがとう！",
+ "rank.place1": "1位",
+ "rank.place2": "2位",
+ "rank.place3": "3位",
+ "rank.top": "上位{n}%",
+ "rank.joinedRow": "参加賞"
 }

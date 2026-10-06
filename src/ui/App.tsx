@@ -26,7 +26,7 @@ import { SaveCodeSheet } from './overlays/SaveCodeSheet';
 import { CloudNotice } from './components/CloudNotice';
 import { TitleScreen } from './screens/TitleScreen';
 import { Splash } from './screens/Splash';
-import { EventScreen } from './screens/EventScreen';
+import { EventScreen, RankPrizePopup } from './screens/EventScreen';
 
 export function App() {
   const [tab, setTab] = useState<TabId | 'event'>('office');
@@ -121,6 +121,7 @@ export function App() {
           <AuditCeremony />
           <CosmicCeremony />
           <PullReveal />
+          <RankPrizePopup />
           {tab === 'office' && <Visitor />}
           <VisitorGift />
           <Intro />

@@ -8,6 +8,7 @@ import { upcomingEvents, eventRate, eventTap, EVENT_UNLOCK_HIRES, type EventOccu
 import { staffBulkCost, maxAffordable, canAfford } from '../../engine/economy';
 import { ODDS, PULL_COST, TEN_PULL_COST, MAX_STARS } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
+import { RANK_PRIZES, prizeFor, type RankPrize } from '../../engine/eventRank';
 import { fmtCountdown } from '../format';
 import { StampSeal } from '../components/StampButton';
 import type { BuyMode } from '../../engine/actions';
@@ -167,6 +168,83 @@ function RewardLabel({ tier }: { tier: EventTier }) {
   if (r.type === 'seals') return <span className="event-reward amt">{r.amount} <SealIcon /> {t('event.seals')}</span>;
   const card = findCard(content, r.card);
   return <span className="event-reward"><Character id="soul" art={card.id} mood="ok" size={28} /> {card.name}</span>;
+}
+
+/** "1st", "Top 5%", "Took part": a ranking-prize row's name. */
+function rowLabel(row: RankPrize): string {
+  if (row.place) return t(`rank.place${row.place}`);
+  if (row.topPct) return t('rank.top', { n: row.topPct });
+  return t('rank.joinedRow');
+}
+
+function PrizeAmounts({ prize }: { prize: RankPrize }) {
+  return (
+    <span className="event-reward amt">
+      +{prize.vouchers} <VoucherIcon />
+      {prize.seals > 0 && <> +{prize.seals} <SealIcon /></>}
+    </span>
+  );
+}
+
+const MEDAL = ['', '🥇', '🥈', '🥉'];
+
+/** Your place in this run's ranking, what it pays right now, and the full prize table. */
+function Ranking({ occ }: { occ: EventOccurrence }) {
+  const standing = useGame((s) => s.eventStanding);
+  const available = useGame((s) => s.rankingAvailable);
+  const earned = useGame((s) => s.state.event?.earned ?? ZERO, (a, b) => a.eq(b));
+  const refresh = useGame((s) => s.refreshEventStanding);
+  const kind = occ.kind === 'weekly' ? 'weekly' : 'special';
+  useEffect(() => { void refresh(); }, [refresh, occ.key]);
+  const now = prizeFor(kind, standing?.rank ?? null, standing?.total ?? 0);
+  return (
+    <div className="card event-ranking">
+      <h3>{t('rank.title')}</h3>
+      {!available ? <p className="sub">{t('rank.noServer')}</p>
+        : standing ? (
+          <div className="event-ranking-you">
+            <span className="mono">{MEDAL[standing.rank] ?? ''} {t('rank.you', { rank: formatNumber(new Decimal(standing.rank)), total: formatNumber(new Decimal(standing.total)) })}</span>
+            <span className="sub">{t('rank.prizeNow', { row: rowLabel(now) })}</span>
+            <PrizeAmounts prize={now} />
+          </div>
+        ) : <p className="sub">{earned.gt(0) ? t('rank.loading') : t('rank.unranked')}</p>}
+      <details className="event-ranking-table">
+        <summary>{t('rank.seeAll')}</summary>
+        {RANK_PRIZES[kind].map((row, i) => (
+          <div key={i} className={'event-ranking-row' + (row === now && standing ? ' mine' : '')}>
+            <span>{row.place ? MEDAL[row.place] + ' ' : ''}{rowLabel(row)}</span>
+            <PrizeAmounts prize={row} />
+          </div>
+        ))}
+      </details>
+      <p className="sub">{t('rank.paidAfter')}</p>
+    </div>
+  );
+}
+
+/** A finished event's final standing and prize; shown wherever the player is when it resolves. */
+export function RankPrizePopup() {
+  const pr = useGame((s) => s.pendingRank);
+  const collect = useGame((s) => s.collectRankPrize);
+  if (!pr) return null;
+  const st = pr.standing;
+  return (
+    <Modal open title={t('rank.final', { name: pr.name })} className="event-prize rank-prize">
+      <div className="event-prize-body">
+        <span className="rank-prize-medal" aria-hidden="true">{st && MEDAL[st.rank] ? MEDAL[st.rank] : '🏆'}</span>
+        {st ? (
+          <>
+            <span className="event-prize-amt mono">{t('rank.you', { rank: formatNumber(new Decimal(st.rank)), total: formatNumber(new Decimal(st.total)) })}</span>
+            <span className="sub">{rowLabel(pr.prize)}</span>
+          </>
+        ) : <span className="sub">{t('rank.thanks')}</span>}
+        <PrizeAmounts prize={pr.prize} />
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-primary" onClick={collect}>{t('event.collect')}</button>
+      </div>
+    </Modal>
+  );
 }
 
 function Track({ occ }: { occ: EventOccurrence }) {
@@ -372,6 +450,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
       {tab === 'rewards' && (
         <>
           {leaderboard && <button className="btn event-board" onClick={() => void openBoard()}>{t('event.leaderboard', { name: occ.name })}</button>}
+          <Ranking occ={occ} />
           <Track occ={occ} />
           <div className="section-head"><h3>{t('event.upcoming')}</h3></div>
           {upcoming.map((o) => (
