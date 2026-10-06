@@ -41,8 +41,8 @@ Register: santai, sedikit gaul (nggak, bikin, banget, kayak). Nama depan karakte
 |---|---|
 | Cosmic Restructuring | Restrukturisasi Kosmik |
 | Clause | Klausul |
-| Overflow Drops (weekly event currency) | Tetesan Luapan |
-| Overflow Department | Departemen Luapan |
+| Overflow Drops (weekly event currency) | Koin Overflow |
+| Overflow Department | Departemen Overflow |
 
 ## Departemen
 | English | Indonesia |
