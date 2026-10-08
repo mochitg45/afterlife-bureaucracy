@@ -11,7 +11,6 @@ import { StaffRow } from '../components/StaffRow';
 import { UpgradeRow } from '../components/UpgradeRow';
 import { MemoTicker } from '../components/MemoTicker';
 import { useWatchAd } from '../hooks/useWatchAd';
-import { adsSupported } from '../../platform/ads';
 import { fmtLeft } from '../format';
 import { EventBanner } from './EventScreen';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
@@ -108,7 +107,7 @@ export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?:
       <NextGoal onGoTo={onGoTo} />
       <QueueCard />
       <StampButton />
-      {adsSupported() && <OvertimeBoost />}
+      <OvertimeBoost />
       <div className="section-head">
         <h3>{t('office.staff')}</h3>
         <div className="mode-switch" role="group" aria-label={t('office.buyAmountAria')} data-coach="buy-mode">

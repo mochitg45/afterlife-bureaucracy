@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
- * iOS v1: no AdMob pod, no AdMob iOS app, RevenueCat keyed by a build-time env var, and no
- * Game Center. `@capacitor/core` is stubbed so `Capacitor.getPlatform()` can report 'ios'
+ * iOS matches Android: AdMob with the iOS app's own units, RevenueCat keyed by a build-time
+ * env var, and Game Center through the same plugin as Play Games. `@capacitor/core` is stubbed so `Capacitor.getPlatform()` can report 'ios'
  * without a real native runtime under jsdom.
  */
 const cap = vi.hoisted(() => ({ native: true, platform: 'ios' }));
@@ -15,8 +15,10 @@ vi.mock('@capacitor/core', async (importOriginal) => {
   };
 });
 
-import { adsSupported, pickAds, noAds } from './ads';
-import { pickBilling, revenueCatApiKey, revenueCatBilling, REVENUECAT_PLAY_KEY } from './billing';
+import { pickAds, admobAds } from './ads';
+import { rewardedUnitId, PRODUCTION_REWARDED_UNITS_IOS, TEST_REWARDED_UNIT_IOS } from './adUnits';
+import { playAchievementId, lifetimeSoulsLeaderboardId, eventLeaderboardId } from './gameIds';
+import { pickBilling, storeProductId, revenueCatApiKey, revenueCatBilling, REVENUECAT_PLAY_KEY } from './billing';
 import { pickGameServices, noopGameServices } from './gameServices';
 
 beforeEach(() => {
@@ -25,15 +27,10 @@ beforeEach(() => {
 });
 
 describe('iOS platform behaviour', () => {
-  it('has no ad network: adsSupported is false and pickAds returns the no-op', () => {
-    expect(adsSupported()).toBe(false);
-    expect(pickAds()).toBe(noAds);
-  });
-
-  it('noAds never rewards and reports never-ready', async () => {
-    await expect(noAds.init()).resolves.toBeUndefined();
-    expect(noAds.isReady()).toBe(false);
-    await expect(noAds.showRewarded('free-pull')).resolves.toBe('unavailable');
+  it('shows AdMob ads from the iOS app units', () => {
+    expect(pickAds()).toBe(admobAds);
+    expect(rewardedUnitId('free-pull', false)).toBe(PRODUCTION_REWARDED_UNITS_IOS['free-pull']);
+    expect(rewardedUnitId('free-pull', true)).toBe(TEST_REWARDED_UNIT_IOS);
   });
 
   it('uses the RevenueCat iOS env key in production, not the Play key', () => {
@@ -52,10 +49,18 @@ describe('iOS platform behaviour', () => {
 
   it('still uses RevenueCat as the native billing backend on iOS', () => {
     expect(pickBilling()).toBe(revenueCatBilling);
+    expect(storeProductId('remove_ads')).toBe('remove_ads_v2');
+    expect(storeProductId('starter_pack')).toBe('starter_pack');
+    expect(storeProductId('remove_ads', 'android')).toBe('remove_ads');
   });
 
-  it('has no Game Center: pickGameServices returns the no-op', () => {
-    expect(pickGameServices()).toBe(noopGameServices);
+  it('uses Game Center with derived ids', () => {
+    expect(pickGameServices()).not.toBe(noopGameServices);
+    expect(playAchievementId('a-souls-1')).toBe('ab.a_souls_1');
+    expect(playAchievementId('not-mirrored')).toBeNull();
+    expect(lifetimeSoulsLeaderboardId()).toBe('ab.lifetime_souls');
+    expect(eventLeaderboardId({ kind: 'weekly', id: 'w1' })).toBe('ab.event_weekly');
+    expect(eventLeaderboardId({ kind: 'special', id: 'halloween' })).toBe('ab.event_halloween');
   });
 });
 
@@ -65,7 +70,7 @@ describe('Android is unaffected', () => {
   });
 
   it('keeps ads, the Play billing key, and Play Games on Android', () => {
-    expect(adsSupported()).toBe(true);
+    expect(pickAds()).toBe(admobAds);
     expect(revenueCatApiKey(false)).toBe(REVENUECAT_PLAY_KEY);
     expect(pickGameServices()).not.toBe(noopGameServices);
   });

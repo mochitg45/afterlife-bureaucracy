@@ -1,7 +1,11 @@
 # iOS setup — Afterlife Bureaucracy
 
-iOS v1 ships **without ads** (like Smile, CUCO and Decant): the AdMob pod is dropped in CI and
-every ad button is hidden on iOS. Purchases go through RevenueCat. No Game Center or cloud save yet.
+Since 1.1.4 (2026-10-08, after a Guideline 5.6 rejection for features switched off on iOS) the iOS
+build matches Android: AdMob rewarded ads with the iOS app's own units and ATT prompt, all 7
+purchases including Remove Ads (`remove_ads_v2` on iOS), and Game Center achievements and
+leaderboards. Android-only, and not mentioned in the App Store listing: cloud save (Play Games
+snapshots), referrals and event ranking prizes (Play install referrer / Play Integrity), analytics.
+Ids: `docs/store/ids.md`.
 
 ## Already done (2026-09-27)
 

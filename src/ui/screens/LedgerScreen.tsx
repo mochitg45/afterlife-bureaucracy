@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { SealIcon } from '../icons/Currency';
 import { useEffect, useState } from 'react';
 import { useGame } from '../../store/game';
@@ -92,7 +93,7 @@ function LeaderboardButton() {
   return (
     <div className="leaderboard-row">
       <button className="btn" disabled={busy} onClick={onClick}>{t('ledger.leaderboard')}</button>
-      {failed && <span className="sub warn">{t('ledger.signIn')}</span>}
+      {failed && <span className="sub warn">{t(Capacitor.getPlatform() === 'ios' ? 'ledger.signInIos' : 'ledger.signIn')}</span>}
     </div>
   );
 }

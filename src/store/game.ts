@@ -1011,6 +1011,10 @@ export function createGameStore(deps: StoreDeps) {
             await booting;
             refreshDailiesForAds();
           })();
+          // Game Center (no cloud slot on iOS): it expects to authenticate at launch, so
+          // achievements earned before the first leaderboard visit still reach it. On Android
+          // the Play Games sign-in rides on the cloud sign-in instead.
+          if (gameServices.available() && !cloudSave.available()) void gameServices.signIn().catch(() => false);
           void (async () => {
             try {
               await billing.init();

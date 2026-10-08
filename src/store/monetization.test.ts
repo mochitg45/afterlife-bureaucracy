@@ -632,9 +632,9 @@ describe('game services and the save code', () => {
     store.getState().stopLoop();
   });
 
-  it('signs in through the platform layer', async () => {
+  it('signs in through the platform layer, at launch where there is no cloud slot (Game Center)', async () => {
     const { store, services } = await make();
-    expect(services.services.isSignedIn()).toBe(false);
+    await vi.waitFor(() => expect(services.services.isSignedIn()).toBe(true));
     expect(await store.getState().signInGameServices()).toBe(true);
     expect(services.services.isSignedIn()).toBe(true);
     store.getState().stopLoop();
@@ -850,7 +850,6 @@ describe('leaderboard', () => {
     const { store, services, seed } = await make();
     seed({ soulsLifetime: new Decimal(12345) });
     expect(store.getState().leaderboardAvailable).toBe(true);
-    expect(services.services.isSignedIn()).toBe(false);
     expect(await store.getState().openLeaderboard()).toBe(true);
     expect(services.services.isSignedIn()).toBe(true);
     expect(services.scores[services.scores.length - 1]).toEqual(['lb-lifetime-souls', lifetimeSoulsScore(new Decimal(12345))]);

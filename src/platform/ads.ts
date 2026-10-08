@@ -19,26 +19,6 @@ export interface Ads {
 export const WEB_AD_DURATION_MS = 300;
 
 /**
- * False on iOS: v1 ships with no AdMob pod and no AdMob iOS app, so there is nothing to show
- * or to remove. UI that offers a rewarded ad should hide itself rather than render a disabled
- * "Ad not available" button.
- */
-export function adsSupported(): boolean {
-  return Capacitor.getPlatform() !== 'ios';
-}
-
-/** iOS fallback: never touches the AdMob plugin, which is not present in the iOS build. */
-export const noAds: Ads = {
-  async init() {},
-  isReady() {
-    return false;
-  },
-  showRewarded() {
-    return Promise.resolve<AdResult>('unavailable');
-  },
-};
-
-/**
  * Browser and test fallback: no SDK, so a development build rewards after a short pretend
  * playback and every other build reports the placement closed.
  *
@@ -70,6 +50,20 @@ export const webAds: Ads = {
 export const admobAds: Ads = (() => {
   let initialised = false;
 
+  /**
+   * iOS: App Tracking Transparency, after the consent form and before the first ad request,
+   * so AdMob knows whether it may use the IDFA. Declining still serves (non-personalised) ads.
+   */
+  async function requestTracking(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'ios') return;
+    try {
+      const { status } = await AdMob.trackingAuthorizationStatus();
+      if (status === 'notDetermined') await AdMob.requestTrackingAuthorization();
+    } catch {
+      /* iOS < 14 or ATT unavailable: AdMob decides on its own */
+    }
+  }
+
   async function requestConsent(): Promise<void> {
     // UMP: required for EEA/UK users before any ad request. A failure here is not fatal —
     // AdMob serves non-personalised ads when consent could not be gathered.
@@ -86,6 +80,7 @@ export const admobAds: Ads = (() => {
   return {
     async init() {
       await requestConsent();
+      await requestTracking();
       try {
         await AdMob.initialize({ initializeForTesting: useTestAds() });
         initialised = true;
@@ -136,6 +131,5 @@ export const admobAds: Ads = (() => {
 })();
 
 export function pickAds(): Ads {
-  if (Capacitor.getPlatform() === 'ios') return noAds;
   return Capacitor.isNativePlatform() ? admobAds : webAds;
 }

@@ -44,7 +44,7 @@ describe('BacklogReport', () => {
     expect(screen.queryByRole('button', { name: 'Watch ad ×2' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /file it/i })).toBeInTheDocument();
   });
-  it('shows no Watch ad button on iOS even when the placement is open', () => {
+  it('shows the Watch ad button on iOS too', () => {
     cap.platform = 'ios';
     const state = createInitialState({ wall: 0, mono: 0 }, content);
     useGame.setState({
@@ -52,8 +52,7 @@ describe('BacklogReport', () => {
       pendingOffline: { elapsedSec: 7200, creditedSec: 7200, souls: new Decimal(900), kc: new Decimal(360), capped: false },
     });
     render(<BacklogReport />);
-    expect(screen.queryByRole('button', { name: 'Watch ad ×2' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /file it/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Watch ad ×2' })).toBeInTheDocument();
     cap.platform = 'web';
   });
 

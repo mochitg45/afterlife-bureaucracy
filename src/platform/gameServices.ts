@@ -9,7 +9,7 @@ export interface GameServices {
   submitScore(leaderboardId: string, value: number): Promise<void>;
   /** Opens the platform's leaderboard screen; false if it could not be shown. */
   showLeaderboard(leaderboardId: string): Promise<boolean>;
-  /** Whether this platform has leaderboards at all (Play Games on Android). */
+  /** Whether this platform has leaderboards at all (Play Games / Game Center). */
   available(): boolean;
 }
 
@@ -102,7 +102,6 @@ export const playGamesServices: GameServices = (() => {
 })();
 
 export function pickGameServices(): GameServices {
-  // No Game Center in v1: iOS gets the same no-op as web.
-  if (Capacitor.getPlatform() === 'ios') return noopGameServices;
+  // The plugin is Play Games on Android and Game Center on iOS; ids come from gameIds.ts.
   return Capacitor.isNativePlatform() ? playGamesServices : noopGameServices;
 }

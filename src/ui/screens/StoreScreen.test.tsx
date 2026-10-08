@@ -211,13 +211,11 @@ describe('StoreScreen', () => {
     expect(onSettings).toHaveBeenCalled();
   });
 
-  it('hides Remove Ads on iOS: there is no ad network to remove', () => {
+  it('sells Remove Ads on iOS too: iOS has the same ads as Android', () => {
     cap.platform = 'ios';
     seed({ firstSeenWallClock: NOW });
     render(<StoreScreen />);
-    expect(screen.queryByRole('heading', { name: 'Remove Ads' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Buy Exempt From Advertising/i })).not.toBeInTheDocument();
-    // The rest of the store is untouched.
+    expect(screen.getByRole('button', { name: /Buy Exempt From Advertising/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Starter Pack' })).toBeInTheDocument();
     cap.platform = 'web';
   });

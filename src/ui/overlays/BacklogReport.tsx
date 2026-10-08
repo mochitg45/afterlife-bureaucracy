@@ -3,7 +3,6 @@ import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
 import { useWatchAd } from '../hooks/useWatchAd';
-import { adsSupported } from '../../platform/ads';
 import { KarmaIcon } from '../icons/Currency';
 
 function fmtDuration(sec: number): string {
@@ -27,9 +26,8 @@ export function BacklogReport() {
         <div><div className="label">{t('backlog.kc')}</div><div className="mono value brass amt">{formatNumber(pending.kc)} <KarmaIcon size={20} /></div></div>
       </div>
       <div className="modal-actions">
-        {/* Hidden, not disabled: there is no reward to promise when the placement is closed,
-            and no ad network at all on iOS. */}
-        {adsSupported() && canWatch && (
+        {/* Hidden, not disabled: there is no reward to promise when the placement is closed. */}
+        {canWatch && (
           <button className="btn btn-primary" aria-label={t('backlog.watch')} disabled={busy} onClick={watch}>
             {t('backlog.watch')}
           </button>

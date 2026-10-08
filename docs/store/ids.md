@@ -11,6 +11,20 @@ Not secrets; safe to commit. Fill the placeholders as they are created in the co
   - daily-skip: `ca-app-pub-5130289288594607/8562785171`
   - visitor (Pip the flying courier): `ca-app-pub-5130289288594607/6310082380`
 
+## AdMob (iOS) — created 2026-10-08
+- App ID: `ca-app-pub-5130289288594607~5360698880` (in `ios/App/App/Info.plist`)
+- Rewarded units (same names as Android): offline-double `…/6212861531`, overtime-boost `…/8414326922`,
+  free-pull `…/4899779866`, daily-skip `…/3199685383`, visitor `…/3217840569` (`PRODUCTION_REWARDED_UNITS_IOS`)
+
+## Game Center (iOS) — created 2026-10-08
+- Same 20 achievements and 8 leaderboards as Play Games; ids are derived, not mapped: `ab.` + local
+  key with `-` as `_` (`gameCenterId` in `src/platform/gameIds.ts`), e.g. `ab.a_souls_1`,
+  `ab.lifetime_souls`, `ab.event_weekly`. 50 points each.
+
+## App Store product ids
+- Same as Play, except `remove_ads` is `remove_ads_v2` on iOS (the original id was used and deleted
+  on the App Store record; Apple never reuses ids). `storeProductId` in `src/platform/billing.ts`.
+
 ## Google Play
 - Package: `com.afterlifebureaucracy.game`
 - IAP product ids: vouchers_10, vouchers_55, vouchers_120, vouchers_300, remove_ads, starter_pack, union_monthly (create in Play Console → Monetize)
@@ -83,5 +97,4 @@ Decisions a person has to make, not values a console generates. Both appear as
 - [x] Enable GitHub Pages (done 2026-09-16, repo public, source main/docs) so <https://mochitg45.github.io/afterlife-bureaucracy/privacy.html>
       resolves (`main` / `/docs`). The repo is private, so this needs a public repo or GitHub
       Pro — see `docs/release.md`.
-- [ ] iOS AdMob app id — `ios/App/App/Info.plist` currently holds Google's public *sample*
-      `GADApplicationIdentifier`. Register a separate iOS app in AdMob before any iOS build.
+- [x] iOS AdMob app id — see "AdMob (iOS)" above.

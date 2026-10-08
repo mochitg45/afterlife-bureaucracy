@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 /**
  * Play Games Services ids.
  *
@@ -57,9 +59,23 @@ function resolved(id: string | undefined): string | null {
   return id && id !== TODO_ID ? id : null;
 }
 
-/** Play Games id for a local achievement, or `null` while the console id is unmapped. */
+/**
+ * Game Center (iOS) mirrors the same achievements and leaderboards. Its ids are ours to pick,
+ * so they are derived instead of mapped: `ab.` + the local key, with `-` as `_` (Game Center
+ * allows letters, digits, `.` and `_`). App Store Connect holds the matching records.
+ */
+export function gameCenterId(key: string): string {
+  return 'ab.' + key.replace(/-/g, '_');
+}
+
+function onIos(): boolean {
+  return Capacitor.getPlatform() === 'ios';
+}
+
+/** Store id (Play Games, or Game Center on iOS) for a local achievement, or `null` if unmapped. */
 export function playAchievementId(localId: string): string | null {
-  return resolved(PLAY_ACHIEVEMENT_IDS[localId]);
+  const play = resolved(PLAY_ACHIEVEMENT_IDS[localId]);
+  return play && onIos() ? gameCenterId(localId) : play;
 }
 
 /** Play Games ids for local achievements, dropping the ones with no console id yet. */
@@ -72,10 +88,13 @@ export function playAchievementIds(localIds: readonly string[]): string[] {
 
 /** The lifetime-souls leaderboard id, or `null` while it is unmapped. */
 export function lifetimeSoulsLeaderboardId(): string | null {
-  return resolved(LEADERBOARD_LIFETIME_SOULS);
+  const play = resolved(LEADERBOARD_LIFETIME_SOULS);
+  return play && onIos() ? gameCenterId('lifetime_souls') : play;
 }
 
 /** The leaderboard for an event occurrence (`kind` 'weekly' or a special's `id`), or `null`. */
 export function eventLeaderboardId(occ: { kind: string; id: string }): string | null {
-  return resolved(EVENT_LEADERBOARD_IDS[occ.kind === 'weekly' ? 'weekly' : occ.id]);
+  const key = occ.kind === 'weekly' ? 'weekly' : occ.id;
+  const play = resolved(EVENT_LEADERBOARD_IDS[key]);
+  return play && onIos() ? gameCenterId('event_' + key) : play;
 }

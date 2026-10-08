@@ -3,7 +3,6 @@ import { useGame, VISITOR_AD_MULT, VISITOR_DEAL_AD_VOUCHERS, VISITOR_DEAL_VOUCHE
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
 import { useWatchAd } from '../hooks/useWatchAd';
-import { adsSupported } from '../../platform/ads';
 import { KarmaIcon, VoucherIcon } from '../icons/Currency';
 import { artUrl } from '../characters/art';
 
@@ -19,7 +18,7 @@ export function VisitorGift() {
   const { busy, watch } = useWatchAd('visitor');
   if (!letter) return null;
   const angel = letter.from === 'angel';
-  const ad = adsSupported() && canWatch;
+  const ad = canWatch;
   const header = (
     <>
       <img className="visitor-sender" src={artUrl(angel ? 'seraphine' : 'gary') ?? ''} alt="" />

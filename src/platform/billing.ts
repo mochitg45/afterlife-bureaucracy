@@ -23,6 +23,17 @@ export const PRODUCT_IDS: readonly ProductId[] = [
   'union_monthly',
 ] as const;
 
+/**
+ * App Store product ids that differ from Play's. Apple never lets a deleted product id be
+ * reused, and `remove_ads` was spent on the App Store record before iOS had ads. RevenueCat
+ * attaches both to the same `remove_ads` entitlement, so only this lookup knows.
+ */
+const IOS_STORE_IDS: Partial<Record<ProductId, string>> = { remove_ads: 'remove_ads_v2' };
+
+export function storeProductId(id: ProductId, platform: string = Capacitor.getPlatform()): string {
+  return (platform === 'ios' && IOS_STORE_IDS[id]) || id;
+}
+
 /** The only subscription; everything else is a one-shot or non-consumable purchase. */
 export const SUBSCRIPTION_PRODUCT_IDS: readonly ProductId[] = ['union_monthly'] as const;
 
@@ -154,7 +165,7 @@ export const revenueCatBilling: Billing = (() => {
   async function fetchProducts(ids: readonly ProductId[], type: PRODUCT_CATEGORY): Promise<PurchasesStoreProduct[]> {
     if (ids.length === 0) return [];
     try {
-      const { products } = await Purchases.getProducts({ productIdentifiers: [...ids], type });
+      const { products } = await Purchases.getProducts({ productIdentifiers: ids.map((id) => storeProductId(id)), type });
       return products;
     } catch {
       return [];
@@ -165,7 +176,7 @@ export const revenueCatBilling: Billing = (() => {
     const category = SUBSCRIPTION_PRODUCT_IDS.includes(id)
       ? PRODUCT_CATEGORY.SUBSCRIPTION
       : PRODUCT_CATEGORY.NON_SUBSCRIPTION;
-    return (await fetchProducts([id], category)).find((p) => p.identifier === id);
+    return (await fetchProducts([id], category)).find((p) => p.identifier === storeProductId(id));
   }
 
   return {
@@ -193,7 +204,7 @@ export const revenueCatBilling: Billing = (() => {
       );
       // Keep the catalogue in the declared order and drop anything the store did not return.
       return PRODUCT_IDS.flatMap((id) => {
-        const found = byId.get(id);
+        const found = byId.get(storeProductId(id));
         return found ? [{ id, price: found.price, title: found.title }] : [];
       });
     },

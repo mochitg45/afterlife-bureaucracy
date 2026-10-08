@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useGame, type RestoreResult } from '../../store/game';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StoreArt } from '../components/StoreArt';
-import { adsSupported } from '../../platform/ads';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
 import { t, fmtDate } from '../../i18n';
 import { KarmaIcon } from '../icons/Currency';
@@ -16,7 +16,7 @@ import {
 } from '../../engine/entitlements';
 
 /** Google Play requires both statements on any screen that sells a virtual currency. */
-export const STORE_FOOTNOTE = t('store.footnote');
+export const STORE_FOOTNOTE = t(Capacitor.getPlatform() === 'ios' ? 'store.footnoteIos' : 'store.footnote');
 
 const VOUCHER_PACK_IDS: ProductId[] = ['vouchers_10', 'vouchers_55', 'vouchers_120', 'vouchers_300'];
 
@@ -104,9 +104,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
     const p = byId.get(id);
     return p ? [p] : [];
   });
-  // No ad network on iOS, so nothing to remove: hide the product rather than sell an
-  // entitlement with no ads behind it.
-  const removeAds = adsSupported() ? byId.get('remove_ads') : undefined;
+  const removeAds = byId.get('remove_ads');
   const starterPack = byId.get('starter_pack');
   const union = byId.get('union_monthly');
   const unionOn = unionActive({ entitlements }, now);
