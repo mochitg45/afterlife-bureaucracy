@@ -24,11 +24,11 @@ Nothing here has been created or paid for yet.
 | Locations (test) | Indonesia, Philippines, Brazil, Mexico, Thailand |
 | Languages | All languages (the game ships in 9) |
 | Bid strategy | Target cost per install: **$0.20** (raise to $0.30 if it barely spends) |
-| Daily budget | **$10/day** for the first 2 weeks (about $140 total) |
+| Daily budget | **$1/day** (about $30 a month) |
 
 Why these countries: installs are cheap there, and the game is already translated into Indonesian, Portuguese, Spanish and Thai. Use them to find which ads and images work, then add the US, UK, Canada, Australia and Germany with a separate campaign once the cost per `tutorial_complete` looks healthy.
 
-Rules for the first 2 weeks: don't change the budget or the bid. Google needs about 7 days and 50+ installs to learn. After that, change the budget by at most 20% at a time.
+At $1/day and $0.20 per install, expect about 5 installs a day. That is below the ~50 installs Google likes before it settles, so learning takes about 2–3 weeks instead of one, and results move slowly. Don't change the budget or the bid during that time. Later, raise the budget by at most 20% at a time.
 
 ## 3. Text ads
 
@@ -76,4 +76,4 @@ App campaigns without a vertical video lose most YouTube Shorts placements, so t
 |---|---|---|
 | Cost per install | under $0.30 | Swap the weakest image or headline (Google marks them "Low") |
 | Install → tutorial_complete | above 40% | The ad promises something the game doesn't show first; change the angle |
-| Spend | reaching about $10/day | Raise the target cost per install by $0.05 |
+| Spend | reaching about $1/day | Raise the target cost per install by $0.05 |
