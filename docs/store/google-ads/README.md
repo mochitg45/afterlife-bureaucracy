@@ -1,8 +1,8 @@
 # Google Ads: App campaign for Afterlife Bureaucracy
-n**Status:** live since 2026-10-10 as campaign `afterlife` in the "inata" Google Ads account (Eligible, learning).
+**Status:** live since 2026-10-10 as campaign `afterlife` in the "inata" Google Ads account (Eligible, learning).
 
 Everything needed to create the campaign in Google Ads, ready to copy and paste.
-Nothing here has been created or paid for yet.
+The campaign is live; this file records how it was built.
 
 ## 1. Before you create the campaign (one time)
 
@@ -21,15 +21,15 @@ Nothing here has been created or paid for yet.
 | Campaign type | App promotion → **App installs** |
 | Platform | Android |
 | App | Afterlife Bureaucracy: Idle (`com.afterlifebureaucracy.game`) |
-| Campaign name | `GOOG_AppInstall_AndroidTest_Oct26` |
+| Campaign name | `afterlife` |
 | Locations | Brazil, Indonesia (top idle-game markets with cheap installs, and the game is translated for both; add Philippines/Mexico/Thailand when the budget grows) |
-| Languages | All languages (the game ships in 9) |
+| Languages | English, Portuguese, Indonesian |
 | Bid strategy | Target cost per install: **IDR 1,646** (~$0.10, Google's typical figure for these countries) |
 | Daily budget | **IDR 14,000/day** (about IDR 100,000 a week, ~$6) |
 
 Why these countries: installs are cheap there, and the game is already translated into Indonesian, Portuguese, Spanish and Thai. Use them to find which ads and images work, then add the US, UK, Canada, Australia and Germany with a separate campaign once the cost per `tutorial_complete` looks healthy.
 
-At $1/day and $0.20 per install, expect about 5 installs a day. That is below the ~50 installs Google likes before it settles, so learning takes about 2–3 weeks instead of one, and results move slowly. Don't change the budget or the bid during that time. Later, raise the budget by at most 20% at a time.
+At IDR 14,000/day and about IDR 1,646 per install, expect about 8 installs a day. That is below the ~50 installs Google likes before it settles, so learning takes about 2–3 weeks instead of one, and results move slowly. Don't change the budget or the bid during that time. Later, raise the budget by at most 20% at a time.
 
 ## 3. Text ads
 
