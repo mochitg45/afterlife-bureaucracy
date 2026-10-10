@@ -1,4 +1,5 @@
 # Google Ads: App campaign for Afterlife Bureaucracy
+n**Status:** live since 2026-10-10 as campaign `afterlife` in the "inata" Google Ads account (Eligible, learning).
 
 Everything needed to create the campaign in Google Ads, ready to copy and paste.
 Nothing here has been created or paid for yet.
@@ -21,10 +22,10 @@ Nothing here has been created or paid for yet.
 | Platform | Android |
 | App | Afterlife Bureaucracy: Idle (`com.afterlifebureaucracy.game`) |
 | Campaign name | `GOOG_AppInstall_AndroidTest_Oct26` |
-| Locations | Indonesia, Philippines (only two, so $1/day isn't spread thin; add Brazil/Mexico/Thailand when the budget grows) |
+| Locations | Brazil, Indonesia (top idle-game markets with cheap installs, and the game is translated for both; add Philippines/Mexico/Thailand when the budget grows) |
 | Languages | All languages (the game ships in 9) |
-| Bid strategy | Target cost per install: **$0.20** (raise to $0.30 if it barely spends) |
-| Daily budget | **$1/day** (about $30 a month) |
+| Bid strategy | Target cost per install: **IDR 1,646** (~$0.10, Google's typical figure for these countries) |
+| Daily budget | **IDR 14,000/day** (about IDR 100,000 a week, ~$6) |
 
 Why these countries: installs are cheap there, and the game is already translated into Indonesian, Portuguese, Spanish and Thai. Use them to find which ads and images work, then add the US, UK, Canada, Australia and Germany with a separate campaign once the cost per `tutorial_complete` looks healthy.
 
