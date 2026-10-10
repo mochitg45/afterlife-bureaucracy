@@ -21,7 +21,7 @@ Nothing here has been created or paid for yet.
 | Platform | Android |
 | App | Afterlife Bureaucracy: Idle (`com.afterlifebureaucracy.game`) |
 | Campaign name | `GOOG_AppInstall_AndroidTest_Oct26` |
-| Locations (test) | Indonesia, Philippines, Brazil, Mexico, Thailand |
+| Locations | Indonesia, Philippines (only two, so $1/day isn't spread thin; add Brazil/Mexico/Thailand when the budget grows) |
 | Languages | All languages (the game ships in 9) |
 | Bid strategy | Target cost per install: **$0.20** (raise to $0.30 if it barely spends) |
 | Daily budget | **$1/day** (about $30 a month) |
