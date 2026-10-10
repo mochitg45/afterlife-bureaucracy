@@ -65,8 +65,8 @@ Weekend events bring new rooms, staff and music. Win prizes for 1st, 2nd and 3rd
 ## 5. Videos
 
 Add both YouTube links **from the Inata Sun Soft channel** (ads off):
-- Landscape trailer (16:9)
-- Vertical Short (9:16)
+- Landscape trailer (16:9): https://www.youtube.com/watch?v=R3iGccgHHCk
+- Vertical Short (9:16): https://youtube.com/shorts/3aUjzXxiasA
 
 App campaigns without a vertical video lose most YouTube Shorts placements, so the Short matters.
 
