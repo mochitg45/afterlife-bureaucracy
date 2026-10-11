@@ -36,7 +36,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: 'Fixed weekly event cards showing a blank ghost. New card flips with rarity spotlights, event ranking prizes for 1st, 2nd and 3rd, achievement and event prize popups, and event cards that work without using equip slots.' },
+  { language: 'en-US', text: 'Fixed weekly event cards showing a blank ghost. New card flips with rarity spotlights, event ranking prizes for 1st, 2nd and 3rd, achievement and event prize popups, event cards that work without equip slots, and automatic updates to the latest version.' },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `1.1.5 (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
