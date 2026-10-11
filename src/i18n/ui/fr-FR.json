@@ -472,5 +472,8 @@
  "rank.place3": "3e place",
  "rank.top": "Top {n} %",
  "rank.joinedRow": "Participation",
- "card.eventActive": "Carte d'événement : en service automatiquement pendant l'événement, sans emplacement."
+ "card.eventActive": "Carte d'événement : en service automatiquement pendant l'événement, sans emplacement.",
+ "update.title": "Mise à jour requise",
+ "update.body": "Une nouvelle version d'Afterlife Bureaucracy est disponible. Mets à jour pour continuer ; ta progression est conservée.",
+ "update.button": "Mettre à jour"
 }

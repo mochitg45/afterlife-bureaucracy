@@ -27,6 +27,7 @@ import { CloudNotice } from './components/CloudNotice';
 import { TitleScreen } from './screens/TitleScreen';
 import { Splash } from './screens/Splash';
 import { EventScreen, RankPrizePopup } from './screens/EventScreen';
+import { ForceUpdate } from './overlays/ForceUpdate';
 
 export function App() {
   const [tab, setTab] = useState<TabId | 'event'>('office');
@@ -122,6 +123,7 @@ export function App() {
           <CosmicCeremony />
           <PullReveal />
           <RankPrizePopup />
+          <ForceUpdate />
           {tab === 'office' && <Visitor />}
           <VisitorGift />
           <Intro />

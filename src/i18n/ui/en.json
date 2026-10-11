@@ -472,5 +472,8 @@
  "rank.place3": "3rd place",
  "rank.top": "Top {n}%",
  "rank.joinedRow": "Took part",
- "card.eventActive": "Event card: on duty automatically during the event, no lanyard needed."
+ "card.eventActive": "Event card: on duty automatically during the event, no lanyard needed.",
+ "update.title": "Update required",
+ "update.body": "A new version of Afterlife Bureaucracy is out. Update to keep playing; your progress is safe.",
+ "update.button": "Update"
 }

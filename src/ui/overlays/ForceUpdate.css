@@ -1,0 +1,11 @@
+/* Above every other overlay, toast and sheet: nothing in the old version is reachable. */
+.force-update {
+  position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 24px;
+  background: rgb(20 14 10 / 0.88);
+}
+.force-update-card {
+  max-width: 340px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  padding: 24px 20px; border-radius: 14px; background: var(--surface); border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+}
+.force-update-card h2 { margin: 0; font-family: var(--font-display); }
+.force-update-card p { margin: 0 0 6px; }

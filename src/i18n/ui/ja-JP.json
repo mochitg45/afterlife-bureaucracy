@@ -472,5 +472,8 @@
  "rank.place3": "3位",
  "rank.top": "上位{n}%",
  "rank.joinedRow": "参加賞",
- "card.eventActive": "イベントカード：イベント中は自動で働きます。装備枠は不要です。"
+ "card.eventActive": "イベントカード：イベント中は自動で働きます。装備枠は不要です。",
+ "update.title": "アップデートが必要です",
+ "update.body": "Afterlife Bureaucracy の新しいバージョンが出ました。アップデートして続けてください。進行状況はそのまま残ります。",
+ "update.button": "アップデート"
 }

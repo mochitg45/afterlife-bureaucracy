@@ -472,5 +472,8 @@
  "rank.place3": "3. Platz",
  "rank.top": "Top {n} %",
  "rank.joinedRow": "Teilgenommen",
- "card.eventActive": "Event-Karte: während des Events automatisch im Dienst, ohne Slot."
+ "card.eventActive": "Event-Karte: während des Events automatisch im Dienst, ohne Slot.",
+ "update.title": "Update erforderlich",
+ "update.body": "Eine neue Version von Afterlife Bureaucracy ist da. Aktualisiere, um weiterzuspielen – dein Fortschritt bleibt erhalten.",
+ "update.button": "Aktualisieren"
 }

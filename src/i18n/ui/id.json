@@ -472,5 +472,8 @@
  "rank.place3": "Juara 3",
  "rank.top": "Top {n}%",
  "rank.joinedRow": "Ikut serta",
- "card.eventActive": "Kartu event: otomatis bertugas selama event, tanpa perlu slot."
+ "card.eventActive": "Kartu event: otomatis bertugas selama event, tanpa perlu slot.",
+ "update.title": "Perlu pembaruan",
+ "update.body": "Versi baru Afterlife Bureaucracy sudah keluar. Perbarui untuk lanjut main; progresmu aman.",
+ "update.button": "Perbarui"
 }

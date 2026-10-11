@@ -472,5 +472,8 @@
  "rank.place3": "3.er lugar",
  "rank.top": "Top {n}%",
  "rank.joinedRow": "Participación",
- "card.eventActive": "Carta de evento: trabaja sola durante el evento, sin usar ranura."
+ "card.eventActive": "Carta de evento: trabaja sola durante el evento, sin usar ranura.",
+ "update.title": "Actualización necesaria",
+ "update.body": "Salió una nueva versión de Afterlife Bureaucracy. Actualiza para seguir jugando; tu progreso está a salvo.",
+ "update.button": "Actualizar"
 }
