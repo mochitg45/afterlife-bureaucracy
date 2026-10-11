@@ -53,6 +53,7 @@ export const ART: Record<string, string> = {
 };
 
 export function artUrl(key: string): string | null {
-  const name = ART[key];
+  // Weekly cards (c-wk-<theme>-N) reuse their character's art (wk-<theme>-N).
+  const name = ART[key] ?? ART[key.replace(/^c-(?=wk-)/, '')];
   return name ? `${import.meta.env.BASE_URL}art/chars/${name}.webp` : null;
 }

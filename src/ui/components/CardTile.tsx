@@ -40,7 +40,7 @@ export function CardTile({ card, stars, owned, equipped = false, onClick, shards
       <Character id={owned ? card.character : 'soul'} art={owned ? card.id : undefined} mood="ok" size={size} />
       <span className="tile-name">{card.name}</span>
       <span className="tile-rarity sub">{RARITY_LABEL[card.rarity]}</span>
-      {card.event && <span className="tile-event mono">{EVENT_LABEL[card.event] ?? card.event}</span>}
+      {card.event && <span className="tile-event mono">{EVENT_LABEL[card.event] ?? t('card.event.weekly')}</span>}
       <Stars stars={owned ? stars : 0} className="tile-stars" />
       {owned && shards !== undefined && stars < MAX_STARS && stars >= 1 && (
         <span className="tile-shards sub">{shards}/{dupesForNextStar(card.rarity, stars)}</span>

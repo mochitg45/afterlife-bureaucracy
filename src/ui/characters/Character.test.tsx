@@ -1,3 +1,5 @@
+import { content } from '../../data';
+import { artUrl } from './art';
 import { existsSync } from 'node:fs';
 import { render } from '@testing-library/react';
 import { Character } from './Character';
@@ -51,5 +53,12 @@ describe('Character', () => {
     for (const name of Object.values(ART)) {
       expect(existsSync(`public/art/chars/${name}.webp`), name).toBe(true);
     }
+  });
+});
+
+describe('card art', () => {
+  it('every card, event and weekly ones included, has its own art (never the blank soul)', () => {
+    const missing = content.cards.filter((c) => !artUrl(c.id)).map((c) => c.id);
+    expect(missing).toEqual([]);
   });
 });
