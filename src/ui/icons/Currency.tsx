@@ -18,8 +18,14 @@ interface IconProps {
   className?: string;
 }
 
+/** Event vouchers: the same ticket in the event's colour, with a gold seal. Weekly teal, holiday purple. */
+export const EVENT_VOUCHER_FILL = { weekly: '#7FD6CC', special: '#C9B3F2' } as const;
+export function EventVoucherIcon({ pool, size = 16, className }: IconProps & { pool: 'weekly' | 'special' }) {
+  return <VoucherIcon size={size} className={className} body={EVENT_VOUCHER_FILL[pool]} seal={GOLD} kind={pool === 'weekly' ? 'weekly-voucher' : 'holiday-voucher'} />;
+}
+
 /** Requisition Voucher: a cream ticket with notched sides, a dashed tear line and a red wax seal. */
-export function VoucherIcon({ size = 16, className }: IconProps) {
+export function VoucherIcon({ size = 16, className, body = CREAM, seal = RED, kind = 'voucher' }: IconProps & { body?: string; seal?: string; kind?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -28,17 +34,17 @@ export function VoucherIcon({ size = 16, className }: IconProps) {
       aria-hidden="true"
       focusable="false"
       className={'cur-icon' + (className ? ' ' + className : '')}
-      data-icon="voucher"
+      data-icon={kind}
     >
       <g transform="rotate(-10 12 12)" strokeLinejoin="round" strokeLinecap="round">
         <path
           d="M4 6 H20 Q22 6 22 8 V9.5 A2.5 2.5 0 0 0 22 14.5 V16 Q22 18 20 18 H4 Q2 18 2 16 V14.5 A2.5 2.5 0 0 0 2 9.5 V8 Q2 6 4 6 Z"
-          fill={CREAM}
+          fill={body}
           stroke={INK}
           strokeWidth={1.9}
         />
         <line x1={15.5} y1={8} x2={15.5} y2={16} stroke={INK} strokeWidth={1.3} strokeDasharray="1.6 1.6" />
-        <circle cx={9} cy={12} r={3.6} fill={RED} stroke={INK} strokeWidth={1.6} />
+        <circle cx={9} cy={12} r={3.6} fill={seal} stroke={INK} strokeWidth={1.6} />
         <circle cx={9} cy={12} r={1.7} fill="none" stroke={CREAM} strokeWidth={0.9} opacity={0.75} />
         <line x1={18.2} y1={10} x2={19.6} y2={10} stroke={INK} strokeWidth={1.1} opacity={0.5} />
         <line x1={18.2} y1={12.4} x2={19.6} y2={12.4} stroke={INK} strokeWidth={1.1} opacity={0.5} />

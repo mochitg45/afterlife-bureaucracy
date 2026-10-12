@@ -1,5 +1,5 @@
 import type Decimal from 'break_infinity.js';
-import type { GameState } from './state';
+import type { EventPool, GameState } from './state';
 import type { Content } from './content';
 // Type-only: the engine never loads a platform module at runtime, so importing the product
 // id union here costs nothing and keeps one source of truth for the store ids.
@@ -20,6 +20,19 @@ export const STARTER_PACK_VOUCHERS = 200;
 export const STARTER_PACK_CARD = 'c-grandma-liu';
 /** KC equal to half an hour of the player's current income. */
 export const STARTER_PACK_KC_SECONDS = 1800;
+
+/**
+ * Event-voucher packs and bundles: which wallet they fill (weekly themes or holiday
+ * specials), how many event vouchers, and any regular vouchers a bundle adds.
+ */
+export const EVENT_PACKS: Partial<Record<ProductId, { pool: EventPool; amount: number; vouchers: number }>> = {
+  weekly_vouchers_200: { pool: 'weekly', amount: 200, vouchers: 0 },
+  weekly_vouchers_550: { pool: 'weekly', amount: 550, vouchers: 0 },
+  weekly_bundle: { pool: 'weekly', amount: 300, vouchers: 100 },
+  holiday_vouchers_200: { pool: 'special', amount: 200, vouchers: 0 },
+  holiday_vouchers_1200: { pool: 'special', amount: 1200, vouchers: 0 },
+  holiday_bundle: { pool: 'special', amount: 700, vouchers: 200 },
+};
 
 /** Voucher packs and what each one pays out. Everything else is an entitlement, not a quantity. */
 export const VOUCHER_PACKS: Partial<Record<ProductId, number>> = {
@@ -77,6 +90,11 @@ export function applyPurchase(
     return firstBuy
       ? { ...withVouchers, entitlements: { ...withVouchers.entitlements, firstBuyUsed: { ...withVouchers.entitlements.firstBuyUsed, [id]: true } } }
       : withVouchers;
+  }
+  const eventPack = EVENT_PACKS[id];
+  if (eventPack) {
+    const withVouchers = eventPack.vouchers ? grantVouchersExact(next, eventPack.vouchers) : next;
+    return { ...withVouchers, eventVouchers: { ...withVouchers.eventVouchers, [eventPack.pool]: withVouchers.eventVouchers[eventPack.pool] + eventPack.amount } };
   }
   switch (id) {
     case 'remove_ads':

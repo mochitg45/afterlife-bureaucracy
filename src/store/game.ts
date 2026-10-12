@@ -287,7 +287,7 @@ export interface GameStore {
   buyEventStaff(staffId: string, mode: BuyMode): void;
   claimEventTier(index: number): void;
   /** A claimed voucher or seal tier, shown until dismissed (card tiers reuse `pendingPull`). */
-  pendingPrize: Extract<EventPrize, { kind: 'vouchers' | 'seals' }> | null;
+  pendingPrize: Exclude<EventPrize, { kind: 'card' }> | null;
   dismissPrize(): void;
   /** Pulls the running special's banner; sets `pendingPull` like `pull`. */
   pullEvent(count: 1 | 10): void;

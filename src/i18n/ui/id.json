@@ -475,5 +475,16 @@
  "card.eventActive": "Kartu event: otomatis bertugas selama event, tanpa perlu slot.",
  "update.title": "Perlu pembaruan",
  "update.body": "Versi baru Afterlife Bureaucracy sudah keluar. Perbarui untuk lanjut main; progresmu aman.",
- "update.button": "Perbarui"
+ "update.button": "Perbarui",
+ "eventVoucher.weekly": "Voucher Event Mingguan",
+ "eventVoucher.special": "Voucher Event Hari Raya",
+ "eventVoucher.keep": "Tersimpan untuk event berikutnya",
+ "eventVoucher.shopAria": "Dapatkan voucher event",
+ "eventVoucher.shopNote": "Voucher event hanya untuk gacha event. Sisanya terbawa ke event berikutnya yang sejenis.",
+ "product.weekly_vouchers_200": "200 Voucher Event Mingguan",
+ "product.weekly_vouchers_550": "550 Voucher Event Mingguan",
+ "product.weekly_bundle": "Paket Event Mingguan",
+ "product.holiday_vouchers_200": "200 Voucher Event Hari Raya",
+ "product.holiday_vouchers_1200": "1.200 Voucher Event Hari Raya",
+ "product.holiday_bundle": "Paket Event Hari Raya"
 }

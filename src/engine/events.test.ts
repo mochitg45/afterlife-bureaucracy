@@ -111,10 +111,11 @@ describe('syncEvent', () => {
   });
   it('pays the reached-but-unclaimed tiers of the old event on rollover, then resets', () => {
     const occ = activeEvent(content, d('2026-10-25'))!;
-    // Reaches tiers 0 (5 vouchers), 1 (a card) and 2 (10 vouchers); tier 0 already taken.
+    // Reaches tiers 0 (event vouchers), 1 (a card) and 2 (30 holiday event vouchers); tier 0 already taken.
     const s = inEvent(occ, { earned: new Decimal(occ.track[2].at), points: new Decimal(5), staff: { 'hw-ghost': 3 }, claimed: [0] });
-    const out = syncEvent({ ...s, vouchers: 1 }, content, d('2026-11-06') + 1000);
-    expect(out.vouchers).toBe(1 + 10);
+    const out = syncEvent({ ...s, vouchers: 1, eventVouchers: { weekly: 0, special: 4 } }, content, d('2026-11-06') + 1000);
+    expect(out.vouchers).toBe(1);
+    expect(out.eventVouchers).toEqual({ weekly: 0, special: 4 + 30 });
     // The tier-1 card is paid, then leaves with the rest of Halloween's cards.
     expect(out.cards['c-hw-trickster']).toBeUndefined();
     expect(out.event!.key).toBe('weekly-2026-11-06');
@@ -154,7 +155,7 @@ describe('syncEvent', () => {
     const occ = activeEvent(content, d('2026-10-10'))!;
     const s = inEvent(occ, { earned: new Decimal(occ.track[0].at) });
     const out = syncEvent(s, content, d('2026-10-14'));
-    expect(out.vouchers).toBe(3);
+    expect(out.eventVouchers).toEqual({ weekly: 9, special: 0 });
     expect(out.event).toBeNull();
   });
 });
@@ -274,14 +275,13 @@ describe('claimEventTier', () => {
     const s = inEvent(occ, { earned: new Decimal(10) });
     expect(claimEventTier(s, content, occ, 0)).toBe(s);
   });
-  it('pays vouchers flat, ignoring the voucher multiplier', () => {
-    const s = { ...inEvent(occ, { earned: new Decimal(1e12) }), vouchers: 2 };
-    s.cosmicClauses = []; // no multipliers in play; the grant is exact either way
-    const out = claimEventTier(s, content, occ, idx('vouchers'));
-    const tier = occ.track[idx('vouchers')].reward as { amount: number };
-    expect(out.vouchers).toBe(2 + tier.amount);
-    expect(out.voucherFraction).toBe(0);
-    expect(out.event!.claimed).toEqual([idx('vouchers')]);
+  it('pays event vouchers into the event kind wallet, leaving regular vouchers alone', () => {
+    const s = { ...inEvent(occ, { earned: new Decimal(1e12) }), vouchers: 2, eventVouchers: { weekly: 5, special: 1 } };
+    const out = claimEventTier(s, content, occ, idx('eventVouchers'));
+    const tier = occ.track[idx('eventVouchers')].reward as { amount: number };
+    expect(out.vouchers).toBe(2);
+    expect(out.eventVouchers).toEqual({ weekly: 5, special: 1 + tier.amount });
+    expect(out.event!.claimed).toEqual([idx('eventVouchers')]);
   });
   it('pays Seals directly', () => {
     const s = inEvent(occ, { earned: new Decimal(1e12) });
@@ -311,8 +311,8 @@ describe('event banner', () => {
   const eventCardIds = new Set(content.cards.filter((c) => c.event).map((c) => c.id));
   const mine = new Set(content.cards.filter((c) => c.event === 'halloween').map((c) => c.id));
 
-  it('only gives that event\'s cards, one per rarity, at the normal prices', () => {
-    let s = { ...base(), vouchers: 5000, rngSeed: 11 };
+  it('only gives that event\'s cards, one per rarity, paid in holiday event vouchers', () => {
+    let s = { ...base(), vouchers: 777, eventVouchers: { weekly: 50, special: 5000 }, rngSeed: 11 };
     const seen = new Set<string>();
     for (let i = 0; i < 40; i++) {
       const r = pullEvent(s, content, occ, 10, rate);
@@ -324,13 +324,17 @@ describe('event banner', () => {
       }
       s = r.state;
     }
-    expect(s.vouchers).toBe(5000 - 40 * TEN_PULL_COST);
+    expect(s.eventVouchers).toEqual({ weekly: 50, special: 5000 - 40 * TEN_PULL_COST });
+    expect(s.vouchers).toBe(777);
     expect(seen.size).toBeGreaterThanOrEqual(3);
-    const one = pullEvent({ ...base(), vouchers: PULL_COST }, content, occ, 1, rate);
-    expect(one.state.vouchers).toBe(0);
+    const one = pullEvent({ ...base(), eventVouchers: { weekly: 0, special: PULL_COST } }, content, occ, 1, rate);
+    expect(one.state.eventVouchers.special).toBe(0);
+    // Regular vouchers alone cannot pay for an event pull.
+    const poor = { ...base(), vouchers: 5000 };
+    expect(pullEvent(poor, content, occ, 1, rate).results).toEqual([]);
   });
   it('shares pity with the normal banner', () => {
-    const s = { ...base(), vouchers: 5000, rngSeed: 3, pity: { senior: 0, executive: 58 } };
+    const s = { ...base(), eventVouchers: { weekly: 0, special: 5000 }, rngSeed: 3, pity: { senior: 0, executive: 58 } };
     const r = pullEvent(s, content, occ, 10, rate);
     expect(r.results.some((x) => x.rarity === 'executive')).toBe(true);
     expect(r.state.pity.executive).toBeLessThan(58 + 10);
@@ -343,7 +347,7 @@ describe('event banner', () => {
     const weekly = activeEvent(content, d('2026-10-10'))!;
     const own = new Set(content.cards.filter((c) => c.event === weekly.id).map((c) => c.id));
     expect(own.size).toBe(4);
-    let s = { ...base(), vouchers: 5000, rngSeed: 9 };
+    let s = { ...base(), eventVouchers: { weekly: 5000, special: 0 }, rngSeed: 9 };
     for (let i = 0; i < 20; i++) {
       const r = pullEvent(s, content, weekly, 10, rate);
       expect(r.results).toHaveLength(10);

@@ -475,5 +475,16 @@
  "card.eventActive": "Event-Karte: während des Events automatisch im Dienst, ohne Slot.",
  "update.title": "Update erforderlich",
  "update.body": "Eine neue Version von Afterlife Bureaucracy ist da. Aktualisiere, um weiterzuspielen – dein Fortschritt bleibt erhalten.",
- "update.button": "Aktualisieren"
+ "update.button": "Aktualisieren",
+ "eventVoucher.weekly": "Wochen-Event-Gutscheine",
+ "eventVoucher.special": "Feiertags-Event-Gutscheine",
+ "eventVoucher.keep": "Bleiben fürs nächste Event",
+ "eventVoucher.shopAria": "Mehr Event-Gutscheine holen",
+ "eventVoucher.shopNote": "Event-Gutscheine gelten nur im Event-Gacha. Reste bleiben für das nächste Event derselben Art.",
+ "product.weekly_vouchers_200": "200 Wochen-Event-Gutscheine",
+ "product.weekly_vouchers_550": "550 Wochen-Event-Gutscheine",
+ "product.weekly_bundle": "Wochen-Event-Paket",
+ "product.holiday_vouchers_200": "200 Feiertags-Event-Gutscheine",
+ "product.holiday_vouchers_1200": "1.200 Feiertags-Event-Gutscheine",
+ "product.holiday_bundle": "Feiertags-Event-Paket"
 }

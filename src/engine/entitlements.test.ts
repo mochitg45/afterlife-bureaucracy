@@ -8,6 +8,7 @@ import {
   starterPackEligible,
   applyPurchase,
   VOUCHER_PACKS,
+  EVENT_PACKS,
   UNION_GLOBAL_MULT,
   UNION_PERIOD_MS,
   STARTER_PACK_CARD,
@@ -59,6 +60,18 @@ describe('starter pack eligibility', () => {
 });
 
 describe('applyPurchase', () => {
+  it('event packs and bundles fill their own wallet (bundles add regular vouchers too), with no first-buy double', () => {
+    for (const [id, pack] of Object.entries(EVENT_PACKS)) {
+      const s = { ...fresh(), vouchers: 5, eventVouchers: { weekly: 1, special: 2 } };
+      const once = applyPurchase(s, content, id as keyof typeof EVENT_PACKS, now.wall, rate);
+      const twice = applyPurchase(once, content, id as keyof typeof EVENT_PACKS, now.wall, rate);
+      expect(once.eventVouchers[pack!.pool]).toBe(s.eventVouchers[pack!.pool] + pack!.amount);
+      expect(twice.eventVouchers[pack!.pool]).toBe(s.eventVouchers[pack!.pool] + 2 * pack!.amount);
+      const other = pack!.pool === 'weekly' ? 'special' : 'weekly';
+      expect(twice.eventVouchers[other]).toBe(s.eventVouchers[other]);
+      expect(once.vouchers).toBe(5 + pack!.vouchers);
+    }
+  });
   it('grants each voucher pack double on the first buy, ignoring the voucher multiplier', () => {
     // A requisition perk and a carried remainder would both inflate a multiplied grant.
     const s: GameState = { ...fresh(), perks: ['requisition-1'], voucherFraction: 0.9 };

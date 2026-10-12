@@ -475,5 +475,16 @@
  "card.eventActive": "Carte d'événement : en service automatiquement pendant l'événement, sans emplacement.",
  "update.title": "Mise à jour requise",
  "update.body": "Une nouvelle version d'Afterlife Bureaucracy est disponible. Mets à jour pour continuer ; ta progression est conservée.",
- "update.button": "Mettre à jour"
+ "update.button": "Mettre à jour",
+ "eventVoucher.weekly": "Bons d'événement hebdo",
+ "eventVoucher.special": "Bons d'événement de fête",
+ "eventVoucher.keep": "Gardés pour le prochain événement",
+ "eventVoucher.shopAria": "Obtenir plus de bons d'événement",
+ "eventVoucher.shopNote": "Les bons d'événement ne servent qu'au gacha d'événement. Le reste passe au prochain événement du même type.",
+ "product.weekly_vouchers_200": "200 bons d'événement hebdo",
+ "product.weekly_vouchers_550": "550 bons d'événement hebdo",
+ "product.weekly_bundle": "Pack événement hebdo",
+ "product.holiday_vouchers_200": "200 bons d'événement de fête",
+ "product.holiday_vouchers_1200": "1 200 bons d'événement de fête",
+ "product.holiday_bundle": "Pack événement de fête"
 }

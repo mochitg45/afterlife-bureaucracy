@@ -475,5 +475,16 @@
  "card.eventActive": "การ์ดอีเวนต์: ทำงานอัตโนมัติระหว่างอีเวนต์ ไม่ต้องใช้ช่องติดตั้ง",
  "update.title": "ต้องอัปเดต",
  "update.body": "Afterlife Bureaucracy มีเวอร์ชันใหม่แล้ว อัปเดตเพื่อเล่นต่อ ความคืบหน้าของคุณยังอยู่ครบ",
- "update.button": "อัปเดต"
+ "update.button": "อัปเดต",
+ "eventVoucher.weekly": "คูปองอีเวนต์รายสัปดาห์",
+ "eventVoucher.special": "คูปองอีเวนต์เทศกาล",
+ "eventVoucher.keep": "เก็บไว้ใช้อีเวนต์ถัดไป",
+ "eventVoucher.shopAria": "รับคูปองอีเวนต์เพิ่ม",
+ "eventVoucher.shopNote": "คูปองอีเวนต์ใช้ได้เฉพาะกาชาอีเวนต์ ที่เหลือยกไปอีเวนต์ประเภทเดียวกันครั้งถัดไป",
+ "product.weekly_vouchers_200": "คูปองอีเวนต์รายสัปดาห์ 200 ใบ",
+ "product.weekly_vouchers_550": "คูปองอีเวนต์รายสัปดาห์ 550 ใบ",
+ "product.weekly_bundle": "แพ็กอีเวนต์รายสัปดาห์",
+ "product.holiday_vouchers_200": "คูปองอีเวนต์เทศกาล 200 ใบ",
+ "product.holiday_vouchers_1200": "คูปองอีเวนต์เทศกาล 1,200 ใบ",
+ "product.holiday_bundle": "แพ็กอีเวนต์เทศกาล"
 }

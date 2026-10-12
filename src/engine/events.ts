@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import type { EventState, GameState } from './state';
+import type { EventPool, EventState, GameState } from './state';
 import type { Content, EventTier, StaffDef } from './content';
 import { canAfford, staffBulkCost, maxAffordable } from './economy';
 import { bankCard, cardEventMult, type PullResult } from './gacha';
@@ -214,7 +214,21 @@ function keyInfo(content: Content, key: string): { name: string; special: boolea
 }
 
 /** What a claimed tier paid, for the claim popup: a card reads like a one-card pull. */
-export type EventPrize = { kind: 'vouchers' | 'seals'; amount: number } | { kind: 'card'; result: PullResult };
+export type EventPrize =
+  | { kind: 'vouchers' | 'seals'; amount: number }
+  | { kind: 'eventVouchers'; pool: EventPool; amount: number }
+  | { kind: 'card'; result: PullResult };
+
+/** Which event-voucher wallet an occurrence (or its key) pays into and spends from. */
+export function eventPool(occOrKey: { kind: 'weekly' | 'special' } | string): EventPool {
+  if (typeof occOrKey === 'string') return occOrKey.startsWith('weekly-') ? 'weekly' : 'special';
+  return occOrKey.kind === 'weekly' ? 'weekly' : 'special';
+}
+
+/** Adds event vouchers to one wallet. */
+export function grantEventVouchers(state: GameState, pool: EventPool, amount: number): GameState {
+  return { ...state, eventVouchers: { ...state.eventVouchers, [pool]: state.eventVouchers[pool] + amount } };
+}
 
 /** Banks a card the way a pull does: a new card is ★1, a duplicate adds a shard. */
 function bankEventCard(state: GameState, content: Content, cardId: string): { state: GameState; result: PullResult } {
@@ -226,8 +240,9 @@ function bankEventCard(state: GameState, content: Content, cardId: string): { st
   return { state: { ...state, cards, cardShards, cardSpares, kc }, result: { cardId, rarity, pityTriggered: null, ...banked } };
 }
 
-function grantTier(state: GameState, content: Content, tier: EventTier): { state: GameState; prize: EventPrize } {
+function grantTier(state: GameState, content: Content, tier: EventTier, pool: EventPool): { state: GameState; prize: EventPrize } {
   const r = tier.reward;
+  if (r.type === 'eventVouchers') return { state: grantEventVouchers(state, pool, r.amount), prize: { kind: 'eventVouchers', pool, amount: r.amount } };
   if (r.type === 'vouchers') return { state: grantVouchersExact(state, r.amount), prize: { kind: 'vouchers', amount: r.amount } };
   if (r.type === 'seals') return { state: { ...state, seals: state.seals + r.amount }, prize: { kind: 'seals', amount: r.amount } };
   const { state: next, result } = bankEventCard(state, content, r.card);
@@ -240,7 +255,7 @@ function grantReached(state: GameState, content: Content, ev: EventState, track:
   const claimed = [...ev.claimed];
   track.forEach((tier, i) => {
     if (claimed.includes(i) || ev.earned.lt(tier.at)) return;
-    next = grantTier(next, content, tier).state;
+    next = grantTier(next, content, tier, eventPool(ev.key)).state;
     claimed.push(i);
   });
   return { ...next, event: { ...ev, claimed } };
@@ -345,6 +360,6 @@ export function claimEventTierPrize(state: GameState, content: Content, occ: Eve
   const ev = state.event;
   const tier = occ.track[index];
   if (!ev || ev.key !== occ.key || !tier || ev.claimed.includes(index) || ev.earned.lt(tier.at)) return { state, prize: null };
-  const { state: paid, prize } = grantTier(state, content, tier);
+  const { state: paid, prize } = grantTier(state, content, tier, eventPool(occ));
   return { state: { ...paid, event: { ...ev, claimed: [...ev.claimed, index] } }, prize };
 }

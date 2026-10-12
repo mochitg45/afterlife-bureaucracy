@@ -475,5 +475,16 @@
  "card.eventActive": "イベントカード：イベント中は自動で働きます。装備枠は不要です。",
  "update.title": "アップデートが必要です",
  "update.body": "Afterlife Bureaucracy の新しいバージョンが出ました。アップデートして続けてください。進行状況はそのまま残ります。",
- "update.button": "アップデート"
+ "update.button": "アップデート",
+ "eventVoucher.weekly": "週替わりイベント券",
+ "eventVoucher.special": "祝日イベント券",
+ "eventVoucher.keep": "次のイベントに持ち越し",
+ "eventVoucher.shopAria": "イベント券を入手",
+ "eventVoucher.shopNote": "イベント券はイベントガチャ専用です。余った分は同じ種類の次のイベントに持ち越せます。",
+ "product.weekly_vouchers_200": "週替わりイベント券200枚",
+ "product.weekly_vouchers_550": "週替わりイベント券550枚",
+ "product.weekly_bundle": "週替わりイベントパック",
+ "product.holiday_vouchers_200": "祝日イベント券200枚",
+ "product.holiday_vouchers_1200": "祝日イベント券1,200枚",
+ "product.holiday_bundle": "祝日イベントパック"
 }

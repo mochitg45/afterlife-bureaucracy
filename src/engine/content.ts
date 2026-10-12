@@ -110,6 +110,7 @@ const mmdd = z.string().regex(/^\d{2}-\d{2}$/);
 
 const eventRewardSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('vouchers'), amount: z.number().int().positive() }),
+  z.object({ type: z.literal('eventVouchers'), amount: z.number().int().positive() }),
   z.object({ type: z.literal('seals'), amount: z.number().int().positive() }),
   z.object({ type: z.literal('card'), card: z.string().min(1) }),
 ]);

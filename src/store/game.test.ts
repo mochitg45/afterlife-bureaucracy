@@ -606,10 +606,12 @@ describe('events', () => {
     expect(g().state.event!.points.toNumber()).toBe(20);
     g().buyEventStaff('hw-ghost', 1);
     expect(g().state.event!.staff['hw-ghost']).toBe(1);
-    store.setState({ state: { ...g().state, event: { ...g().state.event!, earned: new Decimal(1e5) }, vouchers: 100 } });
+    store.setState({ state: { ...g().state, event: { ...g().state.event!, earned: new Decimal(1e5) }, vouchers: 100, eventVouchers: { weekly: 0, special: 80 } } });
     g().claimEventTier(0);
-    expect(g().state.vouchers).toBe(105);
+    expect(g().state.vouchers).toBe(100);
+    expect(g().state.eventVouchers.special).toBe(80 + 15);
     g().pullEvent(10);
+    expect(g().state.eventVouchers.special).toBe(95 - 90);
     expect(g().pendingPull).toHaveLength(10);
     expect(g().pendingPull!.every((r) => r.cardId.startsWith('c-hw-'))).toBe(true);
     g().stopLoop();

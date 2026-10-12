@@ -475,5 +475,16 @@
  "card.eventActive": "Event card: on duty automatically during the event, no lanyard needed.",
  "update.title": "Update required",
  "update.body": "A new version of Afterlife Bureaucracy is out. Update to keep playing; your progress is safe.",
- "update.button": "Update"
+ "update.button": "Update",
+ "eventVoucher.weekly": "Weekly Event Vouchers",
+ "eventVoucher.special": "Holiday Event Vouchers",
+ "eventVoucher.keep": "Kept for the next event",
+ "eventVoucher.shopAria": "Get more event vouchers",
+ "eventVoucher.shopNote": "Event vouchers are only for event gacha. Leftovers carry over to the next event of the same kind.",
+ "product.weekly_vouchers_200": "200 Weekly Event Vouchers",
+ "product.weekly_vouchers_550": "550 Weekly Event Vouchers",
+ "product.weekly_bundle": "Weekly Event Bundle",
+ "product.holiday_vouchers_200": "200 Holiday Event Vouchers",
+ "product.holiday_vouchers_1200": "1,200 Holiday Event Vouchers",
+ "product.holiday_bundle": "Holiday Event Bundle"
 }

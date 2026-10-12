@@ -475,5 +475,16 @@
  "card.eventActive": "이벤트 카드: 이벤트 동안 자동으로 일해요. 장착 칸이 필요 없어요.",
  "update.title": "업데이트 필요",
  "update.body": "Afterlife Bureaucracy 새 버전이 나왔어요. 업데이트하고 계속 플레이하세요. 진행 상황은 그대로 남아요.",
- "update.button": "업데이트"
+ "update.button": "업데이트",
+ "eventVoucher.weekly": "주간 이벤트 쿠폰",
+ "eventVoucher.special": "시즌 이벤트 쿠폰",
+ "eventVoucher.keep": "다음 이벤트로 이월돼요",
+ "eventVoucher.shopAria": "이벤트 쿠폰 더 받기",
+ "eventVoucher.shopNote": "이벤트 쿠폰은 이벤트 뽑기에서만 써요. 남은 쿠폰은 같은 종류의 다음 이벤트로 이월돼요.",
+ "product.weekly_vouchers_200": "주간 이벤트 쿠폰 200장",
+ "product.weekly_vouchers_550": "주간 이벤트 쿠폰 550장",
+ "product.weekly_bundle": "주간 이벤트 패키지",
+ "product.holiday_vouchers_200": "시즌 이벤트 쿠폰 200장",
+ "product.holiday_vouchers_1200": "시즌 이벤트 쿠폰 1,200장",
+ "product.holiday_bundle": "시즌 이벤트 패키지"
 }

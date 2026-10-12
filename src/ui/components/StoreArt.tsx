@@ -6,17 +6,25 @@ const OUTLINE = 'var(--ink)';
 const SW = 2.5;
 
 /** One requisition-voucher ticket: a stub with a torn dashed edge. */
-function Ticket({ x, y, rotate = 0 }: { x: number; y: number; rotate?: number }) {
+function Ticket({ x, y, rotate = 0, fill = 'var(--surface-2)' }: { x: number; y: number; rotate?: number; fill?: string }) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${rotate})`}>
-      <rect x={-14} y={-8} width={28} height={16} rx={2} fill="var(--surface-2)" stroke={OUTLINE} strokeWidth={SW} />
+      <rect x={-14} y={-8} width={28} height={16} rx={2} fill={fill} stroke={OUTLINE} strokeWidth={SW} />
       <line x1={4} y1={-8} x2={4} y2={8} stroke={OUTLINE} strokeWidth={1.5} strokeDasharray="2 2" />
       <circle cx={9} cy={0} r={2.5} fill="var(--brass)" stroke={OUTLINE} strokeWidth={1.5} />
     </g>
   );
 }
 
+const WK = '#7FD6CC';
+const HD = '#C9B3F2';
 const ART: Record<ProductId, ReactElement> = {
+  weekly_vouchers_200: <><Ticket x={26} y={36} rotate={-12} fill={WK} /><Ticket x={38} y={30} rotate={10} fill={WK} /></>,
+  weekly_vouchers_550: <><Ticket x={32} y={22} fill={WK} /><Ticket x={32} y={34} fill={WK} /><Ticket x={32} y={46} fill={WK} /></>,
+  weekly_bundle: <><Ticket x={24} y={36} rotate={-10} fill={WK} /><Ticket x={40} y={30} rotate={8} /></>,
+  holiday_vouchers_200: <><Ticket x={26} y={36} rotate={-12} fill={HD} /><Ticket x={38} y={30} rotate={10} fill={HD} /></>,
+  holiday_vouchers_1200: <><Ticket x={22} y={34} rotate={-8} fill={HD} /><Ticket x={32} y={30} fill={HD} /><Ticket x={42} y={34} rotate={8} fill={HD} /></>,
+  holiday_bundle: <><Ticket x={24} y={36} rotate={-10} fill={HD} /><Ticket x={40} y={30} rotate={8} /></>,
   vouchers_10: <Ticket x={32} y={32} />,
   vouchers_55: (
     <>

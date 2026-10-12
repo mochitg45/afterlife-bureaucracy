@@ -1,10 +1,12 @@
 import { useEffect, useState, type CSSProperties } from 'react';
+import { StoreArt } from '../components/StoreArt';
+import { STORE_FOOTNOTE } from './StoreScreen';
 import Decimal from 'break_infinity.js';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import type { EventTier, StaffDef } from '../../engine/content';
-import { upcomingEvents, eventRate, eventTap, EVENT_UNLOCK_HIRES, type EventOccurrence } from '../../engine/events';
+import { upcomingEvents, eventRate, eventTap, eventPool, EVENT_UNLOCK_HIRES, type EventOccurrence } from '../../engine/events';
 import { staffBulkCost, maxAffordable, canAfford } from '../../engine/economy';
 import { ODDS, PULL_COST, TEN_PULL_COST, MAX_STARS } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
@@ -15,7 +17,10 @@ import type { BuyMode } from '../../engine/actions';
 import { Character } from '../characters/Character';
 import { artUrl } from '../characters/art';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
-import { VoucherIcon, SealIcon } from '../icons/Currency';
+import { VoucherIcon, SealIcon, EventVoucherIcon } from '../icons/Currency';
+import { EVENT_PACKS } from '../../engine/entitlements';
+import type { EventPool } from '../../engine/state';
+import type { ProductId, PurchaseResult } from '../../platform/billing';
 import { Modal } from '../components/Modal';
 import { CardSheet, bonusLine } from '../overlays/CardSheet';
 import './EventScreen.css';
@@ -162,8 +167,9 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
   );
 }
 
-function RewardLabel({ tier }: { tier: EventTier }) {
+function RewardLabel({ tier, pool }: { tier: EventTier; pool: EventPool }) {
   const r = tier.reward;
+  if (r.type === 'eventVouchers') return <span className="event-reward amt">{r.amount} <EventVoucherIcon pool={pool} /> {t(`eventVoucher.${pool}`)}</span>;
   if (r.type === 'vouchers') return <span className="event-reward amt">{r.amount} <VoucherIcon /> {t('event.vouchers')}</span>;
   if (r.type === 'seals') return <span className="event-reward amt">{r.amount} <SealIcon /> {t('event.seals')}</span>;
   const card = findCard(content, r.card);
@@ -261,7 +267,7 @@ function Track({ occ }: { occ: EventOccurrence }) {
         return (
           <div key={i} className={'card event-tier' + (done ? ' claimed' : '')} data-testid={`tier-${i}`}>
             <div>
-              <RewardLabel tier={tier} />
+              <RewardLabel tier={tier} pool={eventPool(occ)} />
               <div className="mono sub">{formatNumber(reached ? new Decimal(tier.at) : earned)} / {formatNumber(new Decimal(tier.at))}</div>
             </div>
             {done ? <span className="mono sub">{t('event.claimed')}</span>
@@ -280,17 +286,74 @@ function PrizePopup() {
   const prize = useGame((s) => s.pendingPrize);
   const dismiss = useGame((s) => s.dismissPrize);
   if (!prize) return null;
-  const Icon = prize.kind === 'vouchers' ? VoucherIcon : SealIcon;
+  const icon = prize.kind === 'eventVouchers' ? <EventVoucherIcon pool={prize.pool} size={64} />
+    : prize.kind === 'vouchers' ? <VoucherIcon size={64} /> : <SealIcon size={64} />;
+  const label = prize.kind === 'eventVouchers' ? t(`eventVoucher.${prize.pool}`) : t(prize.kind === 'vouchers' ? 'event.vouchers' : 'event.seals');
   return (
     <Modal open title={t('event.prizeTitle')} className="event-prize" onClose={dismiss}>
       <div className="event-prize-body">
-        <span className="event-prize-icon" aria-hidden="true"><Icon size={64} /></span>
+        <span className="event-prize-icon" aria-hidden="true">{icon}</span>
         <span className="event-prize-amt mono">+{prize.amount}</span>
-        <span className="sub">{t(prize.kind === 'vouchers' ? 'event.vouchers' : 'event.seals')}</span>
+        <span className="sub">{label}</span>
       </div>
       <div className="modal-actions">
         <button className="btn btn-primary" onClick={dismiss}>{t('event.collect')}</button>
       </div>
+    </Modal>
+  );
+}
+
+/** This event kind's voucher balance, always in view, with a + that opens its shop. */
+function EventWallet({ pool }: { pool: EventPool }) {
+  const n = useGame((s) => s.state.eventVouchers[pool]);
+  const [shop, setShop] = useState(false);
+  return (
+    <>
+      <div className="card event-wallet">
+        <EventVoucherIcon pool={pool} size={28} />
+        <div className="event-wallet-text">
+          <span className="label">{t(`eventVoucher.${pool}`)}</span>
+          <span className="mono value" data-testid="event-vouchers">{formatNumber(new Decimal(n))}</span>
+        </div>
+        <span className="sub event-wallet-note">{t('eventVoucher.keep')}</span>
+        <button className="btn btn-primary event-wallet-add" onClick={() => setShop(true)} aria-label={t('eventVoucher.shopAria')}>+</button>
+      </div>
+      {shop && <EventShop pool={pool} onClose={() => setShop(false)} />}
+    </>
+  );
+}
+
+const SHOP_IDS: Record<EventPool, ProductId[]> = {
+  weekly: ['weekly_vouchers_200', 'weekly_vouchers_550', 'weekly_bundle'],
+  special: ['holiday_vouchers_200', 'holiday_vouchers_1200', 'holiday_bundle'],
+};
+
+/** The packs and bundle for one wallet. Products the store did not return are left out. */
+function EventShop({ pool, onClose }: { pool: EventPool; onClose: () => void }) {
+  const products = useGame((s) => s.products);
+  const buy = useGame((s) => s.buy);
+  const pending = useGame((s) => s.purchasePending);
+  const [result, setResult] = useState<PurchaseResult | null>(null);
+  const list = SHOP_IDS[pool].flatMap((id) => products.filter((p) => p.id === id));
+  return (
+    <Modal open title={t(`eventVoucher.${pool}`)} className="event-shop" onClose={onClose}>
+      <p className="sub">{t('eventVoucher.shopNote')}</p>
+      {list.length === 0 && <p className="sub">{t('store.closed')}</p>}
+      {list.map((p) => {
+        const pack = EVENT_PACKS[p.id]!;
+        return (
+          <div key={p.id} className="card event-shop-row">
+            <StoreArt productId={p.id} size={48} />
+            <div className="event-shop-text">
+              <span className="amt">+{pack.amount} <EventVoucherIcon pool={pool} /></span>
+              {pack.vouchers > 0 && <span className="amt sub">+{pack.vouchers} <VoucherIcon /></span>}
+            </div>
+            <button className="btn btn-primary" disabled={pending !== null} onClick={() => void buy(p.id).then(setResult)} aria-label={t('store.buy', { title: p.title })}>{p.price}</button>
+          </div>
+        );
+      })}
+      {result && <p className="sub" role="status">{t(result === 'ok' ? 'store.resultOk' : result === 'cancelled' ? 'store.resultCancelled' : 'store.resultError')}</p>}
+      <p className="sub">{STORE_FOOTNOTE}</p>
     </Modal>
   );
 }
@@ -344,7 +407,8 @@ function CardPreview({ id, onClose }: { id: string; onClose: () => void }) {
 }
 
 function Banner({ occ, onInfo }: { occ: EventOccurrence; onInfo: (id: string) => void }) {
-  const vouchers = useGame((s) => s.state.vouchers);
+  const pool = eventPool(occ);
+  const vouchers = useGame((s) => s.state.eventVouchers[pool]);
   const cards = useGame((s) => s.state.cards);
   const pullEvent = useGame((s) => s.pullEvent);
   const banner = occ.banner;
@@ -372,10 +436,10 @@ function Banner({ occ, onInfo }: { occ: EventOccurrence; onInfo: (id: string) =>
         </div>
         <div className="modal-actions">
           <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pullEvent(1)} aria-label={t('event.pullOneAria', { cost: PULL_COST })}>
-            {t('event.pull1')} <span className="amt">{PULL_COST} <VoucherIcon /></span>
+            {t('event.pull1')} <span className="amt">{PULL_COST} <EventVoucherIcon pool={pool} /></span>
           </button>
           <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pullEvent(10)} aria-label={t('event.pullTenAria', { cost: TEN_PULL_COST })}>
-            {t('event.pull10')} <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
+            {t('event.pull10')} <span className="amt">{TEN_PULL_COST} <EventVoucherIcon pool={pool} /></span>
           </button>
         </div>
         <p className="sub">{t('event.cardsLeave')}</p>
@@ -426,6 +490,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
         </div>
         <div className="mono sub">{t('event.earned', { n: formatNumber(ev.earned) })}</div>
       </div>
+      <EventWallet pool={eventPool(occ)} />
       <EventStamp occ={occ} tap={tap} />
       <div className="event-tabs" role="tablist" aria-label={t('event.sectionsAria')}>
         {tabs.map(([id, label]) => (

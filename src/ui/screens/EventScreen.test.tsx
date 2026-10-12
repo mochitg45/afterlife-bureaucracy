@@ -21,6 +21,7 @@ function seed(forceId: string | null, patch: { points?: number; earned?: number;
     ...base,
     stats: { ...base.stats, staffHired: patch.hired ?? EVENT_UNLOCK_HIRES },
     vouchers: patch.vouchers ?? 0,
+    eventVouchers: { weekly: patch.vouchers ?? 0, special: patch.vouchers ?? 0 },
     event: occ ? { key: occ.key, points: new Decimal(patch.points ?? 0), earned: new Decimal(patch.earned ?? 0), staff: {}, claimed: [] } : null,
   };
   useGame.setState({
@@ -103,11 +104,12 @@ describe('EventScreen', () => {
     useGame.setState({ pendingPull: null, pendingPrize: null });
     render(<EventScreen onBack={() => {}} />);
     fireEvent.click(screen.getByRole('tab', { name: /rewards/i }));
-    const v = occ.track.findIndex((tier) => tier.reward.type === 'vouchers');
+    const v = occ.track.findIndex((tier) => tier.reward.type === 'eventVouchers');
     const amount = (occ.track[v].reward as { amount: number }).amount;
     fireEvent.click(screen.getByRole('button', { name: new RegExp(`claim tier ${v + 1}$`, 'i') }));
     const popup = screen.getByRole('dialog', { name: /event reward/i });
     expect(popup).toHaveTextContent(`+${amount}`);
+    expect(popup).toHaveTextContent('Holiday Event Vouchers');
     expect(popup).toHaveTextContent('Vouchers');
     fireEvent.click(screen.getByRole('button', { name: /^collect$/i }));
     expect(useGame.getState().pendingPrize).toBeNull();
@@ -140,6 +142,24 @@ describe('EventScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /pull ten event cards/i }));
     expect(pullEvent).toHaveBeenNthCalledWith(1, 1);
     expect(pullEvent).toHaveBeenNthCalledWith(2, 10);
+  });
+  it('shows this event kind voucher wallet and opens its shop from +', () => {
+    seed('halloween', { vouchers: 0 });
+    useGame.setState({ state: { ...useGame.getState().state, eventVouchers: { weekly: 7, special: 345 } } });
+    useGame.setState({ products: [
+      { id: 'holiday_vouchers_200', price: '$1.99', title: '200 Holiday Event Vouchers' },
+      { id: 'holiday_vouchers_1200', price: '$9.99', title: '1,200 Holiday Event Vouchers' },
+      { id: 'holiday_bundle', price: '$5.99', title: 'Holiday Event Bundle' },
+      { id: 'weekly_bundle', price: '$2.99', title: 'Weekly Event Bundle' },
+    ] });
+    render(<EventScreen onBack={() => {}} />);
+    expect(screen.getByTestId('event-vouchers')).toHaveTextContent('345');
+    fireEvent.click(screen.getByRole('button', { name: /get more event vouchers/i }));
+    const shop = screen.getByRole('dialog', { name: /holiday event vouchers/i });
+    expect(shop).toHaveTextContent('$1.99');
+    expect(shop).toHaveTextContent('$9.99');
+    expect(shop).toHaveTextContent('$5.99');
+    expect(shop).not.toHaveTextContent('$2.99'); // the weekly bundle belongs to the weekly shop
   });
   it('shows the Gacha tab for the weekly event, which has its own banner', () => {
     vi.setSystemTime(Date.UTC(2026, 9, 10, 12));

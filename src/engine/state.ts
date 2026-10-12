@@ -117,6 +117,15 @@ export interface EventState {
   claimed: number[];
 }
 
+export type EventPool = 'weekly' | 'special';
+export type EventVouchers = Record<EventPool, number>;
+
+function sanitizeEventVouchers(v: unknown): EventVouchers {
+  const r = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  const n = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) && x > 0 ? Math.floor(x) : 0);
+  return { weekly: n(r.weekly), special: n(r.special) };
+}
+
 /** A finished event occurrence whose ranking prize has not been paid yet. */
 export interface RankPending {
   key: string;
@@ -151,6 +160,8 @@ export interface GameState {
   soulsLifetime: Decimal;
   seals: number;
   vouchers: number;
+  /** Event-gacha currency, kept between events: weekly themes and holiday specials each have their own. */
+  eventVouchers: EventVouchers;
   /** Carried remainder of a fractional voucher grant, 0 <= f < 1. Keeps the faucet honest. */
   voucherFraction: number;
   perks: string[];
@@ -223,6 +234,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     soulsLifetime: new Decimal(0),
     seals: 0,
     vouchers: 0,
+    eventVouchers: { weekly: 0, special: 0 },
     voucherFraction: 0,
     perks: [],
     perkLevels: {},
@@ -627,6 +639,7 @@ export function deserialize(json: string, content: Content): GameState {
     soulsLifetime: dec(raw.soulsLifetime),
     seals: num(raw.seals, 0),
     vouchers: num(raw.vouchers, 0),
+    eventVouchers: sanitizeEventVouchers(raw.eventVouchers),
     voucherFraction: fraction(raw.voucherFraction),
     // Filtered against the shipped perk ids like every other collection: a perk this build
     // does not know would otherwise sit in the tree forever, unrefundable and unpriced, and

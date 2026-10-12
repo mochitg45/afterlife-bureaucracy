@@ -404,6 +404,7 @@ describe('exhaustive save round-trip', () => {
       soulsLifetime: new Decimal('3e40'),
       seals: 42,
       vouchers: 17,
+      eventVouchers: { weekly: 33, special: 120 },
       voucherFraction: 0.25,
       perks: ['throughput-1', 'headstart-1'],
       perkLevels: { 'throughput-1': 3 },

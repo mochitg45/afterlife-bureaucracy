@@ -475,5 +475,16 @@
  "card.eventActive": "Carta de evento: trabaja sola durante el evento, sin usar ranura.",
  "update.title": "Actualización necesaria",
  "update.body": "Salió una nueva versión de Afterlife Bureaucracy. Actualiza para seguir jugando; tu progreso está a salvo.",
- "update.button": "Actualizar"
+ "update.button": "Actualizar",
+ "eventVoucher.weekly": "Vales de evento semanal",
+ "eventVoucher.special": "Vales de evento festivo",
+ "eventVoucher.keep": "Se guardan para el próximo evento",
+ "eventVoucher.shopAria": "Conseguir más vales de evento",
+ "eventVoucher.shopNote": "Los vales de evento solo sirven en el gacha de eventos. Lo que sobre pasa al próximo evento del mismo tipo.",
+ "product.weekly_vouchers_200": "200 vales de evento semanal",
+ "product.weekly_vouchers_550": "550 vales de evento semanal",
+ "product.weekly_bundle": "Paquete de evento semanal",
+ "product.holiday_vouchers_200": "200 vales de evento festivo",
+ "product.holiday_vouchers_1200": "1200 vales de evento festivo",
+ "product.holiday_bundle": "Paquete de evento festivo"
 }

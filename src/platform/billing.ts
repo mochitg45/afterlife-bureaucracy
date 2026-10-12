@@ -11,7 +11,13 @@ export type ProductId =
   | 'vouchers_300'
   | 'remove_ads'
   | 'starter_pack'
-  | 'union_monthly';
+  | 'union_monthly'
+  | 'weekly_vouchers_200'
+  | 'weekly_vouchers_550'
+  | 'weekly_bundle'
+  | 'holiday_vouchers_200'
+  | 'holiday_vouchers_1200'
+  | 'holiday_bundle';
 
 export const PRODUCT_IDS: readonly ProductId[] = [
   'vouchers_10',
@@ -21,6 +27,12 @@ export const PRODUCT_IDS: readonly ProductId[] = [
   'remove_ads',
   'starter_pack',
   'union_monthly',
+  'weekly_vouchers_200',
+  'weekly_vouchers_550',
+  'weekly_bundle',
+  'holiday_vouchers_200',
+  'holiday_vouchers_1200',
+  'holiday_bundle',
 ] as const;
 
 /**
@@ -114,6 +126,12 @@ const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
   remove_ads: { price: '$4.99', title: t('product.remove_ads') },
   starter_pack: { price: '$2.99', title: t('product.starter_pack') },
   union_monthly: { price: '$3.99', title: t('product.union_monthly') },
+  weekly_vouchers_200: { price: '$1.99', title: t('product.weekly_vouchers_200') },
+  weekly_vouchers_550: { price: '$4.99', title: t('product.weekly_vouchers_550') },
+  weekly_bundle: { price: '$2.99', title: t('product.weekly_bundle') },
+  holiday_vouchers_200: { price: '$1.99', title: t('product.holiday_vouchers_200') },
+  holiday_vouchers_1200: { price: '$9.99', title: t('product.holiday_vouchers_1200') },
+  holiday_bundle: { price: '$5.99', title: t('product.holiday_bundle') },
 };
 
 /**

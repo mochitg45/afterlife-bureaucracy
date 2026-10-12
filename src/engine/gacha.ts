@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import type { GameState } from './state';
+import type { EventPool, GameState } from './state';
 import type { Content, CardDef, Rarity } from './content';
 import { nextFloat } from './rng';
 import { perkSum } from './perks';
@@ -163,8 +163,10 @@ function pullFrom(
   kcPerSec: Decimal,
   cost: number,
   poolFor: (rarity: Rarity) => CardDef[],
+  wallet: 'vouchers' | EventPool = 'vouchers',
 ): { state: GameState; results: PullResult[] } {
-  if (state.vouchers < cost) return { state, results: [] };
+  const balance = wallet === 'vouchers' ? state.vouchers : state.eventVouchers[wallet];
+  if (balance < cost) return { state, results: [] };
   let seed = state.rngSeed;
   let pity = { ...state.pity };
   const cards = { ...state.cards };
@@ -196,7 +198,9 @@ function pullFrom(
   return {
     state: {
       ...state,
-      vouchers: state.vouchers - cost,
+      ...(wallet === 'vouchers'
+        ? { vouchers: state.vouchers - cost }
+        : { eventVouchers: { ...state.eventVouchers, [wallet]: state.eventVouchers[wallet] - cost } }),
       rngSeed: seed,
       pity,
       cards,
@@ -240,10 +244,11 @@ export function pullEvent(
   if (!occ.banner) return { state, results: [] };
   const mine = content.cards.filter((c) => c.event === occ.id);
   if (!mine.length) return { state, results: [] };
+  // Paid in that event kind's own vouchers (weekly or holiday), never the regular ones.
   return pullFrom(state, content, count, kcPerSec, count === 10 ? TEN_PULL_COST : PULL_COST, (rarity) => {
     const pool = mine.filter((c) => c.rarity === rarity);
     return pool.length ? pool : mine;
-  });
+  }, occ.kind === 'weekly' ? 'weekly' : 'special');
 }
 
 /**
