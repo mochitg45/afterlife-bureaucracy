@@ -1,5 +1,5 @@
 import Decimal from 'break_infinity.js';
-import type { EventPool, EventState, GameState } from './state';
+import type { EventMissionDay, EventPool, EventState, GameState } from './state';
 import type { Content, EventTier, StaffDef } from './content';
 import { canAfford, staffBulkCost, maxAffordable } from './economy';
 import { bankCard, cardEventMult, type PullResult } from './gacha';
@@ -217,7 +217,7 @@ function keyInfo(content: Content, key: string): { name: string; special: boolea
 export type EventPrize =
   | { kind: 'vouchers' | 'seals'; amount: number }
   | { kind: 'eventVouchers'; pool: EventPool; amount: number }
-  | { kind: 'card'; result: PullResult };
+  | { kind: 'card'; result: PullResult; extra?: PullResult };
 
 /** Which event-voucher wallet an occurrence (or its key) pays into and spends from. */
 export function eventPool(occOrKey: { kind: 'weekly' | 'special' } | string): EventPool {
@@ -240,13 +240,79 @@ function bankEventCard(state: GameState, content: Content, cardId: string): { st
   return { state: { ...state, cards, cardShards, cardSpares, kc }, result: { cardId, rarity, pityTriggered: null, ...banked } };
 }
 
-function grantTier(state: GameState, content: Content, tier: EventTier, pool: EventPool): { state: GameState; prize: EventPrize } {
+/**
+ * One tier's payout. `free` and `premium` pick the rows: the free row is the tier's reward,
+ * the Event Pass row pays PASS_PREMIUM_MULT times its amount, or one more copy of its card.
+ */
+function grantTier(state: GameState, content: Content, tier: EventTier, pool: EventPool, rows: { free: boolean; premium: boolean } = { free: true, premium: false }): { state: GameState; prize: EventPrize } {
   const r = tier.reward;
-  if (r.type === 'eventVouchers') return { state: grantEventVouchers(state, pool, r.amount), prize: { kind: 'eventVouchers', pool, amount: r.amount } };
-  if (r.type === 'vouchers') return { state: grantVouchersExact(state, r.amount), prize: { kind: 'vouchers', amount: r.amount } };
-  if (r.type === 'seals') return { state: { ...state, seals: state.seals + r.amount }, prize: { kind: 'seals', amount: r.amount } };
-  const { state: next, result } = bankEventCard(state, content, r.card);
-  return { state: next, prize: { kind: 'card', result } };
+  if (r.type !== 'card') {
+    const amount = (rows.free ? r.amount : 0) + (rows.premium ? r.amount * PASS_PREMIUM_MULT : 0);
+    if (r.type === 'eventVouchers') return { state: grantEventVouchers(state, pool, amount), prize: { kind: 'eventVouchers', pool, amount } };
+    if (r.type === 'vouchers') return { state: grantVouchersExact(state, amount), prize: { kind: 'vouchers', amount } };
+    return { state: { ...state, seals: state.seals + amount }, prize: { kind: 'seals', amount } };
+  }
+  const first = bankEventCard(state, content, r.card);
+  if (!(rows.free && rows.premium)) return { state: first.state, prize: { kind: 'card', result: first.result } };
+  const second = bankEventCard(first.state, content, r.card);
+  return { state: second.state, prize: { kind: 'card', result: first.result, extra: second.result } };
+}
+
+/** The Event Pass row pays this many times each tier's amount (so a pass holder gets 3x in all). */
+export const PASS_PREMIUM_MULT = 2;
+/** Paid if the pass is bought after its event has already ended (the store was charged anyway). */
+export const PASS_FALLBACK_EVENT_VOUCHERS: Record<EventPool, number> = { weekly: 200, special: 400 };
+
+/**
+ * Turns on the Event Pass for the running event of `pool`'s kind and pays the premium row of
+ * every tier already claimed. With no such event (it ended mid-checkout) the player gets event
+ * vouchers instead, since the store has already taken the money.
+ */
+export function buyEventPass(state: GameState, content: Content, pool: EventPool): GameState {
+  const ev = state.event;
+  if (!ev || eventPool(ev.key) !== pool || ev.pass) return grantEventVouchers(state, pool, PASS_FALLBACK_EVENT_VOUCHERS[pool]);
+  const track = trackForKey(content, ev.key);
+  let next = state;
+  for (const i of ev.claimed) if (track[i]) next = grantTier(next, content, track[i], pool, { free: false, premium: true }).state;
+  return { ...next, event: { ...ev, pass: true } };
+}
+
+/** Each event day's three missions: a stamping goal, a hiring goal, and clearing the office dailies. */
+export const EVENT_MISSIONS = [
+  { id: 'taps', target: 100, reward: 5 },
+  { id: 'hires', target: 10, reward: 5 },
+  { id: 'dailies', target: 3, reward: 10 },
+] as const;
+export type EventMissionId = (typeof EVENT_MISSIONS)[number]['id'];
+
+/** Today's mission counters: the saved day if it is today's, else a fresh one. Days follow the office dailies. */
+export function missionDay(state: Pick<GameState, 'event' | 'dailies'>): EventMissionDay {
+  const today = state.dailies.date;
+  const m = state.event?.missions;
+  return m && m.date === today ? m : { date: today, taps: 0, hires: 0, claimed: [] };
+}
+
+export function missionProgress(state: Pick<GameState, 'event' | 'dailies'>, id: EventMissionId): number {
+  const m = missionDay(state);
+  if (id === 'taps') return m.taps;
+  if (id === 'hires') return m.hires;
+  const d = state.dailies;
+  return d.completedToday ? 3 : d.tasks.filter((t) => t.claimed).length;
+}
+
+function bumpMission(ev: EventState, state: GameState, field: 'taps' | 'hires', n: number): EventState {
+  const m = missionDay(state);
+  return { ...ev, missions: { ...m, [field]: m[field] + n } };
+}
+
+/** Pays one finished, unclaimed mission in this event's vouchers. */
+export function claimEventMission(state: GameState, id: EventMissionId): { state: GameState; amount: number } {
+  const ev = state.event;
+  const def = EVENT_MISSIONS.find((x) => x.id === id);
+  const m = missionDay(state);
+  if (!ev || !def || !state.dailies.date || m.claimed.includes(id) || missionProgress(state, id) < def.target) return { state, amount: 0 };
+  const paid = grantEventVouchers(state, eventPool(ev.key), def.reward);
+  return { state: { ...paid, event: { ...ev, missions: { ...m, claimed: [...m.claimed, id] } } }, amount: def.reward };
 }
 
 /** Grants every tier of `track` that `ev` has reached and not yet taken; marks them claimed. */
@@ -255,7 +321,7 @@ function grantReached(state: GameState, content: Content, ev: EventState, track:
   const claimed = [...ev.claimed];
   track.forEach((tier, i) => {
     if (claimed.includes(i) || ev.earned.lt(tier.at)) return;
-    next = grantTier(next, content, tier, eventPool(ev.key)).state;
+    next = grantTier(next, content, tier, eventPool(ev.key), { free: true, premium: !!ev.pass }).state;
     claimed.push(i);
   });
   return { ...next, event: { ...ev, claimed } };
@@ -319,7 +385,7 @@ function credit(ev: EventState, amount: Decimal): EventState {
 /** One tap on the event stamp. */
 export function stampEvent(state: GameState, content: Content, occ: EventOccurrence): GameState {
   if (!state.event || state.event.key !== occ.key) return state;
-  return { ...state, event: credit(state.event, eventTap(state, content, occ)) };
+  return { ...state, event: bumpMission(credit(state.event, eventTap(state, content, occ)), state, 'taps', 1) };
 }
 
 /** Accrues `dtSec` of event currency if the saved event is the one running (the tick path). */
@@ -347,7 +413,7 @@ export function buyEventStaff(
   if (n <= 0) return state;
   const cost = staffBulkCost(staff, owned, n);
   if (!canAfford(cost, ev.points)) return state;
-  return { ...state, event: { ...ev, points: ev.points.sub(cost), staff: { ...ev.staff, [staffId]: owned + n } } };
+  return { ...state, event: bumpMission({ ...ev, points: ev.points.sub(cost), staff: { ...ev.staff, [staffId]: owned + n } }, state, 'hires', n) };
 }
 
 /** Takes one reward-track tier: earned must have reached it, and it pays out once. */
@@ -360,6 +426,6 @@ export function claimEventTierPrize(state: GameState, content: Content, occ: Eve
   const ev = state.event;
   const tier = occ.track[index];
   if (!ev || ev.key !== occ.key || !tier || ev.claimed.includes(index) || ev.earned.lt(tier.at)) return { state, prize: null };
-  const { state: paid, prize } = grantTier(state, content, tier, eventPool(occ));
+  const { state: paid, prize } = grantTier(state, content, tier, eventPool(occ), { free: true, premium: !!ev.pass });
   return { state: { ...paid, event: { ...ev, claimed: [...ev.claimed, index] } }, prize };
 }

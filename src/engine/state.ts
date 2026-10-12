@@ -115,6 +115,23 @@ export interface EventState {
   staff: Record<string, number>;
   /** Indexes of the reward-track tiers already taken. */
   claimed: number[];
+  /** Event Pass bought for this run: every tier also pays its premium reward. */
+  pass?: boolean;
+  /** Today's event missions; a different `date` than the dailies' means a fresh day. */
+  missions?: EventMissionDay;
+}
+
+export interface EventMissionDay {
+  date: string;
+  taps: number;
+  hires: number;
+  claimed: string[];
+}
+
+/** The 7-day check-in calendar: `day` is the next cell to collect (0-6), once per local day. */
+export interface LoginState {
+  day: number;
+  lastDate: string;
 }
 
 export type EventPool = 'weekly' | 'special';
@@ -211,6 +228,7 @@ export interface GameState {
   /** Ended occurrences (with a score) whose ranking prize is still to collect. */
   rankPending: RankPending[];
   referral: ReferralState;
+  login: LoginState;
 }
 
 export interface Now { wall: number; mono: number }
@@ -283,6 +301,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     savedAtWall: 0,
     event: null,
     rankPending: [],
+    login: { day: 0, lastDate: '' },
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -552,7 +571,17 @@ function sanitizeEvent(v: unknown): EventState | null {
   const claimed = Array.isArray(raw.claimed)
     ? [...new Set((raw.claimed as unknown[]).filter((i): i is number => Number.isInteger(i) && (i as number) >= 0))]
     : [];
-  return { key: raw.key, points: Decimal.min(dec(raw.points), earned), earned, staff: counts(raw.staff), claimed };
+  const m = raw.missions && typeof raw.missions === 'object' && !Array.isArray(raw.missions) ? (raw.missions as Record<string, unknown>) : null;
+  const missions = m && typeof m.date === 'string'
+    ? { date: m.date, taps: Math.max(0, num(m.taps, 0)), hires: Math.max(0, num(m.hires, 0)), claimed: Array.isArray(m.claimed) ? (m.claimed as unknown[]).filter((x): x is string => typeof x === 'string') : [] }
+    : undefined;
+  return { key: raw.key, points: Decimal.min(dec(raw.points), earned), earned, staff: counts(raw.staff), claimed, pass: raw.pass === true, ...(missions ? { missions } : {}) };
+}
+
+function sanitizeLogin(v: unknown): LoginState {
+  const r = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  const day = num(r.day, 0);
+  return { day: Number.isInteger(day) && day >= 0 && day < 7 ? day : 0, lastDate: typeof r.lastDate === 'string' ? r.lastDate : '' };
 }
 
 function sanitizeReferral(v: unknown): ReferralState {
@@ -698,6 +727,7 @@ export function deserialize(json: string, content: Content): GameState {
     savedAtWall: nonNeg(raw.savedAtWall),
     event: sanitizeEvent(raw.event),
     rankPending: sanitizeRankPending(raw.rankPending),
+    login: sanitizeLogin(raw.login),
     referral: sanitizeReferral(raw.referral),
   }, content);
 }

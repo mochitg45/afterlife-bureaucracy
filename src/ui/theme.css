@@ -63,6 +63,12 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--ink-muted); }
 .tabbar button[aria-selected='true'] { color: var(--green); font-weight: 600; }
 .tabbar svg { width: 22px; height: 22px; }
+.tabbar button { position: relative; }
+.tabbar-dot { position: absolute; top: 4px; left: calc(50% + 8px); width: 9px; height: 9px; border-radius: 50%; background: var(--red); border: 1.5px solid var(--ink); }
+.login-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 8px 0; }
+.login-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 8px; border: 2px solid var(--ink); background: var(--surface-2); font-size: 11px; }
+.login-cell.done { opacity: .5; }
+.login-cell.today { background: var(--brass); }
 
 .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
 .sub { font-size: 12px; color: var(--ink-muted); }

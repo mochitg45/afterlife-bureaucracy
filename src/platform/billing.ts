@@ -17,7 +17,9 @@ export type ProductId =
   | 'weekly_bundle'
   | 'holiday_vouchers_200'
   | 'holiday_vouchers_1200'
-  | 'holiday_bundle';
+  | 'holiday_bundle'
+  | 'weekly_pass'
+  | 'holiday_pass';
 
 export const PRODUCT_IDS: readonly ProductId[] = [
   'vouchers_10',
@@ -33,6 +35,8 @@ export const PRODUCT_IDS: readonly ProductId[] = [
   'holiday_vouchers_200',
   'holiday_vouchers_1200',
   'holiday_bundle',
+  'weekly_pass',
+  'holiday_pass',
 ] as const;
 
 /**
@@ -132,6 +136,8 @@ const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
   holiday_vouchers_200: { price: '$1.99', title: t('product.holiday_vouchers_200') },
   holiday_vouchers_1200: { price: '$9.99', title: t('product.holiday_vouchers_1200') },
   holiday_bundle: { price: '$5.99', title: t('product.holiday_bundle') },
+  weekly_pass: { price: '$1.99', title: t('product.weekly_pass') },
+  holiday_pass: { price: '$3.99', title: t('product.holiday_pass') },
 };
 
 /**

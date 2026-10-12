@@ -451,8 +451,9 @@ describe('exhaustive save round-trip', () => {
       onboarding: { memosSeen: true, trainingStep: 2, tipsSeen: ['equip', 'offline'] },
       cloud: { lastSyncWall: 1_700_000_444_000, lastResult: 'downloaded' },
       savedAtWall: 1_700_000_888_000,
-      event: { key: 'halloween-2026', points: new Decimal('1.5e7'), earned: new Decimal('4e8'), staff: { 'hw-ghost': 4 }, claimed: [0, 1] },
+      event: { key: 'halloween-2026', points: new Decimal('1.5e7'), earned: new Decimal('4e8'), staff: { 'hw-ghost': 4 }, claimed: [0, 1], pass: true, missions: { date: '2026-10-11', taps: 40, hires: 3, claimed: ['taps'] } },
       rankPending: [{ key: 'weekly-2026-10-09', name: 'The Great Backlog', special: false }],
+      login: { day: 3, lastDate: '2026-10-11' },
       referral: { shareRewarded: true, claimedTiers: [3, 10], joinChecked: true, joined: true, qualified: true },
     };
     const back = deserialize(serialize(s), content);

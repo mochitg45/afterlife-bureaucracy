@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
 import { t } from '../../i18n';
+import { useGame } from '../../store/game';
+import { loginClaimable } from '../../engine/login';
 
 export type TabId = 'office' | 'personnel' | 'ledger' | 'tasks' | 'store';
 
@@ -12,11 +14,14 @@ const TABS: Array<{ id: TabId; label: string; icon: ReactElement }> = [
 ];
 
 export function TabBar({ active, onChange }: { active: TabId; onChange: (id: TabId) => void }) {
+  // A dot on Tasks while today's check-in is waiting.
+  const checkIn = useGame((s) => loginClaimable(s.state));
   return (
     <nav className="tabbar" role="tablist" aria-label={t('tab.main')}>
       {TABS.map((tab) => (
         <button key={tab.id} role="tab" aria-selected={active === tab.id} aria-label={tab.label} onClick={() => onChange(tab.id)}>
           {tab.icon}
+          {tab.id === 'tasks' && checkIn && <span className="tabbar-dot" aria-hidden="true" />}
           <span>{tab.label}</span>
         </button>
       ))}

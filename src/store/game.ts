@@ -10,11 +10,12 @@ import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/
 import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
-import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, type Notifications } from '../platform/notifications';
+import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, NOTIF_EVENT, type Notifications } from '../platform/notifications';
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
-import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTierPrize, type EventOccurrence, type EventPrize } from '../engine/events';
+import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTierPrize, claimEventMission as claimEventMissionEngine, eventPool, eventUnlocked, upcomingEvents, type EventMissionId, type EventOccurrence, type EventPrize } from '../engine/events';
+import { claimLogin as claimLoginEngine } from '../engine/login';
 import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { upgradePerk as upgradePerkEngine } from '../engine/perks';
@@ -102,6 +103,24 @@ const DAILY_NOTIF_DELAY_MS = 300_000;
  * caps the tray at two notifications a day, however often the app is backgrounded.
  */
 const MAX_DISCRETIONARY_NOTIFS_PER_DAY = 1;
+
+/** The event reminder fires this long before the running event closes. */
+const EVENT_ENDING_NOTIF_MS = 3 * 3_600_000;
+
+/**
+ * One event reminder, replacing itself on every pause: "ends in 3 hours" for the running
+ * event, or "has started" for the next one. Players who cannot join events yet get neither.
+ */
+function eventNotification(s: GameState, content: Content, wall: number): { atWall: number; title: string; body: string } | null {
+  if (!eventUnlocked(s)) return null;
+  const [first, second] = upcomingEvents(content, wall, 2);
+  if (first && first.startWall <= wall) {
+    const at = first.endWall - EVENT_ENDING_NOTIF_MS;
+    if (at > wall) return { atWall: at, title: t('notif.eventEndingTitle', { name: first.name }), body: t('notif.eventEndingBody') };
+    return second ? { atWall: second.startWall + 300_000, title: t('notif.eventStartTitle', { name: second.name }), body: t('notif.eventStartBody') } : null;
+  }
+  return first ? { atWall: first.startWall + 300_000, title: t('notif.eventStartTitle', { name: first.name }), body: t('notif.eventStartBody') } : null;
+}
 
 /**
  * How many story memos and achievement toasts a single boot may queue up. A player returning
@@ -286,6 +305,8 @@ export interface GameStore {
   eventStamp(): void;
   buyEventStaff(staffId: string, mode: BuyMode): void;
   claimEventTier(index: number): void;
+  claimEventMission(id: EventMissionId): void;
+  claimLogin(): void;
   /** A claimed voucher or seal tier, shown until dismissed (card tiers reuse `pendingPull`). */
   pendingPrize: Exclude<EventPrize, { kind: 'card' }> | null;
   dismissPrize(): void;
@@ -1181,6 +1202,8 @@ export function createGameStore(deps: StoreDeps) {
           title: t('notif.dailyTitle'),
           body: t('notif.dailyBody'),
         });
+        const ev = eventNotification(s, content, wall);
+        if (ev) items.push({ id: NOTIF_EVENT, ...ev });
         try {
           await notifications.schedule(items);
         } catch {
@@ -1269,9 +1292,27 @@ export function createGameStore(deps: StoreDeps) {
         if (!occ) return;
         const { state: next, prize } = claimEventTierPrize(s, content, occ, index);
         if (!prize) return;
-        apply(next, prize.kind === 'card' ? { pendingPull: [prize.result] } : { pendingPrize: prize });
+        apply(next, prize.kind === 'card' ? { pendingPull: prize.extra ? [prize.result, prize.extra] : [prize.result] } : { pendingPrize: prize });
         track('event_tier_claimed', { event: occ.kind === 'weekly' ? 'weekly' : occ.id, theme: occ.id, tier: index });
         if (prize.kind !== 'card') sfx('achievement'); // a card gets the reveal's own stamp and sting
+        void get().save();
+      },
+      claimEventMission(id) {
+        const ev = get().state.event;
+        const r = claimEventMissionEngine(get().state, id);
+        if (!ev || !r.amount) return;
+        apply(r.state, { pendingPrize: { kind: 'eventVouchers', pool: eventPool(ev.key), amount: r.amount } });
+        track('event_mission_claimed', { mission: id });
+        sfx('achievement');
+        void get().save();
+      },
+      claimLogin() {
+        const r = claimLoginEngine(get().state);
+        if (!r.reward) return;
+        const { type, amount } = r.reward;
+        apply(r.state, { pendingPrize: type === 'eventVouchers' ? { kind: 'eventVouchers', pool: 'weekly', amount } : { kind: type, amount } });
+        track('login_claimed', { day: get().state.login.day || 7 });
+        sfx('achievement');
         void get().save();
       },
       pullEvent(count) {
@@ -1528,6 +1569,10 @@ export function createGameStore(deps: StoreDeps) {
         if (get().purchasePending) return 'error';
         // Eligibility is decided before the player is charged, never after.
         if (id === 'starter_pack' && !starterPackEligible(get().state, clock.wall())) return 'error';
+        if (id === 'weekly_pass' || id === 'holiday_pass') {
+          const ev = get().state.event;
+          if (!ev || ev.pass || eventPool(ev.key) !== (id === 'weekly_pass' ? 'weekly' : 'special')) return 'error';
+        }
         set({ purchasePending: id });
         let result: PurchaseResult;
         try {

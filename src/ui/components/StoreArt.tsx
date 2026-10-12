@@ -16,6 +16,18 @@ function Ticket({ x, y, rotate = 0, fill = 'var(--surface-2)' }: { x: number; y:
   );
 }
 
+/** An Event Pass: a lanyard badge in the event's voucher colour, with a brass star. */
+function PassArt({ fill }: { fill: string }) {
+  return (
+    <>
+      <path d="M24 6 L32 18 L40 6" fill="none" stroke={OUTLINE} strokeWidth={SW} strokeLinecap="round" />
+      <rect x={14} y={16} width={36} height={42} rx={4} fill={fill} stroke={OUTLINE} strokeWidth={SW} />
+      <path d="M32 26 l3.5 7 7.5 1 -5.5 5 1.5 7.5 -7 -3.8 -7 3.8 1.5 -7.5 -5.5 -5 7.5 -1 z" fill="var(--brass)" stroke={OUTLINE} strokeWidth={2} strokeLinejoin="round" />
+      <rect x={20} y={49} width={24} height={4} rx={2} fill="var(--surface)" stroke={OUTLINE} strokeWidth={1.5} />
+    </>
+  );
+}
+
 const WK = '#7FD6CC';
 const HD = '#C9B3F2';
 const ART: Record<ProductId, ReactElement> = {
@@ -25,6 +37,8 @@ const ART: Record<ProductId, ReactElement> = {
   holiday_vouchers_200: <><Ticket x={26} y={36} rotate={-12} fill={HD} /><Ticket x={38} y={30} rotate={10} fill={HD} /></>,
   holiday_vouchers_1200: <><Ticket x={22} y={34} rotate={-8} fill={HD} /><Ticket x={32} y={30} fill={HD} /><Ticket x={42} y={34} rotate={8} fill={HD} /></>,
   holiday_bundle: <><Ticket x={24} y={36} rotate={-10} fill={HD} /><Ticket x={40} y={30} rotate={8} /></>,
+  weekly_pass: <PassArt fill={WK} />,
+  holiday_pass: <PassArt fill={HD} />,
   vouchers_10: <Ticket x={32} y={32} />,
   vouchers_55: (
     <>

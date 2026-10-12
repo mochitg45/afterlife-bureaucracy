@@ -9,6 +9,7 @@ export interface Notifications {
 }
 export const NOTIF_INTRAY = 1;
 export const NOTIF_DAILY = 2;
+export const NOTIF_EVENT = 3;
 
 export const noopNotifications: Notifications = {
   async requestPermission() { return false; },

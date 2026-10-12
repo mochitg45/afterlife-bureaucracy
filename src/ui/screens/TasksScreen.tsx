@@ -5,12 +5,14 @@ import Decimal from 'break_infinity.js';
 import { upgradeLevelsLeft, progressOf, isDone, dailyVoucherReward, AD_SKIP_VOUCHERS, DAILY_KC_MIN, DAILY_KC_SECONDS, type DailyProgressView } from '../../engine/dailies';
 import { formatNumber } from '../../engine/format';
 import { t } from '../../i18n';
-import { KarmaIcon, VoucherIcon } from '../icons/Currency';
+import { KarmaIcon, VoucherIcon, SealIcon, EventVoucherIcon } from '../icons/Currency';
 import type { DailyDef } from '../../engine/content';
 import { Badge } from '../components/Badge';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
 import { InviteSheet } from '../overlays/InviteSheet';
+import { PrizePopup } from './EventScreen';
+import { LOGIN_REWARDS, loginClaimable } from '../../engine/login';
 
 function fillText(def: DailyDef): string {
   return def.text.replace('{n}', String(def.target));
@@ -102,6 +104,36 @@ const AchievementGrid = memo(function AchievementGrid({ unlocked, expanded }: { 
 
 const ACHIEVEMENTS_COLLAPSED = 4;
 
+/** The 7-day check-in strip: one cell a day, collected here. */
+function CheckIn() {
+  const login = useGame((s) => s.state.login);
+  const ready = useGame((s) => loginClaimable(s.state));
+  const claim = useGame((s) => s.claimLogin);
+  return (
+    <div className="card" data-testid="check-in">
+      <h3>{t('login.title')}</h3>
+      <div className="login-strip">
+        {LOGIN_REWARDS.map((r, i) => {
+          // Cells before `day` are this week's collected ones; the one at `day` is next.
+          const cls = i < login.day ? ' done' : i === login.day && ready ? ' today' : '';
+          return (
+            <div key={i} className={'login-cell' + cls}>
+              <span className="mono">{t('login.day', { n: i + 1 })}</span>
+              {r.type === 'vouchers' ? <VoucherIcon size={18} /> : r.type === 'seals' ? <SealIcon size={18} /> : <EventVoucherIcon pool="weekly" size={18} />}
+              <span className="mono amt">{r.amount}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="modal-actions">
+        {ready
+          ? <button className="btn btn-primary" onClick={claim}>{t('login.claim')}</button>
+          : <span className="mono claimed-label">{t('login.comeBack')}</span>}
+      </div>
+    </div>
+  );
+}
+
 export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
   // Three narrow subscriptions rather than the whole GameState: a tick changes kc and souls
   // on every fire, and none of this screen depends on either.
@@ -132,6 +164,8 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
         </div>
       )}
       <InviteSheet open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <CheckIn />
+      <PrizePopup title={t('login.prizeTitle')} />
       <div className="card" data-coach="tasks">
         <h3>{t('tasks.daily')}</h3>
         <p className="sub">{t('tasks.streak', { streak, best: bestStreak })}</p>

@@ -75,3 +75,10 @@ button.event-card { font: inherit; color: inherit; cursor: pointer; width: 100%;
 .event-wallet-add { min-width: 44px; font-size: 22px; line-height: 1; padding: 6px 12px; }
 .event-shop-row { display: flex; align-items: center; gap: 10px; }
 .event-shop-text { flex: 1; display: flex; flex-direction: column; gap: 2px; font-weight: 700; }
+
+.event-premium { display: block; }
+.event-premium:not(.on) { opacity: .55; }
+.event-pass { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; margin-bottom: 8px; }
+.event-pass.active { border-color: var(--brass); }
+.event-pass-text { display: flex; flex-direction: column; gap: 2px; }
+.event-pass-result { grid-column: 1 / -1; margin: 0; }

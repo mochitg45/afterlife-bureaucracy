@@ -5,6 +5,7 @@ import type { Content } from './content';
 // id union here costs nothing and keeps one source of truth for the store ids.
 import type { ProductId } from '../platform/billing';
 import { grantVouchersExact } from './vouchers';
+import { buyEventPass } from './events';
 
 /** Union Membership: +25% on everything the office earns, for as long as it runs. */
 export const UNION_GLOBAL_MULT = 1.25;
@@ -97,6 +98,10 @@ export function applyPurchase(
     return { ...withVouchers, eventVouchers: { ...withVouchers.eventVouchers, [eventPack.pool]: withVouchers.eventVouchers[eventPack.pool] + eventPack.amount } };
   }
   switch (id) {
+    case 'weekly_pass':
+      return buyEventPass(next, content, 'weekly');
+    case 'holiday_pass':
+      return buyEventPass(next, content, 'special');
     case 'remove_ads':
       return { ...next, entitlements: { ...next.entitlements, removeAds: true } };
     case 'union_monthly':

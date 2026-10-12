@@ -6,7 +6,7 @@ import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import type { EventTier, StaffDef } from '../../engine/content';
-import { upcomingEvents, eventRate, eventTap, eventPool, EVENT_UNLOCK_HIRES, type EventOccurrence } from '../../engine/events';
+import { upcomingEvents, eventRate, eventTap, eventPool, EVENT_UNLOCK_HIRES, EVENT_MISSIONS, PASS_PREMIUM_MULT, missionDay, missionProgress, type EventOccurrence } from '../../engine/events';
 import { staffBulkCost, maxAffordable, canAfford } from '../../engine/economy';
 import { ODDS, PULL_COST, TEN_PULL_COST, MAX_STARS } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
@@ -27,7 +27,7 @@ import './EventScreen.css';
 import { t, fmtDate } from '../../i18n';
 
 const MODES: BuyMode[] = [1, 10, 'max'];
-type EventTab = 'staff' | 'rewards' | 'gacha';
+type EventTab = 'staff' | 'missions' | 'rewards' | 'gacha';
 type Info = { kind: 'staff'; staff: StaffDef } | { kind: 'card'; id: string };
 const RARITIES = ['temp', 'fulltime', 'senior', 'executive'] as const;
 const ZERO = new Decimal(0);
@@ -253,13 +253,82 @@ export function RankPrizePopup() {
   );
 }
 
+/** What the Event Pass row adds to a tier: PASS_PREMIUM_MULT times its amount, or a second copy of its card. */
+function PremiumLabel({ tier, pool, active }: { tier: EventTier; pool: EventPool; active: boolean }) {
+  const r = tier.reward;
+  return (
+    <span className={'mono sub event-premium' + (active ? ' on' : '')}>
+      {t('pass.row')}{' '}
+      {r.type === 'card' ? t('pass.extraCard')
+        : <span className="amt">+{r.amount * PASS_PREMIUM_MULT} {r.type === 'eventVouchers' ? <EventVoucherIcon pool={pool} /> : r.type === 'vouchers' ? <VoucherIcon /> : <SealIcon />}</span>}
+    </span>
+  );
+}
+
+const PASS_ID: Record<EventPool, ProductId> = { weekly: 'weekly_pass', special: 'holiday_pass' };
+
+/** Buy the Event Pass for this run, or see that it is on. */
+function PassCard({ pool }: { pool: EventPool }) {
+  const active = useGame((s) => !!s.state.event?.pass);
+  const product = useGame((s) => s.products.find((p) => p.id === PASS_ID[pool]));
+  const buy = useGame((s) => s.buy);
+  const pending = useGame((s) => s.purchasePending);
+  const [result, setResult] = useState<PurchaseResult | null>(null);
+  if (!active && !product) return null;
+  return (
+    <div className={'card event-pass' + (active ? ' active' : '')}>
+      <StoreArt productId={PASS_ID[pool]} size={48} />
+      <div className="event-pass-text">
+        <span className="label">{t('pass.title')}</span>
+        <span className="sub">{t(active ? 'pass.active' : 'pass.desc', { n: PASS_PREMIUM_MULT + 1 })}</span>
+      </div>
+      {!active && product && (
+        <button className="btn btn-primary" disabled={pending !== null} onClick={() => void buy(product.id).then(setResult)} aria-label={t('store.buy', { title: product.title })}>{product.price}</button>
+      )}
+      {result && result !== 'ok' && <p className="sub event-pass-result" role="status">{t(result === 'cancelled' ? 'store.resultCancelled' : 'store.resultError')}</p>}
+    </div>
+  );
+}
+
+/** Today's three event missions, paid in this event's vouchers. */
+function Missions({ occ }: { occ: EventOccurrence }) {
+  const pool = eventPool(occ);
+  const view = useGame((s) => ({ event: s.state.event, dailies: s.state.dailies }), (a, b) => a.event === b.event && a.dailies === b.dailies);
+  const claim = useGame((s) => s.claimEventMission);
+  const claimed = missionDay(view).claimed;
+  return (
+    <>
+      <div className="section-head"><h3>{t('mission.title')}</h3></div>
+      <p className="sub">{t('mission.note')}</p>
+      {EVENT_MISSIONS.map((m) => {
+        const progress = Math.min(m.target, missionProgress(view, m.id));
+        const done = claimed.includes(m.id);
+        const text = t(`mission.${m.id}`, { n: m.target });
+        return (
+          <div key={m.id} className={'card event-tier' + (done ? ' claimed' : '')} data-testid={`mission-${m.id}`}>
+            <div>
+              <span>{text}</span>
+              <div className="mono sub">{progress} / {m.target} · <span className="amt">+{m.reward} <EventVoucherIcon pool={pool} /></span></div>
+            </div>
+            {done ? <span className="mono sub">{t('event.claimed')}</span>
+              : <button className="btn btn-primary" disabled={progress < m.target} onClick={() => claim(m.id)} aria-label={t('mission.claimAria', { text })}>{t('event.claim')}</button>}
+            <div className="bar"><div className="bar-fill" style={{ width: (progress / m.target) * 100 + '%' }} /></div>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 function Track({ occ }: { occ: EventOccurrence }) {
   const earned = useGame((s) => s.state.event?.earned ?? ZERO, (a, b) => a.eq(b));
   const claimed = useGame((s) => s.state.event?.claimed);
+  const pass = useGame((s) => !!s.state.event?.pass);
   const claim = useGame((s) => s.claimEventTier);
   return (
     <>
       <div className="section-head"><h3>{t('event.rewardTrack')}</h3></div>
+      <PassCard pool={eventPool(occ)} />
       {occ.track.map((tier, i) => {
         const done = claimed?.includes(i) ?? false;
         const reached = earned.gte(tier.at);
@@ -268,6 +337,7 @@ function Track({ occ }: { occ: EventOccurrence }) {
           <div key={i} className={'card event-tier' + (done ? ' claimed' : '')} data-testid={`tier-${i}`}>
             <div>
               <RewardLabel tier={tier} pool={eventPool(occ)} />
+              <PremiumLabel tier={tier} pool={eventPool(occ)} active={pass} />
               <div className="mono sub">{formatNumber(reached ? new Decimal(tier.at) : earned)} / {formatNumber(new Decimal(tier.at))}</div>
             </div>
             {done ? <span className="mono sub">{t('event.claimed')}</span>
@@ -282,7 +352,7 @@ function Track({ occ }: { occ: EventOccurrence }) {
 }
 
 /** A claimed voucher or seal tier: the prize, big, until the player collects it. */
-function PrizePopup() {
+export function PrizePopup({ title = t('event.prizeTitle') }: { title?: string }) {
   const prize = useGame((s) => s.pendingPrize);
   const dismiss = useGame((s) => s.dismissPrize);
   if (!prize) return null;
@@ -290,7 +360,7 @@ function PrizePopup() {
     : prize.kind === 'vouchers' ? <VoucherIcon size={64} /> : <SealIcon size={64} />;
   const label = prize.kind === 'eventVouchers' ? t(`eventVoucher.${prize.pool}`) : t(prize.kind === 'vouchers' ? 'event.vouchers' : 'event.seals');
   return (
-    <Modal open title={t('event.prizeTitle')} className="event-prize" onClose={dismiss}>
+    <Modal open title={title} className="event-prize" onClose={dismiss}>
       <div className="event-prize-body">
         <span className="event-prize-icon" aria-hidden="true">{icon}</span>
         <span className="event-prize-amt mono">+{prize.amount}</span>
@@ -475,7 +545,8 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const tap = eventTap(state, content, occ);
   const upcoming = upcomingEvents(content, now, 4);
   const ready = occ.track.filter((t, i) => ev.earned.gte(t.at) && !ev.claimed.includes(i)).length;
-  const tabs: [EventTab, string][] = [['staff', t('event.tabStaff')], ['rewards', t('event.tabRewards')], ...(occ.banner ? [['gacha', t('event.tabGacha')] as [EventTab, string]] : [])];
+  const missionsReady = EVENT_MISSIONS.filter((m) => !missionDay(state).claimed.includes(m.id) && missionProgress(state, m.id) >= m.target).length;
+  const tabs: [EventTab, string][] = [['staff', t('event.tabStaff')], ['missions', t('mission.tab')], ['rewards', t('event.tabRewards')], ...(occ.banner ? [['gacha', t('event.tabGacha')] as [EventTab, string]] : [])];
   return (
     <section className="screen event-screen" style={{ '--accent': occ.accent } as CSSProperties}>
       <header className="screen-header">
@@ -496,6 +567,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} className={'event-tab' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
             {label}{id === 'rewards' && ready > 0 && <span className="event-tab-badge mono">{ready}</span>}
+            {id === 'missions' && missionsReady > 0 && <span className="event-tab-badge mono">{missionsReady}</span>}
           </button>
         ))}
       </div>
@@ -512,6 +584,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
           {occ.staff.map((s) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} onInfo={() => setInfo({ kind: 'staff', staff: s })} />)}
         </>
       )}
+      {tab === 'missions' && <Missions occ={occ} />}
       {tab === 'rewards' && (
         <>
           {leaderboard && <button className="btn event-board" onClick={() => void openBoard()}>{t('event.leaderboard', { name: occ.name })}</button>}
