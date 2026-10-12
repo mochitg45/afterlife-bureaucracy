@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { createSign } from 'node:crypto';
 
 const [keyFile, pkg, aab, versionCode] = process.argv.slice(2);
+const versionName = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 const key = JSON.parse(readFileSync(keyFile, 'utf8'));
 const b64 = (o) => Buffer.from(typeof o === 'string' ? o : JSON.stringify(o)).toString('base64url');
 const now = Math.floor(Date.now() / 1000);
@@ -36,10 +37,10 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: 'Fixed weekly event cards showing a blank ghost. New card flips with rarity spotlights, event ranking prizes for 1st, 2nd and 3rd, achievement and event prize popups, event cards that work without equip slots, and automatic updates to the latest version.' },
+  { language: 'en-US', text: 'New: Event Vouchers that carry over to the next event, daily event missions, the Event Pass (3x track rewards), a 7-day check-in calendar, and reminders before an event ends.' },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
-  track: 'production', releases: [{ name: `1.1.5 (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
+  track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
 }), { 'content-type': 'application/json' });
 console.log('production track set');
 const done = await call('POST', `${base}/edits/${edit.id}:commit`);
