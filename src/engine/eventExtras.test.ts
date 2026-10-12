@@ -1,6 +1,6 @@
 import Decimal from 'break_infinity.js';
 import { describe, expect, it } from 'vitest';
-import { createInitialState, serialize, deserialize } from './state';
+import { createInitialState, serialize, deserialize, type GameState } from './state';
 import { content } from '../data';
 import { activeEvent, buyEventPass, claimEventMission, claimEventTierPrize, missionProgress, stampEvent, syncEvent, PASS_FALLBACK_EVENT_VOUCHERS } from './events';
 import { claimLogin, loginClaimable, LOGIN_REWARDS } from './login';
@@ -8,7 +8,7 @@ import { applyPurchase } from './entitlements';
 
 const NOW = Date.parse('2026-10-25T12:00:00Z'); // inside Halloween
 const occ = activeEvent(content, NOW)!;
-function inEvent(patch = {}) {
+function inEvent(patch = {}): GameState {
   const s = createInitialState({ wall: 0, mono: 0 }, content);
   return { ...s, dailies: { ...s.dailies, date: '2026-10-25' }, event: { key: occ.key, points: new Decimal(0), earned: new Decimal('1e20'), staff: {}, claimed: [], ...patch } };
 }

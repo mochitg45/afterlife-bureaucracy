@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: 'New: Event Vouchers that carry over to the next event, daily event missions, the Event Pass (3x track rewards), a 7-day check-in calendar, and reminders before an event ends.' },
+  { language: 'en-US', text: 'Fixed achievements and leaderboard scores not reaching Google Play Games for players who were already signed in. Your progress now syncs every time you open the game.' },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],

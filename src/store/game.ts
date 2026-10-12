@@ -516,6 +516,19 @@ export function createGameStore(deps: StoreDeps) {
       gameServices.submitScore(board, lifetimeSoulsScore(soulsLifetime)).catch(() => {});
     };
 
+    /**
+     * Brings Play Games up to date after a sign-in: every unlocked achievement (Play ignores
+     * repeats) and both leaderboards. Without it a returning player's progress only reached
+     * Play Games in a session where they had tapped sign-in by hand.
+     */
+    const syncGameServices = async () => {
+      if (!(await gameServices.signIn().catch(() => false))) return;
+      const s = get().state;
+      mirrorAchievements(content.achievements.filter((a) => s.achievements.includes(a.id)));
+      submitLifetimeScore(s.soulsLifetime);
+      submitEventScore();
+    };
+
     /** The running event's board gets this occurrence's total earned; Play Games keeps the best. */
     const submitEventScore = () => {
       const occ = get().activeEvent();
@@ -1132,7 +1145,10 @@ export function createGameStore(deps: StoreDeps) {
               set((cur) => ({ cloud: { ...cur.cloud, available } }));
               if (!available) return;
               try {
-                if (await cloudSave.isSignedIn()) await get().syncCloud('boot');
+                if (await cloudSave.isSignedIn()) {
+                  await get().syncCloud('boot');
+                  void syncGameServices();
+                }
                 else set((cur) => ({ cloud: { ...cur.cloud, signedIn: false } }));
               } catch {
                 /* no cloud, no sync: the local save is the save */
@@ -1691,14 +1707,10 @@ export function createGameStore(deps: StoreDeps) {
         }
         if (result !== 'ok') return result;
         set((cur) => ({ cloud: { ...cur.cloud, signedIn: true } }));
+        await get().syncCloud('signin');
         // Both sit on the same Play Games client, so this costs no second prompt; it is what
         // lets achievements and the leaderboard mirror for a player who signed in for saves.
-        try {
-          await gameServices.signIn();
-        } catch {
-          /* achievements are cosmetic; the cloud sign-in stands either way */
-        }
-        await get().syncCloud('signin');
+        await syncGameServices();
         return 'ok';
       },
 
