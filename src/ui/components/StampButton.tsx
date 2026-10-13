@@ -3,6 +3,7 @@ import { useGame } from '../../store/game';
 import type { GameState } from '../../engine/state';
 import { formatNumber } from '../../engine/format';
 import { t } from '../../i18n';
+import { LivingOffice } from './LivingOffice';
 
 interface Float { id: number; x: number; text: string }
 
@@ -78,6 +79,7 @@ export function StampButton() {
           {fx.glows.map(([x, y, size], i) => <span key={'g' + i} className="fx-lamp" style={{ left: `${x}%`, top: `${y}%`, width: `${size}%`, animationDelay: `${i * -1.3}s` }} />)}
           {PARTICLES.map(([x, delay, dur], i) => <span key={'p' + i} className="fx-dot" style={{ left: `${x}%`, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />)}
         </div>
+        <LivingOffice dept={activeDept} />
         {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>{f.text}</span>)}
         <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label={t('stamp.aria')} data-coach="stamp">
           <StampSeal />

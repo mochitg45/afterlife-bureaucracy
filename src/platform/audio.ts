@@ -11,10 +11,11 @@ import { THEMES, themeFor, type MusicTheme, type PercKind } from './musicThemes'
 export type SfxName =
   | 'stamp' | 'hire' | 'upgrade' | 'pull'
   | 'reveal-temp' | 'reveal-fulltime' | 'reveal-senior' | 'reveal-executive'
-  | 'equip' | 'achievement' | 'audit' | 'report';
+  | 'equip' | 'achievement' | 'audit' | 'report' | 'combo' | 'golden' | 'milestone';
 
 export interface Audio {
-  play(name: SfxName): void;
+  /** `pitch` scales the pitched sounds (the stamp combo climbs with it); 1 is as recorded. */
+  play(name: SfxName, pitch?: number): void;
   setEnabled(flags: { sfx: boolean; music: boolean }): void;
   /** Swap the background music to an event's theme (null = the office loop), crossfading over ~1 s. */
   setMusicTheme(id: string | null): void;
@@ -116,7 +117,7 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
     src.stop(t + dur + 0.02);
   };
 
-  const RECIPES: Record<SfxName, (out: AudioNode) => void> = {
+  const RECIPES: Record<SfxName, (out: AudioNode, pitch: number) => void> = {
     // Rubber stamp: a low thud with a paper slap on top.
     stamp: (o) => { noise(o, 0.06, { cutoff: 900, gain: 0.7 }); tone(o, 110, 0.12, { to: 45, gain: 0.8 }); },
     // Cash-drawer ding: two rising tones.
@@ -134,6 +135,12 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
     // Ledger slammed shut, then a gong.
     audit: (o) => { noise(o, 0.12, { cutoff: 500, gain: 0.9 }); tone(o, 80, 0.3, { to: 40, gain: 0.9 }); tone(o, 196, 1.2, { type: 'sine', gain: 0.35, at: 0.15 }); },
     // Paper shuffle for the backlog report.
+    // Stamp combo: a short blip that climbs with the combo.
+    combo: (o, p) => { tone(o, 660 * p, 0.07, { type: 'triangle', gain: 0.18 }); },
+    // Golden stamp: a bright coin shower.
+    golden: (o) => { [1319, 1568, 1976, 2637].forEach((f, i) => tone(o, f, 0.18, { type: 'sine', gain: 0.28, at: i * 0.05 })); tone(o, 110, 0.14, { to: 45, gain: 0.8 }); },
+    // Milestone banner: a short fanfare.
+    milestone: (o) => { [523, 659, 784, 1047].forEach((f, i) => tone(o, f, 0.25, { type: 'square', gain: 0.12, at: i * 0.11 })); tone(o, 1047, 0.7, { type: 'triangle', gain: 0.3, at: 0.44 }); },
     report: (o) => { noise(o, 0.12, { type: 'bandpass', cutoff: 1800, gain: 0.4 }); noise(o, 0.14, { type: 'bandpass', cutoff: 2200, gain: 0.35, at: 0.12 }); },
   };
 
@@ -323,12 +330,12 @@ export function createAudio(ctxFactory?: () => AudioContext | null): Audio {
   };
 
   return {
-    play(name) {
+    play(name, pitch = 1) {
       if (!unlocked || !sfxOn) return;
       const c = ensure();
       if (!c || !master) return;
       wake(c);
-      try { RECIPES[name](master); } catch { /* a dead context is silence, not a crash */ }
+      try { RECIPES[name](master, pitch); } catch { /* a dead context is silence, not a crash */ }
     },
     setEnabled({ sfx, music: m }) {
       sfxOn = sfx;
