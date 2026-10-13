@@ -231,7 +231,7 @@ export function grantEventVouchers(state: GameState, pool: EventPool, amount: nu
 }
 
 /** Banks a card the way a pull does: a new card is ★1, a duplicate adds a shard. */
-function bankEventCard(state: GameState, content: Content, cardId: string): { state: GameState; result: PullResult } {
+export function bankEventCard(state: GameState, content: Content, cardId: string): { state: GameState; result: PullResult } {
   const cards = { ...state.cards };
   const cardShards = { ...state.cardShards };
   const cardSpares = { ...state.cardSpares };

@@ -108,7 +108,7 @@ describe('retention store', () => {
     expect(store.getState().state.settings.notifOptIn).toBe('yes');
     staffUp();
     await store.getState().pause();
-    expect(calls).toContain('schedule:1,2');
+    expect(calls).toContain('schedule:1,2,4,5');
     await store.getState().resume();
     expect(calls.filter((c) => c === 'cancel').length).toBeGreaterThan(0);
     store.getState().stopLoop();
@@ -122,7 +122,7 @@ describe('retention store', () => {
     staffUp();
     await store.getState().pause();
     const scheduled = calls.filter((c) => c.startsWith('schedule:'));
-    expect(scheduled).toEqual(['schedule:1,2', 'schedule:2']);
+    expect(scheduled).toEqual(['schedule:1,2,4,5', 'schedule:2,4,5']);
     expect(store.getState().state.settings.notifsSent).toBe(1);
     // A new local day refills the budget.
     await store.getState().resume();
@@ -130,7 +130,7 @@ describe('retention store', () => {
     staffUp();
     await store.getState().pause();
     const afterMidnight = calls.filter((c) => c.startsWith('schedule:'));
-    expect(afterMidnight[afterMidnight.length - 1]).toBe('schedule:1,2');
+    expect(afterMidnight[afterMidnight.length - 1]).toBe('schedule:1,2,4,5');
     expect(store.getState().state.settings.notifsSent).toBe(1);
     store.getState().stopLoop();
   });
@@ -138,7 +138,7 @@ describe('retention store', () => {
     const { store, calls } = await make();
     await store.getState().setNotifOptIn('yes');
     await store.getState().pause();
-    expect(calls.filter((c) => c.startsWith('schedule:'))).toEqual(['schedule:2']);
+    expect(calls.filter((c) => c.startsWith('schedule:'))).toEqual(['schedule:2,4,5']);
     expect(store.getState().state.settings.notifsSent).toBe(0);
     store.getState().stopLoop();
   });

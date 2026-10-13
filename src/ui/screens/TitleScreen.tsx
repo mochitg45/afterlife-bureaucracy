@@ -3,6 +3,7 @@ import { useGame } from '../../store/game';
 import { StampSeal } from '../components/StampButton';
 import { APP_VERSION, PRIVACY_URL } from '../../version';
 import { t } from '../../i18n';
+import { track } from '../../platform/analytics';
 import { LanguagePicker } from '../components/LanguagePicker';
 
 /**
@@ -80,12 +81,12 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
         <p className="sub title-status" role="status" aria-live="polite">{status}</p>
         <div className="title-actions">
           {showSignIn && (
-            <button className="btn btn-google" disabled={busy} onClick={() => void onSignIn()}>
+            <button className="btn btn-google" disabled={busy} onClick={() => { track('onboarding_step', { step: 'title_sign_in' }); void onSignIn(); }}>
               <GoogleG />
               <span>{t('title.signIn')}</span>
             </button>
           )}
-          <button className={'btn' + (showSignIn ? '' : ' btn-primary')} onClick={onEnter}>
+          <button className={'btn' + (showSignIn ? '' : ' btn-primary')} onClick={() => { track('onboarding_step', { step: showSignIn ? 'title_guest' : 'title_clock_in' }); onEnter(); }}>
             {showSignIn ? t('title.guest') : t('title.clockIn')}
           </button>
         </div>

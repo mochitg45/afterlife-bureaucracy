@@ -13,6 +13,10 @@ import { AdButton } from '../components/AdButton';
 import { InviteSheet } from '../overlays/InviteSheet';
 import { PrizePopup } from './EventScreen';
 import { LOGIN_REWARDS, loginClaimable } from '../../engine/login';
+import { BEGINNER_DAYS, beginnerActive, beginnerDay, beginnerProgress, beginnerClaimable, type BeginnerReward, type BeginnerView } from '../../engine/retention';
+import { findCard } from '../../engine/content';
+import { Character } from '../characters/Character';
+import { RARITY_LABEL } from '../components/CardTile';
 
 function fillText(def: DailyDef): string {
   return def.text.replace('{n}', String(def.target));
@@ -104,6 +108,54 @@ const AchievementGrid = memo(function AchievementGrid({ unlocked, expanded }: { 
 
 const ACHIEVEMENTS_COLLAPSED = 4;
 
+function BeginnerPrize({ reward }: { reward: BeginnerReward }) {
+  if (reward.type === 'card') {
+    const card = findCard(content, reward.card);
+    return <span className="amt beginner-prize"><Character id="soul" art={card.id} mood="ok" size={22} /> {card.name} ({RARITY_LABEL[card.rarity]})</span>;
+  }
+  return <span className="amt beginner-prize">+{reward.amount} {reward.type === 'vouchers' ? <VoucherIcon size={14} /> : <SealIcon size={14} />}</span>;
+}
+
+/** Beginner Week: a new player's first seven days, one goal and one prize unlocking each day. */
+function BeginnerWeek() {
+  // Narrow slices, never the whole state: kc and souls change every tick and none of this reads them.
+  const firstSeenWallClock = useGame((s) => s.state.firstSeenWallClock);
+  const dailies = useGame((s) => s.state.dailies);
+  const beginner = useGame((s) => s.state.beginner);
+  const stats = useGame((s) => s.state.stats);
+  const deptsUnlocked = useGame((s) => s.state.deptsUnlocked);
+  const claim = useGame((s) => s.claimBeginner);
+  const state: BeginnerView = { firstSeenWallClock, dailies, beginner, stats, deptsUnlocked };
+  if (!beginnerActive(state)) return null;
+  const today = beginnerDay(state);
+  const next = BEGINNER_DAYS.find((d) => d.day === today + 1);
+  return (
+    <div className="card beginner" data-testid="beginner-week">
+      <h3>{t('beginner.title')}</h3>
+      <p className="sub">{t('beginner.note')}</p>
+      {BEGINNER_DAYS.map((d) => {
+        const done = state.beginner.claimed.includes(d.day);
+        const locked = d.day > today;
+        const progress = Math.min(d.target, beginnerProgress(state, d.goal));
+        return (
+          <div key={d.day} className={'beginner-row' + (done ? ' done' : '') + (locked ? ' locked' : '')}>
+            <span className="mono beginner-day">{t('login.day', { n: d.day })}</span>
+            <span className="beginner-goal">
+              {locked ? t('beginner.locked') : t(`beginner.goal.${d.goal}`, { n: d.target.toLocaleString('en-US') })}
+              {!locked && !done && <span className="mono sub"> {progress.toLocaleString('en-US')}/{d.target.toLocaleString('en-US')}</span>}
+            </span>
+            <BeginnerPrize reward={d.reward} />
+            {done ? <span className="mono sub">{t('event.claimed')}</span>
+              : locked ? <span className="mono sub" aria-label={t('beginner.locked')}>🔒</span>
+              : <button className="btn btn-primary" disabled={!beginnerClaimable(state, d)} onClick={() => claim(d.day)}>{t('event.claim')}</button>}
+          </div>
+        );
+      })}
+      {next && <p className="beginner-tomorrow">{t('beginner.tomorrow')} <BeginnerPrize reward={next.reward} /></p>}
+    </div>
+  );
+}
+
 /** The 7-day check-in strip: one cell a day, collected here. */
 function CheckIn() {
   const login = useGame((s) => s.state.login);
@@ -164,6 +216,7 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
         </div>
       )}
       <InviteSheet open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <BeginnerWeek />
       <CheckIn />
       <PrizePopup title={t('login.prizeTitle')} />
       <div className="card" data-coach="tasks">

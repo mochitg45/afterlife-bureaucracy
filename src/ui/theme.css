@@ -632,3 +632,13 @@ label.settings-row { cursor: pointer; }
 
 .leaderboard-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .leaderboard-row .btn { width: 100%; }
+
+.beginner { border-color: var(--brass); }
+.beginner-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 10px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--line, rgba(0,0,0,.15)); }
+.beginner-row.done, .beginner-row.locked { opacity: .55; }
+.beginner-day { font-size: 12px; white-space: nowrap; }
+.beginner-goal { font-size: 14px; }
+.beginner-prize { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+.beginner-row .btn { padding: 6px 12px; min-height: 0; }
+.beginner-tomorrow { margin: 10px 0 0; font-weight: 700; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.backlog-welcome { margin: 4px 0 8px; padding: 10px 12px; border-radius: 10px; background: var(--brass); color: var(--ink); font-weight: 700; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

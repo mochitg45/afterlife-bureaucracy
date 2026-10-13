@@ -229,6 +229,8 @@ export interface GameState {
   rankPending: RankPending[];
   referral: ReferralState;
   login: LoginState;
+  /** Beginner Week: the days (1-7) already claimed. */
+  beginner: { claimed: number[] };
 }
 
 export interface Now { wall: number; mono: number }
@@ -302,6 +304,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     event: null,
     rankPending: [],
     login: { day: 0, lastDate: '' },
+    beginner: { claimed: [] },
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -728,6 +731,7 @@ export function deserialize(json: string, content: Content): GameState {
     event: sanitizeEvent(raw.event),
     rankPending: sanitizeRankPending(raw.rankPending),
     login: sanitizeLogin(raw.login),
+    beginner: { claimed: Array.isArray((raw.beginner as { claimed?: unknown } | undefined)?.claimed) ? [...new Set(((raw.beginner as { claimed: unknown[] }).claimed).filter((d): d is number => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= 7))] : [] },
     referral: sanitizeReferral(raw.referral),
   }, content);
 }

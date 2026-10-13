@@ -1,3 +1,4 @@
+import { track } from '../../platform/analytics';
 import { t } from '../../i18n';
 import { useRef, useState } from 'react';
 import { useGame } from '../../store/game';
@@ -30,6 +31,8 @@ export function Intro() {
     const now = Date.now();
     if (now - lastAdvance.current < TAP_GUARD_MS) return;
     lastAdvance.current = now;
+    // One event per memo read: where new players stop is the question these answer.
+    track('onboarding_step', { step: `intro_${at + 1}` });
     last ? markMemosSeen() : setIndex(at + 1);
   };
   // Everything before the em dash is the form number, set in the typewriter face above the line.
@@ -39,7 +42,7 @@ export function Intro() {
     <div className="intro" role="dialog" aria-label={t('intro.label')} onClick={advance}>
       <button
         className="btn btn-ghost intro-skip"
-        onClick={(e) => { e.stopPropagation(); markMemosSeen(); }}
+        onClick={(e) => { e.stopPropagation(); track('onboarding_step', { step: `intro_skip_${at + 1}` }); markMemosSeen(); }}
       >
         {t('intro.skip')}
       </button>

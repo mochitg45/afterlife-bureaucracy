@@ -3,7 +3,7 @@ import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
 import { Modal } from '../components/Modal';
 import { useWatchAd } from '../hooks/useWatchAd';
-import { KarmaIcon } from '../icons/Currency';
+import { KarmaIcon, VoucherIcon } from '../icons/Currency';
 
 function fmtDuration(sec: number): string {
   const h = Math.floor(sec / 3600);
@@ -21,6 +21,11 @@ export function BacklogReport() {
     <Modal open title={t('backlog.title')}>
       <p className="sub">{t('backlog.away', { duration: fmtDuration(pending.creditedSec) })}</p>
       {pending.capped && <p className="sub warn">{t('backlog.capped')}</p>}
+      {pending.welcome && (
+        <p className="backlog-welcome" role="status">
+          {t('backlog.welcome', { days: pending.welcome.days })} +{pending.welcome.vouchers} <VoucherIcon size={16} /> {t('backlog.welcomeBoost')}
+        </p>
+      )}
       <div className="report-grid">
         <div><div className="label">{t('backlog.souls')}</div><div className="mono value">{formatNumber(pending.souls)}</div></div>
         <div><div className="label">{t('backlog.kc')}</div><div className="mono value brass amt">{formatNumber(pending.kc)} <KarmaIcon size={20} /></div></div>

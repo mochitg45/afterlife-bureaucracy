@@ -10,12 +10,13 @@ import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/
 import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
-import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, NOTIF_EVENT, type Notifications } from '../platform/notifications';
+import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, NOTIF_EVENT, NOTIF_AWAY3, NOTIF_AWAY7, type Notifications } from '../platform/notifications';
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { checkStory } from '../engine/story';
 import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTierPrize, claimEventMission as claimEventMissionEngine, eventPool, eventUnlocked, upcomingEvents, type EventMissionId, type EventOccurrence, type EventPrize } from '../engine/events';
 import { claimLogin as claimLoginEngine } from '../engine/login';
+import { welcomeBack, COMEBACK_VOUCHERS, claimBeginner as claimBeginnerEngine, beginnerActive, beginnerDay, BEGINNER_DAYS } from '../engine/retention';
 import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { upgradePerk as upgradePerkEngine } from '../engine/perks';
@@ -104,6 +105,15 @@ const DAILY_NOTIF_DELAY_MS = 300_000;
  * caps the tray at two notifications a day, however often the app is backgrounded.
  */
 const MAX_DISCRETIONARY_NOTIFS_PER_DAY = 1;
+
+/** Tomorrow's Beginner Week day, as the daily-reset notification, while there is one to come. */
+function beginnerNotification(s: GameState): { title: string; body: string } | null {
+  if (!beginnerActive(s)) return null;
+  const next = BEGINNER_DAYS.find((d) => d.day === beginnerDay(s) + 1);
+  if (!next) return null;
+  const prize = next.reward.type === 'card' ? t('beginner.prizeCard') : t(`beginner.prize.${next.reward.type}`, { n: next.reward.amount });
+  return { title: t('notif.beginnerTitle', { day: next.day }), body: t('notif.beginnerBody', { prize }) };
+}
 
 /** The event reminder fires this long before the running event closes. */
 const EVENT_ENDING_NOTIF_MS = 3 * 3_600_000;
@@ -213,6 +223,8 @@ export interface PendingOffline {
   souls: Decimal;
   kc: Decimal;
   capped: boolean;
+  /** Set when this gap earned the welcome-back gift (3+ days away). */
+  welcome?: { days: number; vouchers: number };
 }
 
 /** What the title screen and the settings row need to know about the cloud slot. */
@@ -308,6 +320,7 @@ export interface GameStore {
   claimEventTier(index: number): void;
   claimEventMission(id: EventMissionId): void;
   claimLogin(): void;
+  claimBeginner(day: number): void;
   /** A claimed voucher or seal tier, shown until dismissed (card tiers reuse `pendingPull`). */
   pendingPrize: Exclude<EventPrize, { kind: 'card' }> | null;
   dismissPrize(): void;
@@ -735,9 +748,11 @@ export function createGameStore(deps: StoreDeps) {
       if (elapsedSec < MIN_OFFLINE_SECONDS) return { state, pendingOffline: null, elapsedSec, assessment };
       const r = applyOffline(state, content, elapsedSec, clock.wall(), forceEvent);
       if (r.creditedSec <= 0) return { state: r.state, pendingOffline: null, elapsedSec, assessment };
+      const gift = welcomeBack(r.state, elapsedSec, clock.wall());
+      if (gift) track('comeback_gift', { days: gift.days });
       return {
-        state: r.state,
-        pendingOffline: { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped },
+        state: gift ? gift.state : r.state,
+        pendingOffline: { elapsedSec: r.elapsedSec, creditedSec: r.creditedSec, souls: r.souls, kc: r.kc, capped: r.capped, ...(gift ? { welcome: { days: gift.days, vouchers: COMEBACK_VOUCHERS } } : {}) },
         elapsedSec,
         assessment,
       };
@@ -1245,11 +1260,13 @@ export function createGameStore(deps: StoreDeps) {
         items.push({
           id: NOTIF_DAILY,
           atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
-          title: t('notif.dailyTitle'),
-          body: t('notif.dailyBody'),
+          ...beginnerNotification(s) ?? { title: t('notif.dailyTitle'), body: t('notif.dailyBody') },
         });
         const ev = eventNotification(s, content, wall);
         if (ev) items.push({ id: NOTIF_EVENT, ...ev });
+        // Lapsed-player nudges: each pause pushes them back, so they only fire after real absence.
+        items.push({ id: NOTIF_AWAY3, atWall: wall + 3 * 86_400_000, title: t('notif.away3Title'), body: t('notif.away3Body') });
+        items.push({ id: NOTIF_AWAY7, atWall: wall + 7 * 86_400_000, title: t('notif.away7Title'), body: t('notif.away7Body') });
         try {
           await notifications.schedule(items);
         } catch {
@@ -1350,6 +1367,15 @@ export function createGameStore(deps: StoreDeps) {
         apply(r.state, { pendingPrize: { kind: 'eventVouchers', pool: eventPool(ev.key), amount: r.amount } });
         track('event_mission_claimed', { mission: id });
         sfx('achievement');
+        void get().save();
+      },
+      claimBeginner(day) {
+        const r = claimBeginnerEngine(get().state, content, day);
+        if (!r.reward) return;
+        const reward = r.reward;
+        apply(r.state, r.card ? { pendingPull: [r.card] } : reward.type !== 'card' ? { pendingPrize: { kind: reward.type, amount: reward.amount } } : {});
+        track('beginner_claimed', { day });
+        if (!r.card) sfx('achievement');
         void get().save();
       },
       claimLogin() {
@@ -1867,6 +1893,7 @@ export function createGameStore(deps: StoreDeps) {
         const next = withTraining(state, step);
         if (next === state) return;
         set({ state: next });
+        track('onboarding_step', { step: `training_${step}` });
         if (step >= TRAINING_DONE) track('tutorial_complete');
         void get().save();
       },
