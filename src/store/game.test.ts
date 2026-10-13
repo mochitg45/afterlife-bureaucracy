@@ -13,7 +13,7 @@ async function make(opts: { saved?: string } = {}) {
   const storage = memoryStorage();
   if (opts.saved) await storage.set(SAVE_KEY, opts.saved);
   const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-  const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+  const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, random: () => 1 });
   return { store, storage, clock };
 }
 
@@ -30,7 +30,7 @@ function fakeAudio() {
 
 async function makeWithAudio(wall = 1_000_000) {
   const audio = fakeAudio();
-  const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, audio });
+  const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, audio, random: () => 1 });
   await store.getState().boot();
   return { store, audio };
 }
@@ -68,6 +68,17 @@ describe('game store', () => {
     store.getState().stamp();
     expect(store.getState().state.soulsRun.toNumber()).toBe(1);
     expect(store.getState().rates.clickPower.toNumber()).toBe(1);
+    store.getState().stopLoop();
+  });
+
+  it('a golden roll pays 10x and plays the golden sound', async () => {
+    const audio = fakeAudio();
+    const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall: 1_000_000, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, audio, random: () => 0 });
+    await store.getState().boot();
+    expect(store.getState().stamp(6)).toEqual({ golden: true });
+    expect(store.getState().state.soulsRun.toNumber()).toBe(10);
+    expect(store.getState().state.stats.clicks).toBe(1);
+    expect(audio.played).toEqual(expect.arrayContaining(['golden', 'combo']));
     store.getState().stopLoop();
   });
 
@@ -129,7 +140,7 @@ describe('game store', () => {
     const storage = memoryStorage();
     await storage.set(SAVE_KEY, '{ this is not a save');
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, random: () => 1 });
     await store.getState().boot();
     expect(await storage.get(CORRUPT_SAVE_KEY)).toBe('{ this is not a save');
     expect(store.getState().ready).toBe(true);
@@ -143,7 +154,7 @@ describe('game store', () => {
     const storage = memoryStorage();
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
     const ads: Ads = { async init() {}, isReady: () => true, async showRewarded() { return 'rewarded'; } };
-    const store = createGameStore({ content: twoDepartments, storage, clock, ads, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    const store = createGameStore({ content: twoDepartments, storage, clock, ads, tickMs: 1_000_000, autosaveMs: 1_000_000, random: () => 1 });
     await store.getState().boot();
     store.setState({
       state: { ...store.getState().state, soulsRun: new Decimal(5000), soulsLifetime: new Decimal(5000) },
@@ -203,7 +214,7 @@ describe('game store lifecycle', () => {
     vi.useFakeTimers();
     const storage = memoryStorage();
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-    const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000_000, random: () => 1 });
     await store.getState().boot();
     hireDave(store);
     clock.advance(100);
@@ -217,7 +228,7 @@ describe('game store lifecycle', () => {
     vi.useFakeTimers();
     const storage = memoryStorage();
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-    const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000_000, random: () => 1 });
     await store.getState().boot();
     hireDave(store);
     const before = store.getState().state.soulsRun.toNumber();
@@ -233,7 +244,7 @@ describe('game store lifecycle', () => {
     vi.useFakeTimers();
     const storage = memoryStorage();
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-    const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000, random: () => 1 });
     const first = store.getState().boot();
     const second = store.getState().boot();
     expect(second).toBe(first);
@@ -249,7 +260,7 @@ describe('game store lifecycle', () => {
     vi.useFakeTimers();
     const storage = memoryStorage();
     const clock = fakeClock({ wall: 1_000_000, mono: 0 });
-    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000, random: () => 1 });
     await store.getState().boot();
     const setSpy = vi.spyOn(storage, 'set');
     await store.getState().pause();
@@ -402,7 +413,7 @@ describe('prestige and perks in the store', () => {
     const dept = content.departments[0];
     const late = ['MEMO: year two only'];
     const twoYear = { ...content, departments: [{ ...dept, memosLate: late }, ...content.departments.slice(1)] };
-    const s2 = createGameStore({ content: twoYear, storage: memoryStorage(), clock: fakeClock({ wall: 1, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    const s2 = createGameStore({ content: twoYear, storage: memoryStorage(), clock: fakeClock({ wall: 1, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, random: () => 1 });
     await s2.getState().boot();
     const seen = new Set<string>();
     for (let i = 0; i < 200; i++) { s2.getState().rotateMemo(); seen.add(s2.getState().memoLine); }
@@ -422,7 +433,7 @@ describe('clock integrity in the store', () => {
     const storage = memoryStorage();
     if (saved) await storage.set(SAVE_KEY, saved);
     const clock = fakeClock({ wall: W0, mono: 10_000 });
-    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    const store = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, random: () => 1 });
     return { store, storage, clock };
   }
 
@@ -509,7 +520,7 @@ describe('clock integrity in the store', () => {
     await store.getState().save();
     store.getState().stopLoop();
 
-    const again = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000 });
+    const again = createGameStore({ content, storage, clock, tickMs: 1_000_000, autosaveMs: 1_000_000, random: () => 1 });
     await again.getState().boot();
     expect(again.getState().clockSuspect).toBe(false);
     expect(again.getState().state.dailies.date).not.toBe('');
@@ -582,7 +593,7 @@ describe('prestige filings settle', () => {
 describe('events', () => {
   const FRI = Date.UTC(2026, 9, 9, 12); // weekly-2026-10-09
   async function makeAt(wall: number, forceEvent?: string | null) {
-    const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, forceEvent });
+    const store = createGameStore({ content, storage: memoryStorage(), clock: fakeClock({ wall, mono: 0 }), tickMs: 1_000_000, autosaveMs: 1_000_000, forceEvent, random: () => 1 });
     await store.getState().boot();
     return store;
   }
@@ -618,7 +629,7 @@ describe('events', () => {
   });
   it('rolls the event over live when the clock crosses the end', async () => {
     const clock = fakeClock({ wall: Date.UTC(2026, 9, 25), mono: 0 });
-    const store = createGameStore({ content, storage: memoryStorage(), clock, tickMs: 1_000_000, autosaveMs: 1_000_000, forceEvent: null });
+    const store = createGameStore({ content, storage: memoryStorage(), clock, tickMs: 1_000_000, autosaveMs: 1_000_000, forceEvent: null, random: () => 1 });
     await store.getState().boot();
     expect(store.getState().state.event!.key).toBe('halloween-2026');
     clock.setWall(Date.UTC(2026, 10, 4));

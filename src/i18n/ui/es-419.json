@@ -539,5 +539,15 @@
  "notif.away7Title": "El más allá te extraña",
  "notif.away7Body": "¡Una semana de almas sin procesar! Vuelve por vales gratis y un boost 2×.",
  "backlog.welcome": "¡Bienvenido de vuelta tras {days} días!",
- "backlog.welcomeBoost": "+ 1 hora de boost 2×"
+ "backlog.welcomeBoost": "+ 1 hora de boost 2×",
+ "stamp.combo": "¡×{n} COMBO!",
+ "stamp.golden": "¡DORADO ×10!",
+ "milestone.souls.2": "1 MILLÓN DE ALMAS",
+ "milestone.souls.3": "1 MIL MILLONES DE ALMAS",
+ "milestone.souls.4": "1 BILLÓN DE ALMAS",
+ "milestone.soulsN": "{n} ALMAS",
+ "milestone.soulsSub": "Procesadas. Archivadas. Plastificadas.",
+ "milestone.dept": "NUEVO DEPARTAMENTO ABIERTO",
+ "milestone.deptSub": "Se cortó la cinta. Por favor, dejen de cortar cintas.",
+ "milestone.collect": "Cobrar"
 }

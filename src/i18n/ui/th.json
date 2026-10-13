@@ -539,5 +539,15 @@
  "notif.away7Title": "โลกหลังความตายคิดถึงคุณ",
  "notif.away7Body": "วิญญาณค้างทั้งสัปดาห์! กลับมารับคูปองฟรีและบูสต์ 2 เท่า",
  "backlog.welcome": "ยินดีต้อนรับกลับหลังจาก {days} วัน!",
- "backlog.welcomeBoost": "+ บูสต์ 2 เท่า 1 ชั่วโมง"
+ "backlog.welcomeBoost": "+ บูสต์ 2 เท่า 1 ชั่วโมง",
+ "stamp.combo": "คอมโบ ×{n}!",
+ "stamp.golden": "ทอง ×10!",
+ "milestone.souls.2": "วิญญาณ 1 ล้านดวง",
+ "milestone.souls.3": "วิญญาณ 1 พันล้านดวง",
+ "milestone.souls.4": "วิญญาณ 1 ล้านล้านดวง",
+ "milestone.soulsN": "วิญญาณ {n} ดวง",
+ "milestone.soulsSub": "ดำเนินการแล้ว จัดแฟ้มแล้ว เคลือบแล้ว",
+ "milestone.dept": "เปิดแผนกใหม่แล้ว",
+ "milestone.deptSub": "ตัดริบบิ้นแล้ว กรุณาหยุดตัดริบบิ้น",
+ "milestone.collect": "รับรางวัล"
 }

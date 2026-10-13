@@ -539,5 +539,15 @@
  "notif.away7Title": "あの世があなたを待っています",
  "notif.away7Body": "1週間分の未処理の魂！無料バウチャーと2倍ブーストを受け取りに戻ろう。",
  "backlog.welcome": "{days}日ぶりのおかえり！",
- "backlog.welcomeBoost": "+ 2倍ブースト1時間"
+ "backlog.welcomeBoost": "+ 2倍ブースト1時間",
+ "stamp.combo": "×{n} コンボ！",
+ "stamp.golden": "ゴールド ×10！",
+ "milestone.souls.2": "魂 100万件",
+ "milestone.souls.3": "魂 10億件",
+ "milestone.souls.4": "魂 1兆件",
+ "milestone.soulsN": "魂 {n}件",
+ "milestone.soulsSub": "処理済み。ファイル済み。ラミネート済み。",
+ "milestone.dept": "新部署オープン",
+ "milestone.deptSub": "テープカット完了。これ以上テープを切らないでください。",
+ "milestone.collect": "受け取る"
 }

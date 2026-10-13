@@ -231,6 +231,8 @@ export interface GameState {
   login: LoginState;
   /** Beginner Week: the days (1-7) already claimed. */
   beginner: { claimed: number[] };
+  /** Big moments already celebrated: highest souls tier and department ids. */
+  milestones: { soulsTier: number; depts: string[] };
 }
 
 export interface Now { wall: number; mono: number }
@@ -305,6 +307,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     rankPending: [],
     login: { day: 0, lastDate: '' },
     beginner: { claimed: [] },
+    milestones: { soulsTier: 0, depts: [] },
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -633,6 +636,13 @@ function applyResetEpoch(raw: Record<string, unknown>, content: Content): GameSt
   };
 }
 
+function sanitizeMilestones(v: unknown): GameState['milestones'] {
+  const r = (v ?? {}) as { soulsTier?: unknown; depts?: unknown };
+  const tier = typeof r.soulsTier === 'number' && Number.isFinite(r.soulsTier) ? Math.min(Math.max(0, Math.floor(r.soulsTier)), 400) : 0;
+  const depts = Array.isArray(r.depts) ? [...new Set((r.depts as unknown[]).filter((d): d is string => typeof d === 'string'))] : [];
+  return { soulsTier: tier, depts };
+}
+
 export function deserialize(json: string, content: Content): GameState {
   const raw = migrate(JSON.parse(json) as Record<string, unknown>);
   if (num(raw.resetEpoch, 0) < RESET_EPOCH) return applyResetEpoch(raw, content);
@@ -732,6 +742,7 @@ export function deserialize(json: string, content: Content): GameState {
     rankPending: sanitizeRankPending(raw.rankPending),
     login: sanitizeLogin(raw.login),
     beginner: { claimed: Array.isArray((raw.beginner as { claimed?: unknown } | undefined)?.claimed) ? [...new Set(((raw.beginner as { claimed: unknown[] }).claimed).filter((d): d is number => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= 7))] : [] },
+    milestones: sanitizeMilestones(raw.milestones),
     referral: sanitizeReferral(raw.referral),
   }, content);
 }

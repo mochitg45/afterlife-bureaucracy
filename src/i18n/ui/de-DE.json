@@ -539,5 +539,15 @@
  "notif.away7Title": "Das Jenseits vermisst dich",
  "notif.away7Body": "Eine Woche unbearbeiteter Seelen! Komm zurück für Gratis-Gutscheine und 2×-Boost.",
  "backlog.welcome": "Willkommen zurück nach {days} Tagen!",
- "backlog.welcomeBoost": "+ 1 Stunde 2×-Boost"
+ "backlog.welcomeBoost": "+ 1 Stunde 2×-Boost",
+ "stamp.combo": "×{n} COMBO!",
+ "stamp.golden": "GOLDEN ×10!",
+ "milestone.souls.2": "1 MILLION SEELEN",
+ "milestone.souls.3": "1 MILLIARDE SEELEN",
+ "milestone.souls.4": "1 BILLION SEELEN",
+ "milestone.soulsN": "{n} SEELEN",
+ "milestone.soulsSub": "Bearbeitet. Abgeheftet. Laminiert.",
+ "milestone.dept": "NEUE ABTEILUNG ERÖFFNET",
+ "milestone.deptSub": "Das Band ist durchgeschnitten. Bitte keine weiteren Bänder.",
+ "milestone.collect": "Abholen"
 }

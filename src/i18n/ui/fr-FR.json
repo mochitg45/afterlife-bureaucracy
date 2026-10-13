@@ -539,5 +539,15 @@
  "notif.away7Title": "L'au-delà s'ennuie de toi",
  "notif.away7Body": "Une semaine d'âmes non traitées ! Reviens pour des bons gratuits et un boost ×2.",
  "backlog.welcome": "Bon retour après {days} jours !",
- "backlog.welcomeBoost": "+ 1 heure de boost ×2"
+ "backlog.welcomeBoost": "+ 1 heure de boost ×2",
+ "stamp.combo": "×{n} COMBO !",
+ "stamp.golden": "DORÉ ×10 !",
+ "milestone.souls.2": "1 MILLION D'ÂMES",
+ "milestone.souls.3": "1 MILLIARD D'ÂMES",
+ "milestone.souls.4": "1 BILLION D'ÂMES",
+ "milestone.soulsN": "{n} ÂMES",
+ "milestone.soulsSub": "Traitées. Classées. Plastifiées.",
+ "milestone.dept": "NOUVEAU SERVICE OUVERT",
+ "milestone.deptSub": "Le ruban est coupé. Merci d'arrêter de couper des rubans.",
+ "milestone.collect": "Récupérer"
 }

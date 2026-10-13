@@ -311,7 +311,8 @@ export interface GameStore {
   boot(): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
-  stamp(): void;
+  /** `golden` stamps (about 1 in 40) pay GOLDEN_MULT times the click power; `combo` (taps in a row) raises the blip. */
+  stamp(combo?: number): { golden: boolean };
   hire(staffId: string, mode: BuyMode): void;
   /** The event occurrence running now (or the forced preview), or null. Not reactive: read it where the clock ticks. */
   activeEvent(): EventOccurrence | null;
@@ -412,6 +413,9 @@ export interface GameStore {
   importSaveCode(code: string): Promise<'ok' | 'invalid'>;
 }
 
+const GOLDEN_ODDS = 1 / 40;
+const GOLDEN_MULT = 10;
+
 export interface StoreDeps {
   content: Content;
   storage: Storage;
@@ -428,6 +432,8 @@ export interface StoreDeps {
   lifetimeBoard?: LifetimeBoard;
   sharer?: Sharer;
   audio?: Audio;
+  /** Randomness for golden stamps (tests); defaults to Math.random. */
+  random?: () => number;
   /** Overrides `readForceEvent()` (tests). */
   forceEvent?: string | null;
 }
@@ -454,7 +460,8 @@ export function createGameStore(deps: StoreDeps) {
   const sharer = deps.sharer ?? pickSharer();
   const audio = deps.audio ?? pickAudio();
   const forceEvent = deps.forceEvent !== undefined ? deps.forceEvent : readForceEvent();
-  const sfx = (name: SfxName) => audio.play(name);
+  const sfx = (name: SfxName, pitch?: number) => audio.play(name, pitch);
+  const random = deps.random ?? (() => Math.random());
   const tickMs = deps.tickMs ?? 100;
   const autosaveMs = deps.autosaveMs ?? 10_000;
   const maxTickSec = (MAX_TICKS_PER_FIRE * tickMs) / 1000;
@@ -1315,14 +1322,17 @@ export function createGameStore(deps: StoreDeps) {
         return resuming;
       },
 
-      stamp() {
+      stamp(combo = 1) {
         const s = get().state;
         // The stamp step hands over to "hire Dave" only once Dave is affordable; asking for a
         // hire the button refuses left first-launch players with nothing to do but Skip.
-        const next = click(s, content, clock.wall());
+        const golden = random() < GOLDEN_ODDS;
+        const next = click(s, content, clock.wall(), golden ? GOLDEN_MULT : 1);
         const canHire = canAfford(staffBulkCost(content.departments[0].staff[0], 0, 1), next.kc);
         apply(withTraining(next, s.onboarding.trainingStep === 0 && canHire ? 1 : 0), { mood: 'ok' });
-        sfx('stamp');
+        sfx(golden ? 'golden' : 'stamp');
+        if (combo >= 5) sfx('combo', Math.min(2, 1 + combo * 0.04));
+        return { golden };
       },
       hire(staffId, mode) {
         const s = get().state;

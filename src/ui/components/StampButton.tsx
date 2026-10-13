@@ -1,11 +1,21 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import type { GameState } from '../../engine/state';
 import { formatNumber } from '../../engine/format';
 import { t } from '../../i18n';
 import { LivingOffice } from './LivingOffice';
+import { emitStamp } from '../stampEvents';
+import * as haptics from '../../platform/haptics';
+import './StampFx.css';
 
-interface Float { id: number; x: number; text: string }
+interface Float { id: number; x: number; text: string; golden?: boolean }
+interface Ink { id: number; x: number; y: number; rot: number }
+interface Spark { id: number; dx: number; dy: number }
+
+const COMBO_GAP_MS = 600;
+const COMBO_MIN = 5;
+const comboTier = (n: number) => (n >= 50 ? 4 : n >= 25 ? 3 : n >= 10 ? 2 : 1);
+const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const DEPT_ART = new Set(['intake', 'heaven', 'hell', 'reincarnation', 'limbo', 'valhalla']);
 
@@ -59,15 +69,47 @@ export function StampButton() {
   const activeDept = useGame((s) => s.state.activeDept);
   const [floats, setFloats] = useState<Float[]>([]);
   const [pressed, setPressed] = useState(false);
+  const [goldFlash, setGoldFlash] = useState(false);
+  const [inks, setInks] = useState<Ink[]>([]);
+  const [sparks, setSparks] = useState<Spark[]>([]);
+  const [combo, setCombo] = useState({ n: 0, done: false });
+  const last = useRef({ at: 0, n: 0 });
+  const comboTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const onStamp = () => {
-    stamp();
+    const now = performance.now();
+    const n = now - last.current.at < COMBO_GAP_MS ? last.current.n + 1 : 1;
+    last.current = { at: now, n };
+    const { golden } = stamp(n);
     rotateQueue();
+    emitStamp({ golden, combo: n });
+    if (golden) haptics.heavy(); else haptics.tap();
     setPressed(true);
     setTimeout(() => setPressed(false), 90);
-    const f = { id: Date.now() + Math.random(), x: 30 + Math.random() * 40, text: '+' + formatNumber(clickPower) };
+    const id = now + Math.random();
+    const paid = formatNumber(golden ? clickPower.mul(10) : clickPower);
+    const f = { id, x: 30 + Math.random() * 40, text: golden ? `+${paid} ${t('stamp.golden')}` : '+' + paid, golden };
     setFloats((cur) => [...cur.slice(-6), f]);
-    setTimeout(() => setFloats((cur) => cur.filter((x) => x.id !== f.id)), 700);
+    setTimeout(() => setFloats((cur) => cur.filter((x) => x.id !== id)), golden ? 1100 : 700);
+    if (reducedMotion()) return;
+    // ink impression on a ring around the stamp, never under it
+    const ang = Math.random() * Math.PI * 2;
+    const r = 34 + Math.random() * 10;
+    setInks((cur) => [...cur.slice(-7), { id, x: 50 + Math.cos(ang) * r, y: 50 + Math.sin(ang) * r, rot: Math.random() * 360 }]);
+    if (golden) {
+      setGoldFlash(true);
+      setTimeout(() => setGoldFlash(false), 450);
+      const burst = Array.from({ length: 10 }, (_, i) => {
+        const a = (i / 10) * Math.PI * 2 + Math.random() * 0.4;
+        const d = 110 + Math.random() * 60;
+        return { id: id + i / 100, dx: Math.cos(a) * d, dy: Math.sin(a) * d };
+      });
+      setSparks((cur) => [...cur, ...burst]);
+      setTimeout(() => setSparks((cur) => cur.filter((x) => !burst.includes(x))), 900);
+    }
+    if (n >= COMBO_MIN) setCombo({ n, done: false });
+    clearTimeout(comboTimer.current);
+    comboTimer.current = setTimeout(() => setCombo((c) => ({ ...c, done: true })), COMBO_GAP_MS);
   };
 
   const fx = SCENE_FX[activeDept] ?? SCENE_FX.intake;
@@ -80,8 +122,13 @@ export function StampButton() {
           {PARTICLES.map(([x, delay, dur], i) => <span key={'p' + i} className="fx-dot" style={{ left: `${x}%`, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />)}
         </div>
         <LivingOffice dept={activeDept} />
-        {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>{f.text}</span>)}
-        <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} aria-label={t('stamp.aria')} data-coach="stamp">
+        <div className="stamp-fx" aria-hidden="true">
+          {inks.map((k) => <span key={k.id} className="ink-mark" style={{ left: `${k.x}%`, top: `${k.y}%`, transform: `translate(-50%, -50%) rotate(${k.rot}deg)` }} />)}
+          {sparks.map((p) => <span key={p.id} className="gold-spark" style={{ '--dx': p.dx + 'px', '--dy': p.dy + 'px' } as React.CSSProperties} />)}
+          {combo.n >= COMBO_MIN && <div className={`combo-label t${comboTier(combo.n)}${combo.done ? ' done' : ''}`}><span key={combo.n}>{t('stamp.combo', { n: combo.n })}</span></div>}
+        </div>
+        {floats.map((f) => <span key={f.id} className={'float mono' + (f.golden ? ' gold' : '')} style={{ left: f.x + '%' }}>{f.text}</span>)}
+        <button className={'stamp' + (pressed ? ' pressed' : '') + (goldFlash ? ' golden-flash' : '')} onPointerDown={onStamp} aria-label={t('stamp.aria')} data-coach="stamp">
           <StampSeal />
         </button>
         <div className="mono sub stamp-scene-pill">{t('stamp.perStamp', { amount: formatNumber(clickPower) })}</div>

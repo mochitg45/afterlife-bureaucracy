@@ -539,5 +539,15 @@
  "notif.away7Title": "The afterlife misses you",
  "notif.away7Body": "A week of unfiled souls! Come back for free vouchers and a 2× boost.",
  "backlog.welcome": "Welcome back after {days} days!",
- "backlog.welcomeBoost": "+ 1 hour of 2× boost"
+ "backlog.welcomeBoost": "+ 1 hour of 2× boost",
+ "stamp.combo": "×{n} COMBO!",
+ "stamp.golden": "GOLDEN ×10!",
+ "milestone.souls.2": "1 MILLION SOULS",
+ "milestone.souls.3": "1 BILLION SOULS",
+ "milestone.souls.4": "1 TRILLION SOULS",
+ "milestone.soulsN": "{n} SOULS",
+ "milestone.soulsSub": "Processed. Filed. Laminated.",
+ "milestone.dept": "NEW DEPARTMENT OPEN",
+ "milestone.deptSub": "The ribbon has been cut. Please stop cutting ribbons.",
+ "milestone.collect": "Collect"
 }

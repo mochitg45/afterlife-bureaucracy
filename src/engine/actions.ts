@@ -47,9 +47,10 @@ export function tick(state: GameState, content: Content, dtSec: number, nowWall:
   return tickWithRates(state, content, dtSec, nowWall, forceEvent).state;
 }
 
-export function click(state: GameState, content: Content, nowWall: number): GameState {
-  const { clickPower } = computeRates(state, content, nowWall);
-  const next = addSouls(state, clickPower, clickPower);
+/** `mult` scales the payout (a golden stamp pays 10x); the click still counts once. */
+export function click(state: GameState, content: Content, nowWall: number, mult = 1): GameState {
+  const pay = computeRates(state, content, nowWall).clickPower.mul(mult);
+  const next = addSouls(state, pay, pay);
   return unlockDepartments({ ...next, stats: { ...next.stats, clicks: next.stats.clicks + 1 } }, content);
 }
 

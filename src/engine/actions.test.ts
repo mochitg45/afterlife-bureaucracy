@@ -20,6 +20,15 @@ describe('click', () => {
   });
 });
 
+describe('click multiplier', () => {
+  it('scales the payout but still counts one click', () => {
+    const s1 = click(createInitialState(now, content), content, 0, 10);
+    expect(s1.soulsRun.toNumber()).toBe(10);
+    expect(s1.kc.toNumber()).toBe(10);
+    expect(s1.stats.clicks).toBe(1);
+  });
+});
+
 describe('tick', () => {
   it('adds passive income scaled by dt with kc at 0.4', () => {
     const s0 = { ...createInitialState(now, content), staff: { dave: 1 } }; // 0.5 souls/s

@@ -539,5 +539,15 @@
  "notif.away7Title": "Alam baka merindukanmu",
  "notif.away7Body": "Seminggu jiwa belum diproses! Kembali untuk voucher gratis dan boost 2×.",
  "backlog.welcome": "Selamat datang kembali setelah {days} hari!",
- "backlog.welcomeBoost": "+ 1 jam boost 2×"
+ "backlog.welcomeBoost": "+ 1 jam boost 2×",
+ "stamp.combo": "×{n} KOMBO!",
+ "stamp.golden": "EMAS ×10!",
+ "milestone.souls.2": "1 JUTA JIWA",
+ "milestone.souls.3": "1 MILIAR JIWA",
+ "milestone.souls.4": "1 TRILIUN JIWA",
+ "milestone.soulsN": "{n} JIWA",
+ "milestone.soulsSub": "Diproses. Diarsipkan. Dilaminasi.",
+ "milestone.dept": "DEPARTEMEN BARU DIBUKA",
+ "milestone.deptSub": "Pita sudah digunting. Tolong berhenti menggunting pita.",
+ "milestone.collect": "Ambil"
 }

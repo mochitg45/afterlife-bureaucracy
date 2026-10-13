@@ -27,6 +27,7 @@ import { CloudNotice } from './components/CloudNotice';
 import { TitleScreen } from './screens/TitleScreen';
 import { Splash } from './screens/Splash';
 import { EventScreen, RankPrizePopup } from './screens/EventScreen';
+import { MilestoneOverlay } from './overlays/Milestone';
 import { ForceUpdate } from './overlays/ForceUpdate';
 
 export function App() {
@@ -123,6 +124,7 @@ export function App() {
           <CosmicCeremony />
           <PullReveal />
           <RankPrizePopup />
+          <MilestoneOverlay />
           <ForceUpdate />
           {tab === 'office' && <Visitor />}
           <VisitorGift />

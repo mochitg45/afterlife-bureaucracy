@@ -539,5 +539,15 @@
  "notif.away7Title": "저승이 당신을 그리워해요",
  "notif.away7Body": "일주일치 미처리 영혼! 무료 바우처와 2배 부스트를 받으러 오세요.",
  "backlog.welcome": "{days}일 만의 복귀를 환영해요!",
- "backlog.welcomeBoost": "+ 2배 부스트 1시간"
+ "backlog.welcomeBoost": "+ 2배 부스트 1시간",
+ "stamp.combo": "×{n} 콤보!",
+ "stamp.golden": "골든 ×10!",
+ "milestone.souls.2": "영혼 100만 건",
+ "milestone.souls.3": "영혼 10억 건",
+ "milestone.souls.4": "영혼 1조 건",
+ "milestone.soulsN": "영혼 {n}건",
+ "milestone.soulsSub": "처리 완료. 파일링 완료. 코팅 완료.",
+ "milestone.dept": "새 부서 개설",
+ "milestone.deptSub": "테이프 커팅 완료. 더 이상 테이프를 자르지 마세요.",
+ "milestone.collect": "받기"
 }

@@ -1,0 +1,48 @@
+/* Below ForceUpdate (2000), above the office, sheets and toasts. */
+.milestone {
+  position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 20px; overflow: hidden;
+  background: rgb(20 14 10 / 0.78); animation: milestone-fade 240ms linear both;
+}
+.milestone-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.milestone-confetti i {
+  position: absolute; top: -16px; width: 9px; height: 15px; border-radius: 2px; opacity: 0;
+  animation: milestone-fall linear infinite;
+}
+.milestone-banner {
+  position: relative; width: min(340px, 100%); padding: 22px 18px 18px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: var(--surface); border: 3px solid var(--ink); border-radius: 8px; box-shadow: 6px 6px 0 var(--ink);
+  outline: 3px dashed var(--brass); outline-offset: -11px;
+  transform: rotate(-3deg); animation: milestone-slam 520ms var(--ease-out) both;
+}
+.milestone-tag {
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 0.12em; color: var(--red);
+  border: 2.5px solid var(--red); border-radius: 6px; padding: 2px 8px; transform: rotate(2deg);
+}
+.milestone-title {
+  font-family: var(--font-display); font-size: clamp(28px, 9vw, 40px); line-height: 1.05; font-weight: 700;
+  color: var(--ink); text-transform: uppercase; overflow-wrap: anywhere; text-shadow: 2px 2px 0 var(--brass);
+}
+.milestone-sub { font-size: 14px; color: var(--ink-muted); font-style: italic; }
+.milestone-collect { margin-top: 6px; min-width: 140px; }
+
+@keyframes milestone-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes milestone-slam {
+  0% { transform: rotate(-12deg) scale(2.4); opacity: 0; }
+  55% { transform: rotate(-3deg) scale(0.94); opacity: 1; }
+  75% { transform: rotate(-3deg) scale(1.04); }
+  100% { transform: rotate(-3deg) scale(1); opacity: 1; }
+}
+@keyframes milestone-fall {
+  0% { transform: translateY(0) rotate(var(--rot)); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(calc(var(--rot) + 540deg)); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .milestone, .milestone-banner { animation: none; }
+  .milestone-confetti { display: none; }
+}
+
+/* Counter bump (currency bar): transform only, one beat. */
+.currency-bar .value.bump { animation: milestone-bump 300ms var(--ease-out); transform-origin: left center; }
+@keyframes milestone-bump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .currency-bar .value.bump { animation: none; } }

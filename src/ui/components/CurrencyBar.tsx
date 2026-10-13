@@ -1,7 +1,7 @@
 import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { formatNumber } from '../../engine/format';
-import { useLerpNumber } from '../hooks/useLerpNumber';
+import { useRolling } from '../hooks/useRolling';
 import { KarmaIcon } from '../icons/Currency';
 
 export function CurrencyBar({ onSettings }: { onSettings?: () => void }) {
@@ -9,8 +9,8 @@ export function CurrencyBar({ onSettings }: { onSettings?: () => void }) {
   const souls = useGame((s) => s.state.soulsLifetime);
   const rate = useGame((s) => s.rates.soulsPerSec);
   const year = useGame((s) => s.state.fiscalYear);
-  const kcShown = useLerpNumber(kc);
-  const soulsShown = useLerpNumber(souls);
+  const kcShown = useRolling(kc);
+  const soulsShown = useRolling(souls);
   return (
     <header className="currency-bar card">
       {onSettings && (
@@ -18,11 +18,11 @@ export function CurrencyBar({ onSettings }: { onSettings?: () => void }) {
       )}
       <div>
         <div className="label">{t('currency.karma')}</div>
-        <div className="mono value brass amt">{formatNumber(kcShown)} <KarmaIcon size={20} /></div>
+        <div className={`mono value brass amt${kcShown.bump ? ' bump' : ''}`}>{kcShown.text} <KarmaIcon size={20} /></div>
       </div>
       <div>
         <div className="label">{t('currency.souls')}</div>
-        <div className="mono value">{formatNumber(soulsShown)}</div>
+        <div className={`mono value${soulsShown.bump ? ' bump' : ''}`}>{soulsShown.text}</div>
         <div className="mono sub">{t('currency.rate', { rate: formatNumber(rate), year })}</div>
       </div>
     </header>
