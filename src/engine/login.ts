@@ -4,15 +4,19 @@ import { grantEventVouchers } from './events';
 
 export type LoginReward = { type: 'vouchers' | 'seals' | 'eventVouchers'; amount: number };
 
-/** The 7-day check-in strip. A missed day pauses it rather than resetting it; after day 7 it starts over. */
+/**
+ * The 7-day check-in strip: 30 vouchers a week, kept small because vouchers are the gacha
+ * currency and the free weekly income was already ~15 pulls before it. A missed day pauses
+ * the strip rather than resetting it; after day 7 it starts over.
+ */
 export const LOGIN_REWARDS: readonly LoginReward[] = [
   { type: 'vouchers', amount: 5 },
   { type: 'seals', amount: 5 },
-  { type: 'vouchers', amount: 10 },
+  { type: 'vouchers', amount: 5 },
   { type: 'eventVouchers', amount: 10 },
   { type: 'seals', amount: 10 },
-  { type: 'vouchers', amount: 10 },
-  { type: 'vouchers', amount: 30 },
+  { type: 'vouchers', amount: 5 },
+  { type: 'vouchers', amount: 15 },
 ];
 
 /**
