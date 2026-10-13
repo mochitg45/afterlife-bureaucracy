@@ -14,7 +14,7 @@ export const REVIEW_GAP_MS = 3 * 86_400_000;
 
 /** Whether a happy moment may ask now, given the asks so far. */
 export function reviewAllowed(review: { asks: number; lastWall: number }, nowWall: number): boolean {
-  return review.asks < REVIEW_MAX_ASKS && nowWall - review.lastWall >= REVIEW_GAP_MS;
+  return review.asks < REVIEW_MAX_ASKS && (review.asks === 0 || nowWall - review.lastWall >= REVIEW_GAP_MS);
 }
 
 /** Whether closing the ceremony of audit number `audits` should ask for a rating. */
