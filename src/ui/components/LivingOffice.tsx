@@ -15,17 +15,15 @@ const FACE_IDS = Object.entries(faceCounts as Record<string, number>)
 const faceUrl = (id: string) => `${import.meta.env.BASE_URL}art/souls/${id}.webp`;
 const randomFace = () => faceUrl(FACE_IDS[Math.floor(Math.random() * FACE_IDS.length)]);
 
-/** A queued or departing soul: the soul's face inside a glowing spirit bubble with a wispy tail. */
-function Soul({ face, phase = 0, fallback }: { face?: string; phase?: number; fallback: JSX.Element }) {
-  if (!ANIMS.soul?.walk || !face) return fallback;
-  // head.json is measured on the 192 px frame canvas: the face sits in the orb, under its shine.
-  const size = (head.headSize / 192) * 100;
-  const box = { width: `${size}%`, left: `${(head.headCenterX / 192) * 100 - size / 2}%`, top: `${(head.headCenterY / 192) * 100 - size / 2}%` };
+/** A soul: its face inside a glowing spirit bubble, with the bubble's shine laid over the face. */
+function Soul({ face, fallback }: { face?: string; fallback: JSX.Element }) {
+  if (!face) return fallback;
+  const base = `${import.meta.env.BASE_URL}art/anim/soul/`;
   return (
     <div className="lo-soulbody">
-      <SpriteAnim id="soul" clip="walk" phase={phase} fallback={fallback} />
-      <img className="lo-face" src={face} alt="" draggable={false} style={box} />
-      <img className="lo-shine" src={`${import.meta.env.BASE_URL}art/anim/soul/shine.webp`} alt="" draggable={false} />
+      <img src={`${base}orb.webp`} alt="" draggable={false} />
+      <img className="lo-face" src={face} alt="" draggable={false} />
+      <img className="lo-shine" src={`${base}orb-shine.webp`} alt="" draggable={false} />
     </div>
   );
 }
@@ -36,7 +34,7 @@ const SLOTS: [number, number][] = [[3, 34], [80, 8], [80, 34], [3, 58]];
 const HOPS: [number, number][] = [[0, 1.6], [0.5, 1.9], [0.9, 1.7], [0.3, 2.1]];
 const QUEUE = [0, 1, 2];
 const MAX_DEPARTING = 6;
-const DEPART_MS = 850;
+const DEPART_MS = 1300;
 
 interface Departing { key: number; up: boolean; golden: boolean; face?: string }
 
@@ -54,7 +52,6 @@ export function LivingOffice({ dept }: { dept: string }) {
   const playing = useRef(new Set<string>());
   const hiredIds = useRef<string[]>([]);
   hiredIds.current = hired.map((d) => d.id);
-  const walk = !!ANIMS.soul?.walk;
   const soul = <Character id="soul" mood="ok" size={64} />;
   // The front of the line is the soul on the "Now serving" card; the two behind it are random.
   const line = useGame((s) => s.queueLine);
@@ -104,17 +101,22 @@ export function LivingOffice({ dept }: { dept: string }) {
       })}
       <div className="lo-queue" key={busy}>
         {QUEUE.map((i) => (
-          <div key={i} className="lo-soul" style={{ left: `${i * 8}%` }}>
-            <div className={walk ? 'lo-walk' : 'lo-wait'} style={{ animationDelay: `${i * 0.35}s` }}>
-              {walk ? <Soul face={i === QUEUE.length - 1 ? front ?? behind[0] : behind[i]} phase={i * 3} fallback={soul} /> : soul}
+          <div key={i} className="lo-soul" style={{ left: `${2 + i * 13}%` }}>
+            <div className="lo-wait" style={{ animationDelay: `${i * 0.35}s` }}>
+              <Soul face={i === QUEUE.length - 1 ? front ?? behind[0] : behind[i]} fallback={soul} />
             </div>
           </div>
         ))}
       </div>
       {departing.map((x) => (
         <div key={x.key} className={`lo-leave ${x.up ? 'up' : 'down'}${x.golden ? ' gold' : ''}`} data-departing={x.up ? 'up' : 'down'}>
-          {x.up ? <span className="lo-halo" /> : <span className="lo-ember" />}
-          {walk ? <Soul face={x.face} fallback={soul} /> : soul}
+          {/* Heaven: wings, halo and a gold aura carry it up. Hell: it catches fire, chars and drops. */}
+          {x.up && <span className="lo-aura" />}
+          {x.up && ANIMS.wings?.flap && <div className="lo-wings"><SpriteAnim id="wings" clip="flap" fallback={null} /></div>}
+          <div className="lo-orb"><Soul face={x.face} fallback={soul} /></div>
+          {x.up && <span className="lo-halo" />}
+          {!x.up && ANIMS.fire?.burn && <div className="lo-fire"><SpriteAnim id="fire" clip="burn" fallback={null} /></div>}
+          {!x.up && !ANIMS.fire?.burn && <span className="lo-ember" />}
         </div>
       ))}
     </div>

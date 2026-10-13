@@ -20,43 +20,52 @@
 }
 
 /* Queue enters from the left edge toward the desk; re-keyed on each stamp so the line shuffles in. */
-.lo-queue { position: absolute; left: 0; bottom: 6%; width: 100%; height: 17%; }
-.lo-soul { position: absolute; bottom: 0; width: 17%; aspect-ratio: 1; animation: loShift 420ms ease-out backwards; }
-.lo-wait { width: 100%; height: 100%; transform-origin: 50% 100%; animation: loWait 1.4s ease-in-out infinite; }
+.lo-queue { position: absolute; left: 0; bottom: 5%; width: 100%; height: 14%; }
+.lo-soul { position: absolute; bottom: 0; width: 13%; aspect-ratio: 1; animation: loShift 420ms ease-out backwards; }
+.lo-wait { width: 100%; height: 100%; animation: loWait 2.2s ease-in-out infinite; }
 @keyframes loShift { from { transform: translateX(-60%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes loWait { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8%); } }
+@keyframes loWait { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9%); } }
 
-.lo-leave { position: absolute; left: 40%; bottom: 6%; width: 17%; aspect-ratio: 1; }
-.lo-leave.up { animation: loUp 850ms ease-in forwards; }
-.lo-leave.down { animation: loDown 850ms ease-in forwards; }
+/* The soul being processed leaves from in front of the desk. */
+.lo-leave { position: absolute; left: 43.5%; bottom: 14%; width: 13%; aspect-ratio: 1; }
+.lo-orb { position: absolute; inset: 0; }
+.lo-leave.up { animation: loUp 1300ms cubic-bezier(.45, 0, .6, 1) forwards; }
+.lo-leave.down { animation: loDown 1300ms cubic-bezier(.5, 0, .9, .6) forwards; }
 @keyframes loUp {
-  0% { transform: translateY(0); opacity: 1; } 20% { transform: translateY(-14%) scale(1.05); }
-  100% { transform: translateY(-230%); opacity: 0; }
+  0% { transform: translateY(0) scale(.9); opacity: 0; } 12% { opacity: 1; transform: translateY(-8%) scale(1.05); }
+  30% { transform: translateY(-20%) scale(1); } 100% { transform: translateY(-420%) scale(.9); opacity: 0; }
 }
 @keyframes loDown {
-  0% { transform: translateY(0); opacity: 1; } 20% { transform: translateY(-14%) scale(1.05); }
-  100% { transform: translateY(120%) scale(.7); opacity: 0; }
+  0% { transform: translateY(0); opacity: 0; } 10% { opacity: 1; }
+  15%, 25%, 35% { transform: translate(-4%, 0); } 20%, 30%, 40% { transform: translate(4%, 0); }
+  45% { transform: translate(0, -10%); } 100% { transform: translateY(260%) scale(.75) rotate(25deg); opacity: 0; }
 }
+/* Heaven: halo, gold aura, flapping wings (wings sprite canvas 240x150, gap centred on the orb). */
 .lo-halo {
-  position: absolute; left: 22%; top: -6%; width: 56%; height: 14%;
-  border: 3px solid var(--brass); border-radius: 50%; box-shadow: 0 0 8px var(--brass);
+  position: absolute; left: 24%; top: -16%; width: 52%; height: 13%;
+  border: 3px solid #f5c84a; border-radius: 50%; box-shadow: 0 0 8px #ffd76a, inset 0 0 4px #ffd76a;
 }
+.lo-aura { position: absolute; inset: -45%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 214, 90, .75), rgba(255, 214, 90, .25) 60%, transparent); animation: loAura 600ms ease-in-out infinite alternate; }
+@keyframes loAura { to { transform: scale(1.12); opacity: .8; } }
+.lo-wings { position: absolute; width: 266.7%; left: -83.3%; top: -33.3%; aspect-ratio: 240 / 150; }
+.lo-wings img { width: 100%; height: 100%; }
+/* Hell: the bubble chars inside the fire sprite (canvas 180x200, ring centre at 90,120). */
+.lo-leave.down .lo-orb { animation: loChar 1300ms forwards; }
+@keyframes loChar { 0% { filter: none; } 35% { filter: brightness(.7) sepia(.6) saturate(1.6); } 100% { filter: brightness(.35) sepia(1) saturate(.6); } }
+.lo-fire { position: absolute; width: 200%; left: -50%; top: -83.3%; aspect-ratio: 180 / 200; }
+.lo-fire img { width: 100%; height: 100%; }
 .lo-ember {
-  position: absolute; left: 10%; bottom: -8%; width: 80%; height: 40%; border-radius: 50%;
-  background: radial-gradient(closest-side, var(--red), transparent); opacity: .85;
+  position: absolute; left: -10%; top: -20%; width: 120%; height: 130%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 140, 40, .9), rgba(220, 50, 20, .5) 60%, transparent); animation: loAura 140ms steps(2) infinite alternate;
 }
-.lo-leave.gold svg, .lo-leave.gold img { filter: drop-shadow(0 0 6px gold) drop-shadow(0 0 12px gold) brightness(1.15); animation: loSparkle 220ms steps(2) infinite; }
-@keyframes loSparkle { 50% { filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 14px gold) brightness(1.3); } }
+.lo-leave.gold .lo-orb { filter: drop-shadow(0 0 6px gold) drop-shadow(0 0 12px gold) brightness(1.15); }
 
 @media (prefers-reduced-motion: reduce) {
   .living-office, .living-office * { animation: none !important; }
   .lo-leave { display: none; }
 }
 
-/* A soul: the face inside a glowing spirit bubble; the orb's shine is layered over the face. */
-.lo-soulbody { position: relative; width: 100%; height: 100%; opacity: .94; filter: drop-shadow(0 0 4px rgba(170, 235, 255, .9)) drop-shadow(0 0 10px rgba(150, 210, 255, .55)); }
-.lo-soulbody > :first-child { width: 100%; height: 100%; }
-.living-office .lo-face { position: absolute; height: auto; aspect-ratio: 1; border-radius: 50%; object-fit: cover; pointer-events: none; filter: none; }
-.living-office .lo-shine { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: none; }
-.lo-walk { animation: loBob 2.2s ease-in-out infinite; }
-@keyframes loBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5%); } }
+/* A soul: the face inside a glowing spirit bubble; the bubble's shine sits over the face. */
+.lo-soulbody { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 0 4px rgba(170, 235, 255, .9)) drop-shadow(0 0 10px rgba(150, 210, 255, .5)); }
+.living-office .lo-face { position: absolute; left: 12.2%; top: 12.2%; width: 75.6%; height: 75.6%; border-radius: 50%; object-fit: cover; pointer-events: none; filter: none; }
+.living-office .lo-shine { position: absolute; inset: 0; pointer-events: none; filter: none; }
