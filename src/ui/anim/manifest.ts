@@ -19,12 +19,16 @@ export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   malphas: { work: 8, happy: 4, true: 8 },
   brynhildr: { work: 8, happy: 4, true: 8 },
   sigrun: { work: 8, happy: 4, true: 8 },
+  ottar: { work: 8, happy: 4, true: 8 },
+  hjalti: { work: 8, happy: 4, true: 8 },
   bodhisattva: { work: 8, happy: 4, true: 8 },
   'auditor-true': { work: 8, happy: 4, true: 8 },
   keeper: { work: 8, happy: 4, true: 8 },
   // reactions still to come; staff without a reaction clip just keep working
-  'dust-archivist': { work: 8 },
+  'dust-archivist': { work: 8, happy: 4, true: 8 },
+  ferro: { work: 8, happy: 4, true: 8 },
   petra: { work: 8, happy: 4, true: 8 },
+  melodia: { work: 8, happy: 4, true: 8 },
 };
 
 export const animFrameUrl = (id: string, clip: Clip, i: number) =>
