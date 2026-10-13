@@ -40,11 +40,14 @@ describe('LivingOffice', () => {
   });
 
   it('uses sprite frames for staff with a work clip and the static hop for the rest', () => {
-    setStaff({ dave: 1, seraphine: 1 });
+    // Heaven's cherub has no frames yet, so it keeps the static hop next to the animated Dave check.
+    setStaff({ dave: 1, 'h-cherub': 1 });
     const { container } = render(<LivingOffice dept="intake" />);
     expect(ANIMS.dave?.work).toBeTruthy();
     expect(container.querySelector('[data-staff="dave"] img[data-anim="dave"]')).not.toBeNull();
     expect(container.querySelector('[data-staff="dave"] .lo-hop')).toBeNull();
-    expect(container.querySelector('[data-staff="seraphine"] .lo-hop')).not.toBeNull();
+    const heaven = render(<LivingOffice dept="heaven" />).container;
+    expect(ANIMS['h-cherub']).toBeUndefined();
+    expect(heaven.querySelector('[data-staff="h-cherub"] .lo-hop')).not.toBeNull();
   });
 });
