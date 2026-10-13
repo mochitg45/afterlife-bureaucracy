@@ -6,6 +6,9 @@
 .lo-busy, .lo-hop { width: 100%; height: 100%; transform-origin: 50% 100%; }
 .lo-busy { animation: loBusy 320ms ease-out; }
 .lo-hop { animation: loHop 1.8s ease-in-out infinite; }
+/* Frame canvases are 192px: the figure fills ~60% of it with feet ~6% above the bottom edge, so widen the box and sink it onto the floor. */
+.lo-anim { width: 26%; margin-left: -4.5%; transform: translateY(6.25%); }
+.lo-walk { width: 100%; height: 100%; }
 @keyframes loHop {
   0%, 55%, 100% { transform: translateY(0) scale(1, 1); }
   62% { transform: translateY(0) scale(1.08, .9); }

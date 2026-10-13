@@ -1,0 +1,12 @@
+export type Clip = 'work' | 'happy' | 'true' | 'walk';
+
+/**
+ * Which characters have hand-drawn frame clips, and how many frames each has.
+ * Files live at public/art/anim/<id>/<clip>_<i>.webp. Adding art = one line here.
+ */
+export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
+  dave: { work: 8, happy: 4, true: 8 },
+};
+
+export const animFrameUrl = (id: string, clip: Clip, i: number) =>
+  `${import.meta.env.BASE_URL}art/anim/${id}/${clip}_${i}.webp`;

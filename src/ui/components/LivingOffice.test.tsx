@@ -3,6 +3,7 @@ import { act, cleanup, render } from '@testing-library/react';
 import { useGame } from '../../store/game';
 import { emitStamp } from '../stampEvents';
 import { LivingOffice } from './LivingOffice';
+import { ANIMS } from '../anim/manifest';
 
 function setStaff(staff: Record<string, number>) {
   const s = useGame.getState().state;
@@ -36,5 +37,14 @@ describe('LivingOffice', () => {
     const { container } = render(<LivingOffice dept="limbo" />);
     act(() => { for (let i = 0; i < 20; i++) emitStamp({ golden: false, combo: i }); });
     expect(container.querySelectorAll('[data-departing]').length).toBe(6);
+  });
+
+  it('uses sprite frames for staff with a work clip and the static hop for the rest', () => {
+    setStaff({ dave: 1, seraphine: 1 });
+    const { container } = render(<LivingOffice dept="intake" />);
+    expect(ANIMS.dave?.work).toBeTruthy();
+    expect(container.querySelector('[data-staff="dave"] img[data-anim="dave"]')).not.toBeNull();
+    expect(container.querySelector('[data-staff="dave"] .lo-hop')).toBeNull();
+    expect(container.querySelector('[data-staff="seraphine"] .lo-hop')).not.toBeNull();
   });
 });

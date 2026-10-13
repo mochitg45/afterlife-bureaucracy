@@ -46,7 +46,11 @@ export function MilestoneOverlay() {
   }, [ready, busy, souls, depts, milestones]);
 
   const cur = busy ? undefined : queue[0];
-  const dismiss = () => setQueue((q) => q.slice(1));
+  const dismiss = () => {
+    // A billion souls and beyond is a proud moment: a good time to ask for a rating.
+    if (cur?.kind === 'souls' && cur.tier >= 3) useGame.getState().askReview('milestone');
+    setQueue((q) => q.slice(1));
+  };
   useEffect(() => {
     if (!cur) return;
     useGame.getState().audio?.play('milestone');

@@ -30,7 +30,7 @@ import { formatNumber } from '../engine/format';
 import { eventLeaderboardId, lifetimeSoulsLeaderboardId, playAchievementIds } from '../platform/gameIds';
 import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
-import { requestReview, shouldAskForReview } from '../platform/review';
+import { requestReview, shouldAskForReview, reviewAllowed } from '../platform/review';
 import { useTestAds } from '../platform/adUnits';
 import { track } from '../platform/analytics';
 import { pickReferral, referralLink, type Referral } from '../platform/referral';
@@ -342,6 +342,8 @@ export interface GameStore {
   upgradePerk(perkId: string): void;
   pull(count: 1 | 10): void;
   dismissPull(): void;
+  /** Asks for a store rating at a happy moment, if the rare-ask budget allows. */
+  askReview(reason: string): void;
   /** Null if the card wasn't ★5, executive, or short of EXCHANGE_COST spares. */
   exchange(cardId: string): ExchangeResult | null;
   equip(cardId: string): void;
@@ -1385,6 +1387,8 @@ export function createGameStore(deps: StoreDeps) {
         const reward = r.reward;
         apply(r.state, r.card ? { pendingPull: [r.card] } : reward.type !== 'card' ? { pendingPrize: { kind: reward.type, amount: reward.amount } } : {});
         track('beginner_claimed', { day });
+        // Day 2 and day 7 hand out the guaranteed cards: the happiest beats of a new player's week.
+        if (day === 2 || day === 7) setTimeout(() => get().askReview(`beginner_${day}`), 2500);
         if (!r.card) sfx('achievement');
         void get().save();
       },
@@ -1467,7 +1471,7 @@ export function createGameStore(deps: StoreDeps) {
       },
       dismissAudit() {
         set({ lastAudit: null });
-        if (shouldAskForReview(get().state.stats.audits)) void requestReview();
+        if (shouldAskForReview(get().state.stats.audits)) get().askReview('audit');
       },
       expediteAudit() {
         const next = expediteAuditEngine(get().state, clock.wall());
@@ -1491,7 +1495,20 @@ export function createGameStore(deps: StoreDeps) {
           track('gacha_pull', { banner: 'normal', count, best });
         }
       },
-      dismissPull() { set({ pendingPull: null }); },
+      dismissPull() {
+        const pulled = get().pendingPull;
+        set({ pendingPull: null });
+        if (pulled?.some((r) => r.rarity === 'executive')) get().askReview('executive');
+      },
+      askReview(reason) {
+        const s = get().state;
+        const wall = clock.wall();
+        if (!reviewAllowed(s.review, wall)) return;
+        set({ state: { ...s, review: { asks: s.review.asks + 1, lastWall: wall } } });
+        track('review_prompt', { reason });
+        void requestReview();
+        void get().save();
+      },
       exchange(cardId) {
         const r = exchangeCardEngine(get().state, content, cardId, get().rates.kcPerSec);
         if (!r.result) return null;

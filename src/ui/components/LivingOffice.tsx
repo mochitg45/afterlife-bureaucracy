@@ -3,6 +3,8 @@ import { content } from '../../data';
 import { useGame } from '../../store/game';
 import { Character } from '../characters/Character';
 import { onStamp } from '../stampEvents';
+import { ANIMS } from '../anim/manifest';
+import { SpriteAnim, type Reaction } from '../anim/SpriteAnim';
 import './LivingOffice.css';
 
 /** [left %, bottom %] slots on either side of the stamp, so staff never cover it. */
@@ -24,32 +26,58 @@ export function LivingOffice({ dept }: { dept: string }) {
   const [departing, setDeparting] = useState<Departing[]>([]);
   const [busy, setBusy] = useState(0);
   const seq = useRef(0);
+  // Per-staff one-shot reactions; a staff member ignores stamps until theirs has finished.
+  const [reactions, setReactions] = useState<Record<string, Reaction>>({});
+  const playing = useRef(new Set<string>());
+  const hiredIds = useRef<string[]>([]);
+  hiredIds.current = hired.map((d) => d.id);
+  const walk = !!ANIMS.soul?.walk;
+  const soul = <Character id="soul" mood="ok" size={64} />;
+  const soulAnim = walk ? <SpriteAnim id="soul" clip="walk" fallback={soul} /> : soul;
 
   useEffect(() => onStamp((e) => {
     const up = dept === 'hell' ? false : dept === 'intake' ? Math.random() < 0.5 : true;
     const key = ++seq.current;
     setDeparting((d) => [...d, { key, up, golden: e.golden }].slice(-MAX_DEPARTING));
     setBusy(key);
+    const clip = up ? 'happy' : 'true';
+    for (const id of hiredIds.current) {
+      if (!ANIMS[id]?.[clip] || playing.current.has(id)) continue;
+      playing.current.add(id);
+      setReactions((r) => ({ ...r, [id]: { clip, key } }));
+    }
     window.setTimeout(() => setDeparting((d) => d.filter((x) => x.key !== key)), DEPART_MS);
   }), [dept]);
 
   return (
     <div className="living-office" aria-hidden="true">
-      {hired.map((d, i) => (
-        <div key={d.id} className="lo-staff" style={{ left: `${SLOTS[i][0]}%`, bottom: `${SLOTS[i][1]}%` }} data-staff={d.id}>
-          {/* re-keyed on each stamp to replay the busy squash */}
-          <div className="lo-busy" key={busy}>
-            <div className="lo-hop" style={{ animationDelay: `${HOPS[i][0]}s`, animationDuration: `${HOPS[i][1]}s` }}>
-              <Character id={d.id} mood="ok" size={64} art={d.id} />
+      {hired.map((d, i) => {
+        const pos = { left: `${SLOTS[i][0]}%`, bottom: `${SLOTS[i][1]}%` };
+        const still = <Character id={d.id} mood="ok" size={64} art={d.id} />;
+        if (ANIMS[d.id]?.work) {
+          return (
+            <div key={d.id} className="lo-staff lo-anim" style={pos} data-staff={d.id}>
+              <SpriteAnim id={d.id} phase={i * 3} reaction={reactions[d.id]} fallback={still}
+                onReactionEnd={() => playing.current.delete(d.id)} />
+            </div>
+          );
+        }
+        return (
+          <div key={d.id} className="lo-staff" style={pos} data-staff={d.id}>
+            {/* re-keyed on each stamp to replay the busy squash */}
+            <div className="lo-busy" key={busy}>
+              <div className="lo-hop" style={{ animationDelay: `${HOPS[i][0]}s`, animationDuration: `${HOPS[i][1]}s` }}>
+                {still}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <div className="lo-queue" key={busy}>
         {QUEUE.map((i) => (
           <div key={i} className="lo-soul" style={{ left: `${i * 8}%` }}>
-            <div className="lo-wait" style={{ animationDelay: `${i * 0.35}s` }}>
-              <Character id="soul" mood="ok" size={64} />
+            <div className={walk ? 'lo-walk' : 'lo-wait'} style={{ animationDelay: `${i * 0.35}s` }}>
+              {walk ? <SpriteAnim id="soul" clip="walk" phase={i * 3} fallback={soul} /> : soul}
             </div>
           </div>
         ))}
@@ -57,7 +85,7 @@ export function LivingOffice({ dept }: { dept: string }) {
       {departing.map((x) => (
         <div key={x.key} className={`lo-leave ${x.up ? 'up' : 'down'}${x.golden ? ' gold' : ''}`} data-departing={x.up ? 'up' : 'down'}>
           {x.up ? <span className="lo-halo" /> : <span className="lo-ember" />}
-          <Character id="soul" mood="ok" size={64} />
+          {soulAnim}
         </div>
       ))}
     </div>

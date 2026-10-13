@@ -8,6 +8,15 @@ import { InAppReview } from '@capacitor-community/in-app-review';
  */
 export const REVIEW_AT_AUDITS: readonly number[] = [2, 6];
 
+/** At most this many in-game asks, at least this far apart; the OS throttles on top. */
+export const REVIEW_MAX_ASKS = 3;
+export const REVIEW_GAP_MS = 3 * 86_400_000;
+
+/** Whether a happy moment may ask now, given the asks so far. */
+export function reviewAllowed(review: { asks: number; lastWall: number }, nowWall: number): boolean {
+  return review.asks < REVIEW_MAX_ASKS && nowWall - review.lastWall >= REVIEW_GAP_MS;
+}
+
 /** Whether closing the ceremony of audit number `audits` should ask for a rating. */
 export const shouldAskForReview = (audits: number): boolean => REVIEW_AT_AUDITS.includes(audits);
 

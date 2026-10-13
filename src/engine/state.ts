@@ -233,6 +233,8 @@ export interface GameState {
   beginner: { claimed: number[] };
   /** Big moments already celebrated: highest souls tier and department ids. */
   milestones: { soulsTier: number; depts: string[] };
+  /** Store-rating prompts asked so far and when the last one was, so asks stay rare. */
+  review: { asks: number; lastWall: number };
 }
 
 export interface Now { wall: number; mono: number }
@@ -308,6 +310,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     login: { day: 0, lastDate: '' },
     beginner: { claimed: [] },
     milestones: { soulsTier: 0, depts: [] },
+    review: { asks: 0, lastWall: 0 },
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -743,6 +746,10 @@ export function deserialize(json: string, content: Content): GameState {
     login: sanitizeLogin(raw.login),
     beginner: { claimed: Array.isArray((raw.beginner as { claimed?: unknown } | undefined)?.claimed) ? [...new Set(((raw.beginner as { claimed: unknown[] }).claimed).filter((d): d is number => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= 7))] : [] },
     milestones: sanitizeMilestones(raw.milestones),
+    review: (() => {
+      const r = raw.review && typeof raw.review === 'object' && !Array.isArray(raw.review) ? (raw.review as Record<string, unknown>) : {};
+      return { asks: Math.max(0, Math.floor(num(r.asks, 0))), lastWall: Math.max(0, num(r.lastWall, 0)) };
+    })(),
     referral: sanitizeReferral(raw.referral),
   }, content);
 }
