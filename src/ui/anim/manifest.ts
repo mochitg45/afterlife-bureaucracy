@@ -27,8 +27,10 @@ export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   // reactions still to come; staff without a reaction clip just keep working
   'dust-archivist': { work: 8, happy: 4, true: 8 },
   ferro: { work: 8, happy: 4, true: 8 },
+  forgot: { work: 8, happy: 4, true: 8 },
   petra: { work: 8, happy: 4, true: 8 },
   melodia: { work: 8, happy: 4, true: 8 },
+  bev: { work: 8, happy: 4 },
 };
 
 export const animFrameUrl = (id: string, clip: Clip, i: number) =>
