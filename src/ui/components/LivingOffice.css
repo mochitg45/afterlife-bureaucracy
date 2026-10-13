@@ -9,6 +9,17 @@
 /* Frame canvases are 192px: the figure fills ~60% of it with feet ~6% above the bottom edge, so widen the box and sink it onto the floor. */
 .lo-anim { width: 26%; margin-left: -4.5%; transform: translateY(6.25%); }
 .lo-walk { width: 100%; height: 100%; }
+/* Rarity glow: a soft ellipse on the floor under a card. */
+.lo-glow { position: absolute; left: -8%; right: -8%; bottom: -2%; height: 24%; border-radius: 50%; --g: transparent;
+  background: radial-gradient(closest-side, var(--g), transparent); box-shadow: 0 0 12px 4px var(--g); opacity: .95; }
+.lo-glow-fulltime { --g: #7FB8FF; }
+.lo-glow-senior { --g: #B98CFF; }
+.lo-glow-executive { --g: #FFD15A; animation: loGlowPulse 1.8s ease-in-out infinite; }
+.lo-anim .lo-glow { left: 14%; right: 14%; bottom: 4%; }
+.living-office .lo-glow { filter: none; }
+.lo-breathe { width: 100%; height: 100%; transform-origin: 50% 100%; animation: loBreathe 3s ease-in-out infinite; }
+@keyframes loBreathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.02); } }
+@keyframes loGlowPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 @keyframes loHop {
   0%, 55%, 100% { transform: translateY(0) scale(1, 1); }
   62% { transform: translateY(0) scale(1.08, .9); }

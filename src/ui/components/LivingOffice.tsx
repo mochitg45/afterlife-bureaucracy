@@ -5,6 +5,7 @@ import { Character } from '../characters/Character';
 import { onStamp } from '../stampEvents';
 import { ANIMS } from '../anim/manifest';
 import { SpriteAnim, type Reaction } from '../anim/SpriteAnim';
+import { ART } from '../characters/art';
 import { soulCard } from './soulFace';
 import faceCounts from '../../data/soul-faces.json';
 import head from '../../../public/art/anim/soul/head.json';
@@ -36,13 +37,33 @@ const QUEUE = [0, 1, 2];
 const MAX_DEPARTING = 6;
 const DEPART_MS = 1300;
 
+const RANK: Record<string, number> = { temp: 0, fulltime: 1, senior: 2, executive: 3 };
+const MAX_CARDS = 2;
+const artName = (id: string) => ART[id] ?? id;
+
+interface Member { id: string; art: string; rarity?: string }
+
 interface Departing { key: number; up: boolean; golden: boolean; face?: string }
 
 export function LivingOffice({ dept }: { dept: string }) {
   const staffCounts = useGame((s) => s.state.staff);
   // An unknown id (an old save, a test) shows the intake crew rather than crashing the scene.
   const defs = (content.departments.find((d) => d.id === dept) ?? content.departments[0]).staff;
-  const hired = defs.filter((d) => (staffCounts[d.id] ?? 0) > 0).slice(0, 4);
+  const equipped = useGame((s) => s.state.equipped);
+  // Up to 2 equipped gacha cards (best rarity first, never event cards); staff fill the rest, keeping the most senior.
+  const cards = content.cards
+    .filter((c) => equipped.includes(c.id) && !c.event)
+    .sort((a, b) => RANK[b.rarity] - RANK[a.rarity])
+    .slice(0, MAX_CARDS);
+  // The department's first hire is its mascot (Dave in Intake, with his true face) and always stays;
+  // the most senior of the rest fill what the cards leave.
+  const owned = defs.filter((d) => (staffCounts[d.id] ?? 0) > 0);
+  const room = 4 - cards.length;
+  const staff = owned.length <= room ? owned : [owned[0], ...owned.slice(1).slice(-(room - 1))];
+  const members: Member[] = [
+    ...staff.map((d) => ({ id: d.id, art: artName(d.id) })),
+    ...cards.map((c) => ({ id: c.id, art: artName(c.id), rarity: c.rarity })),
+  ];
 
   const [departing, setDeparting] = useState<Departing[]>([]);
   const [busy, setBusy] = useState(0);
@@ -50,8 +71,8 @@ export function LivingOffice({ dept }: { dept: string }) {
   // Per-staff one-shot reactions; a staff member ignores stamps until theirs has finished.
   const [reactions, setReactions] = useState<Record<string, Reaction>>({});
   const playing = useRef(new Set<string>());
-  const hiredIds = useRef<string[]>([]);
-  hiredIds.current = hired.map((d) => d.id);
+  const crew = useRef<Member[]>([]);
+  crew.current = members;
   const soul = <Character id="soul" mood="ok" size={64} />;
   // The front of the line is the soul on the "Now serving" card; the two behind it are random.
   const line = useGame((s) => s.queueLine);
@@ -67,8 +88,8 @@ export function LivingOffice({ dept }: { dept: string }) {
     setBehind((b) => [b[1], randomFace()]);
     setBusy(key);
     const clip = up ? 'happy' : 'true';
-    for (const id of hiredIds.current) {
-      if (!ANIMS[id]?.[clip] || playing.current.has(id)) continue;
+    for (const { id, art } of crew.current) {
+      if (!ANIMS[art]?.[clip] || playing.current.has(id)) continue;
       playing.current.add(id);
       setReactions((r) => ({ ...r, [id]: { clip, key } }));
     }
@@ -77,22 +98,27 @@ export function LivingOffice({ dept }: { dept: string }) {
 
   return (
     <div className="living-office" aria-hidden="true">
-      {hired.map((d, i) => {
+      {members.map((m, i) => {
         const pos = { left: `${SLOTS[i][0]}%`, bottom: `${SLOTS[i][1]}%` };
-        const still = <Character id={d.id} mood="ok" size={64} art={d.id} />;
-        if (ANIMS[d.id]?.work) {
+        const still = <Character id={m.id} mood="ok" size={64} art={m.id} />;
+        const glow = m.rarity && m.rarity !== 'temp' ? <span className={`lo-glow lo-glow-${m.rarity}`} /> : null;
+        if (ANIMS[m.art]?.work) {
           return (
-            <div key={d.id} className="lo-staff lo-anim" style={pos} data-staff={d.id}>
-              <SpriteAnim id={d.id} phase={i * 3} reaction={reactions[d.id]} fallback={still}
-                onReactionEnd={() => playing.current.delete(d.id)} />
+            <div key={m.id} className="lo-staff lo-anim" style={pos} data-staff={m.id}>
+              {glow}
+              <SpriteAnim id={m.art} phase={i * 3} reaction={reactions[m.id]} fallback={still}
+                onReactionEnd={() => playing.current.delete(m.id)} />
             </div>
           );
         }
         return (
-          <div key={d.id} className="lo-staff" style={pos} data-staff={d.id}>
+          <div key={m.id} className="lo-staff" style={pos} data-staff={m.id}>
+            {glow}
             {/* re-keyed on each stamp to replay the busy squash */}
             <div className="lo-busy" key={busy}>
-              <div className="lo-hop" style={{ animationDelay: `${HOPS[i][0]}s`, animationDuration: `${HOPS[i][1]}s` }}>
+              {/* cards only breathe; staff hop */}
+              <div className={m.rarity ? 'lo-breathe' : 'lo-hop'}
+                style={m.rarity ? undefined : { animationDelay: `${HOPS[i][0]}s`, animationDuration: `${HOPS[i][1]}s` }}>
                 {still}
               </div>
             </div>

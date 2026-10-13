@@ -10,7 +10,13 @@ function setStaff(staff: Record<string, number>) {
   useGame.setState({ state: { ...s, staff } });
 }
 
-afterEach(cleanup);
+function setEquipped(equipped: string[]) {
+  const s = useGame.getState().state;
+  useGame.setState({ state: { ...s, equipped } });
+}
+const ids = (c: HTMLElement) => [...c.querySelectorAll('[data-staff]')].map((e) => e.getAttribute('data-staff'));
+
+afterEach(() => { cleanup(); setEquipped([]); });
 
 describe('LivingOffice', () => {
   it('is decorative and shows only hired staff', () => {
@@ -49,5 +55,31 @@ describe('LivingOffice', () => {
     const heaven = render(<LivingOffice dept="heaven" />).container;
     expect(ANIMS['h-cherub']).toBeUndefined();
     expect(heaven.querySelector('[data-staff="h-cherub"] .lo-hop')).not.toBeNull();
+  });
+
+  it('fills the 4 spots with 2 equipped cards, the mascot and the most senior staff', () => {
+    setStaff({ dave: 1, seraphine: 1, gary: 1, auditor: 1 });
+    setEquipped(['c-dave-overtime', 'c-ferro']);
+    const { container } = render(<LivingOffice dept="intake" />);
+    expect(ids(container)).toEqual(['dave', 'auditor', 'c-ferro', 'c-dave-overtime']);
+  });
+
+  it('prefers the highest rarity, drops event cards, and glows by rarity', () => {
+    setStaff({ dave: 1, seraphine: 1, gary: 1, auditor: 1 });
+    setEquipped(['c-dave-overtime', 'c-hw-witch', 'c-bev-wings', 'c-seraph-board']);
+    const { container } = render(<LivingOffice dept="intake" />);
+    expect(ids(container)).toEqual(['dave', 'auditor', 'c-seraph-board', 'c-bev-wings']);
+    expect(container.querySelector('[data-staff="c-seraph-board"] .lo-glow-executive')).not.toBeNull();
+    expect(container.querySelector('[data-staff="c-bev-wings"] .lo-glow-senior')).not.toBeNull();
+    expect(container.querySelector('[data-staff="c-bev-wings"] .lo-hop')).toBeNull();
+  });
+
+  it('gives temp cards no glow and keeps 3 staff beside one card', () => {
+    setStaff({ dave: 1, seraphine: 1, gary: 1, auditor: 1 });
+    setEquipped(['c-dave-overtime']);
+    const { container } = render(<LivingOffice dept="intake" />);
+    expect(ids(container)).toEqual(['dave', 'gary', 'auditor', 'c-dave-overtime']);
+    expect(container.querySelector('.lo-glow')).toBeNull();
+    expect(container.querySelector('[data-staff="c-dave-overtime"] img[data-anim="dave"]')).not.toBeNull();
   });
 });
