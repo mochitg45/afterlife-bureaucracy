@@ -6,6 +6,10 @@ export type Clip = 'work' | 'happy' | 'true' | 'walk';
  */
 export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   dave: { work: 8, happy: 4, true: 8 },
+  auditor: { work: 8, happy: 4, true: 8 },
+  soul: { walk: 8 },
+  seraphine: { work: 8, happy: 4, true: 8 },
+  gary: { work: 8, happy: 4, true: 8 },
 };
 
 export const animFrameUrl = (id: string, clip: Clip, i: number) =>
