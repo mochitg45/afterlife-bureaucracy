@@ -46,15 +46,15 @@ describe('LivingOffice', () => {
   });
 
   it('uses sprite frames for staff with a work clip and the static hop for the rest', () => {
-    // Heaven's cherub has no frames yet, so it keeps the static hop next to the animated Dave check.
-    setStaff({ dave: 1, 'h-cherub': 1 });
+    // Cooked Dave has no frames, so that card keeps the static hop next to the animated Dave.
+    setStaff({ dave: 1 });
+    setEquipped(['c-dave-cooked']);
     const { container } = render(<LivingOffice dept="intake" />);
     expect(ANIMS.dave?.work).toBeTruthy();
     expect(container.querySelector('[data-staff="dave"] img[data-anim="dave"]')).not.toBeNull();
     expect(container.querySelector('[data-staff="dave"] .lo-hop')).toBeNull();
-    const heaven = render(<LivingOffice dept="heaven" />).container;
-    expect(ANIMS['h-cherub']).toBeUndefined();
-    expect(heaven.querySelector('[data-staff="h-cherub"] .lo-hop')).not.toBeNull();
+    expect(ANIMS['dave-cooked']).toBeUndefined();
+    expect(container.querySelector('[data-staff="c-dave-cooked"] .lo-hop')).not.toBeNull();
   });
 
   it('fills the 4 spots with 2 equipped cards, the mascot and the most senior staff', () => {

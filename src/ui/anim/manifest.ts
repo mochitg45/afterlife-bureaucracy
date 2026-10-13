@@ -30,6 +30,8 @@ export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   forgot: { work: 8, happy: 4, true: 8 },
   obroin: { work: 8, happy: 4, true: 8 },
   petra: { work: 8, happy: 4, true: 8 },
+  lilith: { work: 8, happy: 4, true: 8 },
+  grax: { work: 8, happy: 4, true: 8 },
   melodia: { work: 8, happy: 4, true: 8 },
   bev: { work: 8, happy: 4 },
 };
