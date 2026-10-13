@@ -5,7 +5,31 @@ import { Character } from '../characters/Character';
 import { onStamp } from '../stampEvents';
 import { ANIMS } from '../anim/manifest';
 import { SpriteAnim, type Reaction } from '../anim/SpriteAnim';
+import { soulCard } from './soulFace';
+import faceCounts from '../../data/soul-faces.json';
+import head from '../../../public/art/anim/soul/head.json';
 import './LivingOffice.css';
+
+const FACE_IDS = Object.entries(faceCounts as Record<string, number>)
+  .flatMap(([k, n]) => Array.from({ length: n }, (_, i) => `${k}-${String(i + 1).padStart(2, '0')}`));
+const faceUrl = (id: string) => `${import.meta.env.BASE_URL}art/souls/${id}.webp`;
+const randomFace = () => faceUrl(FACE_IDS[Math.floor(Math.random() * FACE_IDS.length)]);
+
+/** A queued or departing soul: the animated ghost body with a soul's face portrait on its neck. */
+function Soul({ face, phase = 0, fallback }: { face?: string; phase?: number; fallback: JSX.Element }) {
+  if (!ANIMS.soul?.walk || !face) return fallback;
+  // head.json is measured on the 192 px frame canvas; place the face in % of that canvas.
+  const size = (head.headSize / 192) * 100;
+  return (
+    <div className="lo-soulbody">
+      <SpriteAnim id="soul" clip="walk" phase={phase} fallback={fallback} />
+      <img className="lo-face" src={face} alt="" draggable={false} style={{
+        width: `${size}%`, left: `${(head.headCenterX / 192) * 100 - size / 2}%`,
+        top: `${((head.headBottomY - head.headSize) / 192) * 100 + 3}%`,
+      }} />
+    </div>
+  );
+}
 
 /** [left %, bottom %] slots on either side of the stamp, so staff never cover it. */
 const SLOTS: [number, number][] = [[3, 34], [80, 8], [80, 34], [3, 58]];
@@ -15,7 +39,7 @@ const QUEUE = [0, 1, 2];
 const MAX_DEPARTING = 6;
 const DEPART_MS = 850;
 
-interface Departing { key: number; up: boolean; golden: boolean }
+interface Departing { key: number; up: boolean; golden: boolean; face?: string }
 
 export function LivingOffice({ dept }: { dept: string }) {
   const staffCounts = useGame((s) => s.state.staff);
@@ -33,12 +57,18 @@ export function LivingOffice({ dept }: { dept: string }) {
   hiredIds.current = hired.map((d) => d.id);
   const walk = !!ANIMS.soul?.walk;
   const soul = <Character id="soul" mood="ok" size={64} />;
-  const soulAnim = walk ? <SpriteAnim id="soul" clip="walk" fallback={soul} /> : soul;
+  // The front of the line is the soul on the "Now serving" card; the two behind it are random.
+  const line = useGame((s) => s.queueLine);
+  const front = soulCard(line).faces[0];
+  const [behind, setBehind] = useState<string[]>(() => [randomFace(), randomFace()]);
+  const frontRef = useRef(front);
+  frontRef.current = front;
 
   useEffect(() => onStamp((e) => {
     const up = dept === 'hell' ? false : dept === 'intake' ? Math.random() < 0.5 : true;
     const key = ++seq.current;
-    setDeparting((d) => [...d, { key, up, golden: e.golden }].slice(-MAX_DEPARTING));
+    setDeparting((d) => [...d, { key, up, golden: e.golden, face: frontRef.current }].slice(-MAX_DEPARTING));
+    setBehind((b) => [b[1], randomFace()]);
     setBusy(key);
     const clip = up ? 'happy' : 'true';
     for (const id of hiredIds.current) {
@@ -77,7 +107,7 @@ export function LivingOffice({ dept }: { dept: string }) {
         {QUEUE.map((i) => (
           <div key={i} className="lo-soul" style={{ left: `${i * 8}%` }}>
             <div className={walk ? 'lo-walk' : 'lo-wait'} style={{ animationDelay: `${i * 0.35}s` }}>
-              {walk ? <SpriteAnim id="soul" clip="walk" phase={i * 3} fallback={soul} /> : soul}
+              {walk ? <Soul face={i === QUEUE.length - 1 ? front ?? behind[0] : behind[i]} phase={i * 3} fallback={soul} /> : soul}
             </div>
           </div>
         ))}
@@ -85,7 +115,7 @@ export function LivingOffice({ dept }: { dept: string }) {
       {departing.map((x) => (
         <div key={x.key} className={`lo-leave ${x.up ? 'up' : 'down'}${x.golden ? ' gold' : ''}`} data-departing={x.up ? 'up' : 'down'}>
           {x.up ? <span className="lo-halo" /> : <span className="lo-ember" />}
-          {soulAnim}
+          {walk ? <Soul face={x.face} fallback={soul} /> : soul}
         </div>
       ))}
     </div>

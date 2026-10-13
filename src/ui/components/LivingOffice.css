@@ -52,3 +52,8 @@
   .living-office, .living-office * { animation: none !important; }
   .lo-leave { display: none; }
 }
+
+/* A soul: ghost body frames with the face portrait sitting on the neck. */
+.lo-soulbody { position: relative; width: 100%; height: 100%; }
+.lo-soulbody > img:first-child, .lo-soulbody > :first-child { width: 100%; height: 100%; }
+.living-office .lo-face { position: absolute; height: auto; aspect-ratio: 1; pointer-events: none; filter: drop-shadow(0 1px 0 rgba(0,0,0,.15)); }
