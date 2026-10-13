@@ -68,7 +68,8 @@ service cloud.firestore {
     match /eventScores/{key}/entries/{uid} {
       function validScore() {
         return key.matches('[A-Za-z0-9-]{1,40}')
-          && request.resource.data.keys().hasOnly(['score', 'at'])
+          && request.resource.data.keys().hasOnly(['score', 'at', 'name'])
+          && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 24))
           && request.resource.data.score is number
           && request.resource.data.score > 0
           && request.resource.data.at == request.time;
@@ -76,6 +77,28 @@ service cloud.firestore {
       allow get, list: if signedIn();
       allow create: if signedIn() && request.auth.uid == uid && validScore();
       allow update: if signedIn() && request.auth.uid == uid && validScore()
+        && request.resource.data.score >= resource.data.score;
+      allow delete: if false;
+    }
+
+    // Lifetime-souls board: one doc per player. `score` is log10(souls) for ordering,
+    // `souls` the exact Decimal string to show. Only the owner writes; the score never drops.
+    match /lifetimeScores/{uid} {
+      function validEntry() {
+        return request.resource.data.keys().hasOnly(['score', 'souls', 'name', 'at'])
+          && request.resource.data.score is number
+          && request.resource.data.score > 0
+          && request.resource.data.score < 100000
+          && request.resource.data.souls is string
+          && request.resource.data.souls.size() <= 40
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 1
+          && request.resource.data.name.size() <= 24
+          && request.resource.data.at == request.time;
+      }
+      allow get, list: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid && validEntry();
+      allow update: if signedIn() && request.auth.uid == uid && validEntry()
         && request.resource.data.score >= resource.data.score;
       allow delete: if false;
     }

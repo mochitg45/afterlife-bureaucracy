@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} 종료까지 3시간",
  "notif.eventEndingBody": "이벤트가 끝나기 전에 보상을 받으세요.",
  "notif.eventStartTitle": "{name} 시작!",
- "notif.eventStartBody": "새 이벤트 직원이 기다리고 있어요. 영혼에 도장을 찍으러 오세요."
+ "notif.eventStartBody": "새 이벤트 직원이 기다리고 있어요. 영혼에 도장을 찍으러 오세요.",
+ "board.lifetimeTitle": "누적 영혼",
+ "board.eventTitle": "{name} 랭킹",
+ "board.rank": "내 순위: {total}명 중 {rank}위",
+ "board.notRanked": "아직 랭킹에 없어요. 영혼 처리를 계속하세요!",
+ "board.loading": "랭킹 불러오는 중…",
+ "board.error": "랭킹을 불러오지 못했어요. 연결을 확인하세요.",
+ "board.you": "(나)",
+ "board.playGames": "Play 게임 랭킹 열기"
 }

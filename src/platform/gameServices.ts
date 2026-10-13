@@ -11,6 +11,8 @@ export interface GameServices {
   showLeaderboard(leaderboardId: string): Promise<boolean>;
   /** Whether this platform has leaderboards at all (Play Games / Game Center). */
   available(): boolean;
+  /** The signed-in player's display name, for the in-game leaderboard; null when unknown. */
+  playerName?(): string | null;
 }
 
 /** Browser and test fallback: no Play Games, nothing to sign into, every call a no-op. */
@@ -45,16 +47,22 @@ function isPlaceholder(id: string): boolean {
  */
 export const playGamesServices: GameServices = (() => {
   let signedIn = false;
+  let name: string | null = null;
 
   return {
     async signIn() {
       try {
-        await CapacitorGameConnect.signIn();
+        const r = await CapacitorGameConnect.signIn();
+        name = r?.player_name?.trim() || name;
         signedIn = true;
       } catch {
         signedIn = false;
       }
       return signedIn;
+    },
+
+    playerName() {
+      return name;
     },
 
     isSignedIn() {

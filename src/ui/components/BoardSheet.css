@@ -1,0 +1,13 @@
+.board-sheet .board-you { margin: 0 0 8px; font-weight: 700; }
+.board-list { list-style: none; margin: 0; padding: 0; max-height: 55vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.board-row { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); }
+.board-row.me { background: var(--brass); color: var(--ink); font-weight: 700; }
+.board-place { text-align: center; font-weight: 700; }
+.board-row.top1 .board-place { color: #C8961E; }
+.board-row.top2 .board-place { color: #8C8C96; }
+.board-row.top3 .board-place { color: #B4632C; }
+.board-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-me { font-size: .85em; opacity: .8; }
+.board-value { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.board-pgs { width: 100%; margin-top: 10px; }
+.board-row.me .board-place { color: var(--ink); }

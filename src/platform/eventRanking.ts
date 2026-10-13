@@ -1,5 +1,6 @@
 import { getBackend } from './firebase';
 import { playReferral, REFERRAL_TIMEOUT_MS } from './referral';
+import { BOARD_SIZE, clerkName, type BoardView } from './lifetimeBoard';
 
 /** A player's place in one occurrence's ranking: 1-based rank among `total` ranked players. */
 export interface Standing {
@@ -16,7 +17,9 @@ export interface Standing {
 export interface EventRanking {
   /** Android only, like referrals (the Firebase backend needs Play Integrity). */
   available(): boolean;
-  submit(key: string, score: number): Promise<void>;
+  submit(key: string, score: number, name?: string): Promise<void>;
+  /** The top of one run's board plus this player's place; null when unreachable. */
+  board?(key: string): Promise<BoardView | null>;
   /** Null when unreachable; 'none' when this player has no entry for that key. */
   standing(key: string): Promise<Standing | 'none' | null>;
 }
@@ -37,7 +40,7 @@ const safeKey = (key: string) => key.replace(/[^A-Za-z0-9-]/g, '_');
 export const firestoreEventRanking: EventRanking = {
   available: () => playReferral.available(),
 
-  async submit(key, score) {
+  async submit(key, score, name) {
     if (!(score > 0) || !Number.isFinite(score)) return;
     try {
       await withTimeout((async () => {
@@ -47,12 +50,35 @@ export const firestoreEventRanking: EventRanking = {
         await runTransaction(db, async (tx) => {
           const ref = doc(db, 'eventScores', safeKey(key), 'entries', uid);
           const cur = await tx.get(ref);
-          if (cur.exists() && (cur.data().score as number) >= score) return;
-          tx.set(ref, { score, at: serverTimestamp() });
+          const nm = (name || clerkName(uid)).slice(0, 24);
+          if (cur.exists() && (cur.data().score as number) >= score && cur.data().name === nm) return;
+          const best = cur.exists() ? Math.max(cur.data().score as number, score) : score;
+          tx.set(ref, { score: best, name: nm, at: serverTimestamp() });
         });
       })());
     } catch {
       /* the next submit (pause, event page, rollover) tries again */
+    }
+  },
+
+  async board(key) {
+    try {
+      return await withTimeout((async () => {
+        const { db, uid } = await getBackend();
+        const { collection, doc, getDoc, getDocs, query, orderBy, limit, where, getCountFromServer } = await import('firebase/firestore');
+        const entries = collection(db, 'eventScores', safeKey(key), 'entries');
+        const [snap, mine, total] = await Promise.all([
+          getDocs(query(entries, orderBy('score', 'desc'), limit(BOARD_SIZE))),
+          getDoc(doc(entries, uid)),
+          getCountFromServer(entries),
+        ]);
+        const top = snap.docs.map((d) => ({ name: String(d.data().name ?? clerkName(d.id)), souls: String(d.data().score ?? 0), me: d.id === uid }));
+        let rank: number | null = null;
+        if (mine.exists()) rank = (await getCountFromServer(query(entries, where('score', '>', mine.data().score as number)))).data().count + 1;
+        return { top, rank, total: total.data().count };
+      })());
+    } catch {
+      return null;
     }
   },
 

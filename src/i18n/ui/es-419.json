@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} termina en 3 horas",
  "notif.eventEndingBody": "Recoge tus recompensas antes de que cierre.",
  "notif.eventStartTitle": "¡{name} ha comenzado!",
- "notif.eventStartBody": "Nuevos empleados del evento te esperan. Ven a sellar almas."
+ "notif.eventStartBody": "Nuevos empleados del evento te esperan. Ven a sellar almas.",
+ "board.lifetimeTitle": "Almas de toda la vida",
+ "board.eventTitle": "Ranking de {name}",
+ "board.rank": "Tu puesto: #{rank} de {total}",
+ "board.notRanked": "Aún no estás en el ranking. ¡Sigue procesando almas!",
+ "board.loading": "Cargando el ranking…",
+ "board.error": "No se pudo cargar el ranking. Revisa tu conexión.",
+ "board.you": "(tú)",
+ "board.playGames": "Abrir ranking de Play Games"
 }

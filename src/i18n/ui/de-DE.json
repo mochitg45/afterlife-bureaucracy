@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} endet in 3 Stunden",
  "notif.eventEndingBody": "Hol dir deine Event-Belohnungen, bevor es schließt.",
  "notif.eventStartTitle": "{name} hat begonnen!",
- "notif.eventStartBody": "Neue Event-Mitarbeiter warten. Komm und stemple ein paar Seelen."
+ "notif.eventStartBody": "Neue Event-Mitarbeiter warten. Komm und stemple ein paar Seelen.",
+ "board.lifetimeTitle": "Seelen insgesamt",
+ "board.eventTitle": "{name}-Rangliste",
+ "board.rank": "Dein Rang: #{rank} von {total}",
+ "board.notRanked": "Du bist noch nicht auf der Rangliste. Bearbeite weiter Seelen!",
+ "board.loading": "Rangliste wird geladen…",
+ "board.error": "Rangliste konnte nicht geladen werden. Prüfe deine Verbindung.",
+ "board.you": "(du)",
+ "board.playGames": "Play-Games-Rangliste öffnen"
 }

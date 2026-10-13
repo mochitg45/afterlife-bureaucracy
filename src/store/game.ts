@@ -38,6 +38,7 @@ import { pickSharer, INVITE_PITCH, type Sharer } from '../platform/share';
 import { claimTier, grantShareReward } from '../engine/referral';
 import { prizeFor, payRankPrize, type RankPrize } from '../engine/eventRank';
 import { pickEventRanking, type EventRanking, type Standing } from '../platform/eventRanking';
+import { pickLifetimeBoard, type LifetimeBoard, type BoardView } from '../platform/lifetimeBoard';
 import { content as defaultContent } from '../data';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -359,6 +360,13 @@ export interface GameStore {
   signInGameServices(): Promise<boolean>;
   /** True where a leaderboard can be opened (Android with Play Games and a mapped board id). */
   leaderboardAvailable: boolean;
+  /** The in-game lifetime board (Firestore): available, and the last loaded view. */
+  lifetimeBoardAvailable: boolean;
+  lifetimeBoardView: BoardView | null;
+  loadLifetimeBoard(): Promise<boolean>;
+  /** The running event's in-game board (Firestore). */
+  eventBoardView: BoardView | null;
+  loadEventBoard(): Promise<boolean>;
   /** Signs in if needed, sends the latest score, then opens the lifetime-souls leaderboard. */
   openLeaderboard(): Promise<boolean>;
   /** Same, for the running event's board. */
@@ -404,6 +412,7 @@ export interface StoreDeps {
   cloudSave?: CloudSave;
   referral?: Referral;
   eventRanking?: EventRanking;
+  lifetimeBoard?: LifetimeBoard;
   sharer?: Sharer;
   audio?: Audio;
   /** Overrides `readForceEvent()` (tests). */
@@ -428,6 +437,7 @@ export function createGameStore(deps: StoreDeps) {
   const cloudSave = deps.cloudSave ?? pickCloudSave();
   const referral = deps.referral ?? pickReferral();
   const eventRanking = deps.eventRanking ?? pickEventRanking();
+  const lifetimeBoard = deps.lifetimeBoard ?? pickLifetimeBoard();
   const sharer = deps.sharer ?? pickSharer();
   const audio = deps.audio ?? pickAudio();
   const forceEvent = deps.forceEvent !== undefined ? deps.forceEvent : readForceEvent();
@@ -511,6 +521,8 @@ export function createGameStore(deps: StoreDeps) {
 
     /** Same contract as the achievement mirror: unmapped id, no call; failure, no noise. */
     const submitLifetimeScore = (soulsLifetime: Decimal) => {
+      // The in-game board shows real soul counts; Play Games only takes a log stand-in.
+      if (soulsLifetime.gt(1)) void lifetimeBoard.submit(soulsLifetime.log10(), soulsLifetime.toString(), gameServices.playerName?.() ?? '');
       const board = lifetimeSoulsLeaderboardId();
       if (!board) return;
       gameServices.submitScore(board, lifetimeSoulsScore(soulsLifetime)).catch(() => {});
@@ -536,7 +548,7 @@ export function createGameStore(deps: StoreDeps) {
       const board = occ && eventLeaderboardId(occ);
       if (!board || !ev || ev.key !== occ!.key) return;
       gameServices.submitScore(board, ev.earned.toNumber()).catch(() => {});
-      void eventRanking.submit(ev.key, ev.earned.toNumber());
+      void eventRanking.submit(ev.key, ev.earned.toNumber(), gameServices.playerName?.() ?? '');
     };
 
     /**
@@ -1023,6 +1035,24 @@ export function createGameStore(deps: StoreDeps) {
       rankingAvailable: eventRanking.available(),
       pendingRank: null,
       leaderboardAvailable: gameServices.available() && lifetimeSoulsLeaderboardId() !== null,
+      lifetimeBoardAvailable: lifetimeBoard.available(),
+      lifetimeBoardView: null,
+      eventBoardView: null,
+      async loadEventBoard() {
+        const ev = get().state.event;
+        if (!ev || !eventRanking.board) return false;
+        if (ev.earned.gt(0)) await eventRanking.submit(ev.key, ev.earned.toNumber(), gameServices.playerName?.() ?? '');
+        const v = await eventRanking.board(ev.key);
+        if (v) set({ eventBoardView: v });
+        return v !== null;
+      },
+      async loadLifetimeBoard() {
+        const souls = get().state.soulsLifetime;
+        if (souls.gt(1)) await lifetimeBoard.submit(souls.log10(), souls.toString(), gameServices.playerName?.() ?? '');
+        const v = await lifetimeBoard.view();
+        if (v) set({ lifetimeBoardView: v });
+        return v !== null;
+      },
       pendingVisitor: null,
       pendingPrize: null,
       dismissPrize() { set({ pendingPrize: null }); },

@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} berakhir dalam 3 jam",
  "notif.eventEndingBody": "Ambil hadiah event sebelum ditutup.",
  "notif.eventStartTitle": "{name} sudah dimulai!",
- "notif.eventStartBody": "Staf event baru menunggu. Ayo cap beberapa jiwa."
+ "notif.eventStartBody": "Staf event baru menunggu. Ayo cap beberapa jiwa.",
+ "board.lifetimeTitle": "Jiwa seumur hidup",
+ "board.eventTitle": "Peringkat {name}",
+ "board.rank": "Peringkatmu: #{rank} dari {total}",
+ "board.notRanked": "Kamu belum ada di papan. Terus proses jiwa!",
+ "board.loading": "Memuat papan…",
+ "board.error": "Gagal memuat papan. Periksa koneksimu.",
+ "board.you": "(kamu)",
+ "board.playGames": "Buka papan Play Games"
 }

@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} se termine dans 3 heures",
  "notif.eventEndingBody": "Récupère tes récompenses avant la fermeture.",
  "notif.eventStartTitle": "{name} a commencé !",
- "notif.eventStartBody": "De nouveaux employés de l'événement t'attendent. Viens tamponner des âmes."
+ "notif.eventStartBody": "De nouveaux employés de l'événement t'attendent. Viens tamponner des âmes.",
+ "board.lifetimeTitle": "Âmes au total",
+ "board.eventTitle": "Classement {name}",
+ "board.rank": "Ton rang : #{rank} sur {total}",
+ "board.notRanked": "Tu n'es pas encore au classement. Continue à traiter des âmes !",
+ "board.loading": "Chargement du classement…",
+ "board.error": "Impossible de charger le classement. Vérifie ta connexion.",
+ "board.you": "(toi)",
+ "board.playGames": "Ouvrir le classement Play Games"
 }

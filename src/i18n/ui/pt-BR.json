@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} termina em 3 horas",
  "notif.eventEndingBody": "Pegue suas recompensas antes que o evento feche.",
  "notif.eventStartTitle": "{name} começou!",
- "notif.eventStartBody": "Novos funcionários do evento estão esperando. Venha carimbar almas."
+ "notif.eventStartBody": "Novos funcionários do evento estão esperando. Venha carimbar almas.",
+ "board.lifetimeTitle": "Almas da vida toda",
+ "board.eventTitle": "Ranking de {name}",
+ "board.rank": "Sua posição: #{rank} de {total}",
+ "board.notRanked": "Você ainda não está no ranking. Continue processando almas!",
+ "board.loading": "Carregando o ranking…",
+ "board.error": "Não foi possível carregar o ranking. Verifique sua conexão.",
+ "board.you": "(você)",
+ "board.playGames": "Abrir ranking do Play Games"
 }

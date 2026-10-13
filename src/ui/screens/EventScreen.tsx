@@ -22,6 +22,7 @@ import { EVENT_PACKS } from '../../engine/entitlements';
 import type { EventPool } from '../../engine/state';
 import type { ProductId, PurchaseResult } from '../../platform/billing';
 import { Modal } from '../components/Modal';
+import { BoardSheet } from '../components/BoardSheet';
 import { CardSheet, bonusLine } from '../overlays/CardSheet';
 import './EventScreen.css';
 import { t, fmtDate } from '../../i18n';
@@ -529,6 +530,10 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   const ownedCards = useGame((s) => s.state.cards);
   const leaderboard = useGame((s) => s.leaderboardAvailable);
   const openBoard = useGame((s) => s.openEventLeaderboard);
+  const inGameBoard = useGame((s) => s.rankingAvailable);
+  const boardView = useGame((s) => s.eventBoardView);
+  const loadBoard = useGame((s) => s.loadEventBoard);
+  const [boardOpen, setBoardOpen] = useState(false);
   // The event ended while open: back to the office.
   useEffect(() => { if (!occ) onBack(); }, [occ, onBack]);
   // Each event has its own music while its screen is open; leaving restores the office loop.
@@ -587,7 +592,11 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
       {tab === 'missions' && <Missions occ={occ} />}
       {tab === 'rewards' && (
         <>
-          {leaderboard && <button className="btn event-board" onClick={() => void openBoard()}>{t('event.leaderboard', { name: occ.name })}</button>}
+          {(inGameBoard || leaderboard) && <button className="btn event-board" onClick={() => (inGameBoard ? setBoardOpen(true) : void openBoard())}>{t('event.leaderboard', { name: occ.name })}</button>}
+          {boardOpen && (
+            <BoardSheet title={t('board.eventTitle', { name: occ.name })} view={boardView} load={loadBoard} unit={<span className="sub">{occ.currency}</span>}
+              onClose={() => setBoardOpen(false)} onPlayGames={leaderboard ? () => { setBoardOpen(false); void openBoard(); } : undefined} />
+          )}
           <Ranking occ={occ} />
           <Track occ={occ} />
           <div className="section-head"><h3>{t('event.upcoming')}</h3></div>

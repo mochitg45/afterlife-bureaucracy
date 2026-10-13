@@ -509,5 +509,13 @@
  "notif.eventEndingTitle": "{name} จะจบใน 3 ชั่วโมง",
  "notif.eventEndingBody": "รับรางวัลอีเวนต์ก่อนปิด",
  "notif.eventStartTitle": "{name} เริ่มแล้ว!",
- "notif.eventStartBody": "พนักงานอีเวนต์ใหม่รออยู่ มาประทับตราวิญญาณกัน"
+ "notif.eventStartBody": "พนักงานอีเวนต์ใหม่รออยู่ มาประทับตราวิญญาณกัน",
+ "board.lifetimeTitle": "วิญญาณสะสม",
+ "board.eventTitle": "อันดับ {name}",
+ "board.rank": "อันดับของคุณ: #{rank} จาก {total}",
+ "board.notRanked": "คุณยังไม่ติดอันดับ ประมวลผลวิญญาณต่อไป!",
+ "board.loading": "กำลังโหลดอันดับ…",
+ "board.error": "โหลดอันดับไม่ได้ ตรวจสอบการเชื่อมต่อ",
+ "board.you": "(คุณ)",
+ "board.playGames": "เปิดอันดับใน Play Games"
 }

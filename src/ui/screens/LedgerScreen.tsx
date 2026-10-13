@@ -10,6 +10,7 @@ import { clauseSealMult } from '../../engine/cosmic';
 import { content } from '../../data';
 import { PerkTree } from '../components/PerkTree';
 import { CosmicPanel } from '../components/CosmicPanel';
+import { BoardSheet } from '../components/BoardSheet';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { t } from '../../i18n';
 
@@ -78,22 +79,33 @@ function AuditCard() {
   );
 }
 
-/** Android only: opens the Play Games "Lifetime souls" board (signing in first if needed). */
+/**
+ * The lifetime-souls board. On Android it is the in-game board (real soul counts, names, your
+ * place) with a link to Play Games; elsewhere it opens the platform board directly.
+ */
 function LeaderboardButton() {
   const available = useGame((s) => s.leaderboardAvailable);
+  const inGame = useGame((s) => s.lifetimeBoardAvailable);
   const open = useGame((s) => s.openLeaderboard);
+  const view = useGame((s) => s.lifetimeBoardView);
+  const load = useGame((s) => s.loadLifetimeBoard);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  if (!available) return null;
-  const onClick = () => {
+  const [sheet, setSheet] = useState(false);
+  if (!available && !inGame) return null;
+  const openPlayGames = () => {
     setBusy(true);
     setFailed(false);
     void open().then((ok) => setFailed(!ok)).finally(() => setBusy(false));
   };
   return (
     <div className="leaderboard-row">
-      <button className="btn" disabled={busy} onClick={onClick}>{t('ledger.leaderboard')}</button>
+      <button className="btn" disabled={busy} onClick={inGame ? () => setSheet(true) : openPlayGames}>{t('ledger.leaderboard')}</button>
       {failed && <span className="sub warn">{t(Capacitor.getPlatform() === 'ios' ? 'ledger.signInIos' : 'ledger.signIn')}</span>}
+      {sheet && (
+        <BoardSheet title={t('board.lifetimeTitle')} view={view} load={load} onClose={() => setSheet(false)}
+          onPlayGames={available ? () => { setSheet(false); openPlayGames(); } : undefined} />
+      )}
     </div>
   );
 }
