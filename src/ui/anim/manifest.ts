@@ -12,6 +12,9 @@ export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   wings: { flap: 6 },
   seraphine: { work: 8, happy: 4, true: 8 },
   gary: { work: 8, happy: 4, true: 8 },
+  'seraph-board': { work: 8, happy: 4, true: 8 },
+  'choir-cherub': { work: 8, happy: 4, true: 8 },
+  vassago: { work: 8, happy: 4, true: 8 },
 };
 
 export const animFrameUrl = (id: string, clip: Clip, i: number) =>
