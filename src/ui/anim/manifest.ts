@@ -28,6 +28,7 @@ export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   'dust-archivist': { work: 8, happy: 4, true: 8 },
   ferro: { work: 8, happy: 4, true: 8 },
   forgot: { work: 8, happy: 4, true: 8 },
+  obroin: { work: 8, happy: 4, true: 8 },
   petra: { work: 8, happy: 4, true: 8 },
   melodia: { work: 8, happy: 4, true: 8 },
   bev: { work: 8, happy: 4 },
