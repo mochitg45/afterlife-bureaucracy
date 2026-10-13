@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+﻿import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
 import { useGame } from '../../store/game';
 import { emitStamp } from '../stampEvents';
@@ -46,7 +46,7 @@ describe('LivingOffice', () => {
   });
 
   it('uses sprite frames for staff with a work clip and the static hop for the rest', () => {
-    // Cooked Dave has no frames, so that card keeps the static hop next to the animated Dave.
+    // Cooked Dave has no frames, so that card keeps the static breathe next to the animated Dave.
     setStaff({ dave: 1 });
     setEquipped(['c-dave-cooked']);
     const { container } = render(<LivingOffice dept="intake" />);
@@ -54,7 +54,7 @@ describe('LivingOffice', () => {
     expect(container.querySelector('[data-staff="dave"] img[data-anim="dave"]')).not.toBeNull();
     expect(container.querySelector('[data-staff="dave"] .lo-hop')).toBeNull();
     expect(ANIMS['dave-cooked']).toBeUndefined();
-    expect(container.querySelector('[data-staff="c-dave-cooked"] .lo-hop')).not.toBeNull();
+    expect(container.querySelector('[data-staff="c-dave-cooked"] .lo-breathe')).not.toBeNull();
   });
 
   it('fills the 4 spots with 2 equipped cards, the mascot and the most senior staff', () => {
