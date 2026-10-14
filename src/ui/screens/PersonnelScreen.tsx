@@ -148,7 +148,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
 
       {sheetCardId && <CardSheet cardId={sheetCardId} onClose={() => setSheetCardId(null)} />}
 
-      <div className="card odds" ref={oddsRef}>
+      <div className="card odds" ref={oddsRef} hidden={tab !== 'cards'}>
         <h3>{t('personnel.odds')}</h3>
         {RARITY_ORDER.map((r) => (
           <div key={r} className="odds-row">
