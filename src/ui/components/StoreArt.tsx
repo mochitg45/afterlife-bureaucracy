@@ -37,6 +37,7 @@ const ART: Record<ProductId, ReactElement> = {
   holiday_vouchers_200: <><Ticket x={26} y={36} rotate={-12} fill={HD} /><Ticket x={38} y={30} rotate={10} fill={HD} /></>,
   holiday_vouchers_1200: <><Ticket x={22} y={34} rotate={-8} fill={HD} /><Ticket x={32} y={30} fill={HD} /><Ticket x={42} y={34} rotate={8} fill={HD} /></>,
   holiday_bundle: <><Ticket x={24} y={36} rotate={-10} fill={HD} /><Ticket x={40} y={30} rotate={8} /></>,
+  cerberus_bundle: <image href="art/chars/cerberus.webp" x={0} y={0} width={64} height={64} />,
   weekly_pass: <PassArt fill={WK} />,
   holiday_pass: <PassArt fill={HD} />,
   vouchers_10: <Ticket x={32} y={32} />,

@@ -1,4 +1,4 @@
-export type Clip = 'work' | 'happy' | 'true' | 'walk' | 'flap' | 'burn';
+export type Clip = 'work' | 'happy' | 'true' | 'walk' | 'flap' | 'burn' | 'bark';
 
 /**
  * Which characters have hand-drawn frame clips, and how many frames each has.

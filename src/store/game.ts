@@ -21,6 +21,7 @@ import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as excha
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { upgradePerk as upgradePerkEngine } from '../engine/perks';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
+import { PREMIUM_STAFF, grantPremium, equipPremium } from '../engine/premium';
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
 import { pickBilling, type Billing, type Product, type ProductId, type PurchaseResult, type Restored } from '../platform/billing';
 import { pickGameServices, type GameServices } from '../platform/gameServices';
@@ -348,6 +349,8 @@ export interface GameStore {
   exchange(cardId: string): ExchangeResult | null;
   equip(cardId: string): void;
   unequip(cardId: string): void;
+  /** Puts an owned premium staff in the premium slot, or empties it with null. */
+  setPremium(id: string | null): void;
   claimDaily(taskId: string): void;
   skipDaily(taskId: string): void;
   /** Writes off a task the player can no longer finish (e.g. every upgrade already bought). */
@@ -713,7 +716,11 @@ export function createGameStore(deps: StoreDeps) {
         starterPackBought: held.starterPackBought || restored.starterPackBought,
         firstBuyUsed,
       };
+      // Premium staff come back by product id; ownership only ever grows.
+      const restoredPremium = PREMIUM_STAFF.filter((p) => restored.premiumProducts?.includes(p.product)).map((p) => p.id);
+      const withPremium = grantPremium({ entitlements: { ...held, ...merged } }, restoredPremium).entitlements;
       const changed =
+        (withPremium.premium ?? []).length !== (held.premium ?? []).length ||
         merged.removeAds !== held.removeAds ||
         merged.unionUntilWall !== held.unionUntilWall ||
         merged.starterPackBought !== held.starterPackBought ||
@@ -721,7 +728,7 @@ export function createGameStore(deps: StoreDeps) {
         // carries leaves the count untouched and used to be dropped on the floor.
         Object.keys(merged.firstBuyUsed).some((id) => merged.firstBuyUsed[id] !== held.firstBuyUsed[id]);
       if (!changed) return false;
-      apply({ ...get().state, entitlements: merged });
+      apply({ ...get().state, entitlements: withPremium });
       return true;
     };
 
@@ -1522,6 +1529,12 @@ export function createGameStore(deps: StoreDeps) {
         if (next !== s) sfx('equip');
       },
       unequip(cardId) { apply(unequipCard(get().state, cardId)); },
+      setPremium(id) {
+        const next = equipPremium(get().state, id);
+        if (next === get().state) return;
+        apply(next);
+        void get().save();
+      },
       claimDaily(taskId) {
         const r = claimDailyEngine(get().state, content, taskId, get().rates.kcPerSec);
         apply(r.state);
@@ -1699,7 +1712,7 @@ export function createGameStore(deps: StoreDeps) {
         await get().save();
         // Reported on what the store said this account owns, not on whether the merge moved
         // anything: restoring onto a device that already holds everything is still a success.
-        const owns = restored.removeAds || restored.unionUntilWall > 0 || restored.starterPackBought;
+        const owns = restored.removeAds || restored.unionUntilWall > 0 || restored.starterPackBought || !!restored.premiumProducts?.length;
         return owns ? 'ok' : 'none';
       },
 

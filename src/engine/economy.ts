@@ -6,6 +6,7 @@ import { cardGlobalMult, cardDeptMult, cardClickMult } from './gacha';
 import { achievementMult } from './achievements';
 import { clauseGlobalMult } from './cosmic';
 import { unionGlobalMult } from './entitlements';
+import { premiumGlobalMult } from './premium';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -116,7 +117,8 @@ export function globalMult(state: GameState, content: Content, nowWall: number):
     .mul(cardGlobalMult(state, content))
     .mul(achievementMult(state))
     .mul(clauseGlobalMult(state, content))
-    .mul(unionGlobalMult(state, nowWall));
+    .mul(unionGlobalMult(state, nowWall))
+    .mul(premiumGlobalMult(state));
 }
 
 export interface Rates {

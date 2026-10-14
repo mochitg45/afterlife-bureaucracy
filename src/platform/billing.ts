@@ -3,6 +3,7 @@ import { Purchases, PRODUCT_CATEGORY, PURCHASES_ERROR_CODE } from '@revenuecat/p
 import type { CustomerInfo, PurchasesStoreProduct } from '@revenuecat/purchases-capacitor';
 import { isDevBuild } from './adUnits';
 import { t } from '../i18n';
+import { PREMIUM_STAFF } from '../engine/premium';
 
 export type ProductId =
   | 'vouchers_10'
@@ -19,7 +20,8 @@ export type ProductId =
   | 'holiday_vouchers_1200'
   | 'holiday_bundle'
   | 'weekly_pass'
-  | 'holiday_pass';
+  | 'holiday_pass'
+  | 'cerberus_bundle';
 
 export const PRODUCT_IDS: readonly ProductId[] = [
   'vouchers_10',
@@ -37,6 +39,7 @@ export const PRODUCT_IDS: readonly ProductId[] = [
   'holiday_bundle',
   'weekly_pass',
   'holiday_pass',
+  'cerberus_bundle',
 ] as const;
 
 /**
@@ -96,6 +99,8 @@ export interface Restored {
   removeAds: boolean;
   unionUntilWall: number;
   starterPackBought: boolean;
+  /** Product ids of premium-staff bundles this account has bought (non-consumable). */
+  premiumProducts?: string[];
 }
 export interface Billing {
   init(): Promise<void>;
@@ -138,6 +143,7 @@ const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
   holiday_bundle: { price: '$5.99', title: t('product.holiday_bundle') },
   weekly_pass: { price: '$1.99', title: t('product.weekly_pass') },
   holiday_pass: { price: '$3.99', title: t('product.holiday_pass') },
+  cerberus_bundle: { price: '$4.99', title: t('product.cerberus_bundle') },
 };
 
 /**
@@ -175,6 +181,7 @@ function readEntitlements(customerInfo: CustomerInfo): Restored {
     removeAds: Boolean(active[ENTITLEMENT_REMOVE_ADS]?.isActive),
     unionUntilWall: union?.isActive ? (union.expirationDateMillis ?? UNION_NO_EXPIRY_WALL) : 0,
     starterPackBought: (customerInfo.allPurchasedProductIdentifiers ?? []).includes('starter_pack'),
+    premiumProducts: (customerInfo.allPurchasedProductIdentifiers ?? []).filter((p) => PREMIUM_STAFF.some((s) => s.product === p)),
   };
 }
 

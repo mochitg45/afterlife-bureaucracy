@@ -7,6 +7,7 @@ import { ANIMS } from '../anim/manifest';
 import { SpriteAnim, type Reaction } from '../anim/SpriteAnim';
 import { ART } from '../characters/art';
 import { keptCard } from '../../engine/gacha';
+import { premiumOnDuty } from '../../engine/premium';
 import { soulCard } from './soulFace';
 import faceCounts from '../../data/soul-faces.json';
 import head from '../../../public/art/anim/soul/head.json';
@@ -72,6 +73,10 @@ export function LivingOffice({ dept }: { dept: string }) {
     ...cards.map((c) => ({ id: c.id, art: artName(c.id), rarity: c.rarity })),
   ];
 
+  // The premium staff on duty (Cerberus) patrols the floor of whichever department is open.
+  const patrol = useGame((s) => premiumOnDuty(s.state)?.id);
+  const [bark, setBark] = useState<Reaction | null>(null);
+  const barking = useRef(false);
   const [departing, setDeparting] = useState<Departing[]>([]);
   const [busy, setBusy] = useState(0);
   const seq = useRef(0);
@@ -96,6 +101,7 @@ export function LivingOffice({ dept }: { dept: string }) {
     setDeparting((d) => [...d, { key, exit, golden: e.golden, face: frontRef.current, baby }].slice(-MAX_DEPARTING));
     setBehind((b) => [b[1], randomFace()]);
     setBusy(key);
+    if (!barking.current) { barking.current = true; setBark({ clip: 'bark', key }); }
     const clip = exit === 'down' ? 'true' : 'happy';
     for (const { id, art } of crew.current) {
       if (!ANIMS[art]?.[clip] || playing.current.has(id)) continue;
@@ -134,6 +140,15 @@ export function LivingOffice({ dept }: { dept: string }) {
           </div>
         );
       })}
+      {patrol && (
+        <div className="lo-patrol" data-patrol={patrol}>
+          <div className="lo-patrol-face">
+            <SpriteAnim id={patrol} clip="walk" reaction={ANIMS[patrol]?.bark ? bark : null}
+              onReactionEnd={() => { barking.current = false; }}
+              fallback={<img src={`art/chars/${patrol}.webp`} alt="" />} />
+          </div>
+        </div>
+      )}
       <div className="lo-queue" key={busy}>
         {QUEUE.map((i) => (
           <div key={i} className="lo-soul" style={{ left: `${2 + i * 13}%` }}>

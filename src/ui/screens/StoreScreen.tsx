@@ -3,6 +3,8 @@ import { Capacitor } from '@capacitor/core';
 import { useGame, type RestoreResult } from '../../store/game';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StoreArt } from '../components/StoreArt';
+import { PremiumOffer } from '../components/PremiumPanel';
+import { PREMIUM_STAFF } from '../../engine/premium';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
 import { t, fmtDate } from '../../i18n';
 import { KarmaIcon } from '../icons/Currency';
@@ -126,6 +128,8 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
       {products.length === 0 && (
         <div className="card"><p className="sub">{t('store.closed')}</p></div>
       )}
+
+      {byId.has('cerberus_bundle') && PREMIUM_STAFF.map((def) => <PremiumOffer key={def.id} def={def} buyOnly onResult={onPurchase} />)}
 
       {packs.length > 0 && (
         <>

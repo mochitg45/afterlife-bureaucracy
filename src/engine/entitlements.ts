@@ -6,6 +6,7 @@ import type { Content } from './content';
 import type { ProductId } from '../platform/billing';
 import { grantVouchersExact } from './vouchers';
 import { buyEventPass } from './events';
+import { grantPremium, premiumForProduct } from './premium';
 
 /** Union Membership: +25% on everything the office earns, for as long as it runs. */
 export const UNION_GLOBAL_MULT = 1.25;
@@ -92,6 +93,8 @@ export function applyPurchase(
       ? { ...withVouchers, entitlements: { ...withVouchers.entitlements, firstBuyUsed: { ...withVouchers.entitlements.firstBuyUsed, [id]: true } } }
       : withVouchers;
   }
+  const premium = premiumForProduct(id);
+  if (premium) return grantPremium(grantVouchersExact(next, premium.vouchers), [premium.id]);
   const eventPack = EVENT_PACKS[id];
   if (eventPack) {
     const withVouchers = eventPack.vouchers ? grantVouchersExact(next, eventPack.vouchers) : next;

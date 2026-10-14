@@ -1,0 +1,19 @@
+/* Premium staff: paid hires get a gold, slightly richer card than the regular roster. */
+.premium-offer { position: relative; display: grid; grid-template-columns: 96px 1fr; gap: 4px 12px; align-items: center;
+  border: 2px solid var(--brass); background: linear-gradient(160deg, #fff3c8, var(--surface) 65%); box-shadow: 0 0 0 3px rgb(232 193 100 / .25); }
+.premium-offer.on-duty { box-shadow: 0 0 0 3px var(--brass), 0 0 18px rgb(232 193 100 / .55); }
+.premium-art { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 2px 0 rgb(0 0 0 / .2)); }
+.premium-text h3 { margin: 0; }
+.premium-text p { margin: 2px 0; }
+.premium-bonus { font-weight: 700; color: var(--brass); }
+.premium-actions { grid-column: 1 / -1; }
+.premium-ribbon { position: absolute; top: -10px; right: 12px; font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  background: var(--brass); color: #fff; padding: 2px 8px; border-radius: 999px; }
+.premium-slot { display: flex; align-items: center; gap: 10px; min-height: 64px; border: 2px dashed var(--brass); }
+.premium-slot img { width: 56px; height: 56px; object-fit: contain; }
+
+.personnel-tabs { display: flex; gap: 6px; margin: 4px 0 10px; padding: 4px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--line); }
+.personnel-tab { flex: 1; padding: 8px 4px; border: 0; border-radius: 999px; background: none; font: inherit; font-weight: 700; color: inherit; opacity: .65; cursor: pointer; }
+.personnel-tab.active { background: var(--red, #a6402b); color: #fff; opacity: 1; }
+.personnel-tab.premium.active { background: var(--brass); }
+.personnel-tab:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }

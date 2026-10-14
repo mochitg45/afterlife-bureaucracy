@@ -5,6 +5,7 @@ import { MAX_PERK_LEVEL } from './perks';
 import { TIP_IDS, type Content } from './content';
 import type { CloudSyncResult } from './cloudSync';
 import { REFERRAL_TIERS } from './referral';
+import { premiumDef } from './premium';
 
 export { SAVE_VERSION, RESET_EPOCH };
 
@@ -30,6 +31,10 @@ export interface Entitlements {
   starterPackBought: boolean;
   /** Product ids whose first purchase (paid double) has already happened. */
   firstBuyUsed: Record<string, boolean>;
+  /** Premium staff owned (paid bundles, see premium.ts). Optional so older saves and literals stay valid. */
+  premium?: string[];
+  /** The premium staff on duty in the one premium slot; '' when empty. */
+  premiumOn?: string;
 }
 
 /** Per-day and per-cooldown bookkeeping for the rewarded-ad placements. */
@@ -457,7 +462,16 @@ function sanitizeEntitlements(v: unknown): Entitlements {
     unionUntilWall: nonNeg(raw.unionUntilWall),
     starterPackBought: bool(raw.starterPackBought, false),
     firstBuyUsed: boolFlags(raw.firstBuyUsed),
+    ...sanitizePremium(raw),
   };
+}
+
+/** Premium fields only appear once something premium is owned, so plain saves stay byte-identical. */
+function sanitizePremium(raw: Record<string, unknown>): Pick<Entitlements, 'premium' | 'premiumOn'> {
+  const premium = Array.isArray(raw.premium) ? [...new Set(raw.premium.filter((id): id is string => typeof id === 'string' && !!premiumDef(id)))] : [];
+  if (!premium.length) return {};
+  const on = typeof raw.premiumOn === 'string' && premium.includes(raw.premiumOn) ? raw.premiumOn : '';
+  return { premium, premiumOn: on };
 }
 
 function sanitizeAdState(v: unknown): AdState {

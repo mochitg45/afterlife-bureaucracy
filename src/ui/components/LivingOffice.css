@@ -126,6 +126,11 @@
   28% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 8px gold) brightness(1.3); }
   100% { transform: translateY(-650%) scale(.7, 1.2); filter: drop-shadow(0 0 10px gold) brightness(1.4); opacity: 0; }
 }
+/* Premium patrol: walks the floor end to end, turning round at each wall (frames face right). */
+.lo-patrol { position: absolute; bottom: 1%; width: 22%; aspect-ratio: 1; animation: loPatrol 16s linear infinite; z-index: 1; }
+.lo-patrol-face { width: 100%; height: 100%; animation: loTurn 16s steps(1) infinite; }
+@keyframes loPatrol { 0% { left: 2%; } 46% { left: 76%; } 50% { left: 76%; } 96% { left: 2%; } 100% { left: 2%; } }
+@keyframes loTurn { 0% { transform: scaleX(1); } 48% { transform: scaleX(-1); } 98% { transform: scaleX(1); } }
 .lo-leave.gold .lo-orb { filter: drop-shadow(0 0 6px gold) drop-shadow(0 0 12px gold) brightness(1.15); }
 
 @media (prefers-reduced-motion: reduce) {

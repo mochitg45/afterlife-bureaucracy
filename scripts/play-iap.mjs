@@ -1,4 +1,4 @@
-// Creates + activates one-time IAPs via the new Play monetization API (oneTimeProducts). Usage: node scripts/play-iap.mjs <key.json> <package>. Edit `products` first.
+﻿// Creates + activates one-time IAPs via the new Play monetization API (oneTimeProducts). Usage: node scripts/play-iap.mjs <key.json> <package>. Edit `products` first.
 import { readFileSync } from 'node:fs';
 import { createSign } from 'node:crypto';
 
@@ -34,7 +34,7 @@ for (const [sku, usd, title, description] of products) {
     listings: [{ languageCode: 'en-US', title, description }],
     purchaseOptions: [{ purchaseOptionId: 'buy', buyOption: { legacyCompatible: true }, regionalPricingAndAvailabilityConfigs: configs }],
   };
-  const url = `${base2}/oneTimeProducts/${sku}?allowMissing=true&updateMask=listings,purchaseOptions&regionsVersion.version=2025/03`;
+  const url = `${base2}/onetimeproducts/${sku}?allowMissing=true&updateMask=listings,purchaseOptions&regionsVersion.version=2025/03`;
   let r, t;
   for (let tries = 0; tries < 40; tries++) {
     r = await fetch(url, { method: 'PATCH', headers: auth, body: JSON.stringify(body) });
