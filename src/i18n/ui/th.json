@@ -513,6 +513,7 @@
  "board.lifetimeTitle": "วิญญาณสะสม",
  "board.eventTitle": "อันดับ {name}",
  "board.rank": "อันดับของคุณ: #{rank} จาก {total}",
+ "board.players": "ผู้เล่น: {total}",
  "board.notRanked": "คุณยังไม่ติดอันดับ ประมวลผลวิญญาณต่อไป!",
  "board.loading": "กำลังโหลดอันดับ…",
  "board.error": "โหลดอันดับไม่ได้ ตรวจสอบการเชื่อมต่อ",

@@ -513,6 +513,7 @@
  "board.lifetimeTitle": "Almas da vida toda",
  "board.eventTitle": "Ranking de {name}",
  "board.rank": "Sua posição: #{rank} de {total}",
+ "board.players": "Jogadores: {total}",
  "board.notRanked": "Você ainda não está no ranking. Continue processando almas!",
  "board.loading": "Carregando o ranking…",
  "board.error": "Não foi possível carregar o ranking. Verifique sua conexão.",

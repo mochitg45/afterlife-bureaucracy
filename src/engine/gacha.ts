@@ -90,6 +90,9 @@ export function rollRarity(
 /** What the normal banner and Exchange can give: event cards come only from their own event. */
 const normalCards = (content: Content): CardDef[] => content.cards.filter((c) => !c.event);
 
+/** Cards that stay after their event: regular cards, plus event executives (won only during the event, then kept). */
+export const keptCard = (c: CardDef): boolean => !c.event || c.rarity === 'executive';
+
 function pickCard(seed: number, pool: CardDef[]): { seed: number; card: CardDef } {
   const r = nextFloat(seed);
   return { seed: r.seed, card: pool[Math.min(pool.length - 1, Math.floor(r.value * pool.length))] };
@@ -321,7 +324,9 @@ export function clampEquipped(state: GameState, content: Content): GameState {
 export function equipCard(state: GameState, content: Content, cardId: string): GameState {
   if (!(cardId in state.cards) || state.equipped.includes(cardId)) return state;
   // Event cards never take a lanyard: every one you own works during its event (see cardEventMult).
-  if (content.cards.find((c) => c.id === cardId)?.event) return state;
+  // Event executives are the exception: kept for good and equipped like any regular card.
+  const def = content.cards.find((c) => c.id === cardId);
+  if (def && !keptCard(def)) return state;
   if (state.equipped.length >= equipSlots(state, content)) return state;
   return { ...state, equipped: [...state.equipped, cardId], stats: { ...state.stats, equips: state.stats.equips + 1 } };
 }

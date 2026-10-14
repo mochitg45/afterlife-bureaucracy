@@ -1,9 +1,9 @@
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import type { CardDef, Rarity } from '../../engine/content';
-import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, EXCHANGE_COST, EXCHANGE_CHANCE, equipSlots } from '../../engine/gacha';
+import { PITY_SENIOR, PITY_EXECUTIVE, PULL_COST, TEN_PULL_COST, ODDS, EXCHANGE_COST, EXCHANGE_CHANCE, equipSlots, keptCard } from '../../engine/gacha';
 import { CardTile, RARITY_LABEL } from '../components/CardTile';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
@@ -21,6 +21,8 @@ function pct(value: number): string {
 
 /** The regular roster. Event cards live on their event's page and leave when it ends. */
 const BASE_CARDS = content.cards.filter((c) => !c.event);
+/** Event executives join the roster once won (they're kept), but stay hidden until then. */
+const EVENT_EXECS = content.cards.filter((c) => c.event && keptCard(c));
 
 /**
  * A grid of cards, which changes only when one is drawn, equipped or unequipped. Memoised
@@ -74,6 +76,10 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   const oddsRef = useRef<HTMLDivElement>(null);
 
   const slots = equipSlots({ perks }, content);
+  const roster = useMemo(() => {
+    const execs = EVENT_EXECS.filter((c) => c.id in cards);
+    return execs.length ? [...BASE_CARDS, ...execs] : BASE_CARDS;
+  }, [cards]);
 
   // Stable across ticks so the memoised Collection below is not invalidated by a new closure.
   const onCollectionClick = useCallback((cardId: string) => setSheetCardId(cardId), []);
@@ -128,7 +134,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
       <div className="section-head">
         <h3>{t('personnel.collection')}</h3>
       </div>
-      <Collection list={BASE_CARDS} cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
+      <Collection list={roster} cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
 
       {sheetCardId && <CardSheet cardId={sheetCardId} onClose={() => setSheetCardId(null)} />}
 

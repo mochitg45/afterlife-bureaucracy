@@ -513,6 +513,7 @@
  "board.lifetimeTitle": "누적 영혼",
  "board.eventTitle": "{name} 랭킹",
  "board.rank": "내 순위: {total}명 중 {rank}위",
+ "board.players": "플레이어 수: {total}",
  "board.notRanked": "아직 랭킹에 없어요. 영혼 처리를 계속하세요!",
  "board.loading": "랭킹 불러오는 중…",
  "board.error": "랭킹을 불러오지 못했어요. 연결을 확인하세요.",

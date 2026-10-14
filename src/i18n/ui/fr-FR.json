@@ -513,6 +513,7 @@
  "board.lifetimeTitle": "Âmes au total",
  "board.eventTitle": "Classement {name}",
  "board.rank": "Ton rang : #{rank} sur {total}",
+ "board.players": "Joueurs : {total}",
  "board.notRanked": "Tu n'es pas encore au classement. Continue à traiter des âmes !",
  "board.loading": "Chargement du classement…",
  "board.error": "Impossible de charger le classement. Vérifie ta connexion.",

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
-import { dupesForNextStar, MAX_STARS, equipSlots, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
+import { dupesForNextStar, MAX_STARS, equipSlots, keptCard, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
 import { KarmaIcon } from '../icons/Currency';
 import { RARITY_LABEL } from '../components/CardTile';
@@ -74,7 +74,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
       <p>{card.flavor}</p>
       <p>{t('card.bonusNow', { line: bonusLine(card, stars) })}</p>
       {stars < MAX_STARS && <p>{t('card.nextStar', { line: bonusLine(card, stars + 1) })}</p>}
-      {card.event ? <p className="sub brass">{t('card.eventActive')}</p> : <div className="modal-actions">
+      {!keptCard(card) ? <p className="sub brass">{t('card.eventActive')}</p> : <div className="modal-actions">
         <button
           className="btn btn-primary"
           disabled={full}

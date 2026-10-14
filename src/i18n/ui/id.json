@@ -513,6 +513,7 @@
  "board.lifetimeTitle": "Jiwa seumur hidup",
  "board.eventTitle": "Peringkat {name}",
  "board.rank": "Peringkatmu: #{rank} dari {total}",
+ "board.players": "Pemain: {total}",
  "board.notRanked": "Kamu belum ada di papan. Terus proses jiwa!",
  "board.loading": "Memuat papan…",
  "board.error": "Gagal memuat papan. Periksa koneksimu.",

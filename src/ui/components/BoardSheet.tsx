@@ -27,6 +27,7 @@ export function BoardSheet({ title, view, load, unit, onClose, onPlayGames }: {
   }, [load]);
   return (
     <Modal open title={title} className="board-sheet" onClose={onClose}>
+      {view && <p className="sub board-total mono">{t('board.players', { total: formatNumber(new Decimal(view.total)) })}</p>}
       {view && view.rank !== null && <p className="board-you mono">{t('board.rank', { rank: view.rank, total: view.total })}</p>}
       {view && view.rank === null && state === 'ok' && <p className="sub">{t('board.notRanked')}</p>}
       {!view && state === 'loading' && <p className="sub" role="status">{t('board.loading')}</p>}

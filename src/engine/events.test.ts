@@ -17,7 +17,7 @@ import {
 } from './events';
 import { tick } from './actions';
 import { applyOffline } from './offline';
-import { pull, pullEvent, equipCard, PULL_COST, TEN_PULL_COST } from './gacha';
+import { pull, pullEvent, equipCard, cardGlobalMult, PULL_COST, TEN_PULL_COST } from './gacha';
 import { staffUnitCost } from './economy';
 import { migrate } from './migrations';
 import saveV8 from './fixtures/save-v8.json';
@@ -141,6 +141,13 @@ describe('syncEvent', () => {
     expect(out.cardSpares).toEqual({});
     expect(out.equipped).toEqual([keeper]);
   });
+  it('keeps an event executive (stars and equip slot) when the event ends', () => {
+    const occ = activeEvent(content, d('2026-10-25'))!;
+    const s = { ...inEvent(occ, {}), cards: { 'c-hw-pumpkin-cfo': 2, 'c-hw-bat': 1 }, equipped: ['c-hw-pumpkin-cfo'] };
+    const out = syncEvent(s, content, d('2026-11-06') + 1000);
+    expect(out.cards).toEqual({ 'c-hw-pumpkin-cfo': 2 });
+    expect(out.equipped).toEqual(['c-hw-pumpkin-cfo']);
+  });
   it('queues a ranking prize for an ended run that scored, with its name and kind', () => {
     const occ = activeEvent(content, d('2026-10-25'))!;
     const scored = syncEvent(inEvent(occ, { earned: new Decimal(5) }), content, d('2026-11-06') + 1000);
@@ -180,6 +187,12 @@ describe('event economy', () => {
   it('event cards cannot take a lanyard', () => {
     const s = { ...inEvent(occ, {}), cards: { 'c-hw-bat': 1 }, equipped: [] };
     expect(equipCard(s, content, 'c-hw-bat')).toBe(s);
+  });
+  it('event executives equip like regular cards and boost all income', () => {
+    const s = { ...inEvent(occ, {}), cards: { 'c-hw-pumpkin-cfo': 2 }, equipped: [] };
+    const on = equipCard(s, content, 'c-hw-pumpkin-cfo');
+    expect(on.equipped).toEqual(['c-hw-pumpkin-cfo']);
+    expect(cardGlobalMult(on, content).toNumber()).toBeCloseTo(1 + 0.06 * 2);
   });
   it('charges baseCost × 1.15^owned, and refuses when short', () => {
     const poor = inEvent(occ, { points: new Decimal(5) });

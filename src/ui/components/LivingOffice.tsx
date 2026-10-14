@@ -6,6 +6,7 @@ import { onStamp } from '../stampEvents';
 import { ANIMS } from '../anim/manifest';
 import { SpriteAnim, type Reaction } from '../anim/SpriteAnim';
 import { ART } from '../characters/art';
+import { keptCard } from '../../engine/gacha';
 import { soulCard } from './soulFace';
 import faceCounts from '../../data/soul-faces.json';
 import head from '../../../public/art/anim/soul/head.json';
@@ -52,7 +53,7 @@ export function LivingOffice({ dept }: { dept: string }) {
   const equipped = useGame((s) => s.state.equipped);
   // Up to 2 equipped gacha cards (best rarity first, never event cards); staff fill the rest, keeping the most senior.
   const cards = content.cards
-    .filter((c) => equipped.includes(c.id) && !c.event)
+    .filter((c) => equipped.includes(c.id) && keptCard(c))
     .sort((a, b) => RANK[b.rarity] - RANK[a.rarity])
     .slice(0, MAX_CARDS);
   // The department's first hire is its mascot (Dave in Intake, with his true face) and always stays;

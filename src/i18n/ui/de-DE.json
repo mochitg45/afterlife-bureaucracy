@@ -513,6 +513,7 @@
  "board.lifetimeTitle": "Seelen insgesamt",
  "board.eventTitle": "{name}-Rangliste",
  "board.rank": "Dein Rang: #{rank} von {total}",
+ "board.players": "Spieler: {total}",
  "board.notRanked": "Du bist noch nicht auf der Rangliste. Bearbeite weiter Seelen!",
  "board.loading": "Rangliste wird geladen…",
  "board.error": "Rangliste konnte nicht geladen werden. Prüfe deine Verbindung.",

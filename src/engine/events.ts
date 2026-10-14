@@ -2,7 +2,7 @@ import Decimal from 'break_infinity.js';
 import type { EventMissionDay, EventPool, EventState, GameState } from './state';
 import type { Content, EventTier, StaffDef } from './content';
 import { canAfford, staffBulkCost, maxAffordable } from './economy';
-import { bankCard, cardEventMult, type PullResult } from './gacha';
+import { bankCard, cardEventMult, keptCard, type PullResult } from './gacha';
 import { grantVouchersExact } from './vouchers';
 
 const HOUR = 3_600_000;
@@ -352,7 +352,7 @@ export function syncEvent(state: GameState, content: Content, nowWall: number, f
  * (stars, shards, spares and their equip slot), and the next run collects from scratch.
  */
 export function dropEventCards(state: GameState, content: Content): GameState {
-  const gone = new Set(content.cards.filter((c) => c.event).map((c) => c.id));
+  const gone = new Set(content.cards.filter((c) => !keptCard(c)).map((c) => c.id));
   const keep = <T,>(rec: Record<string, T>) => Object.fromEntries(Object.entries(rec).filter(([id]) => !gone.has(id)));
   if (!Object.keys(state.cards).some((id) => gone.has(id)) && !state.equipped.some((id) => gone.has(id))) return state;
   return {
