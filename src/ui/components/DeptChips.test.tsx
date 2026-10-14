@@ -42,7 +42,7 @@ describe('DeptChips', () => {
   it('draws a distinct glyph on every department chip', () => {
     seed(5000, ['intake'], ['valhalla']);
     render(<DeptChips />);
-    const glyphs = screen.getAllByRole('button').map((b) => b.querySelector('svg')?.getAttribute('data-glyph'));
+    const glyphs = screen.getAllByRole('button').map((b) => b.querySelector('[data-glyph]')?.getAttribute('data-glyph'));
     expect(glyphs).toHaveLength(6);
     expect(new Set(glyphs).size).toBe(6);
   });

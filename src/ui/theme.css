@@ -216,14 +216,18 @@ button:disabled { opacity: 0.45; cursor: default; }
 .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
 .modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 .warn { color: var(--red); }
-.dept-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
-.dept-chips::-webkit-scrollbar { display: none; }
-.chip { flex: 0 0 auto; display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: center; min-width: 132px; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 12px; font-weight: 600; color: var(--ink-muted); text-align: left; }
-.chip.active { border-color: var(--accent); color: var(--accent); }
-.chip.locked { opacity: 0.7; }
-.chip .bar { display: block; grid-column: 1 / -1; width: 100%; }
-.chip-text { display: flex; flex-direction: column; gap: 2px; }
-.chip-icon { flex: 0 0 auto; }
+/* Every department fits in one row on a phone: equal columns, badge on top, one-word label. */
+.dept-chips { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 5px; padding: 2px 0 8px; }
+.chip { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 5px 2px 4px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 10.5px; font-weight: 700; color: var(--ink-muted); cursor: pointer; }
+.chip-icon { width: min(44px, 100%); aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 1px 0 rgb(0 0 0 / .2)); transition: transform 160ms var(--ease-out, ease-out); }
+.chip-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+.chip.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); box-shadow: 0 0 0 1.5px var(--accent) inset; }
+.chip.active .chip-icon { transform: scale(1.08); }
+.chip.locked { cursor: default; }
+.chip.locked .chip-icon { filter: grayscale(1) opacity(.55); }
+.chip.locked .chip-name { font-size: 9.5px; font-weight: 600; }
+.chip .bar { display: block; width: 86%; height: 4px; }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ceremony .modal { text-align: center; }
 .slam { display: block; margin: 0 auto 8px; animation: slam 420ms cubic-bezier(.2,1.4,.4,1) both; }
 @keyframes slam { 0% { transform: scale(2.4) rotate(-10deg); opacity: 0; } 60% { transform: scale(0.96); opacity: 1; } 100% { transform: scale(1); } }
