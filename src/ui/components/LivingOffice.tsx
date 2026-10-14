@@ -48,7 +48,8 @@ interface Member { id: string; art: string; rarity?: string }
 const BABIES = ['chick', 'kitten', 'puppy', 'bunny', 'piglet', 'frog'];
 const REBORN_MS = 1700;
 
-type Exit = 'up' | 'down' | 'reborn';
+type Exit = 'up' | 'down' | 'reborn' | 'limbo' | 'valhalla';
+const EXIT_MS: Partial<Record<Exit, number>> = { reborn: REBORN_MS, limbo: 1800 };
 interface Departing { key: number; exit: Exit; golden: boolean; face?: string; baby: string }
 
 export function LivingOffice({ dept }: { dept: string }) {
@@ -88,8 +89,8 @@ export function LivingOffice({ dept }: { dept: string }) {
   frontRef.current = front;
 
   useEffect(() => onStamp((e) => {
-    const exit: Exit = dept === 'hell' ? 'down' : dept === 'reincarnation' ? 'reborn'
-      : dept === 'intake' ? (Math.random() < 0.5 ? 'up' : 'down') : 'up';
+    const exit: Exit = dept === 'hell' ? 'down' : dept === 'reincarnation' ? 'reborn' : dept === 'limbo' ? 'limbo'
+      : dept === 'valhalla' ? 'valhalla' : dept === 'intake' ? (Math.random() < 0.5 ? 'up' : 'down') : 'up';
     const key = ++seq.current;
     const baby = BABIES[Math.floor(Math.random() * BABIES.length)];
     setDeparting((d) => [...d, { key, exit, golden: e.golden, face: frontRef.current, baby }].slice(-MAX_DEPARTING));
@@ -101,7 +102,7 @@ export function LivingOffice({ dept }: { dept: string }) {
       playing.current.add(id);
       setReactions((r) => ({ ...r, [id]: { clip, key } }));
     }
-    window.setTimeout(() => setDeparting((d) => d.filter((x) => x.key !== key)), exit === 'reborn' ? REBORN_MS : DEPART_MS);
+    window.setTimeout(() => setDeparting((d) => d.filter((x) => x.key !== key)), EXIT_MS[exit] ?? DEPART_MS);
   }), [dept]);
 
   return (
@@ -152,10 +153,13 @@ export function LivingOffice({ dept }: { dept: string }) {
             {up && <span className="lo-aura" />}
             {up && ANIMS.wings?.flap && <div className="lo-wings"><SpriteAnim id="wings" clip="flap" fallback={null} /></div>}
             {x.exit === 'reborn' && <span className="lo-swirl" />}
+            {/* Valhalla: the Bifröst drops and the soul rides it up. Limbo: it greys out and is lost in the fog. */}
+            {x.exit === 'valhalla' && <span className="lo-bifrost" />}
             <div className="lo-orb"><Soul face={x.face} fallback={soul} /></div>
             {up && <span className="lo-halo" />}
             {down && ANIMS.fire?.burn && <div className="lo-fire"><SpriteAnim id="fire" clip="burn" fallback={null} /></div>}
             {down && !ANIMS.fire?.burn && <span className="lo-ember" />}
+            {x.exit === 'limbo' && <><span className="lo-fog a" /><span className="lo-fog b" /><span className="lo-fog c" /></>}
             {x.exit === 'reborn' && <><span className="lo-pop" /><img className="lo-baby" src={`art/anim/reborn/${x.baby}.webp`} alt="" /></>}
           </div>
         );
