@@ -44,7 +44,12 @@ const artName = (id: string) => ART[id] ?? id;
 
 interface Member { id: string; art: string; rarity?: string }
 
-interface Departing { key: number; up: boolean; golden: boolean; face?: string }
+/** Reincarnation sends a soul round the wheel: it swirls away and pops back out as one of these newborns. */
+const BABIES = ['chick', 'kitten', 'puppy', 'bunny', 'piglet', 'frog'];
+const REBORN_MS = 1700;
+
+type Exit = 'up' | 'down' | 'reborn';
+interface Departing { key: number; exit: Exit; golden: boolean; face?: string; baby: string }
 
 export function LivingOffice({ dept }: { dept: string }) {
   const staffCounts = useGame((s) => s.state.staff);
@@ -83,18 +88,20 @@ export function LivingOffice({ dept }: { dept: string }) {
   frontRef.current = front;
 
   useEffect(() => onStamp((e) => {
-    const up = dept === 'hell' ? false : dept === 'intake' ? Math.random() < 0.5 : true;
+    const exit: Exit = dept === 'hell' ? 'down' : dept === 'reincarnation' ? 'reborn'
+      : dept === 'intake' ? (Math.random() < 0.5 ? 'up' : 'down') : 'up';
     const key = ++seq.current;
-    setDeparting((d) => [...d, { key, up, golden: e.golden, face: frontRef.current }].slice(-MAX_DEPARTING));
+    const baby = BABIES[Math.floor(Math.random() * BABIES.length)];
+    setDeparting((d) => [...d, { key, exit, golden: e.golden, face: frontRef.current, baby }].slice(-MAX_DEPARTING));
     setBehind((b) => [b[1], randomFace()]);
     setBusy(key);
-    const clip = up ? 'happy' : 'true';
+    const clip = exit === 'down' ? 'true' : 'happy';
     for (const { id, art } of crew.current) {
       if (!ANIMS[art]?.[clip] || playing.current.has(id)) continue;
       playing.current.add(id);
       setReactions((r) => ({ ...r, [id]: { clip, key } }));
     }
-    window.setTimeout(() => setDeparting((d) => d.filter((x) => x.key !== key)), DEPART_MS);
+    window.setTimeout(() => setDeparting((d) => d.filter((x) => x.key !== key)), exit === 'reborn' ? REBORN_MS : DEPART_MS);
   }), [dept]);
 
   return (
@@ -135,17 +142,24 @@ export function LivingOffice({ dept }: { dept: string }) {
           </div>
         ))}
       </div>
-      {departing.map((x) => (
-        <div key={x.key} className={`lo-leave ${x.up ? 'up' : 'down'}${x.golden ? ' gold' : ''}`} data-departing={x.up ? 'up' : 'down'}>
-          {/* Heaven: wings, halo and a gold aura carry it up. Hell: it catches fire, chars and drops. */}
-          {x.up && <span className="lo-aura" />}
-          {x.up && ANIMS.wings?.flap && <div className="lo-wings"><SpriteAnim id="wings" clip="flap" fallback={null} /></div>}
-          <div className="lo-orb"><Soul face={x.face} fallback={soul} /></div>
-          {x.up && <span className="lo-halo" />}
-          {!x.up && ANIMS.fire?.burn && <div className="lo-fire"><SpriteAnim id="fire" clip="burn" fallback={null} /></div>}
-          {!x.up && !ANIMS.fire?.burn && <span className="lo-ember" />}
-        </div>
-      ))}
+      {departing.map((x) => {
+        const up = x.exit === 'up';
+        const down = x.exit === 'down';
+        return (
+          <div key={x.key} className={`lo-leave ${x.exit}${x.golden ? ' gold' : ''}`} data-departing={x.exit}>
+            {/* Heaven: wings, halo and a gold aura carry it up. Hell: it catches fire, chars and drops.
+                Reincarnation: it swirls into the wheel and pops back out as a newborn. */}
+            {up && <span className="lo-aura" />}
+            {up && ANIMS.wings?.flap && <div className="lo-wings"><SpriteAnim id="wings" clip="flap" fallback={null} /></div>}
+            {x.exit === 'reborn' && <span className="lo-swirl" />}
+            <div className="lo-orb"><Soul face={x.face} fallback={soul} /></div>
+            {up && <span className="lo-halo" />}
+            {down && ANIMS.fire?.burn && <div className="lo-fire"><SpriteAnim id="fire" clip="burn" fallback={null} /></div>}
+            {down && !ANIMS.fire?.burn && <span className="lo-ember" />}
+            {x.exit === 'reborn' && <><span className="lo-pop" /><img className="lo-baby" src={`art/anim/reborn/${x.baby}.webp`} alt="" /></>}
+          </div>
+        );
+      })}
     </div>
   );
 }

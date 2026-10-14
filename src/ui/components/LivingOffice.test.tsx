@@ -38,6 +38,16 @@ describe('LivingOffice', () => {
     expect(hell.container.querySelectorAll('[data-departing="down"]')).toHaveLength(1);
   });
 
+  it('reincarnates a soul as a newborn animal instead of flying it up', () => {
+    setStaff({});
+    const { container } = render(<LivingOffice dept="reincarnation" />);
+    act(() => emitStamp({ golden: false, combo: 1 }));
+    const leaving = container.querySelector('[data-departing="reborn"]');
+    expect(leaving).not.toBeNull();
+    expect(leaving!.querySelector('.lo-wings, .lo-halo')).toBeNull();
+    expect(leaving!.querySelector('img.lo-baby')?.getAttribute('src')).toMatch(/^art\/anim\/reborn\/\w+\.webp$/);
+  });
+
   it('caps departing souls', () => {
     setStaff({});
     const { container } = render(<LivingOffice dept="limbo" />);
