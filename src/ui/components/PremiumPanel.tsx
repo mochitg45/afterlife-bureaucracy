@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { PREMIUM_STAFF, ownsPremium, premiumOnDuty, type PremiumStaffDef } from '../../engine/premium';

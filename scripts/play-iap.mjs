@@ -1,4 +1,4 @@
-﻿// Creates + activates one-time IAPs via the new Play monetization API (oneTimeProducts). Usage: node scripts/play-iap.mjs <key.json> <package>. Edit `products` first.
+// Creates + activates one-time IAPs via the new Play monetization API (oneTimeProducts). Usage: node scripts/play-iap.mjs <key.json> <package>. Edit `products` first.
 import { readFileSync } from 'node:fs';
 import { createSign } from 'node:crypto';
 

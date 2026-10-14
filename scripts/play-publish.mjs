@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: 'Fixed achievements and leaderboard scores not reaching Google Play Games for players who were already signed in. Your progress now syncs every time you open the game.' },
+  { language: 'en-US', text: 'NEW: Cerberus, our first Premium staff! A three-headed Head of Security who patrols your office and boosts souls +25%. The living office now animates every staff member, with unique soul send-offs per department. New department tabs, an in-game leaderboard with player counts, event Executives you keep forever, a 7-day check-in and Beginner Week.' },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],

@@ -1,4 +1,4 @@
-﻿/* Decorative life layer over the department painting. Percent-based so it scales with the scene. */
+/* Decorative life layer over the department painting. Percent-based so it scales with the scene. */
 .living-office { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .living-office svg, .living-office img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1.5px 0 rgba(0,0,0,.25)); }
 
