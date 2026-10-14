@@ -34,6 +34,17 @@ export const ANIMS: Record<string, Partial<Record<Clip, number>>> = {
   grax: { work: 8, happy: 4, true: 8 },
   melodia: { work: 8, happy: 4, true: 8 },
   bev: { work: 8, happy: 4 },
+  'karma-clerk': { work: 8, happy: 4, true: 8 },
+  'gary-break': { work: 8, happy: 4, true: 8 },
+  'auditor-fine': { work: 8, happy: 4, true: 8 },
+  pemberton: { work: 8, happy: 4, true: 8 },
+  nadia: { work: 8, happy: 4, true: 8 },
+  'wheel-tech': { work: 8, happy: 4, true: 8 },
+  'dave-cooked': { work: 8, happy: 4, true: 8 },
+  'grandma-liu': { work: 8, happy: 4, true: 8 },
+  'night-temp': { work: 8, happy: 4, true: 8 },
+  'temp-stapler': { work: 8, happy: 4, true: 8 },
+  'petty-cash': { work: 8, happy: 4, true: 8 },
 };
 
 export const animFrameUrl = (id: string, clip: Clip, i: number) =>

@@ -46,15 +46,20 @@ describe('LivingOffice', () => {
   });
 
   it('uses sprite frames for staff with a work clip and the static hop for the rest', () => {
-    // Cooked Dave has no frames, so that card keeps the static breathe next to the animated Dave.
-    setStaff({ dave: 1 });
-    setEquipped(['c-dave-cooked']);
-    const { container } = render(<LivingOffice dept="intake" />);
-    expect(ANIMS.dave?.work).toBeTruthy();
-    expect(container.querySelector('[data-staff="dave"] img[data-anim="dave"]')).not.toBeNull();
-    expect(container.querySelector('[data-staff="dave"] .lo-hop')).toBeNull();
-    expect(ANIMS['dave-cooked']).toBeUndefined();
-    expect(container.querySelector('[data-staff="c-dave-cooked"] .lo-breathe')).not.toBeNull();
+    // Every character has frames now, so hide Cooked Dave's to check the static breathe fallback.
+    const cooked = ANIMS['dave-cooked'];
+    delete ANIMS['dave-cooked'];
+    try {
+      setStaff({ dave: 1 });
+      setEquipped(['c-dave-cooked']);
+      const { container } = render(<LivingOffice dept="intake" />);
+      expect(ANIMS.dave?.work).toBeTruthy();
+      expect(container.querySelector('[data-staff="dave"] img[data-anim="dave"]')).not.toBeNull();
+      expect(container.querySelector('[data-staff="dave"] .lo-hop')).toBeNull();
+      expect(container.querySelector('[data-staff="c-dave-cooked"] .lo-breathe')).not.toBeNull();
+    } finally {
+      ANIMS['dave-cooked'] = cooked;
+    }
   });
 
   it('fills the 4 spots with 2 equipped cards, the mascot and the most senior staff', () => {
