@@ -28,6 +28,7 @@ import { TitleScreen } from './screens/TitleScreen';
 import { Splash } from './screens/Splash';
 import { EventScreen, RankPrizePopup } from './screens/EventScreen';
 import { MilestoneOverlay } from './overlays/Milestone';
+import { OfferPopup } from './overlays/OfferPopup';
 import { ForceUpdate } from './overlays/ForceUpdate';
 
 export function App() {
@@ -125,6 +126,7 @@ export function App() {
           <PullReveal />
           <RankPrizePopup />
           <MilestoneOverlay />
+          <OfferPopup />
           <ForceUpdate />
           {tab === 'office' && <Visitor />}
           <VisitorGift />

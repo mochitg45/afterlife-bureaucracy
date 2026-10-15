@@ -457,6 +457,7 @@ describe('exhaustive save round-trip', () => {
       beginner: { claimed: [1, 2] },
       milestones: { soulsTier: 3, depts: ['d-a', 'd-b'] },
       review: { asks: 1, lastWall: 1_700_000_100_000 },
+      offers: { seen: ['starter', 'pass:halloween-2026'], lastDate: '2026-10-15' },
       referral: { shareRewarded: true, claimedTiers: [3, 10], joinChecked: true, joined: true, qualified: true },
     };
     const back = deserialize(serialize(s), content);

@@ -240,6 +240,8 @@ export interface GameState {
   milestones: { soulsTier: number; depts: string[] };
   /** Store-rating prompts asked so far and when the last one was, so asks stay rare. */
   review: { asks: number; lastWall: number };
+  /** Store offers already shown as a pop-up (each once), and the day of the last one (max one a day). */
+  offers: { seen: string[]; lastDate: string };
 }
 
 export interface Now { wall: number; mono: number }
@@ -316,6 +318,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     beginner: { claimed: [] },
     milestones: { soulsTier: 0, depts: [] },
     review: { asks: 0, lastWall: 0 },
+    offers: { seen: [], lastDate: '' },
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -660,6 +663,12 @@ function sanitizeMilestones(v: unknown): GameState['milestones'] {
   return { soulsTier: tier, depts };
 }
 
+function sanitizeOffers(v: unknown): GameState['offers'] {
+  const r = (v ?? {}) as { seen?: unknown; lastDate?: unknown };
+  const seen = Array.isArray(r.seen) ? [...new Set((r.seen as unknown[]).filter((s): s is string => typeof s === 'string'))].slice(-100) : [];
+  return { seen, lastDate: typeof r.lastDate === 'string' ? r.lastDate : '' };
+}
+
 export function deserialize(json: string, content: Content): GameState {
   const raw = migrate(JSON.parse(json) as Record<string, unknown>);
   if (num(raw.resetEpoch, 0) < RESET_EPOCH) return applyResetEpoch(raw, content);
@@ -760,6 +769,7 @@ export function deserialize(json: string, content: Content): GameState {
     login: sanitizeLogin(raw.login),
     beginner: { claimed: Array.isArray((raw.beginner as { claimed?: unknown } | undefined)?.claimed) ? [...new Set(((raw.beginner as { claimed: unknown[] }).claimed).filter((d): d is number => Number.isInteger(d) && (d as number) >= 1 && (d as number) <= 7))] : [] },
     milestones: sanitizeMilestones(raw.milestones),
+    offers: sanitizeOffers(raw.offers),
     review: (() => {
       const r = raw.review && typeof raw.review === 'object' && !Array.isArray(raw.review) ? (raw.review as Record<string, unknown>) : {};
       return { asks: Math.max(0, Math.floor(num(r.asks, 0))), lastWall: Math.max(0, num(r.lastWall, 0)) };
