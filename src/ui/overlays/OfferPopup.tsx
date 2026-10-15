@@ -24,6 +24,8 @@ export function OfferPopup() {
   const step = useGame((s) => s.state.onboarding.trainingStep);
   const eventKey = useGame((s) => s.state.event?.key);
   const [offer, setOffer] = useState<Offer | null>(null);
+  // Painted poster per offer (public/art/offers); falls back to the store icon if it's missing.
+  const [posterOk, setPosterOk] = useState(true);
   const product = useGame((s) => (offer ? s.products.find((p) => p.id === offer.product) : undefined));
   const buy = useGame((s) => s.buy);
 
@@ -37,6 +39,7 @@ export function OfferPopup() {
       useGame.setState({ state: markOfferShown(g.state, o.id) });
       void g.save();
       track('offer_shown', { offer: kind(o) });
+      setPosterOk(true);
       setOffer(o);
     }, SETTLE_MS);
     return () => window.clearTimeout(id);
@@ -49,9 +52,13 @@ export function OfferPopup() {
     <div className="offer" role="dialog" aria-modal="true" aria-labelledby="offer-title" onClick={close}>
       <div className="offer-card" onClick={(e) => e.stopPropagation()}>
         <span className="offer-tag">{t('offer.tag')}</span>
-        <div className="offer-art">
-          {k === 'cerberus' ? <img src="art/chars/cerberus.webp" alt="" /> : <StoreArt productId={offer.product} />}
-        </div>
+        {posterOk ? (
+          <img className="offer-poster" src={`art/offers/${k}.webp`} alt="" onError={() => setPosterOk(false)} />
+        ) : (
+          <div className="offer-art">
+            {k === 'cerberus' ? <img src="art/chars/cerberus.webp" alt="" /> : <StoreArt productId={offer.product} />}
+          </div>
+        )}
         <h2 id="offer-title" className="offer-title">{t(`offer.${k}.title`)}</h2>
         <p className="offer-pitch">{t(`offer.${k}.pitch`)}</p>
         <button
