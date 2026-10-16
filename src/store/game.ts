@@ -1355,7 +1355,7 @@ export function createGameStore(deps: StoreDeps) {
       eventStamp() {
         const occ = get().activeEvent();
         if (!occ) return;
-        apply(stampEvent(get().state, content, occ));
+        apply(stampEvent(get().state, content, occ, clock.wall()));
         sfx('stamp');
       },
       buyEventStaff(staffId, mode) {

@@ -78,10 +78,9 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   const oddsRef = useRef<HTMLDivElement>(null);
 
   const slots = equipSlots({ perks }, content);
-  const roster = useMemo(() => {
-    const execs = EVENT_EXECS.filter((c) => c.id in cards);
-    return execs.length ? [...BASE_CARDS, ...execs] : BASE_CARDS;
-  }, [cards]);
+  // Event executives are always listed (locked until won during their event, tagged with it),
+  // so players can see what each event's executive is worth chasing.
+  const roster = useMemo(() => [...BASE_CARDS, ...EVENT_EXECS], []);
 
   // Stable across ticks so the memoised Collection below is not invalidated by a new closure.
   const onCollectionClick = useCallback((cardId: string) => setSheetCardId(cardId), []);

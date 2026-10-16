@@ -53,6 +53,31 @@ type Exit = 'up' | 'down' | 'reborn' | 'limbo' | 'valhalla';
 const EXIT_MS: Partial<Record<Exit, number>> = { reborn: REBORN_MS, limbo: 1800 };
 interface Departing { key: number; exit: Exit; golden: boolean; face?: string; baby: string }
 
+/**
+ * The premium staff on duty (Cerberus) patrols the floor of whatever scene is open, the office
+ * or an event desk, and barks on each stamp. Renders nothing with the premium slot empty.
+ */
+export function PremiumPatrol() {
+  const patrol = useGame((s) => premiumOnDuty(s.state)?.id);
+  const [bark, setBark] = useState<Reaction | null>(null);
+  const barking = useRef(false);
+  useEffect(() => onStamp(() => {
+    if (barking.current) return;
+    barking.current = true;
+    setBark({ clip: 'bark', key: Date.now() });
+  }), []);
+  if (!patrol) return null;
+  return (
+    <div className="lo-patrol" data-patrol={patrol}>
+      <div className="lo-patrol-face">
+        <SpriteAnim id={patrol} clip="walk" reaction={ANIMS[patrol]?.bark ? bark : null}
+          onReactionEnd={() => { barking.current = false; }}
+          fallback={<img src={`art/chars/${patrol}.webp`} alt="" />} />
+      </div>
+    </div>
+  );
+}
+
 export function LivingOffice({ dept }: { dept: string }) {
   const staffCounts = useGame((s) => s.state.staff);
   // An unknown id (an old save, a test) shows the intake crew rather than crashing the scene.
@@ -73,10 +98,6 @@ export function LivingOffice({ dept }: { dept: string }) {
     ...cards.map((c) => ({ id: c.id, art: artName(c.id), rarity: c.rarity })),
   ];
 
-  // The premium staff on duty (Cerberus) patrols the floor of whichever department is open.
-  const patrol = useGame((s) => premiumOnDuty(s.state)?.id);
-  const [bark, setBark] = useState<Reaction | null>(null);
-  const barking = useRef(false);
   const [departing, setDeparting] = useState<Departing[]>([]);
   const [busy, setBusy] = useState(0);
   const seq = useRef(0);
@@ -101,7 +122,6 @@ export function LivingOffice({ dept }: { dept: string }) {
     setDeparting((d) => [...d, { key, exit, golden: e.golden, face: frontRef.current, baby }].slice(-MAX_DEPARTING));
     setBehind((b) => [b[1], randomFace()]);
     setBusy(key);
-    if (!barking.current) { barking.current = true; setBark({ clip: 'bark', key }); }
     const clip = exit === 'down' ? 'true' : 'happy';
     for (const { id, art } of crew.current) {
       if (!ANIMS[art]?.[clip] || playing.current.has(id)) continue;
@@ -140,15 +160,7 @@ export function LivingOffice({ dept }: { dept: string }) {
           </div>
         );
       })}
-      {patrol && (
-        <div className="lo-patrol" data-patrol={patrol}>
-          <div className="lo-patrol-face">
-            <SpriteAnim id={patrol} clip="walk" reaction={ANIMS[patrol]?.bark ? bark : null}
-              onReactionEnd={() => { barking.current = false; }}
-              fallback={<img src={`art/chars/${patrol}.webp`} alt="" />} />
-          </div>
-        </div>
-      )}
+      <PremiumPatrol />
       <div className="lo-queue" key={busy}>
         {QUEUE.map((i) => (
           <div key={i} className="lo-soul" style={{ left: `${2 + i * 13}%` }}>

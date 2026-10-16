@@ -1,7 +1,7 @@
 import Decimal from 'break_infinity.js';
 import type { EventMissionDay, EventPool, EventState, GameState } from './state';
 import type { Content, EventTier, StaffDef } from './content';
-import { canAfford, staffBulkCost, maxAffordable } from './economy';
+import { canAfford, staffBulkCost, maxAffordable, milestoneMult } from './economy';
 import { bankCard, cardEventMult, keptCard, type PullResult } from './gacha';
 import { grantVouchersExact } from './vouchers';
 
@@ -365,17 +365,24 @@ export function dropEventCards(state: GameState, content: Content): GameState {
 }
 
 /** Event currency per second: staff base rate × owned × (1 + equipped eventMult cards). */
-export function eventRate(state: GameState, content: Content, occ: EventOccurrence): Decimal {
+export function eventRate(state: GameState, content: Content, occ: EventOccurrence, nowWall?: number): Decimal {
   const ev = state.event;
   if (!ev || ev.key !== occ.key) return new Decimal(0);
-  const mult = 1 + cardEventMult(state, content);
+  // The Overtime Boost (x2) covers the event desk too, when the caller knows the time.
+  const boost = nowWall !== undefined && state.boostUntilWall > nowWall ? 2 : 1;
+  const mult = (1 + cardEventMult(state, content)) * boost;
   let rate = 0;
-  for (const s of occ.staff) rate += s.baseRate * (ev.staff[s.id] ?? 0);
+  // Same x2 hiring milestones as the office (10, 25, 50, ...), so the event desk reads the same.
+  for (const s of occ.staff) {
+    const owned = ev.staff[s.id] ?? 0;
+    rate += s.baseRate * owned * milestoneMult(owned).toNumber();
+  }
   return new Decimal(rate * mult);
 }
 
-export function eventTap(state: GameState, content: Content, occ: EventOccurrence): Decimal {
-  return eventRate(state, content, occ).mul(EVENT_TAP_FRACTION).add(1);
+export function eventTap(state: GameState, content: Content, occ: EventOccurrence, nowWall?: number): Decimal {
+  const boost = nowWall !== undefined && state.boostUntilWall > nowWall ? 2 : 1;
+  return eventRate(state, content, occ, nowWall).mul(EVENT_TAP_FRACTION).add(boost);
 }
 
 function credit(ev: EventState, amount: Decimal): EventState {
@@ -383,9 +390,9 @@ function credit(ev: EventState, amount: Decimal): EventState {
 }
 
 /** One tap on the event stamp. */
-export function stampEvent(state: GameState, content: Content, occ: EventOccurrence): GameState {
+export function stampEvent(state: GameState, content: Content, occ: EventOccurrence, nowWall?: number): GameState {
   if (!state.event || state.event.key !== occ.key) return state;
-  return { ...state, event: bumpMission(credit(state.event, eventTap(state, content, occ)), state, 'taps', 1) };
+  return { ...state, event: bumpMission(credit(state.event, eventTap(state, content, occ, nowWall)), state, 'taps', 1) };
 }
 
 /** Accrues `dtSec` of event currency if the saved event is the one running (the tick path). */
@@ -393,7 +400,7 @@ export function accrueEvent(state: GameState, content: Content, dtSec: number, n
   if (!state.event) return state;
   const occ = activeEvent(content, nowWall, forceId);
   if (!occ || occ.key !== state.event.key) return state;
-  const rate = eventRate(state, content, occ);
+  const rate = eventRate(state, content, occ, nowWall);
   if (rate.eq(0)) return state;
   return { ...state, event: credit(state.event, rate.mul(dtSec)) };
 }

@@ -58,7 +58,7 @@ const MODES: BuyMode[] = [1, 10, 'max'];
  * cooldown. Both the running boost and the cooldown tick down live, so the only self-driven
  * clock on the screen lives here — and only while there is something to count.
  */
-function OvertimeBoost() {
+export function OvertimeBoost() {
   const boostUntilWall = useGame((s) => s.state.boostUntilWall);
   const cooldownUntilWall = useGame((s) => s.state.adState.boostCooldownUntilWall);
   const adsReady = useGame((s) => s.adsReady);

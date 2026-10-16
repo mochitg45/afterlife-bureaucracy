@@ -132,7 +132,9 @@ export function App() {
           <VisitorGift />
           <Intro />
           <Training />
-          <Tips tab={tab === 'event' ? 'office' : tab} />
+          {/* Office tips (hire a staff line, watch the bar, bulk filing) point at the office's own
+              rows, so they wait while the event desk is open instead of covering it. */}
+          {tab !== 'event' && <Tips tab={tab} />}
           <AchievementToast />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
           <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />

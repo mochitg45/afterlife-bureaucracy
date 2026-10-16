@@ -7,12 +7,16 @@ import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import type { EventTier, StaffDef } from '../../engine/content';
 import { upcomingEvents, eventRate, eventTap, eventPool, EVENT_UNLOCK_HIRES, EVENT_MISSIONS, PASS_PREMIUM_MULT, missionDay, missionProgress, type EventOccurrence } from '../../engine/events';
-import { staffBulkCost, maxAffordable, canAfford } from '../../engine/economy';
+import { staffBulkCost, maxAffordable, canAfford, nextMilestone, prevMilestone, milestoneMult } from '../../engine/economy';
 import { ODDS, PULL_COST, TEN_PULL_COST, MAX_STARS } from '../../engine/gacha';
 import { formatNumber } from '../../engine/format';
 import { RANK_PRIZES, prizeFor, type RankPrize } from '../../engine/eventRank';
 import { fmtCountdown } from '../format';
 import { StampSeal } from '../components/StampButton';
+import { PremiumPatrol } from '../components/LivingOffice';
+import { OvertimeBoost } from './OfficeScreen';
+import { emitStamp } from '../stampEvents';
+import * as haptics from '../../platform/haptics';
 import type { BuyMode } from '../../engine/actions';
 import { Character } from '../characters/Character';
 import { artUrl } from '../characters/art';
@@ -76,21 +80,46 @@ export function EventBanner({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-function EventStaffRow({ staff, occ, mode, onInfo }: { staff: StaffDef; occ: EventOccurrence; mode: BuyMode; onInfo: () => void }) {
+// Same speed bar as the office's StaffRow: purely visual, halved at each x2 milestone.
+const EVENT_BASE_PERIOD = [0.6, 1.2, 2.4, 4.8, 9.6];
+const EVENT_MIN_PERIOD = 0.15;
+
+function EventStaffRow({ staff, occ, mode, index, onInfo }: { staff: StaffDef; occ: EventOccurrence; mode: BuyMode; index: number; onInfo: () => void }) {
   const owned = useGame((s) => s.state.event?.staff[staff.id] ?? 0);
   const points = useGame((s) => s.state.event?.points ?? ZERO, (a, b) => a.eq(b));
+  const boosted = useGame((s) => s.state.boostUntilWall > Date.now());
   const buy = useGame((s) => s.buyEventStaff);
   const count = mode === 'max' ? maxAffordable(staff, owned, points) : mode;
   const cost = staffBulkCost(staff, owned, Math.max(count, 1));
+  const next = nextMilestone(owned);
+  const prev = prevMilestone(owned);
+  const progress = Math.min(1, (owned - prev) / (next - prev));
+  const mult = milestoneMult(owned).toNumber();
+  const rate = staff.baseRate * owned * mult * (boosted ? 2 : 1);
+  const period = Math.max(EVENT_BASE_PERIOD[Math.min(index, EVENT_BASE_PERIOD.length - 1)] / mult, EVENT_MIN_PERIOD);
+  const idle = owned === 0;
+  const maxSpeed = !idle && period < 0.25;
+  const speedLabel = idle
+    ? t('event.hireToStart')
+    : maxSpeed
+      ? t('staff.speedMax', { rate: formatNumber(new Decimal(rate)) })
+      : t('staff.speedCycle', { amount: formatNumber(new Decimal(rate * period)), period: period.toFixed(2).replace(/0+$/, '').replace(/\.$/, '') });
   return (
     <div className="card staff-row">
       <button className="event-info-btn" onClick={onInfo} aria-label={t('event.about', { name: staff.name })}>
         <Character id="soul" art={staff.character} mood="ok" size={52} />
       </button>
       <div className="staff-info" onClick={onInfo}>
+        <div className="milestone-bar">
+          <div className="bar"><div className="bar-fill" style={{ width: progress * 100 + '%' }} /></div>
+          <span className="mono milestone-label">{t('staff.milestone', { next })}</span>
+        </div>
         <div className="staff-name">{staff.name} <span className="mono owned">×{owned}</span></div>
         <div className="sub">{staff.role} — {staff.flavor}</div>
-        <div className="mono sub">{owned ? `+${formatNumber(new Decimal(staff.baseRate * owned))}/s` : t('event.hireToStart')}</div>
+        <div className={`speed-bar${idle ? ' idle' : maxSpeed ? ' max' : ''}`} style={{ '--period': `${period}s` } as CSSProperties}>
+          <div className="speed-bar-fill" />
+          <span className="speed-bar-label">{speedLabel}</span>
+        </div>
       </div>
       <button className="btn hire" disabled={count <= 0 || !canAfford(cost, points)} onClick={() => buy(staff.id, mode)} aria-label={t('event.hireAria', { name: staff.name })}>
         <span>{t('event.hireN', { n: mode === 'max' ? (count || 1) : mode })}</span>
@@ -147,9 +176,15 @@ function EventFx({ id }: { id: string }) {
 function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
   const stamp = useGame((s) => s.eventStamp);
   const [floats, setFloats] = useState<{ id: number; x: number }[]>([]);
+  const [pressed, setPressed] = useState(false);
   const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'events/weekly-' + occ.id : 'events/' + occ.id}.webp`;
   const onStamp = () => {
     stamp();
+    // Same feel as the office stamp: the press squash, a tap of haptics, and the patrol's bark.
+    haptics.tap();
+    emitStamp({ golden: false, combo: 1 });
+    setPressed(true);
+    setTimeout(() => setPressed(false), 90);
     const f = { id: Date.now() + Math.random(), x: 30 + Math.random() * 40 };
     setFloats((cur) => [...cur.slice(-6), f]);
     setTimeout(() => setFloats((cur) => cur.filter((x) => x.id !== f.id)), 700);
@@ -159,7 +194,8 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
       <div className="stamp-scene event-scene" style={{ backgroundImage: `url(${art})` }}>
         <EventFx id={occ.id} />
         {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>+{formatNumber(tap)}</span>)}
-        <button className="stamp" onPointerDown={onStamp} onClick={(e) => { if (e.detail === 0) onStamp(); }} aria-label={t('event.stampAria')}>
+        <div className="living-office" aria-hidden="true"><PremiumPatrol /></div>
+        <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} onClick={(e) => { if (e.detail === 0) onStamp(); }} aria-label={t('event.stampAria')}>
           <StampSeal />
         </button>
         <div className="mono sub stamp-scene-pill">{t('event.perStamp', { amount: formatNumber(tap), currency: occ.currency })}</div>
@@ -546,8 +582,8 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
   }, [themeId]);
   if (!occ || !ev) return null;
   const state = useGame.getState().state;
-  const rate = eventRate(state, content, occ);
-  const tap = eventTap(state, content, occ);
+  const rate = eventRate(state, content, occ, now);
+  const tap = eventTap(state, content, occ, now);
   const upcoming = upcomingEvents(content, now, 4);
   const ready = occ.track.filter((t, i) => ev.earned.gte(t.at) && !ev.claimed.includes(i)).length;
   const missionsReady = EVENT_MISSIONS.filter((m) => !missionDay(state).claimed.includes(m.id) && missionProgress(state, m.id) >= m.target).length;
@@ -568,6 +604,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
       </div>
       <EventWallet pool={eventPool(occ)} />
       <EventStamp occ={occ} tap={tap} />
+      <OvertimeBoost />
       <div className="event-tabs" role="tablist" aria-label={t('event.sectionsAria')}>
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} className={'event-tab' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
@@ -586,7 +623,7 @@ export function EventScreen({ onBack }: { onBack: () => void }) {
               ))}
             </div>
           </div>
-          {occ.staff.map((s) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} onInfo={() => setInfo({ kind: 'staff', staff: s })} />)}
+          {occ.staff.map((s, i) => <EventStaffRow key={s.id} staff={s} occ={occ} mode={mode} index={i} onInfo={() => setInfo({ kind: 'staff', staff: s })} />)}
         </>
       )}
       {tab === 'missions' && <Missions occ={occ} />}

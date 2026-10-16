@@ -111,12 +111,12 @@ describe('PersonnelScreen', () => {
     expect(watchAd).toHaveBeenCalledTimes(1);
     expect(button).toBeDisabled();
   });
-  it('keeps event cards off the collection: they live on their event page', () => {
-    const owned = content.cards.find((c) => c.event)!;
+  it('lists every event executive but keeps the other event cards on their event page', () => {
+    const owned = content.cards.find((c) => c.event && c.rarity !== 'executive')!;
     seed({ cards: { [owned.id]: 1 } });
     const { container } = render(<PersonnelScreen />);
     const main = container.querySelector('[data-coach="collection"]')!;
-    expect(main.querySelectorAll('.tile')).toHaveLength(content.cards.filter((c) => !c.event).length);
+    expect(main.querySelectorAll('.tile')).toHaveLength(content.cards.filter((c) => !c.event || c.rarity === 'executive').length);
     expect(main).not.toHaveTextContent(owned.name);
   });
 });

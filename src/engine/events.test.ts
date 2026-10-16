@@ -178,11 +178,18 @@ describe('event economy', () => {
     expect(eventTap(base(), content, occ).toNumber()).toBe(1);
   });
   it('scales by every owned event card and its stars, no equip needed', () => {
-    const s = { ...inEvent(occ, { staff: { 'hw-ghost': 10 } }), cards: { 'c-hw-bat': 2 }, equipped: [] };
-    expect(eventRate(s, content, occ).toNumber()).toBeCloseTo(10 * (1 + 0.2 * 2));
-    expect(eventRate({ ...s, cards: {} }, content, occ).toNumber()).toBeCloseTo(10);
+    const s = { ...inEvent(occ, { staff: { 'hw-ghost': 9 } }), cards: { 'c-hw-bat': 2 }, equipped: [] };
+    expect(eventRate(s, content, occ).toNumber()).toBeCloseTo(9 * (1 + 0.2 * 2));
+    expect(eventRate({ ...s, cards: {} }, content, occ).toNumber()).toBeCloseTo(9);
     // A stale equip from an old save does not count the card twice.
-    expect(eventRate({ ...s, equipped: ['c-hw-bat'] }, content, occ).toNumber()).toBeCloseTo(10 * (1 + 0.2 * 2));
+    expect(eventRate({ ...s, equipped: ['c-hw-bat'] }, content, occ).toNumber()).toBeCloseTo(9 * (1 + 0.2 * 2));
+  });
+  it('doubles a staff line at the same hiring milestones as the office, and with the Overtime Boost', () => {
+    const s = inEvent(occ, { staff: { 'hw-ghost': 10 } });
+    expect(eventRate(s, content, occ).toNumber()).toBeCloseTo(10 * 2);
+    const boosted = { ...s, boostUntilWall: 5000 };
+    expect(eventRate(boosted, content, occ, 1000).toNumber()).toBeCloseTo(10 * 2 * 2);
+    expect(eventRate(boosted, content, occ, 6000).toNumber()).toBeCloseTo(10 * 2);
   });
   it('event cards cannot take a lanyard', () => {
     const s = { ...inEvent(occ, {}), cards: { 'c-hw-bat': 1 }, equipped: [] };
@@ -216,10 +223,10 @@ describe('event economy', () => {
     expect(stampEvent(s, content, other)).toBe(s);
   });
   it('a stamp earns the tap', () => {
-    const s = inEvent(occ, { staff: { 'hw-ghost': 20 } });
+    const s = inEvent(occ, { staff: { 'hw-ghost': 8 } });
     const out = stampEvent(s, content, occ);
-    expect(out.event!.points.toNumber()).toBeCloseTo(1 + 0.05 * 20);
-    expect(out.event!.earned.toNumber()).toBeCloseTo(2);
+    expect(out.event!.points.toNumber()).toBeCloseTo(1 + 0.05 * 8);
+    expect(out.event!.earned.toNumber()).toBeCloseTo(1.4);
   });
 });
 
@@ -228,10 +235,10 @@ describe('ticking', () => {
   const occ = activeEvent(content, wall)!;
 
   it('accrues points and earned by rate × dt while the saved event is running, even with no office staff', () => {
-    const s = inEvent(occ, { staff: { 'hw-ghost': 10 } });
+    const s = inEvent(occ, { staff: { 'hw-ghost': 9 } });
     const out = tick(s, content, 3, wall);
-    expect(out.event!.points.toNumber()).toBeCloseTo(30);
-    expect(out.event!.earned.toNumber()).toBeCloseTo(30);
+    expect(out.event!.points.toNumber()).toBeCloseTo(27);
+    expect(out.event!.earned.toNumber()).toBeCloseTo(27);
     expect(out.soulsRun.eq(0)).toBe(true);
   });
   it('does not accrue for a stale key, or with no event', () => {
@@ -243,8 +250,8 @@ describe('ticking', () => {
   it('accrues in a forced preview', () => {
     const now = d('2026-10-07');
     const p = activeEvent(content, now, 'halloween')!;
-    const out = tick(inEvent(p, { staff: { 'hw-ghost': 10 } }), content, 2, now, 'halloween');
-    expect(out.event!.earned.toNumber()).toBeCloseTo(20);
+    const out = tick(inEvent(p, { staff: { 'hw-ghost': 9 } }), content, 2, now, 'halloween');
+    expect(out.event!.earned.toNumber()).toBeCloseTo(18);
   });
 });
 
@@ -253,24 +260,24 @@ describe('offline', () => {
 
   it('credits event points for the credited seconds at the offline fraction', () => {
     const wall = d('2026-10-25');
-    const s = inEvent(occ, { staff: { 'hw-ghost': 10 } });
+    const s = inEvent(occ, { staff: { 'hw-ghost': 9 } });
     const r = applyOffline(s, content, 600, wall);
-    expect(r.eventPoints.toNumber()).toBeCloseTo(10 * 600 * 0.5);
-    expect(r.state.event!.earned.toNumber()).toBeCloseTo(3000);
+    expect(r.eventPoints.toNumber()).toBeCloseTo(9 * 600 * 0.5);
+    expect(r.state.event!.earned.toNumber()).toBeCloseTo(2700);
   });
   it('caps at the offline cap like the office', () => {
     const wall = d('2026-10-30');
-    const s = inEvent(occ, { staff: { 'hw-ghost': 10 } });
+    const s = inEvent(occ, { staff: { 'hw-ghost': 9 } });
     const r = applyOffline(s, content, 10 * 3600, wall);
-    expect(r.state.event!.earned.toNumber()).toBeCloseTo(10 * 4 * 3600 * 0.5);
+    expect(r.state.event!.earned.toNumber()).toBeCloseTo(9 * 4 * 3600 * 0.5);
   });
   it('clamps at the event end when the app reopens after it', () => {
     // Left 1 h before Halloween ends; reopened 3 h after. Only the first hour is inside.
     const left = occ.endWall - 3600_000;
     const wall = occ.endWall + 3 * 3600_000;
-    const s = inEvent(occ, { staff: { 'hw-ghost': 10 } });
+    const s = inEvent(occ, { staff: { 'hw-ghost': 9 } });
     const r = applyOffline(s, content, 4 * 3600, wall);
-    expect(r.state.event!.earned.toNumber()).toBeCloseTo(10 * 3600 * 0.5);
+    expect(r.state.event!.earned.toNumber()).toBeCloseTo(9 * 3600 * 0.5);
     expect(left).toBeLessThan(occ.endWall);
   });
   it('credits nothing to an event the saved key does not match', () => {
