@@ -2,6 +2,9 @@ import { Capacitor } from '@capacitor/core';
 import { CapacitorGameConnect } from '@openforge/capacitor-game-connect';
 import { TODO_ID } from './gameIds';
 
+/** Largest score the Android Play Games plugin can take without crashing (Java int). */
+export const PLAY_GAMES_MAX_SCORE = 2_147_483_647;
+
 export interface GameServices {
   signIn(): Promise<boolean>;
   isSignedIn(): boolean;
@@ -84,8 +87,10 @@ export const playGamesServices: GameServices = (() => {
     async submitScore(leaderboardID, value) {
       if (!signedIn || isPlaceholder(leaderboardID)) return;
       if (!Number.isFinite(value)) return;
-      // Play Games leaderboards take a whole, non-negative 64-bit score.
-      const totalScoreAmount = Math.max(0, Math.min(Math.round(value), Number.MAX_SAFE_INTEGER));
+      // Whole and non-negative, and capped at a 32-bit int: the Android plugin reads the score
+      // with getInt(), which returns null for anything larger, and that null crashes the app
+      // (NPE in CapacitorGameConnect.submitScore). Huge totals live on the in-game board instead.
+      const totalScoreAmount = Math.max(0, Math.min(Math.round(value), PLAY_GAMES_MAX_SCORE));
       try {
         await CapacitorGameConnect.submitScore({ leaderboardID, totalScoreAmount });
       } catch {
