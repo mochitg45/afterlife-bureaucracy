@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: "Events got a big upgrade: the event stamp now has the full press feel, Cerberus patrols the event desk, the Overtime Boost x2 now doubles event earnings, and event staff get x2 hiring milestones with speed bars. Event Executives now show in Personnel. New special offers with fresh artwork, plus bug fixes." },
+  { language: 'en-US', text: "Fixed a crash on launch for players with very large soul totals (over 2.1 billion). Sorry about that, and thank you for filing so many souls!" },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
