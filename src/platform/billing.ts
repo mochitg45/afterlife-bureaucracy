@@ -21,7 +21,8 @@ export type ProductId =
   | 'holiday_bundle'
   | 'weekly_pass'
   | 'holiday_pass'
-  | 'cerberus_bundle';
+  | 'cerberus_bundle'
+  | 'pumpkat_bundle';
 
 export const PRODUCT_IDS: readonly ProductId[] = [
   'vouchers_10',
@@ -40,6 +41,7 @@ export const PRODUCT_IDS: readonly ProductId[] = [
   'weekly_pass',
   'holiday_pass',
   'cerberus_bundle',
+  'pumpkat_bundle',
 ] as const;
 
 /**
@@ -144,6 +146,7 @@ const WEB_CATALOGUE: Record<ProductId, { price: string; title: string }> = {
   weekly_pass: { price: '$1.99', title: t('product.weekly_pass') },
   holiday_pass: { price: '$3.99', title: t('product.holiday_pass') },
   cerberus_bundle: { price: '$4.99', title: t('product.cerberus_bundle') },
+  pumpkat_bundle: { price: '$2.99', title: t('product.pumpkat_bundle') },
 };
 
 /**

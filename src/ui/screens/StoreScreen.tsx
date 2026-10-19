@@ -3,8 +3,8 @@ import { Capacitor } from '@capacitor/core';
 import { useGame, type RestoreResult } from '../../store/game';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { StoreArt } from '../components/StoreArt';
-import { PremiumOffer } from '../components/PremiumPanel';
-import { PREMIUM_STAFF } from '../../engine/premium';
+import { PremiumOffer, useRunningEventId } from '../components/PremiumPanel';
+import { PREMIUM_STAFF, onSale, ownsPremium } from '../../engine/premium';
 import type { Product, ProductId, PurchaseResult } from '../../platform/billing';
 import { t, fmtDate } from '../../i18n';
 import { KarmaIcon } from '../icons/Currency';
@@ -90,6 +90,7 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
   const firstSeenWallClock = useGame((s) => s.state.firstSeenWallClock);
   const purchasePending = useGame((s) => s.purchasePending);
   const restorePurchases = useGame((s) => s.restorePurchases);
+  const runningEventId = useRunningEventId();
   // One result line for the whole screen, so a purchase started in any section is reported
   // in the same place.
   const [result, setResult] = useState<PurchaseResult | null>(null);
@@ -129,7 +130,8 @@ export function StoreScreen({ onSettings }: { onSettings?: () => void }) {
         <div className="card"><p className="sub">{t('store.closed')}</p></div>
       )}
 
-      {byId.has('cerberus_bundle') && PREMIUM_STAFF.map((def) => <PremiumOffer key={def.id} def={def} buyOnly onResult={onPurchase} />)}
+      {PREMIUM_STAFF.filter((def) => byId.has(def.product) && (onSale(def, runningEventId) || ownsPremium({ entitlements }, def.id)))
+        .map((def) => <PremiumOffer key={def.id} def={def} buyOnly onResult={onPurchase} />)}
 
       {packs.length > 0 && (
         <>

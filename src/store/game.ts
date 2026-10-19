@@ -21,7 +21,7 @@ import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as excha
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { upgradePerk as upgradePerkEngine } from '../engine/perks';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
-import { PREMIUM_STAFF, grantPremium, equipPremium } from '../engine/premium';
+import { PREMIUM_STAFF, grantPremium, equipPremium, type PremiumSlot } from '../engine/premium';
 import { pickAds, type AdPlacement, type AdResult, type Ads } from '../platform/ads';
 import { pickBilling, type Billing, type Product, type ProductId, type PurchaseResult, type Restored } from '../platform/billing';
 import { pickGameServices, type GameServices } from '../platform/gameServices';
@@ -349,8 +349,8 @@ export interface GameStore {
   exchange(cardId: string): ExchangeResult | null;
   equip(cardId: string): void;
   unequip(cardId: string): void;
-  /** Puts an owned premium staff in the premium slot, or empties it with null. */
-  setPremium(id: string | null): void;
+  /** Puts an owned premium staff or pet in its slot, or empties that slot with null. */
+  setPremium(id: string | null, slot?: PremiumSlot): void;
   claimDaily(taskId: string): void;
   skipDaily(taskId: string): void;
   /** Writes off a task the player can no longer finish (e.g. every upgrade already bought). */
@@ -1529,8 +1529,8 @@ export function createGameStore(deps: StoreDeps) {
         if (next !== s) sfx('equip');
       },
       unequip(cardId) { apply(unequipCard(get().state, cardId)); },
-      setPremium(id) {
-        const next = equipPremium(get().state, id);
+      setPremium(id, slot = 'premium') {
+        const next = equipPremium(get().state, id, slot);
         if (next === get().state) return;
         apply(next);
         void get().save();

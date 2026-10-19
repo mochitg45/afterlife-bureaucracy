@@ -35,6 +35,8 @@ export interface Entitlements {
   premium?: string[];
   /** The premium staff on duty in the one premium slot; '' when empty. */
   premiumOn?: string;
+  /** The pet on duty in the pet slot; '' when empty. */
+  petOn?: string;
 }
 
 /** Per-day and per-cooldown bookkeeping for the rewarded-ad placements. */
@@ -470,11 +472,13 @@ function sanitizeEntitlements(v: unknown): Entitlements {
 }
 
 /** Premium fields only appear once something premium is owned, so plain saves stay byte-identical. */
-function sanitizePremium(raw: Record<string, unknown>): Pick<Entitlements, 'premium' | 'premiumOn'> {
+function sanitizePremium(raw: Record<string, unknown>): Pick<Entitlements, 'premium' | 'premiumOn' | 'petOn'> {
   const premium = Array.isArray(raw.premium) ? [...new Set(raw.premium.filter((id): id is string => typeof id === 'string' && !!premiumDef(id)))] : [];
   if (!premium.length) return {};
-  const on = typeof raw.premiumOn === 'string' && premium.includes(raw.premiumOn) ? raw.premiumOn : '';
-  return { premium, premiumOn: on };
+  const pick = (v: unknown, slot: 'premium' | 'pet') => (typeof v === 'string' && premium.includes(v) && premiumDef(v)?.slot === slot ? v : '');
+  const out: Pick<Entitlements, 'premium' | 'premiumOn' | 'petOn'> = { premium, premiumOn: pick(raw.premiumOn, 'premium') };
+  if (premium.some((id) => premiumDef(id)?.slot === 'pet')) out.petOn = pick(raw.petOn, 'pet');
+  return out;
 }
 
 function sanitizeAdState(v: unknown): AdState {

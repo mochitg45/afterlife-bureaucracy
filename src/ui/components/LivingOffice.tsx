@@ -7,7 +7,7 @@ import { ANIMS } from '../anim/manifest';
 import { SpriteAnim, type Reaction } from '../anim/SpriteAnim';
 import { ART } from '../characters/art';
 import { keptCard } from '../../engine/gacha';
-import { premiumOnDuty } from '../../engine/premium';
+import { premiumOnDuty, petOnDuty } from '../../engine/premium';
 import { soulCard } from './soulFace';
 import faceCounts from '../../data/soul-faces.json';
 import head from '../../../public/art/anim/soul/head.json';
@@ -59,6 +59,17 @@ interface Departing { key: number; exit: Exit; golden: boolean; face?: string; b
  */
 export function PremiumPatrol() {
   const patrol = useGame((s) => premiumOnDuty(s.state)?.id);
+  const pet = useGame((s) => petOnDuty(s.state)?.id);
+  return (
+    <>
+      {patrol && <Walker id={patrol} kind="lo-patrol" />}
+      {/* The pet trots its own, faster lap, so it weaves around the premium staff. */}
+      {pet && <Walker id={pet} kind="lo-patrol lo-pet" />}
+    </>
+  );
+}
+
+function Walker({ id, kind }: { id: string; kind: string }) {
   const [bark, setBark] = useState<Reaction | null>(null);
   const barking = useRef(false);
   useEffect(() => onStamp(() => {
@@ -66,13 +77,12 @@ export function PremiumPatrol() {
     barking.current = true;
     setBark({ clip: 'bark', key: Date.now() });
   }), []);
-  if (!patrol) return null;
   return (
-    <div className="lo-patrol" data-patrol={patrol}>
+    <div className={kind} data-patrol={id}>
       <div className="lo-patrol-face">
-        <SpriteAnim id={patrol} clip="walk" reaction={ANIMS[patrol]?.bark ? bark : null}
+        <SpriteAnim id={id} clip="walk" reaction={ANIMS[id]?.bark ? bark : null}
           onReactionEnd={() => { barking.current = false; }}
-          fallback={<img src={`art/chars/${patrol}.webp`} alt="" />} />
+          fallback={<img src={`art/chars/${id}.webp`} alt="" />} />
       </div>
     </div>
   );

@@ -22,6 +22,8 @@
 .offer-pitch { margin: 0 0 4px; font-size: 14px; line-height: 1.35; color: var(--ink-muted); text-wrap: pretty; }
 .offer-buy { width: 100%; font-size: 17px; }
 .offer-later { width: 100%; }
+.offer-snooze { display: flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: 2px; font-size: 13px; color: var(--ink-muted); cursor: pointer; }
+.offer-snooze input { width: 18px; height: 18px; accent-color: var(--red, #a6402b); }
 @keyframes offer-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes offer-pop { 0% { transform: translateY(24px) scale(.9); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .offer, .offer-card { animation: none; } }

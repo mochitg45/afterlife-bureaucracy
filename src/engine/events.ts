@@ -2,6 +2,7 @@ import Decimal from 'break_infinity.js';
 import type { EventMissionDay, EventPool, EventState, GameState } from './state';
 import type { Content, EventTier, StaffDef } from './content';
 import { canAfford, staffBulkCost, maxAffordable, milestoneMult } from './economy';
+import { premiumEventMult } from './premium';
 import { bankCard, cardEventMult, keptCard, type PullResult } from './gacha';
 import { grantVouchersExact } from './vouchers';
 
@@ -370,7 +371,8 @@ export function eventRate(state: GameState, content: Content, occ: EventOccurren
   if (!ev || ev.key !== occ.key) return new Decimal(0);
   // The Overtime Boost (x2) covers the event desk too, when the caller knows the time.
   const boost = nowWall !== undefined && state.boostUntilWall > nowWall ? 2 : 1;
-  const mult = (1 + cardEventMult(state, content)) * boost;
+  // A pet on duty (Pumpkat) doubles event currency on top of cards and the boost.
+  const mult = (1 + cardEventMult(state, content)) * boost * premiumEventMult(state);
   let rate = 0;
   // Same x2 hiring milestones as the office (10, 25, 50, ...), so the event desk reads the same.
   for (const s of occ.staff) {
