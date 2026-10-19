@@ -132,7 +132,7 @@
 .living-office .lo-patrol img { filter: drop-shadow(0 0 1.5px #fff6d8) drop-shadow(0 0 5px rgba(255, 210, 120, .75)); }
 .lo-patrol-face { width: 100%; height: 100%; animation: loTurn 16s steps(1) infinite; }
 /* The pet: smaller, a faster lap, and half a lap out of step with the premium staff. */
-.lo-patrol.lo-pet { width: 50%; bottom: 4%; animation-duration: 11s; animation-delay: -5.5s; }
+.lo-patrol.lo-pet { width: 40%; bottom: 6%; animation-duration: 11s; animation-delay: -5.5s; }
 .lo-patrol.lo-pet .lo-patrol-face { animation-duration: 11s; animation-delay: -5.5s; }
 @keyframes loPatrol { 0% { left: 2%; } 46% { left: 76%; } 50% { left: 76%; } 96% { left: 2%; } 100% { left: 2%; } }
 @keyframes loTurn { 0% { transform: scaleX(1); } 48% { transform: scaleX(-1); } 98% { transform: scaleX(1); } }
