@@ -41,6 +41,8 @@ import { claimTier, grantShareReward } from '../engine/referral';
 import { prizeFor, payRankPrize, type RankPrize } from '../engine/eventRank';
 import { pickEventRanking, type EventRanking, type Standing } from '../platform/eventRanking';
 import { pickLifetimeBoard, type LifetimeBoard, type BoardView } from '../platform/lifetimeBoard';
+import { pickAlliance, type AllianceService, type AllianceView, type JoinOutcome } from '../platform/alliance';
+import { allianceWeek, claimAllianceTier as claimAllianceTierEngine, normalizeAllianceCode } from '../engine/alliance';
 import { content as defaultContent } from '../data';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -261,6 +263,18 @@ export interface ReferralInfo {
   joined: number;
 }
 
+/** Office Alliance as the Tasks card shows it; membership and totals live on the server. */
+export interface AllianceInfo {
+  available: boolean;
+  /** `none`: reachable, not in an alliance. `error`: the server could not be reached. */
+  status: 'idle' | 'loading' | 'none' | 'ready' | 'error';
+  view: AllianceView | null;
+  /** A join, create or leave is in flight. */
+  busy: boolean;
+}
+
+export type AllianceJoinResult = 'ok' | 'invalid' | 'notfound' | 'full' | 'error';
+
 export interface GameStore {
   state: GameState;
   rates: Rates;
@@ -406,6 +420,20 @@ export interface GameStore {
   shareInvite(): Promise<boolean>;
   /** Claims an invite tier by its friend count. */
   claimReferralTier(friends: number): void;
+  allianceInfo: AllianceInfo;
+  refreshAlliance(): Promise<void>;
+  joinRandomAlliance(): Promise<boolean>;
+  createAlliance(): Promise<boolean>;
+  joinAllianceByCode(code: string): Promise<AllianceJoinResult>;
+  leaveAlliance(): Promise<boolean>;
+  /** Sends the stamps batched since the last flush (every ~30 s of stamping, and on pause). */
+  flushAlliance(): Promise<void>;
+  /** Pays a reached tier (index into ALLIANCE_TIERS) once this week. */
+  claimAllianceTier(index: number): void;
+  allianceMembersView: BoardView | null;
+  loadAllianceMembers(): Promise<boolean>;
+  allianceRankingView: BoardView | null;
+  loadAllianceRanking(): Promise<boolean>;
   markMemosSeen(): void;
   /** Onboarding only ever moves forward, so a replayed step cannot rewind it. */
   advanceTraining(step: number): void;
@@ -417,6 +445,9 @@ export interface GameStore {
   exportSaveCode(): string;
   importSaveCode(code: string): Promise<'ok' | 'invalid'>;
 }
+
+const ALLIANCE_FLUSH_MS = 30_000;
+const ALLIANCE_PENDING_MAX = 3_000;
 
 const GOLDEN_ODDS = 1 / 40;
 const GOLDEN_MULT = 10;
@@ -435,6 +466,7 @@ export interface StoreDeps {
   referral?: Referral;
   eventRanking?: EventRanking;
   lifetimeBoard?: LifetimeBoard;
+  alliance?: AllianceService;
   sharer?: Sharer;
   audio?: Audio;
   /** Randomness for golden stamps (tests); defaults to Math.random. */
@@ -462,6 +494,11 @@ export function createGameStore(deps: StoreDeps) {
   const referral = deps.referral ?? pickReferral();
   const eventRanking = deps.eventRanking ?? pickEventRanking();
   const lifetimeBoard = deps.lifetimeBoard ?? pickLifetimeBoard();
+  const alliance = deps.alliance ?? pickAlliance();
+  /** Stamps not yet sent to the alliance, capped so a long offline stretch cannot bank a burst. */
+  let alliancePending = 0;
+  let allianceFlushMono = 0;
+  let allianceFlushing: Promise<void> | null = null;
   const sharer = deps.sharer ?? pickSharer();
   const audio = deps.audio ?? pickAudio();
   const forceEvent = deps.forceEvent !== undefined ? deps.forceEvent : readForceEvent();
@@ -564,6 +601,31 @@ export function createGameStore(deps: StoreDeps) {
       mirrorAchievements(content.achievements.filter((a) => s.achievements.includes(a.id)));
       submitLifetimeScore(s.soulsLifetime);
       submitEventScore();
+    };
+
+    /** One stamp toward the alliance goal, batched; a flush goes out every ALLIANCE_FLUSH_MS of stamping. */
+    const countAllianceStamp = () => {
+      if (!get().allianceInfo.view) return;
+      alliancePending = Math.min(ALLIANCE_PENDING_MAX, alliancePending + 1);
+      if (clock.mono() - allianceFlushMono >= ALLIANCE_FLUSH_MS) void get().flushAlliance();
+    };
+
+    const setAlliance = (patch: Partial<AllianceInfo>) => set((cur) => ({ allianceInfo: { ...cur.allianceInfo, ...patch } }));
+
+    /** Join, create or join-by-code: one at a time, and stamps count from the moment it lands. */
+    const joinWith = async (run: () => Promise<JoinOutcome>, method: string): Promise<AllianceJoinResult> => {
+      if (get().allianceInfo.busy) return 'error';
+      setAlliance({ busy: true });
+      const r = await run();
+      if (r && typeof r === 'object') {
+        alliancePending = 0;
+        allianceFlushMono = clock.mono();
+        setAlliance({ busy: false, status: 'ready', view: r });
+        track('alliance_joined', { method });
+        return 'ok';
+      }
+      setAlliance({ busy: false });
+      return r ?? 'error';
     };
 
     /** The running event's board gets this occurrence's total earned; Play Games keeps the best. */
@@ -1062,6 +1124,9 @@ export function createGameStore(deps: StoreDeps) {
       },
       cloudNotice: null,
       referralInfo: { available: referral.available(), status: 'idle', code: null, joined: 0 },
+      allianceInfo: { available: alliance.available(), status: 'idle', view: null, busy: false },
+      allianceMembersView: null,
+      allianceRankingView: null,
       eventStanding: null,
       rankingAvailable: eventRanking.available(),
       pendingRank: null,
@@ -1234,6 +1299,8 @@ export function createGameStore(deps: StoreDeps) {
           notifications.cancelAll().catch(() => {});
           // Best-effort and off the boot path: a referral failure must not stall the office.
           void referralBoot().catch(() => {});
+          // Stamps only count once the store knows which alliance they go to.
+          void get().refreshAlliance();
         })();
         return booting;
       },
@@ -1247,6 +1314,7 @@ export function createGameStore(deps: StoreDeps) {
         // The board would otherwise only move on an audit, which can be days apart.
         submitLifetimeScore(s.soulsLifetime);
         submitEventScore();
+        void get().flushAlliance();
         if (s.settings.notifOptIn !== 'yes') {
           await get().save();
           void get().syncCloud('pause').catch(() => {});
@@ -1341,6 +1409,7 @@ export function createGameStore(deps: StoreDeps) {
         apply(withTraining(next, s.onboarding.trainingStep === 0 && canHire ? 1 : 0), { mood: 'ok' });
         sfx(golden ? 'golden' : 'stamp');
         if (combo >= 5) sfx('combo', Math.min(2, 1 + combo * 0.04));
+        countAllianceStamp();
         return { golden };
       },
       hire(staffId, mode) {
@@ -1357,6 +1426,7 @@ export function createGameStore(deps: StoreDeps) {
         if (!occ) return;
         apply(stampEvent(get().state, content, occ, clock.wall()));
         sfx('stamp');
+        countAllianceStamp();
       },
       buyEventStaff(staffId, mode) {
         const occ = get().activeEvent();
@@ -1917,6 +1987,87 @@ export function createGameStore(deps: StoreDeps) {
         apply(next);
         track('referral_tier_claimed', { tier: friends });
         void get().save();
+      },
+
+      async refreshAlliance() {
+        if (!alliance.available()) return;
+        // A refresh sends what is pending first, so the total it reads includes this player's stamps.
+        await get().flushAlliance();
+        if (!get().allianceInfo.view) setAlliance({ status: 'loading' });
+        const r = await alliance.mine();
+        if (r === null) setAlliance({ status: get().allianceInfo.view ? 'ready' : 'error' });
+        else if (r === 'none') setAlliance({ status: 'none', view: null });
+        else {
+          if (!get().allianceInfo.view) allianceFlushMono = clock.mono();
+          setAlliance({ status: 'ready', view: r });
+        }
+      },
+      async joinRandomAlliance() {
+        return (await joinWith(() => alliance.joinRandom(gameServices.playerName?.() ?? ''), 'random')) === 'ok';
+      },
+      async createAlliance() {
+        return (await joinWith(() => alliance.create(gameServices.playerName?.() ?? ''), 'create')) === 'ok';
+      },
+      async joinAllianceByCode(raw) {
+        const code = normalizeAllianceCode(raw);
+        if (!code) return 'invalid';
+        return joinWith(() => alliance.joinByCode(code, gameServices.playerName?.() ?? ''), 'code');
+      },
+      async leaveAlliance() {
+        if (get().allianceInfo.busy) return false;
+        await get().flushAlliance();
+        setAlliance({ busy: true });
+        const ok = await alliance.leave();
+        if (ok) {
+          alliancePending = 0;
+          track('alliance_left');
+        }
+        setAlliance(ok ? { busy: false, status: 'none', view: null } : { busy: false });
+        set(ok ? { allianceMembersView: null } : {});
+        return ok;
+      },
+      flushAlliance() {
+        if (allianceFlushing) return allianceFlushing;
+        if (alliancePending <= 0 || !get().allianceInfo.view) return Promise.resolve();
+        allianceFlushMono = clock.mono();
+        const n = alliancePending;
+        allianceFlushing = (async () => {
+          try {
+            const r = await alliance.contribute(n, gameServices.playerName?.() ?? '');
+            if (!r) return; // kept for the next flush
+            alliancePending = Math.max(0, alliancePending - r.consumed);
+            const view = get().allianceInfo.view;
+            if (view) setAlliance({ view: { ...view, week: allianceWeek(clock.wall()), stamps: r.stamps } });
+          } finally {
+            allianceFlushing = null;
+          }
+        })();
+        return allianceFlushing;
+      },
+      claimAllianceTier(index) {
+        const view = get().allianceInfo.view;
+        const week = allianceWeek(clock.wall());
+        // Only a total read for this very week pays; last week's leftovers cannot be claimed.
+        if (!view || view.week !== week) return;
+        const s = get().state;
+        const next = claimAllianceTierEngine(s, index, week, view.stamps);
+        if (next === s) return;
+        apply(next);
+        sfx('achievement');
+        track('alliance_tier_claimed', { tier: index });
+        void get().save();
+      },
+      async loadAllianceMembers() {
+        await get().flushAlliance();
+        const v = await alliance.members();
+        if (v) set({ allianceMembersView: v });
+        return v !== null;
+      },
+      async loadAllianceRanking() {
+        await get().flushAlliance();
+        const v = await alliance.ranking();
+        if (v) set({ allianceRankingView: v });
+        return v !== null;
       },
 
       markMemosSeen() {

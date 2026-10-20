@@ -340,6 +340,9 @@ label.settings-row { cursor: pointer; }
 .store-row svg { flex-shrink: 0; }
 .store-footnote { margin-top: 12px; }
 .save-code { width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); resize: vertical; }
+/* 16px keeps phones from zooming into the field; flex: 1 lets the Join button sit beside it. */
+.alliance-code-input { flex: 1; min-width: 0; width: auto; font-size: 16px; letter-spacing: 0.2em; text-transform: uppercase; }
+.alliance-name { margin: 4px 0; }
 .boost-card { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
 .ad-button { display: inline-flex; align-items: center; gap: 8px; }
 

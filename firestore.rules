@@ -103,6 +103,161 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---- Office Alliance (src/platform/alliance.ts) ----
+    // Week = whole weeks since Monday 1970-01-05 00:00 UTC (rolls over Monday 00:00 UTC), the
+    // same number the client's allianceWeek() computes.
+    function serverWeek() {
+      return math.floor((request.time.toMillis() - 345600000) / 604800000);
+    }
+    function validName(n) {
+      return n is string && n.size() >= 1 && n.size() <= 24;
+    }
+    function memberPath(id, uid) {
+      return /databases/$(database)/documents/alliances/$(id)/members/$(uid);
+    }
+    function playerPath(uid) {
+      return /databases/$(database)/documents/players/$(uid);
+    }
+
+    // Which alliance a player is in: the "at most one alliance" lock. Only the owner reads or
+    // writes it, and only in the same commit that creates or deletes their member doc.
+    match /players/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, delete: if false;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['allianceId'])
+        && (
+          // Joining: not in one before, and the member doc exists after this commit.
+          (request.resource.data.allianceId is string
+            && (resource == null || resource.data.allianceId == null)
+            && existsAfter(memberPath(request.resource.data.allianceId, uid)))
+          ||
+          // Leaving: the old member doc is gone after this commit.
+          (request.resource.data.allianceId == null
+            && resource != null && resource.data.allianceId is string
+            && !existsAfter(memberPath(resource.data.allianceId, uid)))
+        );
+    }
+
+    // Code -> alliance id. Read one at a time; never listed, so codes cannot be enumerated.
+    match /allianceCodes/{code} {
+      allow get: if signedIn();
+      allow list, update, delete: if false;
+      allow create: if signedIn()
+        && code.matches('[A-HJKMNP-Z2-9]{6}')
+        && request.resource.data.keys().hasOnly(['id'])
+        && request.resource.data.id is string
+        // Only while creating that alliance, by its first member.
+        && !exists(/databases/$(database)/documents/alliances/$(request.resource.data.id))
+        && existsAfter(memberPath(request.resource.data.id, request.auth.uid));
+    }
+
+    // alliances/{id}: { name, size, week, weekStamps, rank, lastActive, createdAt }.
+    // rank = week * 1000000 + weekStamps, so one descending query lists this week's leaders.
+    // The invite code is NOT here (alliances are listable): it lives in secret/code.
+    match /alliances/{id} {
+      allow get: if signedIn();
+      allow list: if signedIn();
+      allow delete: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'size', 'week', 'weekStamps', 'rank', 'lastActive', 'createdAt'])
+        && validName(request.resource.data.name)
+        && request.resource.data.size == 1
+        && request.resource.data.week == serverWeek()
+        && request.resource.data.weekStamps == 0
+        && request.resource.data.rank == request.resource.data.week * 1000000
+        && request.resource.data.lastActive == request.time
+        && request.resource.data.createdAt == request.time
+        && existsAfter(memberPath(id, request.auth.uid));
+
+      function changed() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+      function isJoin() {
+        return changed().hasOnly(['size', 'lastActive'])
+          && request.resource.data.size == resource.data.size + 1
+          && request.resource.data.size <= 10
+          && request.resource.data.lastActive == request.time
+          && !exists(memberPath(id, request.auth.uid))
+          && existsAfter(memberPath(id, request.auth.uid));
+      }
+      function isLeave() {
+        return changed().hasOnly(['size'])
+          && request.resource.data.size == resource.data.size - 1
+          && request.resource.data.size >= 0
+          && exists(memberPath(id, request.auth.uid))
+          && !existsAfter(memberPath(id, request.auth.uid));
+      }
+      // A contribution adds exactly what the caller's own member doc adds in the same commit;
+      // that doc is rate-limited and capped (below), which bounds the alliance total too.
+      function isContribution() {
+        let week = request.resource.data.week;
+        let aBase = resource.data.week == week ? resource.data.weekStamps : 0;
+        let before = get(memberPath(id, request.auth.uid)).data;
+        let after = getAfter(memberPath(id, request.auth.uid)).data;
+        let mBase = before.week == week ? before.stamps : 0;
+        return changed().hasOnly(['week', 'weekStamps', 'rank', 'lastActive'])
+          && week == serverWeek()
+          && request.resource.data.weekStamps is int
+          && request.resource.data.weekStamps - aBase > 0
+          && request.resource.data.weekStamps - aBase <= 300
+          && request.resource.data.rank == week * 1000000 + request.resource.data.weekStamps
+          && request.resource.data.lastActive == request.time
+          && after.at == request.time
+          && after.week == week
+          && after.stamps - mBase == request.resource.data.weekStamps - aBase;
+      }
+      allow update: if signedIn() && (isJoin() || isLeave() || isContribution());
+
+      // The invite code; members only.
+      match /secret/{doc} {
+        allow get: if signedIn() && exists(memberPath(id, request.auth.uid));
+        allow list, update, delete: if false;
+        allow create: if signedIn() && doc == 'code'
+          && request.resource.data.keys().hasOnly(['code'])
+          && request.resource.data.code is string
+          && !exists(/databases/$(database)/documents/alliances/$(id))
+          && existsAfter(memberPath(id, request.auth.uid))
+          && getAfter(/databases/$(database)/documents/allianceCodes/$(request.resource.data.code)).data.id == id;
+      }
+
+      // members/{uid}: { name, week, stamps, at }. Each player writes only their own.
+      match /members/{uid} {
+        allow get, list: if signedIn();
+
+        // Only in a commit that adds one to size (a join) or creates the alliance at size 1.
+        allow create: if signedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['name', 'week', 'stamps', 'at'])
+          && validName(request.resource.data.name)
+          && request.resource.data.week == serverWeek()
+          && request.resource.data.stamps == 0
+          && request.resource.data.at == request.time
+          && getAfter(/databases/$(database)/documents/alliances/$(id)).data.size
+             == (exists(/databases/$(database)/documents/alliances/$(id)) ? get(/databases/$(database)/documents/alliances/$(id)).data.size : 0) + 1
+          && getAfter(playerPath(uid)).data.allianceId == id;
+
+        // A contribution: at most 300 stamps per write, at most one write per 20 s, at most
+        // 10000 stamps per member per week, and only alongside the alliance's own update.
+        allow update: if signedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['name', 'week', 'stamps', 'at'])
+          && validName(request.resource.data.name)
+          && request.resource.data.week == serverWeek()
+          && request.resource.data.at == request.time
+          && request.time > resource.data.at + duration.value(20, 's')
+          && request.resource.data.stamps is int
+          && request.resource.data.stamps <= 10000
+          && request.resource.data.stamps - (resource.data.week == request.resource.data.week ? resource.data.stamps : 0) > 0
+          && request.resource.data.stamps - (resource.data.week == request.resource.data.week ? resource.data.stamps : 0) <= 300
+          && getAfter(/databases/$(database)/documents/alliances/$(id)).data.lastActive == request.time;
+
+        // Leaving: in the commit that takes one off size and clears the player's lock.
+        allow delete: if signedIn() && request.auth.uid == uid
+          && getAfter(/databases/$(database)/documents/alliances/$(id)).data.size == get(/databases/$(database)/documents/alliances/$(id)).data.size - 1
+          && getAfter(playerPath(uid)).data.allianceId == null;
+      }
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
