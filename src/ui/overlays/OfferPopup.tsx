@@ -32,8 +32,12 @@ export function OfferPopup() {
 
   useEffect(() => {
     if (shownThisOpen || !ready || busy || step < 3 || !products) return;
-    const id = window.setTimeout(() => {
-      if (shownThisOpen || document.querySelector('.milestone, .modal-backdrop')) return;
+    // Checks on a short beat rather than once: the daily check-in pops up first on app
+    // open, and the offer waits until that (or any other banner) is closed.
+    const id = window.setInterval(() => {
+      if (shownThisOpen) { window.clearInterval(id); return; }
+      if (document.querySelector('.milestone, .modal-backdrop, .checkin-pop')) return;
+      window.clearInterval(id);
       const g = useGame.getState();
       const o = nextOffer(g.state, Date.now(), g.activeEvent()?.id ?? null);
       // Only offers the store can actually sell right now.
@@ -46,7 +50,7 @@ export function OfferPopup() {
       setSnooze(false);
       setOffer(o);
     }, SETTLE_MS);
-    return () => window.clearTimeout(id);
+    return () => window.clearInterval(id);
   }, [ready, busy, step, products]);
 
   if (!offer) return null;

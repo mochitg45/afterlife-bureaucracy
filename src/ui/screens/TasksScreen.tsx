@@ -157,7 +157,7 @@ function BeginnerWeek() {
 }
 
 /** The 7-day check-in strip: one cell a day, collected here. */
-function CheckIn() {
+export function CheckIn() {
   const login = useGame((s) => s.state.login);
   const ready = useGame((s) => loginClaimable(s.state));
   const claim = useGame((s) => s.claimLogin);

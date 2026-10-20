@@ -1,0 +1,15 @@
+/* Daily check-in pop-up: same layer as the offer and milestone banners. */
+.checkin-pop {
+  position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 20px;
+  background: rgb(20 14 10 / 0.72); animation: checkin-fade 200ms linear both;
+}
+.checkin-pop-card { position: relative; width: min(380px, 100%); animation: checkin-pop 380ms var(--ease-out, ease-out) both; }
+.checkin-pop-card > .card { margin: 0; border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+.checkin-pop-close {
+  position: absolute; top: -12px; right: -8px; z-index: 1; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--ink); background: var(--surface); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer;
+}
+.checkin-pop-close:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+@keyframes checkin-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes checkin-pop { 0% { transform: translateY(20px) scale(.92); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .checkin-pop, .checkin-pop-card { animation: none; } }
