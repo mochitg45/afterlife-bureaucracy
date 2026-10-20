@@ -17,7 +17,7 @@ import { checkStory } from '../engine/story';
 import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTierPrize, claimEventMission as claimEventMissionEngine, eventPool, eventUnlocked, upcomingEvents, type EventMissionId, type EventOccurrence, type EventPrize } from '../engine/events';
 import { claimLogin as claimLoginEngine } from '../engine/login';
 import { welcomeBack, COMEBACK_VOUCHERS, claimBeginner as claimBeginnerEngine, beginnerActive, beginnerDay, BEGINNER_DAYS } from '../engine/retention';
-import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
+import { pull as pullEngine, pullEvent as pullEventEngine, exchangeCard as exchangeCardEngine, PITY_EXECUTIVE, equipCard, unequipCard, type PullResult, type ExchangeResult } from '../engine/gacha';
 import { canCosmic, fileCosmic, buyClause as buyClauseEngine } from '../engine/cosmic';
 import { upgradePerk as upgradePerkEngine } from '../engine/perks';
 import { applyPurchase, starterPackEligible, unionActive } from '../engine/entitlements';
@@ -1934,7 +1934,15 @@ export function createGameStore(deps: StoreDeps) {
         if (next === state) return;
         set({ state: next });
         track('onboarding_step', { step: `training_${step}` });
-        if (step >= TRAINING_DONE) track('tutorial_complete');
+        if (step >= TRAINING_DONE) {
+          track('tutorial_complete');
+          // Welcome gift: a brand-new hire's first draw is free and lands an Executive (pity
+          // primed to its last step), so the card system pays off inside the first minutes.
+          if (next.stats.pulls === 0) {
+            const r = pullEngine({ ...next, pity: { ...next.pity, executive: PITY_EXECUTIVE - 1 } }, content, 1, get().rates.kcPerSec, { free: true });
+            set({ state: r.state, pendingPull: r.results });
+          }
+        }
         void get().save();
       },
 

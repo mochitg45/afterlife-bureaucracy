@@ -75,7 +75,7 @@ describe('shipped departments', () => {
   it('ships six departments in unlock order with the spec thresholds and accents', () => {
     expect(content.departments.map((d) => [d.id, d.unlockSouls, d.accent])).toEqual([
       ['intake', 0, '#1F3B33'],
-      ['heaven', 10000, '#3E9C93'],
+      ['heaven', 3000, '#3E9C93'],
       ['hell', 250000, '#A6402B'],
       ['reincarnation', 9.6e15, '#A8823C'],
       ['limbo', 2.4e17, '#6B6478'],
