@@ -11,6 +11,7 @@ import { Badge } from '../components/Badge';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
 import { InviteSheet } from '../overlays/InviteSheet';
+import { AllianceCard } from '../components/AllianceCard';
 import { PrizePopup } from './EventScreen';
 import { LOGIN_REWARDS, loginClaimable } from '../../engine/login';
 import { BEGINNER_DAYS, beginnerActive, beginnerDay, beginnerProgress, beginnerClaimable, type BeginnerReward, type BeginnerView } from '../../engine/retention';
@@ -216,6 +217,7 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
         </div>
       )}
       <InviteSheet open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <AllianceCard />
       <BeginnerWeek />
       <CheckIn />
       <PrizePopup title={t('login.prizeTitle')} />

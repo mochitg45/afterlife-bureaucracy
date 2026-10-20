@@ -11,13 +11,15 @@ import './BoardSheet.css';
  * currency), and this player's own place. Loads on open; `onPlayGames` adds a link to the
  * Play Games board where there is one.
  */
-export function BoardSheet({ title, view, load, unit, onClose, onPlayGames }: {
+export function BoardSheet({ title, view, load, unit, onClose, onPlayGames, totalText }: {
   title: string;
   view: BoardView | null;
   load: () => Promise<boolean>;
   unit?: ReactNode;
   onClose: () => void;
   onPlayGames?: () => void;
+  /** Replaces the "Players: n" line (an alliance board counts alliances or members). */
+  totalText?: (total: number) => string;
 }) {
   const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading');
   useEffect(() => {
@@ -27,7 +29,7 @@ export function BoardSheet({ title, view, load, unit, onClose, onPlayGames }: {
   }, [load]);
   return (
     <Modal open title={title} className="board-sheet" onClose={onClose}>
-      {view && <p className="sub board-total mono">{t('board.players', { total: formatNumber(new Decimal(view.total)) })}</p>}
+      {view && <p className="sub board-total mono">{totalText ? totalText(view.total) : t('board.players', { total: formatNumber(new Decimal(view.total)) })}</p>}
       {view && view.rank !== null && <p className="board-you mono">{t('board.rank', { rank: view.rank, total: view.total })}</p>}
       {view && view.rank === null && state === 'ok' && <p className="sub">{t('board.notRanked')}</p>}
       {!view && state === 'loading' && <p className="sub" role="status">{t('board.loading')}</p>}
