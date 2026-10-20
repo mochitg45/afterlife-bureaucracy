@@ -593,5 +593,8 @@
  "milestone.soulsSub": "処理済み。ファイル済み。ラミネート済み。",
  "milestone.dept": "新部署オープン",
  "milestone.deptSub": "テープカット完了。これ以上テープを切らないでください。",
- "milestone.collect": "受け取る"
+ "milestone.collect": "受け取る",
+ "whatsnew.title": "v{version} の新機能",
+ "whatsnew.ok": "OK",
+ "whatsnew.notes": "🎃 ハロウィン限定ペット「パンプキャット」：魂+15%、イベント通貨2倍。ハロウィンイベント期間限定！\n📅 デイリーログインがゲーム起動時に表示されるようになりました。\n⚡ 天国受付がずっと早く開き、新入社員はエグゼクティブ確定の無料ガチャを1回引けます。"
 }

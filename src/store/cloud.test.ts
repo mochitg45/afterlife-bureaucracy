@@ -676,6 +676,9 @@ describe('onboarding progress', () => {
     expect(store.getState().state.onboarding.trainingStep).toBe(2);
     store.getState().skipTraining();
     expect(store.getState().state.onboarding.trainingStep).toBe(3);
+    // Finishing the walkthrough hands a new player one free Executive draw.
+    expect(store.getState().pendingPull?.[0]?.rarity).toBe('executive');
+    expect(store.getState().state.stats.pulls).toBe(1);
     store.getState().advanceTraining(0);
     expect(store.getState().state.onboarding.trainingStep).toBe(3);
     store.getState().stopLoop();

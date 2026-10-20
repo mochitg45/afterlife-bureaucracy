@@ -13,3 +13,7 @@
 @keyframes checkin-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes checkin-pop { 0% { transform: translateY(20px) scale(.92); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .checkin-pop, .checkin-pop-card { animation: none; } }
+/* What's new (shares the check-in pop-up frame). */
+.whatsnew-card { padding: 18px 18px 16px; display: grid; gap: 12px; }
+.whatsnew-card h2 { margin: 0; font-size: 20px; text-wrap: balance; }
+.whatsnew-card ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.4; }

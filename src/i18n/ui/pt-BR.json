@@ -593,5 +593,8 @@
  "milestone.soulsSub": "Processadas. Arquivadas. Plastificadas.",
  "milestone.dept": "NOVO DEPARTAMENTO ABERTO",
  "milestone.deptSub": "A fita foi cortada. Por favor, parem de cortar fitas.",
- "milestone.collect": "Coletar"
+ "milestone.collect": "Coletar",
+ "whatsnew.title": "Novidades da v{version}",
+ "whatsnew.ok": "Entendi",
+ "whatsnew.notes": "🎃 Pumpkat, um pet limitado de Halloween: +15% de almas e o dobro da moeda do evento. Só durante o evento de Halloween!\n📅 O check-in diário agora aparece ao abrir o jogo.\n⚡ Admissões do Céu abre bem mais cedo, e novos funcionários ganham uma tiragem Executiva grátis."
 }

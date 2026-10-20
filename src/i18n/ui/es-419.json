@@ -593,5 +593,8 @@
  "milestone.soulsSub": "Procesadas. Archivadas. Plastificadas.",
  "milestone.dept": "NUEVO DEPARTAMENTO ABIERTO",
  "milestone.deptSub": "Se cortó la cinta. Por favor, dejen de cortar cintas.",
- "milestone.collect": "Cobrar"
+ "milestone.collect": "Cobrar",
+ "whatsnew.title": "Novedades de la v{version}",
+ "whatsnew.ok": "Entendido",
+ "whatsnew.notes": "🎃 Pumpkat, una mascota limitada de Halloween: +15 % de almas y el doble de moneda del evento. ¡Solo durante el evento de Halloween!\n📅 El registro diario ahora aparece al abrir el juego.\n⚡ Admisiones del Cielo se abre mucho antes, y los nuevos empleados reciben una tirada Ejecutiva gratis."
 }

@@ -593,5 +593,8 @@
  "milestone.soulsSub": "Traitées. Classées. Plastifiées.",
  "milestone.dept": "NOUVEAU SERVICE OUVERT",
  "milestone.deptSub": "Le ruban est coupé. Merci d'arrêter de couper des rubans.",
- "milestone.collect": "Récupérer"
+ "milestone.collect": "Récupérer",
+ "whatsnew.title": "Nouveautés de la v{version}",
+ "whatsnew.ok": "Compris",
+ "whatsnew.notes": "🎃 Pumpkat, un familier d'Halloween limité : +15 % d'âmes et monnaie d'événement x2. Uniquement pendant l'événement d'Halloween !\n📅 Le pointage quotidien s'affiche maintenant à l'ouverture du jeu.\n⚡ Les Admissions au Paradis ouvrent bien plus tôt, et les nouvelles recrues reçoivent un tirage Cadre gratuit."
 }

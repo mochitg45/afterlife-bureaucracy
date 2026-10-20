@@ -593,5 +593,8 @@
  "milestone.soulsSub": "처리 완료. 파일링 완료. 코팅 완료.",
  "milestone.dept": "새 부서 개설",
  "milestone.deptSub": "테이프 커팅 완료. 더 이상 테이프를 자르지 마세요.",
- "milestone.collect": "받기"
+ "milestone.collect": "받기",
+ "whatsnew.title": "v{version} 새로운 기능",
+ "whatsnew.ok": "확인",
+ "whatsnew.notes": "🎃 할로윈 한정 펫 펌프캣: 영혼 +15%, 이벤트 화폐 2배. 할로윈 이벤트 기간에만!\n📅 이제 게임을 열면 일일 출석 체크가 바로 뜹니다.\n⚡ 천국 접수처가 훨씬 빨리 열리고, 신입은 임원 확정 무료 뽑기 1회를 받습니다."
 }

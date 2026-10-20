@@ -593,5 +593,8 @@
  "milestone.soulsSub": "Bearbeitet. Abgeheftet. Laminiert.",
  "milestone.dept": "NEUE ABTEILUNG ERÖFFNET",
  "milestone.deptSub": "Das Band ist durchgeschnitten. Bitte keine weiteren Bänder.",
- "milestone.collect": "Abholen"
+ "milestone.collect": "Abholen",
+ "whatsnew.title": "Neu in v{version}",
+ "whatsnew.ok": "Verstanden",
+ "whatsnew.notes": "🎃 Pumpkat, ein limitiertes Halloween-Haustier: +15 % Seelen und doppelte Event-Währung. Nur während des Halloween-Events!\n📅 Der tägliche Check-in erscheint jetzt beim Öffnen des Spiels.\n⚡ Die Himmelsaufnahme öffnet viel früher, und Neulinge erhalten eine kostenlose Executive-Ziehung."
 }

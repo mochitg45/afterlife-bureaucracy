@@ -28,7 +28,7 @@ export function CheckInPopup() {
     // Keeps checking until the screen is clear (a milestone banner or report may be up first).
     const id = window.setInterval(() => {
       if (shownThisOpen) { window.clearInterval(id); return; }
-      if (document.querySelector('.milestone, .modal-backdrop, .offer')) return;
+      if (document.querySelector('.milestone, .modal-backdrop, .offer, .whatsnew')) return;
       window.clearInterval(id);
       shownThisOpen = true;
       setOpen(true);

@@ -593,5 +593,8 @@
  "milestone.soulsSub": "Processed. Filed. Laminated.",
  "milestone.dept": "NEW DEPARTMENT OPEN",
  "milestone.deptSub": "The ribbon has been cut. Please stop cutting ribbons.",
- "milestone.collect": "Collect"
+ "milestone.collect": "Collect",
+ "whatsnew.title": "What's new in v{version}",
+ "whatsnew.ok": "Got it",
+ "whatsnew.notes": "🎃 Pumpkat, a limited Halloween pet: +15% souls and 2x event currency. Only during the Halloween event!\n📅 The daily check-in now pops up when you open the game.\n⚡ Heaven Admissions opens much sooner, and new hires get a free Executive draw."
 }

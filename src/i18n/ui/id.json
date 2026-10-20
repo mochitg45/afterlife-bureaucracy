@@ -593,5 +593,8 @@
  "milestone.soulsSub": "Diproses. Diarsipkan. Dilaminasi.",
  "milestone.dept": "DEPARTEMEN BARU DIBUKA",
  "milestone.deptSub": "Pita sudah digunting. Tolong berhenti menggunting pita.",
- "milestone.collect": "Ambil"
+ "milestone.collect": "Ambil",
+ "whatsnew.title": "Yang baru di v{version}",
+ "whatsnew.ok": "Oke",
+ "whatsnew.notes": "🎃 Pumpkat, peliharaan Halloween terbatas: +15% jiwa dan 2x mata uang event. Hanya selama event Halloween!\n📅 Absen harian sekarang muncul saat kamu membuka game.\n⚡ Penerimaan Surga terbuka jauh lebih cepat, dan pegawai baru dapat satu tarikan Eksekutif gratis."
 }

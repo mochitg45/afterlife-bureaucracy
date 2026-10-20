@@ -30,6 +30,7 @@ import { EventScreen, RankPrizePopup } from './screens/EventScreen';
 import { MilestoneOverlay } from './overlays/Milestone';
 import { OfferPopup } from './overlays/OfferPopup';
 import { CheckInPopup } from './overlays/CheckInPopup';
+import { WhatsNew } from './overlays/WhatsNew';
 import { ForceUpdate } from './overlays/ForceUpdate';
 
 export function App() {
@@ -127,6 +128,7 @@ export function App() {
           <PullReveal />
           <RankPrizePopup />
           <MilestoneOverlay />
+          <WhatsNew />
           <CheckInPopup />
           <OfferPopup />
           <ForceUpdate />
