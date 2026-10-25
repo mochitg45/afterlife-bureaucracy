@@ -13,6 +13,7 @@ import { MemoTicker } from '../components/MemoTicker';
 import { useWatchAd } from '../hooks/useWatchAd';
 import { fmtLeft } from '../format';
 import { EventBanner } from './EventScreen';
+import { StampRushEntry } from '../overlays/StampRush';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
 import { t } from '../../i18n';
 
@@ -108,6 +109,7 @@ export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?:
       <QueueCard />
       <StampButton />
       <OvertimeBoost />
+      <StampRushEntry />
       <div className="section-head">
         <h3>{t('office.staff')}</h3>
         <div className="mode-switch" role="group" aria-label={t('office.buyAmountAria')} data-coach="buy-mode">

@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useGame } from '../../store/game';
 import type { GameState } from '../../engine/state';
 import { formatNumber } from '../../engine/format';
 import { t } from '../../i18n';
 import { LivingOffice } from './LivingOffice';
 import { emitStamp } from '../stampEvents';
+import { useCombo, ComboLabel } from '../hooks/useCombo';
 import * as haptics from '../../platform/haptics';
 import './StampFx.css';
 
@@ -12,9 +13,6 @@ interface Float { id: number; x: number; text: string; golden?: boolean }
 interface Ink { id: number; x: number; y: number; rot: number }
 interface Spark { id: number; dx: number; dy: number }
 
-const COMBO_GAP_MS = 600;
-const COMBO_MIN = 5;
-const comboTier = (n: number) => (n >= 50 ? 4 : n >= 25 ? 3 : n >= 10 ? 2 : 1);
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const DEPT_ART = new Set(['intake', 'heaven', 'hell', 'reincarnation', 'limbo', 'valhalla']);
@@ -72,14 +70,11 @@ export function StampButton() {
   const [goldFlash, setGoldFlash] = useState(false);
   const [inks, setInks] = useState<Ink[]>([]);
   const [sparks, setSparks] = useState<Spark[]>([]);
-  const [combo, setCombo] = useState({ n: 0, done: false });
-  const last = useRef({ at: 0, n: 0 });
-  const comboTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { combo, hit } = useCombo();
 
   const onStamp = () => {
     const now = performance.now();
-    const n = now - last.current.at < COMBO_GAP_MS ? last.current.n + 1 : 1;
-    last.current = { at: now, n };
+    const n = hit(!reducedMotion());
     const { golden } = stamp(n);
     rotateQueue();
     emitStamp({ golden, combo: n });
@@ -107,9 +102,6 @@ export function StampButton() {
       setSparks((cur) => [...cur, ...burst]);
       setTimeout(() => setSparks((cur) => cur.filter((x) => !burst.includes(x))), 900);
     }
-    if (n >= COMBO_MIN) setCombo({ n, done: false });
-    clearTimeout(comboTimer.current);
-    comboTimer.current = setTimeout(() => setCombo((c) => ({ ...c, done: true })), COMBO_GAP_MS);
   };
 
   const fx = SCENE_FX[activeDept] ?? SCENE_FX.intake;
@@ -125,7 +117,7 @@ export function StampButton() {
         <div className="stamp-fx" aria-hidden="true">
           {inks.map((k) => <span key={k.id} className="ink-mark" style={{ left: `${k.x}%`, top: `${k.y}%`, transform: `translate(-50%, -50%) rotate(${k.rot}deg)` }} />)}
           {sparks.map((p) => <span key={p.id} className="gold-spark" style={{ '--dx': p.dx + 'px', '--dy': p.dy + 'px' } as React.CSSProperties} />)}
-          {combo.n >= COMBO_MIN && <div className={`combo-label t${comboTier(combo.n)}${combo.done ? ' done' : ''}`}><span key={combo.n}>{t('stamp.combo', { n: combo.n })}</span></div>}
+          <ComboLabel combo={combo} />
         </div>
         {floats.map((f) => <span key={f.id} className={'float mono' + (f.golden ? ' gold' : '')} style={{ left: f.x + '%' }}>{f.text}</span>)}
         <button className={'stamp' + (pressed ? ' pressed' : '') + (goldFlash ? ' golden-flash' : '')} onPointerDown={onStamp} aria-label={t('stamp.aria')} data-coach="stamp">

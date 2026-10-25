@@ -1,0 +1,66 @@
+/* Stamp Rush: full-screen mini-game. Same layer as the other overlays, below ForceUpdate. */
+.rush-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.rush-entry .sub { font-size: 12px; }
+.rush {
+  position: fixed; inset: 0; z-index: 1500; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: var(--paper); touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden;
+}
+.rush-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rush-stats { display: flex; gap: 14px; font-size: 18px; font-weight: 700; color: var(--ink); }
+.rush-card {
+  margin: auto; width: min(340px, 100%); padding: 20px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: var(--surface); border: 3px solid var(--ink); border-radius: 12px; box-shadow: 6px 6px 0 var(--ink);
+}
+.rush-card h2 { margin: 0; font-family: var(--font-display); font-size: 26px; color: var(--ink); }
+.rush-card p { margin: 0; }
+.rush-how { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; text-align: left; font-weight: 600; }
+.rush-how li { display: flex; align-items: center; gap: 10px; }
+.rush-ico { width: 26px; height: 20px; border: 2px solid var(--ink); border-radius: 3px; flex: 0 0 auto; background: var(--surface); }
+.rush-ico.f { background: #f1c8bf; border-color: var(--red); }
+.rush-ico.s { background: #f6dc8a; border-color: var(--brass); }
+.rush-go { width: 100%; font-size: 17px; }
+.rush-result { display: flex; gap: 14px; font-size: 14px; }
+.rush-pay { font-size: 22px; font-weight: 700; color: var(--green); line-height: 1.4; }
+
+.rush-meter { display: flex; flex-direction: column; gap: 4px; }
+.rush-bar { height: 12px; border: 2px solid var(--ink); border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.rush-bar i { display: block; height: 100%; background: var(--brass); transition: width 120ms linear; }
+.rush-mult { font-size: 14px; font-weight: 700; color: var(--ink); }
+.rush-mult.max { color: var(--red); }
+.rush-msg { height: 28px; text-align: center; font-family: var(--font-display); font-size: 20px; color: var(--green); }
+.rush-msg span { display: inline-block; animation: rush-pop 360ms var(--ease-out) both; }
+.rush-msg span.bad { color: var(--red); }
+
+.rush-pile { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
+.rush-pile.shake0 { animation: rush-shake 280ms linear both; }
+.rush-pile.shake1 { animation: rush-shake2 280ms linear both; }
+.rush-doc {
+  position: relative; padding: 10px 12px 14px; background: var(--surface); border: 3px solid var(--ink); border-radius: 8px; box-shadow: 4px 4px 0 var(--ink);
+  min-height: 84px; display: flex; flex-direction: column; gap: 6px; animation: rush-in 200ms var(--ease-out) both; cursor: pointer;
+}
+.rush-doc-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 13px; }
+.rush-doc-head span { font-weight: 700; letter-spacing: .08em; }
+.rush-lines { display: flex; flex-direction: column; gap: 5px; }
+.rush-lines i { display: block; height: 4px; border-radius: 2px; background: var(--line); }
+.rush-lines i:nth-child(2) { width: 70%; }
+.rush-lines i:nth-child(3) { width: 45%; }
+.rush-doc.flag { background: #f6dcd5; border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
+.rush-doc.flag .rush-doc-head b { color: var(--red); }
+.rush-doc.special { background: linear-gradient(100deg, #fbe9a6, #f6dc8a); border-color: var(--brass); box-shadow: 4px 4px 0 var(--brass); }
+.rush-hold { height: 8px; border: 2px solid var(--red); border-radius: 999px; overflow: hidden; background: #fff; }
+.rush-hold i { display: block; height: 100%; background: var(--red); }
+.rush-life { position: absolute; left: 8px; right: 8px; bottom: 4px; height: 4px; border-radius: 2px; background: rgb(42 38 32 / .12); overflow: hidden; }
+.rush-life i { display: block; height: 100%; background: var(--teal); }
+/* near miss: the form is about to expire */
+.rush-doc.urgent .rush-life i { background: var(--red); }
+.rush-doc.urgent { animation: rush-jitter 120ms linear infinite; }
+
+@keyframes rush-in { from { transform: translateY(14px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes rush-shake2 { 0% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 100% { transform: none; } }
+@keyframes rush-pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes rush-shake { 0% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 100% { transform: none; } }
+@keyframes rush-jitter { 0% { transform: translateX(-1.5px); } 50% { transform: translateX(1.5px); } 100% { transform: translateX(-1.5px); } }
+@media (prefers-reduced-motion: reduce) {
+  .rush-doc, .rush-doc.urgent, .rush-msg span, .rush-pile.shake0, .rush-pile.shake1 { animation: none; }
+  .rush-bar i { transition: none; }
+}

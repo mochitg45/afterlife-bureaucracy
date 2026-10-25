@@ -1,4 +1,5 @@
 import Decimal from 'break_infinity.js';
+import { initialRush, sanitizeRush, type RushState } from './rush';
 import { migrate, SAVE_VERSION, RESET_EPOCH } from './migrations';
 import { clampEquipped } from './gacha';
 import { MAX_PERK_LEVEL } from './perks';
@@ -219,6 +220,8 @@ export interface GameState {
   achievements: string[];
   storySeen: string[];
   settings: Settings;
+  /** Stamp Rush rounds used and the wall-clock cooldown, so a restart cannot skip it. */
+  rush: RushState;
   firstSeenWallClock: number;
   entitlements: Entitlements;
   adState: AdState;
@@ -307,6 +310,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     achievements: [],
     storySeen: [],
     settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light', sfx: true, music: true },
+    rush: initialRush(),
     firstSeenWallClock: now.wall,
     entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} },
     adState: { freePullDate: '', dailySkipDate: '', boostCooldownUntilWall: 0 },
@@ -762,6 +766,7 @@ export function deserialize(json: string, content: Content): GameState {
     achievements: knownIds(raw.achievements, knownAchievementIds),
     storySeen: knownIds(raw.storySeen, knownStoryIds),
     settings: sanitizeSettings(raw.settings),
+    rush: sanitizeRush(raw.rush),
     firstSeenWallClock: num(raw.firstSeenWallClock, lastSeenWallClock),
     entitlements: sanitizeEntitlements(raw.entitlements),
     adState: sanitizeAdState(raw.adState),

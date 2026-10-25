@@ -16,6 +16,7 @@ import { StampSeal } from '../components/StampButton';
 import { PremiumPatrol } from '../components/LivingOffice';
 import { OvertimeBoost } from './OfficeScreen';
 import { emitStamp } from '../stampEvents';
+import { useCombo, ComboLabel } from '../hooks/useCombo';
 import * as haptics from '../../platform/haptics';
 import type { BuyMode } from '../../engine/actions';
 import { Character } from '../characters/Character';
@@ -177,12 +178,14 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
   const stamp = useGame((s) => s.eventStamp);
   const [floats, setFloats] = useState<{ id: number; x: number }[]>([]);
   const [pressed, setPressed] = useState(false);
+  const { combo, hit } = useCombo();
   const art = `${import.meta.env.BASE_URL}art/${occ.kind === 'weekly' ? 'events/weekly-' + occ.id : 'events/' + occ.id}.webp`;
   const onStamp = () => {
-    stamp();
+    const n = hit(!(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches));
+    stamp(n); // the combo only colors the sound; the event currency per stamp never changes
     // Same feel as the office stamp: the press squash, a tap of haptics, and the patrol's bark.
     haptics.tap();
-    emitStamp({ golden: false, combo: 1 });
+    emitStamp({ golden: false, combo: n });
     setPressed(true);
     setTimeout(() => setPressed(false), 90);
     const f = { id: Date.now() + Math.random(), x: 30 + Math.random() * 40 };
@@ -194,6 +197,7 @@ function EventStamp({ occ, tap }: { occ: EventOccurrence; tap: Decimal }) {
       <div className="stamp-scene event-scene" style={{ backgroundImage: `url(${art})` }}>
         <EventFx id={occ.id} />
         {floats.map((f) => <span key={f.id} className="float mono" style={{ left: f.x + '%' }}>+{formatNumber(tap)}</span>)}
+        <div className="stamp-fx" aria-hidden="true"><ComboLabel combo={combo} /></div>
         <div className="living-office" aria-hidden="true"><PremiumPatrol /></div>
         <button className={'stamp' + (pressed ? ' pressed' : '')} onPointerDown={onStamp} onClick={(e) => { if (e.detail === 0) onStamp(); }} aria-label={t('event.stampAria')}>
           <StampSeal />

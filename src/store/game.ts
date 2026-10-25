@@ -13,6 +13,7 @@ import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
 import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, NOTIF_EVENT, NOTIF_AWAY3, NOTIF_AWAY7, type Notifications } from '../platform/notifications';
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
+import { rushAvailable, startRound, rushPayout } from '../engine/rush';
 import { checkStory } from '../engine/story';
 import { activeEvent as activeEventEngine, syncEvent, stampEvent, buyEventStaff as buyEventStaffEngine, claimEventTierPrize, claimEventMission as claimEventMissionEngine, eventPool, eventUnlocked, upcomingEvents, type EventMissionId, type EventOccurrence, type EventPrize } from '../engine/events';
 import { claimLogin as claimLoginEngine } from '../engine/login';
@@ -331,7 +332,12 @@ export interface GameStore {
   hire(staffId: string, mode: BuyMode): void;
   /** The event occurrence running now (or the forced preview), or null. Not reactive: read it where the clock ticks. */
   activeEvent(): EventOccurrence | null;
-  eventStamp(): void;
+  /** `combo` (taps in a row) only raises the blip; it never changes what the stamp pays. */
+  eventStamp(combo?: number): void;
+  /** Starts a Stamp Rush round if one is allowed (counts it, may start the cooldown). */
+  startRush(): boolean;
+  /** Pays a finished round from `points` scored, capped (see engine/rush). Souls and KC only; 0 without a live round. */
+  finishRush(points: number): { souls: Decimal; kc: Decimal };
   buyEventStaff(staffId: string, mode: BuyMode): void;
   claimEventTier(index: number): void;
   claimEventMission(id: EventMissionId): void;
@@ -531,6 +537,8 @@ export function createGameStore(deps: StoreDeps) {
   let booting: Promise<void> | null = null;
   let booted = false;
   let resuming: Promise<void> | null = null;
+  /** A rush round is in play (memory only): a payout needs a round the store saw start. */
+  let rushLive = false;
   let processId = '';
   let stopEntitlementUpdates: (() => void) | null = null;
   /**
@@ -1421,12 +1429,29 @@ export function createGameStore(deps: StoreDeps) {
         if (next !== s) sfx('hire');
       },
       activeEvent() { return activeEventEngine(content, clock.wall(), forceEvent); },
-      eventStamp() {
+      eventStamp(combo = 1) {
         const occ = get().activeEvent();
         if (!occ) return;
         apply(stampEvent(get().state, content, occ, clock.wall()));
         sfx('stamp');
+        if (combo >= 5) sfx('combo', Math.min(2, 1 + combo * 0.04));
         countAllianceStamp();
+      },
+      startRush() {
+        const s = get().state;
+        if (!rushAvailable(s.rush, clock.wall())) return false;
+        rushLive = true;
+        apply({ ...s, rush: startRound(s.rush, clock.wall()) });
+        return true;
+      },
+      finishRush(points) {
+        const none = { souls: new Decimal(0), kc: new Decimal(0) };
+        if (!rushLive) return none;
+        rushLive = false;
+        const { rates } = get();
+        const pay = rushPayout(points, Decimal.max(rates.soulsPerSec, rates.clickPower), rates.kcPerSec);
+        apply(unlockDepartments(addSouls(get().state, pay.souls, pay.kc), content));
+        return pay;
       },
       buyEventStaff(staffId, mode) {
         const occ = get().activeEvent();
