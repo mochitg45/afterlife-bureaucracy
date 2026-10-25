@@ -4,6 +4,7 @@ import type { GameState } from '../../engine/state';
 import { formatNumber } from '../../engine/format';
 import { t } from '../../i18n';
 import { LivingOffice } from './LivingOffice';
+import { OfficeIncidents } from './OfficeIncidents';
 import { emitStamp } from '../stampEvents';
 import * as haptics from '../../platform/haptics';
 import './StampFx.css';
@@ -122,6 +123,7 @@ export function StampButton() {
           {PARTICLES.map(([x, delay, dur], i) => <span key={'p' + i} className="fx-dot" style={{ left: `${x}%`, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />)}
         </div>
         <LivingOffice dept={activeDept} />
+        <OfficeIncidents />
         <div className="stamp-fx" aria-hidden="true">
           {inks.map((k) => <span key={k.id} className="ink-mark" style={{ left: `${k.x}%`, top: `${k.y}%`, transform: `translate(-50%, -50%) rotate(${k.rot}deg)` }} />)}
           {sparks.map((p) => <span key={p.id} className="gold-spark" style={{ '--dx': p.dx + 'px', '--dy': p.dy + 'px' } as React.CSSProperties} />)}

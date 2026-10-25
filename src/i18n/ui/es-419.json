@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "Alianzas esta semana: {n}",
  "alliance.leave": "Salir de la alianza",
  "alliance.leaveConfirm": "Toca otra vez para salir",
- "alliance.stampsUnit": "sellos"
+ "alliance.stampsUnit": "sellos",
+ "incident.printer": "Impresora atascada",
+ "incident.copier": "Fantasma en la fotocopiadora",
+ "incident.coffee": "Café derramado",
+ "incident.queue": "Fila de almas enredada",
+ "incident.lights": "Luces parpadeantes",
+ "incident.hint": "Toca {n} veces más para arreglarlo",
+ "incident.pop": "+{n} almas"
 }

@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "Alliances this week: {n}",
  "alliance.leave": "Leave alliance",
  "alliance.leaveConfirm": "Tap again to leave",
- "alliance.stampsUnit": "stamps"
+ "alliance.stampsUnit": "stamps",
+ "incident.printer": "Jammed printer",
+ "incident.copier": "Ghost at the copier",
+ "incident.coffee": "Coffee spill",
+ "incident.queue": "Tangled queue of souls",
+ "incident.lights": "Flickering lights",
+ "incident.hint": "Tap {n} more to fix it",
+ "incident.pop": "+{n} souls"
 }

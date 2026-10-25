@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "Allianzen diese Woche: {n}",
  "alliance.leave": "Allianz verlassen",
  "alliance.leaveConfirm": "Zum Verlassen erneut tippen",
- "alliance.stampsUnit": "Stempel"
+ "alliance.stampsUnit": "Stempel",
+ "incident.printer": "Papierstau im Drucker",
+ "incident.copier": "Geist am Kopierer",
+ "incident.coffee": "Verschütteter Kaffee",
+ "incident.queue": "Verhedderte Seelenschlange",
+ "incident.lights": "Flackernde Lampen",
+ "incident.hint": "Noch {n}x tippen zum Beheben",
+ "incident.pop": "+{n} Seelen"
 }

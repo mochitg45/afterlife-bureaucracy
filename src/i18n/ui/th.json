@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "พันธมิตรสัปดาห์นี้: {n}",
  "alliance.leave": "ออกจากพันธมิตร",
  "alliance.leaveConfirm": "แตะอีกครั้งเพื่อออก",
- "alliance.stampsUnit": "ตราประทับ"
+ "alliance.stampsUnit": "ตราประทับ",
+ "incident.printer": "เครื่องพิมพ์กระดาษติด",
+ "incident.copier": "ผีที่เครื่องถ่ายเอกสาร",
+ "incident.coffee": "กาแฟหก",
+ "incident.queue": "คิววิญญาณพันกัน",
+ "incident.lights": "ไฟกะพริบ",
+ "incident.hint": "แตะอีก {n} ครั้งเพื่อซ่อม",
+ "incident.pop": "+{n} วิญญาณ"
 }

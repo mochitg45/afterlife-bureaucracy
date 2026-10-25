@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "今週の同盟数：{n}",
  "alliance.leave": "同盟を抜ける",
  "alliance.leaveConfirm": "もう一度タップで脱退",
- "alliance.stampsUnit": "ハンコ"
+ "alliance.stampsUnit": "ハンコ",
+ "incident.printer": "プリンターの紙詰まり",
+ "incident.copier": "コピー機のおばけ",
+ "incident.coffee": "こぼれたコーヒー",
+ "incident.queue": "もつれた魂の行列",
+ "incident.lights": "ちらつく照明",
+ "incident.hint": "あと{n}回タップで直る",
+ "incident.pop": "+{n} 魂"
 }

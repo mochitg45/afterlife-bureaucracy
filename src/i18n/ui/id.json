@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "Aliansi minggu ini: {n}",
  "alliance.leave": "Keluar dari aliansi",
  "alliance.leaveConfirm": "Ketuk lagi untuk keluar",
- "alliance.stampsUnit": "stempel"
+ "alliance.stampsUnit": "stempel",
+ "incident.printer": "Printer macet",
+ "incident.copier": "Hantu di mesin fotokopi",
+ "incident.coffee": "Kopi tumpah",
+ "incident.queue": "Antrean jiwa kusut",
+ "incident.lights": "Lampu berkedip",
+ "incident.hint": "Ketuk {n} kali lagi untuk memperbaiki",
+ "incident.pop": "+{n} jiwa"
 }

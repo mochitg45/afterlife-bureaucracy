@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "Alliances cette semaine : {n}",
  "alliance.leave": "Quitter l’alliance",
  "alliance.leaveConfirm": "Touchez encore pour quitter",
- "alliance.stampsUnit": "tampons"
+ "alliance.stampsUnit": "tampons",
+ "incident.printer": "Imprimante bloquée",
+ "incident.copier": "Fantôme à la photocopieuse",
+ "incident.coffee": "Café renversé",
+ "incident.queue": "File d'âmes emmêlée",
+ "incident.lights": "Lumières qui clignotent",
+ "incident.hint": "Touchez encore {n} fois pour réparer",
+ "incident.pop": "+{n} âmes"
 }

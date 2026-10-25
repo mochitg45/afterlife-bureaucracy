@@ -1,0 +1,22 @@
+/* Office Incidents: tappable props over the office scene. Percent-based like the living office. */
+.oi-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.oi-item { position: absolute; width: 17%; aspect-ratio: 1; padding: 0; border: 0; background: none; cursor: pointer;
+  pointer-events: auto; transform: translate(-50%, -50%); -webkit-tap-highlight-color: transparent;
+  animation: oiIn 380ms cubic-bezier(.3, 1.6, .5, 1) backwards; }
+.oi-prop { display: block; width: 100%; height: 100%; animation: oiWobble 1.6s ease-in-out infinite, oiTap 200ms ease-out; }
+.oi-prop svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .3)); }
+.oi-item:active .oi-prop { transform: scale(.92); }
+.oi-pips { position: absolute; left: 50%; bottom: -4%; transform: translateX(-50%); display: flex; gap: 3px; }
+.oi-pips i { width: 6px; height: 6px; border-radius: 50%; background: #fff; border: 1.5px solid #3b2f2f; }
+.oi-pips i.on { background: #4cc46a; }
+.oi-pop { position: absolute; transform: translate(-50%, -50%); font-weight: 800; font-size: 15px; color: #fff3b0;
+  text-shadow: 0 1px 0 #3b2f2f, 1px 0 0 #3b2f2f, -1px 0 0 #3b2f2f, 0 -1px 0 #3b2f2f; white-space: nowrap;
+  animation: oiPop 1.2s ease-out forwards; }
+@keyframes oiIn { from { transform: translate(-50%, -50%) scale(0); } to { transform: translate(-50%, -50%) scale(1); } }
+@keyframes oiWobble { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes oiTap { 0% { scale: 1.15; } 100% { scale: 1; } }
+@keyframes oiPop { 0% { opacity: 0; margin-top: 0; } 15% { opacity: 1; } 100% { opacity: 0; margin-top: -40px; } }
+@media (prefers-reduced-motion: reduce) {
+  .oi-item, .oi-prop, .oi-pop { animation: none; }
+  .oi-pop { margin-top: -20px; }
+}

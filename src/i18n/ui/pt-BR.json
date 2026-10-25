@@ -625,5 +625,12 @@
  "alliance.rankingTotal": "Alianças nesta semana: {n}",
  "alliance.leave": "Sair da aliança",
  "alliance.leaveConfirm": "Toque de novo para sair",
- "alliance.stampsUnit": "carimbos"
+ "alliance.stampsUnit": "carimbos",
+ "incident.printer": "Impressora emperrada",
+ "incident.copier": "Fantasma na copiadora",
+ "incident.coffee": "Café derramado",
+ "incident.queue": "Fila de almas embolada",
+ "incident.lights": "Luzes piscando",
+ "incident.hint": "Toque mais {n} vezes para consertar",
+ "incident.pop": "+{n} almas"
 }
