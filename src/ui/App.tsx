@@ -18,6 +18,7 @@ import { Intro } from './overlays/Intro';
 import { Training } from './overlays/Training';
 import { Tips } from './overlays/Tips';
 import { AchievementToast } from './components/AchievementToast';
+import { SetToast } from './components/SetToast';
 import { Visitor } from './components/Visitor';
 import { VisitorGift } from './overlays/VisitorGift';
 import { SettingsSheet } from './overlays/SettingsSheet';
@@ -140,6 +141,7 @@ export function App() {
               rows, so they wait while the event desk is open instead of covering it. */}
           {tab !== 'event' && <Tips tab={tab} />}
           <AchievementToast />
+          <SetToast />
           <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onGoToOdds={onGoToOdds} onSaveCode={onSaveCode} />
           <SaveCodeSheet open={saveCodeOpen} onClose={() => setSaveCodeOpen(false)} />
           {/* The opening cutscene is the one overlay allowed to be the first thing a new

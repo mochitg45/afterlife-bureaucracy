@@ -665,5 +665,20 @@
  "incident.queue": "Verhedderte Seelenschlange",
  "incident.lights": "Flackernde Lampen",
  "incident.hint": "Noch {n}x tippen zum Beheben",
- "incident.pop": "+{n} Seelen"
+ "incident.pop": "+{n} Seelen",
+ "set.tab": "Sets",
+ "set.intro": "Besitze jede Karte eines Sets für einen dauerhaften Büro-Bonus. Jede Sternstufe zählt.",
+ "set.missing": "Noch nicht eingestellt",
+ "set.active": "Aktiv",
+ "set.complete": "SET KOMPLETT",
+ "set.bonus.souls": "+{n} % Seelen",
+ "set.bonus.soulsDept": "+{n} % Seelen in {dept}",
+ "set.bonus.click": "+{n} % Klickkraft",
+ "set.bonus.offline": "+{n} % Offline-Einnahmen",
+ "set.name.front-desk": "Empfang",
+ "set.name.pearly-gates": "Perlentor",
+ "set.name.brimstone-crew": "Schwefelcrew",
+ "set.name.rebirth-desk": "Wiedergeburtsschalter",
+ "set.name.night-shift": "Nachtschicht",
+ "set.name.old-guard": "Alte Garde"
 }

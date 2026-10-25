@@ -665,5 +665,20 @@
  "incident.queue": "Fila de almas enredada",
  "incident.lights": "Luces parpadeantes",
  "incident.hint": "Toca {n} veces más para arreglarlo",
- "incident.pop": "+{n} almas"
+ "incident.pop": "+{n} almas",
+ "set.tab": "Sets",
+ "set.intro": "Reúne todas las cartas de un set para un bono permanente en la oficina. Cuenta cualquier nivel de estrellas.",
+ "set.missing": "Aún sin contratar",
+ "set.active": "Activo",
+ "set.complete": "¡SET COMPLETO!",
+ "set.bonus.souls": "+{n} % de almas",
+ "set.bonus.soulsDept": "+{n} % de almas en {dept}",
+ "set.bonus.click": "+{n} % de poder de clic",
+ "set.bonus.offline": "+{n} % de ganancias sin conexión",
+ "set.name.front-desk": "Recepción",
+ "set.name.pearly-gates": "Puertas del Cielo",
+ "set.name.brimstone-crew": "Cuadrilla de Azufre",
+ "set.name.rebirth-desk": "Ventanilla de Renacimiento",
+ "set.name.night-shift": "Turno de Noche",
+ "set.name.old-guard": "Vieja Guardia"
 }

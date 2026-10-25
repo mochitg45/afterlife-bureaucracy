@@ -665,5 +665,20 @@
  "incident.queue": "Fila de almas embolada",
  "incident.lights": "Luzes piscando",
  "incident.hint": "Toque mais {n} vezes para consertar",
- "incident.pop": "+{n} almas"
+ "incident.pop": "+{n} almas",
+ "set.tab": "Sets",
+ "set.intro": "Tenha todas as cartas de um set para um bônus permanente no escritório. Qualquer nível de estrelas conta.",
+ "set.missing": "Ainda não contratado",
+ "set.active": "Ativo",
+ "set.complete": "SET COMPLETO",
+ "set.bonus.souls": "+{n}% de almas",
+ "set.bonus.soulsDept": "+{n}% de almas em {dept}",
+ "set.bonus.click": "+{n}% de poder de clique",
+ "set.bonus.offline": "+{n}% de ganhos offline",
+ "set.name.front-desk": "Recepção",
+ "set.name.pearly-gates": "Portões do Céu",
+ "set.name.brimstone-crew": "Equipe do Enxofre",
+ "set.name.rebirth-desk": "Balcão da Reencarnação",
+ "set.name.night-shift": "Turno da Noite",
+ "set.name.old-guard": "Velha Guarda"
 }

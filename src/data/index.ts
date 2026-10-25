@@ -16,6 +16,7 @@ import achievements from './achievements.json';
 import story from './story.json';
 import clauses from './cosmic.json';
 import onboarding from './onboarding.json';
+import sets from './sets.json';
 
 /** Game-data text in the active language (English files are returned untouched). */
 const tr = <T,>(rel: string, json: T): T => {
@@ -34,5 +35,6 @@ export const content = loadContent(
     achievements: tr('achievements', achievements),
     story: tr('story', story),
     onboarding: tr('onboarding', onboarding),
+    sets,
   },
 );

@@ -665,5 +665,20 @@
  "incident.queue": "もつれた魂の行列",
  "incident.lights": "ちらつく照明",
  "incident.hint": "あと{n}回タップで直る",
- "incident.pop": "+{n} 魂"
+ "incident.pop": "+{n} 魂",
+ "set.tab": "セット",
+ "set.intro": "セットのカードを全てそろえると、オフィスに永続ボーナス。星の数は問いません。",
+ "set.missing": "未採用",
+ "set.active": "有効",
+ "set.complete": "セット完成！",
+ "set.bonus.souls": "魂 +{n}%",
+ "set.bonus.soulsDept": "{dept}の魂 +{n}%",
+ "set.bonus.click": "クリック力 +{n}%",
+ "set.bonus.offline": "オフライン収入 +{n}%",
+ "set.name.front-desk": "受付",
+ "set.name.pearly-gates": "天国の門",
+ "set.name.brimstone-crew": "硫黄クルー",
+ "set.name.rebirth-desk": "転生窓口",
+ "set.name.night-shift": "夜勤",
+ "set.name.old-guard": "古参組"
 }
