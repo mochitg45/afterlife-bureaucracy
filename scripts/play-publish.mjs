@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: "New: Office Alliance! Team up with up to 10 players, stamp together for weekly rewards and climb the alliance ranking. Pumpkat, a limited Halloween pet, joins for the Halloween event. The daily check-in now pops up when you open the game, Heaven opens much sooner, and new hires get a free Executive draw." },
+  { language: 'en-US', text: "New: Stamp Rush, a 40-second paperwork frenzy with combos for bonus souls. Office incidents (jammed printers, copier ghosts, coffee spills) to fix for quick bonuses. Collection sets: collect staff cards in themed sets for permanent bonuses. Event stamping now builds tap combos too." },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
