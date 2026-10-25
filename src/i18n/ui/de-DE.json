@@ -658,5 +658,12 @@
  "rush.souls": "Seelen",
  "rush.onTop": "Zusätzlich zu deinem Leerlaufeinkommen.",
  "rush.again": "Nochmal",
- "rush.breakNote": "Pause. Der nächste Rausch öffnet gleich."
+ "rush.breakNote": "Pause. Der nächste Rausch öffnet gleich.",
+ "incident.printer": "Papierstau im Drucker",
+ "incident.copier": "Geist am Kopierer",
+ "incident.coffee": "Verschütteter Kaffee",
+ "incident.queue": "Verhedderte Seelenschlange",
+ "incident.lights": "Flackernde Lampen",
+ "incident.hint": "Noch {n}x tippen zum Beheben",
+ "incident.pop": "+{n} Seelen"
 }

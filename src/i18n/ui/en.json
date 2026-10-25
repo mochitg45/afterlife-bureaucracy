@@ -658,5 +658,12 @@
  "rush.souls": "souls",
  "rush.onTop": "Paid on top of your idle income.",
  "rush.again": "Go again",
- "rush.breakNote": "Break time. The next rush opens in a bit."
+ "rush.breakNote": "Break time. The next rush opens in a bit.",
+ "incident.printer": "Jammed printer",
+ "incident.copier": "Ghost at the copier",
+ "incident.coffee": "Coffee spill",
+ "incident.queue": "Tangled queue of souls",
+ "incident.lights": "Flickering lights",
+ "incident.hint": "Tap {n} more to fix it",
+ "incident.pop": "+{n} souls"
 }

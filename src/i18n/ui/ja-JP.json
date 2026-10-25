@@ -658,5 +658,12 @@
  "rush.souls": "魂",
  "rush.onTop": "放置収入に上乗せされます。",
  "rush.again": "もう一度",
- "rush.breakNote": "休憩中。次のラッシュはまもなく。"
+ "rush.breakNote": "休憩中。次のラッシュはまもなく。",
+ "incident.printer": "プリンターの紙詰まり",
+ "incident.copier": "コピー機のおばけ",
+ "incident.coffee": "こぼれたコーヒー",
+ "incident.queue": "もつれた魂の行列",
+ "incident.lights": "ちらつく照明",
+ "incident.hint": "あと{n}回タップで直る",
+ "incident.pop": "+{n} 魂"
 }

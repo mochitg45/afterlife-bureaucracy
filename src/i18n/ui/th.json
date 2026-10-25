@@ -658,5 +658,12 @@
  "rush.souls": "วิญญาณ",
  "rush.onTop": "จ่ายเพิ่มจากรายได้แบบไม่ต้องเล่น",
  "rush.again": "เล่นอีก",
- "rush.breakNote": "พักก่อน รัชครั้งถัดไปจะเปิดเร็วๆ นี้"
+ "rush.breakNote": "พักก่อน รัชครั้งถัดไปจะเปิดเร็วๆ นี้",
+ "incident.printer": "เครื่องพิมพ์กระดาษติด",
+ "incident.copier": "ผีที่เครื่องถ่ายเอกสาร",
+ "incident.coffee": "กาแฟหก",
+ "incident.queue": "คิววิญญาณพันกัน",
+ "incident.lights": "ไฟกะพริบ",
+ "incident.hint": "แตะอีก {n} ครั้งเพื่อซ่อม",
+ "incident.pop": "+{n} วิญญาณ"
 }

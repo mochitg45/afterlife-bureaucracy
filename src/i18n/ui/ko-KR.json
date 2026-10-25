@@ -658,5 +658,12 @@
  "rush.souls": "영혼",
  "rush.onTop": "방치 수입에 더해 지급됩니다.",
  "rush.again": "한 번 더",
- "rush.breakNote": "휴식 시간. 다음 러시가 곧 열립니다."
+ "rush.breakNote": "휴식 시간. 다음 러시가 곧 열립니다.",
+ "incident.printer": "프린터 용지 걸림",
+ "incident.copier": "복사기 옆 유령",
+ "incident.coffee": "쏟아진 커피",
+ "incident.queue": "엉킨 영혼 대기줄",
+ "incident.lights": "깜빡이는 조명",
+ "incident.hint": "{n}번 더 탭하면 해결돼요",
+ "incident.pop": "+{n} 영혼"
 }

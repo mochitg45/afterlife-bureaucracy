@@ -658,5 +658,12 @@
  "rush.souls": "âmes",
  "rush.onTop": "S’ajoute à vos revenus passifs.",
  "rush.again": "Rejouer",
- "rush.breakNote": "Pause. La prochaine ruée ouvre bientôt."
+ "rush.breakNote": "Pause. La prochaine ruée ouvre bientôt.",
+ "incident.printer": "Imprimante bloquée",
+ "incident.copier": "Fantôme à la photocopieuse",
+ "incident.coffee": "Café renversé",
+ "incident.queue": "File d'âmes emmêlée",
+ "incident.lights": "Lumières qui clignotent",
+ "incident.hint": "Touchez encore {n} fois pour réparer",
+ "incident.pop": "+{n} âmes"
 }

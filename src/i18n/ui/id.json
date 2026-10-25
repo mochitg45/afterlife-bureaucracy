@@ -658,5 +658,12 @@
  "rush.souls": "jiwa",
  "rush.onTop": "Dibayar di atas penghasilan pasifmu.",
  "rush.again": "Main lagi",
- "rush.breakNote": "Waktunya istirahat. Kilat berikutnya segera buka."
+ "rush.breakNote": "Waktunya istirahat. Kilat berikutnya segera buka.",
+ "incident.printer": "Printer macet",
+ "incident.copier": "Hantu di mesin fotokopi",
+ "incident.coffee": "Kopi tumpah",
+ "incident.queue": "Antrean jiwa kusut",
+ "incident.lights": "Lampu berkedip",
+ "incident.hint": "Ketuk {n} kali lagi untuk memperbaiki",
+ "incident.pop": "+{n} jiwa"
 }

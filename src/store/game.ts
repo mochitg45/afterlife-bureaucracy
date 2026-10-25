@@ -44,6 +44,7 @@ import { pickEventRanking, type EventRanking, type Standing } from '../platform/
 import { pickLifetimeBoard, type LifetimeBoard, type BoardView } from '../platform/lifetimeBoard';
 import { pickAlliance, type AllianceService, type AllianceView, type JoinOutcome } from '../platform/alliance';
 import { allianceWeek, claimAllianceTier as claimAllianceTierEngine, normalizeAllianceCode } from '../engine/alliance';
+import { nextSpawnDelay, canSpawn, makeIncident, incidentReward, incidentFactor, IGNORE_GRACE_MS, type Incident } from '../engine/incidents';
 import { content as defaultContent } from '../data';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -354,6 +355,10 @@ export interface GameStore {
   save(): Promise<void>;
   stopLoop(): void;
   rotateQueue(): void;
+  /** Active Office Incidents (memory only). */
+  incidents: Incident[];
+  /** One tap on an incident; the last one fixes it and pays. Null for an unknown id. */
+  tapIncident(id: number): { done: boolean; souls: Decimal } | null;
   rotateMemo(): void;
   audit(): void;
   dismissAudit(): void;
@@ -517,6 +522,9 @@ export function createGameStore(deps: StoreDeps) {
   let saveTimer: ReturnType<typeof setInterval> | null = null;
   let lastMono = 0;
   let fires = 0;
+  // Office Incidents (src/engine/incidents.ts): memory only, never saved.
+  let incidentNext = 0;
+  let incidentSeq = 0;
   let autosaves = 0;
   /** The cloud operation in flight, so a second one joins it or queues behind it. */
   let cloudOp: Promise<CloudSyncResult> | null = null;
@@ -847,16 +855,40 @@ export function createGameStore(deps: StoreDeps) {
     const moodAfterGap = (pendingOffline: PendingOffline | null, elapsedSec: number): GameStore['mood'] =>
       (pendingOffline?.capped || elapsedSec >= COOKED_THRESHOLD_SEC) ? 'cooked' : 'ok';
 
+    /** Spawns the next incident when due and reports ones ignored past the grace period. */
+    const runIncidents = (now: number) => {
+      const cur = get().incidents;
+      let next = cur;
+      if (now >= incidentNext) {
+        incidentNext = now + nextSpawnDelay();
+        if (canSpawn(cur.length, get().state.onboarding.trainingStep)) {
+          const inc = makeIncident(++incidentSeq, now, cur);
+          next = [...cur, inc];
+          track('incident_spawn', { kind: inc.kind });
+        }
+      }
+      if (next.some((i) => !i.ignoredSent && now - i.spawnedMono >= IGNORE_GRACE_MS)) {
+        next = next.map((i) => {
+          if (i.ignoredSent || now - i.spawnedMono < IGNORE_GRACE_MS) return i;
+          track('incident_ignored', { kind: i.kind });
+          return { ...i, ignoredSent: true };
+        });
+      }
+      if (next !== cur) set({ incidents: next });
+    };
+
     const startTimers = () => {
       get().stopLoop();
       lastMono = clock.mono();
       fires = 0;
       autosaves = 0;
+      incidentNext = lastMono + nextSpawnDelay();
       tickTimer = setInterval(() => {
         const now = clock.mono();
         const dt = Math.min((now - lastMono) / 1000, maxTickSec);
         lastMono = now;
-        const r = tickWithRates(get().state, content, dt, clock.wall(), forceEvent);
+        runIncidents(now);
+        const r = tickWithRates(get().state, content, dt, clock.wall(), forceEvent, incidentFactor(get().incidents, now));
         fires++;
         if (fires % SETTLE_EVERY_FIRES === 0) {
           apply(r.state);
@@ -1111,6 +1143,7 @@ export function createGameStore(deps: StoreDeps) {
       audio,
       pendingOffline: null,
       queueLine: '',
+      incidents: [],
       memoLine: '',
       lastAudit: null,
       pendingPull: null,
@@ -1540,6 +1573,21 @@ export function createGameStore(deps: StoreDeps) {
         if (saveTimer) clearInterval(saveTimer);
         tickTimer = null;
         saveTimer = null;
+      },
+      tapIncident(id) {
+        const inc = get().incidents.find((i) => i.id === id);
+        if (!inc) return null;
+        if (inc.taps + 1 < inc.need) {
+          set({ incidents: get().incidents.map((i) => (i.id === id ? { ...i, taps: i.taps + 1 } : i)) });
+          return { done: false, souls: new Decimal(0) };
+        }
+        const s = get().state;
+        // Paid at the unpenalized rate; souls and KC only, never vouchers, seals or event points.
+        const rates = computeRates(s, content, clock.wall());
+        const pay = incidentReward(rates.soulsPerSec, rates.kcPerSec, s.soulsLifetime);
+        apply(unlockDepartments(addSouls(s, pay.souls, pay.kc), content), { incidents: get().incidents.filter((i) => i.id !== id) });
+        track('incident_fixed', { kind: inc.kind, age_s: Math.round((clock.mono() - inc.spawnedMono) / 1000) });
+        return { done: true, souls: pay.souls };
       },
       rotateQueue() {
         const dept = findDepartment(content, get().state.activeDept);

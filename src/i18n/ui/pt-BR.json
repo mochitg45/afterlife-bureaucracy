@@ -658,5 +658,12 @@
  "rush.souls": "almas",
  "rush.onTop": "Pago além da sua renda passiva.",
  "rush.again": "De novo",
- "rush.breakNote": "Hora do descanso. A próxima corrida abre já."
+ "rush.breakNote": "Hora do descanso. A próxima corrida abre já.",
+ "incident.printer": "Impressora emperrada",
+ "incident.copier": "Fantasma na copiadora",
+ "incident.coffee": "Café derramado",
+ "incident.queue": "Fila de almas embolada",
+ "incident.lights": "Luzes piscando",
+ "incident.hint": "Toque mais {n} vezes para consertar",
+ "incident.pop": "+{n} almas"
 }
