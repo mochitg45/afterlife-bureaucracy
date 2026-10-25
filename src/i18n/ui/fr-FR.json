@@ -596,7 +596,7 @@
  "milestone.collect": "Récupérer",
  "whatsnew.title": "Nouveautés de la v{version}",
  "whatsnew.ok": "Compris",
- "whatsnew.notes": "🤝 Alliance de bureau : faites équipe avec jusqu'à 10 joueurs, tamponnez ensemble pour des récompenses hebdomadaires et grimpez au classement.\n🎃 Pumpkat, un familier d'Halloween limité : +15 % d'âmes et monnaie d'événement x2. Uniquement pendant l'événement d'Halloween !\n📅 Le pointage quotidien s'affiche maintenant à l'ouverture du jeu.\n⚡ Les Admissions au Paradis ouvrent bien plus tôt, et les nouvelles recrues reçoivent un tirage Cadre gratuit.",
+ "whatsnew.notes": "⚡ Rush de tampons : 40 secondes de frénésie administrative. Approuvez, refusez et classez vite pour enchaîner un combo et gagner des âmes bonus.\n🖨️ Incidents de bureau : imprimantes bloquées, fantômes à la photocopieuse et café renversé. Réglez-les pour un bonus rapide avant qu'ils ne ralentissent le bureau.\n📚 Collections : réunissez les cartes du personnel en sets thématiques pour des bonus permanents. Voir le nouvel onglet Sets dans Personnel.\n🔥 Tamponner pendant les événements enchaîne aussi des combos.",
  "alliance.title": "Alliance de bureau",
  "alliance.offline": "Les alliances ont besoin d’une connexion internet.",
  "alliance.loading": "Appel au bureau des alliances...",

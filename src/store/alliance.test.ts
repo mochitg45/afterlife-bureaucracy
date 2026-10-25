@@ -50,10 +50,11 @@ describe('Office Alliance in the store', () => {
     store.getState().stamp();
     await vi.waitFor(() => expect(alliance.contributed).toEqual([6]));
     expect(store.getState().allianceInfo.view?.stamps).toBe(106);
-    store.getState().eventStamp(); // no event running: nothing counted
+    // An event stamp counts only while an event runs; the test runs on the real date.
+    store.getState().eventStamp();
     store.getState().stamp();
     await store.getState().pause();
-    await vi.waitFor(() => expect(alliance.contributed).toEqual([6, 1]));
+    await vi.waitFor(() => expect(alliance.contributed).toEqual([6, store.getState().activeEvent() ? 2 : 1]));
   });
 
   it('pays a reached tier once this week', async () => {
