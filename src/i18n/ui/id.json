@@ -625,5 +625,20 @@
  "alliance.rankingTotal": "Aliansi minggu ini: {n}",
  "alliance.leave": "Keluar dari aliansi",
  "alliance.leaveConfirm": "Ketuk lagi untuk keluar",
- "alliance.stampsUnit": "stempel"
+ "alliance.stampsUnit": "stempel",
+ "set.tab": "Set",
+ "set.intro": "Miliki semua kartu dalam satu set untuk bonus kantor permanen. Bintang berapa pun dihitung.",
+ "set.missing": "Belum direkrut",
+ "set.active": "Aktif",
+ "set.complete": "SET LENGKAP",
+ "set.bonus.souls": "+{n}% jiwa",
+ "set.bonus.soulsDept": "+{n}% jiwa di {dept}",
+ "set.bonus.click": "+{n}% kekuatan klik",
+ "set.bonus.offline": "+{n}% penghasilan offline",
+ "set.name.front-desk": "Meja Depan",
+ "set.name.pearly-gates": "Gerbang Surga",
+ "set.name.brimstone-crew": "Kru Belerang",
+ "set.name.rebirth-desk": "Loket Reinkarnasi",
+ "set.name.night-shift": "Shift Malam",
+ "set.name.old-guard": "Garda Lama"
 }

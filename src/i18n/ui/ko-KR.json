@@ -625,5 +625,20 @@
  "alliance.rankingTotal": "이번 주 동맹 수: {n}",
  "alliance.leave": "동맹 탈퇴",
  "alliance.leaveConfirm": "한 번 더 누르면 탈퇴",
- "alliance.stampsUnit": "도장"
+ "alliance.stampsUnit": "도장",
+ "set.tab": "세트",
+ "set.intro": "세트의 카드를 모두 모으면 영구 사무실 보너스를 받아요. 별 등급은 상관없어요.",
+ "set.missing": "아직 미채용",
+ "set.active": "적용 중",
+ "set.complete": "세트 완성!",
+ "set.bonus.souls": "영혼 +{n}%",
+ "set.bonus.soulsDept": "{dept} 영혼 +{n}%",
+ "set.bonus.click": "클릭 파워 +{n}%",
+ "set.bonus.offline": "오프라인 수익 +{n}%",
+ "set.name.front-desk": "안내 데스크",
+ "set.name.pearly-gates": "천국의 문",
+ "set.name.brimstone-crew": "유황 팀",
+ "set.name.rebirth-desk": "환생 창구",
+ "set.name.night-shift": "야간 근무",
+ "set.name.old-guard": "올드 가드"
 }

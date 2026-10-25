@@ -106,6 +106,13 @@ const cardSchema = z.object({
   event: z.string().min(1).optional(),
 });
 
+const setSchema = z.object({
+  id: z.string().min(1),
+  cards: z.array(z.string().min(1)).min(3).max(6),
+  /** Office-only: never touches event currency, event scores, vouchers or seals. */
+  bonus: z.object({ type: z.enum(['souls', 'click', 'offline']), dept: z.string().min(1).optional(), value: z.number().positive().max(0.1) }),
+});
+
 const mmdd = z.string().regex(/^\d{2}-\d{2}$/);
 
 const eventRewardSchema = z.discriminatedUnion('type', [
@@ -269,6 +276,7 @@ export type ClauseEffect = z.infer<typeof clauseEffectSchema>;
 export type ClauseDef = z.infer<typeof clauseSchema>;
 export type CardEffect = z.infer<typeof cardEffectSchema>;
 export type CardDef = z.infer<typeof cardSchema>;
+export type SetDef = z.infer<typeof setSchema>;
 export type Rarity = CardDef['rarity'];
 export type EventTier = z.infer<typeof eventTierSchema>;
 export type EventReward = z.infer<typeof eventRewardSchema>;
@@ -296,6 +304,7 @@ export interface Content {
   story: StoryDef[];
   onboarding: OnboardingContent;
   events: EventsContent;
+  sets: SetDef[];
 }
 export interface ContentExtras {
   events?: unknown;
@@ -305,6 +314,7 @@ export interface ContentExtras {
   achievements?: unknown[];
   story?: unknown[];
   onboarding?: unknown;
+  sets?: unknown[];
 }
 
 /** Daily kinds every player can make progress on from the first minute, whatever they own. */
@@ -433,7 +443,20 @@ export function loadContent(rawDepartments: unknown[], rawPerks: unknown[] = [],
   assertUnique(onboarding.training.map((t) => String(t.step)), 'training step');
   assertUnique(onboarding.tips.map((t) => t.id), 'tip');
 
-  return { departments, perks, clauses, cards, dailies, achievements, story, onboarding, events };
+  const sets = (extras.sets ?? []).map((r) => setSchema.parse(r));
+  assertUnique(sets.map((s) => s.id), 'set');
+  const inSet = new Set<string>();
+  for (const s of sets) {
+    if (s.bonus.dept && !deptIds.has(s.bonus.dept)) throw new Error(`Unknown department ${s.bonus.dept} on set ${s.id}`);
+    for (const id of s.cards) {
+      const card = cards.find((c) => c.id === id);
+      if (!card) throw new Error(`Unknown card ${id} in set ${s.id}`);
+      if (card.event) throw new Error(`Event card ${id} cannot be in set ${s.id}`);
+      if (inSet.has(id)) throw new Error(`Card ${id} is in more than one set`);
+      inSet.add(id);
+    }
+  }
+  return { departments, perks, clauses, cards, dailies, achievements, story, onboarding, events, sets };
 }
 
 export function findCard(content: Content, cardId: string): CardDef {

@@ -9,6 +9,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
 import { CardSheet } from '../overlays/CardSheet';
 import { PremiumPanel } from '../components/PremiumPanel';
+import { SetsPanel } from '../components/SetsPanel';
 import { VoucherIcon } from '../icons/Currency';
 import { t } from '../../i18n';
 
@@ -74,7 +75,7 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   const pull = useGame((s) => s.pull);
   const unequip = useGame((s) => s.unequip);
   const [sheetCardId, setSheetCardId] = useState<string | null>(null);
-  const [tab, setTab] = useState<'cards' | 'premium'>('cards');
+  const [tab, setTab] = useState<'cards' | 'sets' | 'premium'>('cards');
   const oddsRef = useRef<HTMLDivElement>(null);
 
   const slots = equipSlots({ perks }, content);
@@ -115,10 +116,11 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
 
       <div className="personnel-tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'cards'} className={'personnel-tab' + (tab === 'cards' ? ' active' : '')} onClick={() => setTab('cards')}>{t('premium.tabCards')}</button>
+        <button role="tab" aria-selected={tab === 'sets'} className={'personnel-tab' + (tab === 'sets' ? ' active' : '')} onClick={() => setTab('sets')}>{t('set.tab')}</button>
         <button role="tab" aria-selected={tab === 'premium'} className={'personnel-tab premium' + (tab === 'premium' ? ' active' : '')} onClick={() => setTab('premium')}>★ {t('premium.tab')}</button>
       </div>
 
-      {tab === 'premium' ? <PremiumPanel /> : <>
+      {tab === 'premium' ? <PremiumPanel /> : tab === 'sets' ? <SetsPanel /> : <>
       <div className="section-head"><h3>{t('personnel.equipped')}</h3></div>
       <div className="tile-grid" data-coach="equipped">
         {Array.from({ length: slots }, (_, i) => equipped[i]).map((cardId, i) =>

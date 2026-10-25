@@ -1,0 +1,8 @@
+[
+  { "id": "front-desk", "cards": ["c-dave-overtime", "c-seraphine-chipper", "c-gary-break", "c-temp-stapler", "c-temp-voucher", "c-dave-cooked"], "bonus": { "type": "souls", "value": 0.03 } },
+  { "id": "pearly-gates", "cards": ["c-cherub-choir", "c-petra-keys", "c-harpist-hold", "c-bev-wings", "c-seraph-board"], "bonus": { "type": "souls", "dept": "heaven", "value": 0.05 } },
+  { "id": "brimstone-crew", "cards": ["c-imp-qa", "c-malphas-forks", "c-lilith-culture", "c-grax-fire", "c-duke-vassago"], "bonus": { "type": "souls", "dept": "hell", "value": 0.05 } },
+  { "id": "rebirth-desk", "cards": ["c-clerk-karma", "c-pemberton", "c-nadia-odds", "c-wheel-tech", "c-bodhisattva"], "bonus": { "type": "click", "value": 0.04 } },
+  { "id": "night-shift", "cards": ["c-archivist-dust", "c-temp-night", "c-ferro", "c-forgot", "c-obroin", "c-keeper"], "bonus": { "type": "offline", "value": 0.05 } },
+  { "id": "old-guard", "cards": ["c-auditor-fruit", "c-grandma-liu", "c-auditor-true"], "bonus": { "type": "click", "value": 0.03 } }
+]

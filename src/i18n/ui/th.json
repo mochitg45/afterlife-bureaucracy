@@ -625,5 +625,20 @@
  "alliance.rankingTotal": "พันธมิตรสัปดาห์นี้: {n}",
  "alliance.leave": "ออกจากพันธมิตร",
  "alliance.leaveConfirm": "แตะอีกครั้งเพื่อออก",
- "alliance.stampsUnit": "ตราประทับ"
+ "alliance.stampsUnit": "ตราประทับ",
+ "set.tab": "เซ็ต",
+ "set.intro": "สะสมการ์ดครบทั้งเซ็ตเพื่อรับโบนัสออฟฟิศถาวร ดาวกี่ระดับก็นับ",
+ "set.missing": "ยังไม่ได้จ้าง",
+ "set.active": "ใช้งานอยู่",
+ "set.complete": "เซ็ตครบแล้ว!",
+ "set.bonus.souls": "วิญญาณ +{n}%",
+ "set.bonus.soulsDept": "วิญญาณใน {dept} +{n}%",
+ "set.bonus.click": "พลังคลิก +{n}%",
+ "set.bonus.offline": "รายได้ออฟไลน์ +{n}%",
+ "set.name.front-desk": "แผนกต้อนรับ",
+ "set.name.pearly-gates": "ประตูสวรรค์",
+ "set.name.brimstone-crew": "ทีมกำมะถัน",
+ "set.name.rebirth-desk": "เคาน์เตอร์เกิดใหม่",
+ "set.name.night-shift": "กะดึก",
+ "set.name.old-guard": "ทีมเก๋า"
 }

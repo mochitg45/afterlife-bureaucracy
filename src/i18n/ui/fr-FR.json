@@ -625,5 +625,20 @@
  "alliance.rankingTotal": "Alliances cette semaine : {n}",
  "alliance.leave": "Quitter l’alliance",
  "alliance.leaveConfirm": "Touchez encore pour quitter",
- "alliance.stampsUnit": "tampons"
+ "alliance.stampsUnit": "tampons",
+ "set.tab": "Sets",
+ "set.intro": "Possédez toutes les cartes d'un set pour un bonus permanent au bureau. Tous les niveaux d'étoiles comptent.",
+ "set.missing": "Pas encore recruté",
+ "set.active": "Actif",
+ "set.complete": "SET COMPLET",
+ "set.bonus.souls": "+{n} % d'âmes",
+ "set.bonus.soulsDept": "+{n} % d'âmes en {dept}",
+ "set.bonus.click": "+{n} % de puissance de clic",
+ "set.bonus.offline": "+{n} % de gains hors ligne",
+ "set.name.front-desk": "Accueil",
+ "set.name.pearly-gates": "Portes du Paradis",
+ "set.name.brimstone-crew": "Équipe Soufre",
+ "set.name.rebirth-desk": "Guichet Réincarnation",
+ "set.name.night-shift": "Équipe de Nuit",
+ "set.name.old-guard": "Vieille Garde"
 }

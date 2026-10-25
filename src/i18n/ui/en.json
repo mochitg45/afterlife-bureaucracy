@@ -625,5 +625,20 @@
  "alliance.rankingTotal": "Alliances this week: {n}",
  "alliance.leave": "Leave alliance",
  "alliance.leaveConfirm": "Tap again to leave",
- "alliance.stampsUnit": "stamps"
+ "alliance.stampsUnit": "stamps",
+ "set.tab": "Sets",
+ "set.intro": "Own every card in a set for a permanent office bonus. Any star level counts.",
+ "set.missing": "Not yet hired",
+ "set.active": "Active",
+ "set.complete": "SET COMPLETE",
+ "set.bonus.souls": "+{n}% souls",
+ "set.bonus.soulsDept": "+{n}% souls in {dept}",
+ "set.bonus.click": "+{n}% click power",
+ "set.bonus.offline": "+{n}% offline earnings",
+ "set.name.front-desk": "Front Desk",
+ "set.name.pearly-gates": "Pearly Gates",
+ "set.name.brimstone-crew": "Brimstone Crew",
+ "set.name.rebirth-desk": "Rebirth Desk",
+ "set.name.night-shift": "Night Shift",
+ "set.name.old-guard": "Old Guard"
 }

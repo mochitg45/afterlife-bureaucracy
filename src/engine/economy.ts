@@ -7,6 +7,7 @@ import { achievementMult } from './achievements';
 import { clauseGlobalMult } from './cosmic';
 import { unionGlobalMult } from './entitlements';
 import { premiumGlobalMult } from './premium';
+import { setBonusMult } from './sets';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -104,7 +105,7 @@ export function deptMult(state: GameState, content: Content, dept: DepartmentDef
       mult = mult.mul(Decimal.pow(1 + u.effect.value, upgradeLevel(state, u.id)));
     }
   }
-  return mult.mul(perkDeptMult(state, content, dept.id)).mul(cardDeptMult(state, content, dept.id));
+  return mult.mul(perkDeptMult(state, content, dept.id)).mul(cardDeptMult(state, content, dept.id)).mul(setBonusMult(state, content, 'souls', dept.id));
 }
 
 export function globalMult(state: GameState, content: Content, nowWall: number): Decimal {
@@ -145,6 +146,6 @@ export function computeRates(state: GameState, content: Content, nowWall: number
       souls = souls.add(out);
     }
   }
-  const clickPower = new Decimal(1 + staplerLevel(state, content)).add(souls.mul(CLICK_PASSIVE_FRACTION)).mul(1 + cardClickMult(state, content));
+  const clickPower = new Decimal(1 + staplerLevel(state, content)).add(souls.mul(CLICK_PASSIVE_FRACTION)).mul(1 + cardClickMult(state, content)).mul(setBonusMult(state, content, 'click'));
   return { soulsPerSec: souls, kcPerSec: souls.mul(PASSIVE_KC_FRACTION), clickPower, byStaff };
 }

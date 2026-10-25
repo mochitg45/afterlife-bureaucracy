@@ -7,6 +7,7 @@ import { perkSum } from './perks';
 import { cardOfflineCapHours } from './gacha';
 import { clauseOfflineCapHours } from './cosmic';
 import { offlineEarningsMult } from './entitlements';
+import { setBonusMult } from './sets';
 import { activeEvent, eventOccurrences, eventRate } from './events';
 
 export const BASE_OFFLINE_CAP_HOURS = 4;
@@ -84,7 +85,7 @@ export function applyOffline(state: GameState, content: Content, elapsedSec: num
   const creditedSec = Math.min(elapsedSec, cap);
   const rates = computeRates(state, content, nowWall);
   // Remove-Ads pays double on the Backlog Report; the cap and the half rate are unchanged.
-  const souls = rates.soulsPerSec.mul(creditedSec).mul(offlineRateFraction(state, content)).mul(offlineEarningsMult(state));
+  const souls = rates.soulsPerSec.mul(creditedSec).mul(offlineRateFraction(state, content)).mul(offlineEarningsMult(state)).mul(setBonusMult(state, content, 'offline'));
   const kc = souls.mul(PASSIVE_KC_FRACTION);
   const earned = addSouls(state, souls, kc);
   const { state: next, points } = applyOfflineEvent(earned, content, elapsedSec, creditedSec, nowWall, forceEvent);
