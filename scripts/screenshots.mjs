@@ -1,43 +1,38 @@
 /**
- * Store listing screenshots: builds the web bundle, serves it, seeds a save into localStorage
- * and photographs each scene for three listing sizes — Play Store (1080×1920) into
- * `docs/store/screenshots/`, iPhone 6.9" (1320×2868) into `docs/store/screenshots/ios-6.9/`,
- * and iPad 13" (2064×2752) into `docs/store/screenshots/ios-ipad-13/`. See `PLATFORMS` below.
+ * Apple store listing screenshots: serves the app with the Vite dev server (so scenes can reach the
+ * store via `import('/src/store/game.ts')`), seeds a save into localStorage and photographs each
+ * scene for iPhone 6.9" (1320x2868) into `docs/store/screenshots/ios-6.9/`, iPad 13" (2064x2752)
+ * into `docs/store/screenshots/ios-ipad-13/`, then cover-crops the iPhone set to 1206x2622 into
+ * `docs/store/screenshots/ios-6.3/`. The older Play Store set directly in `docs/store/screenshots/`
+ * is left alone.
  *
- * The server is started and stopped by this script — nothing is left listening. Run with
- * `npm run screenshots`; Chromium comes from `npx playwright install chromium`.
- *
- * These are placeholders in the sense that the art is not final, but they are real frames of
- * the real app: everything on them comes from the engine rendering a seeded save.
+ * The server is started and stopped by this script. Run with `npm run screenshots`; Chromium
+ * comes from `npx playwright install chromium`. Everything on the frames is the real app
+ * rendering a seeded save.
  */
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { build, preview } from 'vite';
+import { createServer } from 'vite';
 import { chromium } from 'playwright';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const storeDir = path.join(root, 'docs', 'store', 'screenshots');
+const ios63Dir = path.join(storeDir, 'ios-6.3');
 const rawRoot = path.join(tmpdir(), 'afterlife-shots-raw');
 const fontFile = path.join(root, 'node_modules/@fontsource/special-elite/files/special-elite-latin-400-normal.woff2');
 const PORT = 4317;
 
 /**
- * Three listing image sets from the same scenes: Play Store, and the two Apple sizes (iPhone
- * 6.9" and iPad 13") so this run covers both stores at once. Each captures its own raw shot at
- * a viewport matching that device's aspect ratio — stretching the Android phone shot over the
- * taller iPhone canvas would visibly distort it — and composes into its own canvas size.
- * `frame` picks the bezel style in compose(): 'phone' draws a notch, 'tablet' does not.
+ * The two Apple device sets. Each captures its own raw shot at a viewport matching that device's
+ * aspect ratio and composes into its own canvas size. `frame` picks the bezel style in compose():
+ * 'phone' draws a notch, 'tablet' does not. The 6.3" iPhone set is cropped from the 6.9" one.
  */
 const PLATFORMS = [
-  { id: 'android', outDir: storeDir, width: 1080, height: 1920, raw: { width: 400, height: 890, dsf: 2 }, frame: 'phone' },
   { id: 'ios-6.9', outDir: path.join(storeDir, 'ios-6.9'), width: 1320, height: 2868, raw: { width: 430, height: 932, dsf: 3 }, frame: 'phone' },
   { id: 'ios-ipad-13', outDir: path.join(storeDir, 'ios-ipad-13'), width: 2064, height: 2752, raw: { width: 768, height: 1024, dsf: 2 }, frame: 'tablet' },
 ];
-
-/** TODO: set false once the skill-tree Ledger redesign lands, then re-shoot. The old list-style ledger shot must not ship. */
-const SKIP_LEDGER = false;
 
 /** Must match `src/platform/storage.ts`; the web build persists the save under this key. */
 const SAVE_KEY = 'afterlife.save.v1';
@@ -52,7 +47,7 @@ function dayKey(ms) {
 const json = async (rel) => JSON.parse(await readFile(path.join(root, rel), 'utf8'));
 
 /**
- * A save deep enough that every tab has something to show: four departments open, a shelf of
+ * A save deep enough that every tab has something to show: every department open, a shelf of
  * cards, perks bought, an Audit worth filing, dailies half-done.
  *
  * `deserialize` filters unknown ids, so every id here is read back out of `src/data` rather
@@ -74,9 +69,15 @@ async function seedSave(now) {
     seals: 34,
     vouchers: 12,
     voucherFraction: 0.35,
-    staff: { dave: 118, seraphine: 96, gary: 71, auditor: 44, 'h-cherub': 84, 'h-gatekeeper': 52, 'h-harpist': 30, 'h-archangel': 12, 'h-seraph': 3, 'd-imp': 90, 'd-steward': 58, 'd-hr': 33, 'd-foreman': 14, 'd-duke': 4 },
+    staff: {
+      dave: 118, seraphine: 96, gary: 71, auditor: 44,
+      'h-cherub': 84, 'h-gatekeeper': 52, 'h-harpist': 30, 'h-archangel': 12, 'h-seraph': 3,
+      'd-imp': 90, 'd-steward': 58, 'd-hr': 33, 'd-foreman': 14, 'd-duke': 4,
+      'l-archivist': 40, 'l-lost-found': 22, 'l-forgotten': 9,
+      'r-accountant': 36, 'r-placement': 18, 'r-actuary': 7,
+    },
     upgrades: { 'faster-stapler': 8, 'ergonomic-chairs': 4, 'night-shift': 2, 'overtime-pay': 1 },
-    deptsUnlocked: ['intake', 'limbo', 'heaven', 'hell'],
+    deptsUnlocked: ['intake', 'limbo', 'heaven', 'hell', 'reincarnation'],
     activeDept: 'intake',
     fiscalYear: 4,
     boostUntilWall: 0,
@@ -116,6 +117,7 @@ async function seedSave(now) {
     processId: 'screenshot',
     // Intro, training and every first-time tip are marked done: none of them belongs on a store frame.
     onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: (await json('src/data/onboarding.json')).tips.map((t) => t.id) },
+    login: { day: 3, lastDate: today },
     event: null,
   };
 }
@@ -131,41 +133,101 @@ const STILL_CSS = `
    * that parks itself over the memo ticker. It is real UI, just not what any of these frames
    * is about, and which badge wins the race varies run to run.
    */
-  .toast, .coach-overlay { display: none !important; }
+  .toast, .coach-overlay, .checkin-pop, .offer, .milestone { display: none !important; }
   /* The composed frame draws a notch over the top ~48px: keep headings and event headers clear of it. */
   * { scroll-margin-top: 56px; }
   .event-screen { padding-top: 48px !important; }
+  /* A real iPhone reports a top safe-area inset; the browser does not, so give the app the notch's room. */
+  .app { box-sizing: border-box; padding-top: 44px; }
+  .rush { padding-top: 52px !important; }
+  .rush-pile { justify-content: center !important; }
 `;
 
 /**
  * The queue line is picked with `Math.random()` (see `pick()` in src/store/game.ts), so which
  * soul — and whether it is a pet — shows on the "Now serving" card varies run to run. Pinning
- * `Math.random` to a constant makes `pick` deterministic; 0.88 was picked by checking the three
- * department queues these shots use (see src/data/departments/{intake,heaven,hell}.json) and
- * happens to land on a pet line in all three, so the office shots always show a pet face without
- * hand-picking an index per department. Nothing else on these screens reads `Math.random`
- * except inaudible noise generation in src/platform/audio.ts and a stamp-tap float's x-jitter,
- * which these shots never trigger.
+ * `Math.random` to a constant makes `pick` deterministic. Stamp Rush also reads it for the form
+ * kinds, so that scene restores the real one first (see `playRush`).
  */
 const PIN_RANDOM = () => { window.Math.random = () => 0.88; };
 
-async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor, stopAtTitle, drawTen, scrollInto, clock, openEvent, eventTab, clickTestId }) {
+/** Reach the live store (same module instance the app uses) from the page; dev server only. */
+const storeCall = (page, fn, arg) =>
+  page.evaluate(async ({ src, arg: a }) => {
+    const { useGame } = await import('/src/store/game.ts');
+    // eslint-disable-next-line no-new-func
+    return new Function('useGame', 'arg', `return (${src})(useGame, arg)`)(useGame, a);
+  }, { src: fn.toString(), arg });
+
+/** Two office incidents on the floor, one already half-fixed (memory-only state in the store). */
+const injectIncidents = (page) =>
+  storeCall(page, (useGame) => {
+    const t0 = performance.now();
+    useGame.setState({
+      incidents: [
+        { id: 9001, kind: 'printer', x: 64, y: 14, spawnedMono: t0, taps: 2, need: 4 },
+        { id: 9002, kind: 'coffee', x: 18, y: 40, spawnedMono: t0, taps: 0, need: 3 },
+      ],
+    });
+  });
+
+/**
+ * Plays Stamp Rush for real: opens the office card, starts the round and clears forms the way a
+ * player would (tap, hold red ones, swipe gold ones) until a combo is on the meter, then stops
+ * mid-round with forms still on the pile.
+ */
+async function playRush(page) {
+  await page.evaluate(() => { window.Math.random = () => 0.6; }); // a mix of normal, red and gold forms
+  await page.locator('.rush-entry .btn').click();
+  await page.locator('.rush-go').click();
+  await page.waitForSelector('.rush-doc', { timeout: 5000 });
+  let done = 0;
+  for (let i = 0; i < 80 && done < 11; i++) {
+    const doc = page.locator('.rush-doc').first();
+    const box = await doc.boundingBox().catch(() => null);
+    if (!box) { await page.waitForTimeout(80); continue; }
+    const kind = await doc.getAttribute('class').catch(() => '');
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    try {
+      if (kind.includes('flag')) {
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.waitForTimeout(470);
+        await page.mouse.up();
+      } else if (kind.includes('special')) {
+        await page.mouse.move(x - 40, y);
+        await page.mouse.down();
+        await page.mouse.move(x + 90, y, { steps: 6 });
+        await page.mouse.up();
+      } else {
+        await page.mouse.click(x, y);
+      }
+      done++;
+    } catch { /* the form expired under the pointer: next one */ }
+    await page.waitForTimeout(120);
+  }
+  // Stop acting and let the pile fill (forms live ~3.8 s, so the combo survives) before the frame.
+  await page.waitForFunction(() => document.querySelectorAll('.rush-doc').length >= 3, null, { timeout: 4000 });
+}
+
+async function shoot(browser, url, rawDir, platform, { file, save, tab, subTab, waitFor, drawTen, scrollInto, clock, openEvent, eventTab, clickTestId, run }) {
   const context = await browser.newContext({
-    // The platform's own device-shaped viewport, so the app lays out as it does on that real
-    // handset or tablet instead of stretching one shot over every listing's canvas.
+    // The platform's own device-shaped viewport, so the app lays out as it does on that real device.
     viewport: { width: platform.raw.width, height: platform.raw.height },
     deviceScaleFactor: platform.raw.dsf,
     colorScheme: 'light',
     reducedMotion: 'reduce',
   });
   await context.addInitScript(PIN_RANDOM);
+  // The once-per-version "What's new" pop-up is marked seen; it is not what these frames show.
+  const { version } = await json('package.json');
+  await context.addInitScript((v) => { try { window.localStorage.setItem('whatsNewSeen', v); } catch { /* best-effort */ } }, version);
   // Pinning the wall clock puts a weekly or seasonal event inside its window; no test-ads build needed.
   if (clock) await context.clock.install({ time: clock });
   if (save) {
-    // Re-stamped to "now" at shoot time, not left at whatever `now` main() captured before the
-    // build: this pipeline shoots three platforms end to end, and by the second or third one
-    // enough real time has passed that the original timestamp reads as an offline gap over
-    // MIN_OFFLINE_SECONDS (60s) — which pops an uninvited Backlog Report over every office shot.
+    // Re-stamped to "now" at shoot time: otherwise the gap since seeding reads as an offline absence
+    // over MIN_OFFLINE_SECONDS (60s) and pops an uninvited Backlog Report over the shot.
     const freshSave = { ...save, lastSeenWallClock: clock ?? Date.now() };
     await context.addInitScript(
       ([key, value]) => {
@@ -179,21 +241,22 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor,
   await page.addStyleTag({ content: STILL_CSS });
   // STILL_CSS also freezes the splash, whose animationend never fires; a tap skips it.
   await page.getByTestId('splash').click({ timeout: 5000 }).catch(() => {});
-  if (!stopAtTitle) {
-    // Every cold boot opens on the title screen, so the office is one tap behind it.
-    await page.getByRole('button', { name: 'Clock in' }).click();
-    if (tab) await page.getByRole('tab', { name: tab }).click();
-    if (clickTestId) await page.getByTestId(clickTestId).click();
-    if (drawTen) await page.getByRole('button', { name: 'Draw ten requisitions' }).click();
-    if (openEvent) {
-      await page.locator('.event-banner button').click();
-      if (eventTab) await page.getByRole('tab', { name: eventTab }).click();
-    }
+  // Every cold boot opens on the title screen, so the office is one tap behind it.
+  await page.getByRole('button', { name: 'Clock in' }).click();
+  if (tab) await page.getByRole('tab', { name: tab }).click();
+  if (subTab) await page.getByRole('tab', { name: subTab }).click();
+  if (clickTestId) await page.getByTestId(clickTestId).click();
+  if (drawTen) await page.getByRole('button', { name: 'Draw ten requisitions' }).click();
+  if (openEvent) {
+    await page.locator('.event-banner button').click();
+    if (eventTab) await page.getByRole('tab', { name: eventTab }).click();
   }
+  if (run) await run(page);
   await page.waitForSelector(waitFor, { state: 'visible', timeout: 15000 });
   if (scrollInto) await page.locator(scrollInto.selector).nth(scrollInto.index ?? 0).evaluate((el, block) => el.scrollIntoView({ block }), scrollInto.block ?? 'start');
   // The store's tick writes numbers a frame or two after mount; one settle beats a flaky race.
-  await page.waitForTimeout(600);
+  // (Stamp Rush is live and must be photographed at once.)
+  await page.waitForTimeout(file.includes('rush') ? 0 : 600);
   await page.screenshot({ path: path.join(rawDir, file) });
   await context.close();
 }
@@ -201,16 +264,14 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, waitFor,
 /**
  * The marketing frame: the raw shot inside a device bezel on ruled parchment, under a headline.
  * The bezel is drawn, so there is no device art to license. Every pixel value below was tuned
- * against the Android canvas (1080×1920) and then scaled by the platform's own width, so the
- * same layout holds proportion on the taller iPhone canvas and the squarer iPad one.
+ * against a 1080-wide canvas and then scaled by the platform's own width.
  *
  * The page background is opaque parchment with no transparent layer anywhere in the composed
- * DOM, and PNG screenshots only carry alpha where the source had it — so these come out with no
- * alpha channel, which the App Store requires.
+ * DOM, so these come out with no alpha channel, which the App Store requires.
  */
 async function compose(browser, rawDir, platform, { file, headline, sub, chips, exec }) {
   const { width: W, height: H, frame } = platform;
-  const s = W / 1080; // scale factor against the tuned-for-Android baseline
+  const s = W / 1080; // scale factor against the tuned-for baseline
   const font = (await readFile(fontFile)).toString('base64');
   const shot = (await readFile(path.join(rawDir, file))).toString('base64');
   const bezelW = 620 * s;
@@ -252,7 +313,7 @@ async function compose(browser, rawDir, platform, { file, headline, sub, chips, 
     const phone = document.querySelector('.phone');
     const textBottom = Math.max(...[...document.querySelectorAll('h1, p, .chips')].map((e) => e.getBoundingClientRect().bottom));
     const top = textBottom + gap;
-    // Taller canvases (iPhone 6.9") have room to grow the device so it reaches the bottom edge; width is capped so the character still fits beside it.
+    // Taller canvases have room to grow the device so it reaches the bottom edge; width is capped so the character still fits beside it.
     const w = Math.max(floorW, Math.min(0.64 * cw, (ch - top + 260 * k - 2 * pd) / ratio + 2 * pd));
     const h = (w - 2 * pd) * ratio + 2 * pd;
     Object.assign(phone.style, { top: `${top}px`, bottom: 'auto', width: `${w}px`, height: `${h}px` });
@@ -271,33 +332,68 @@ async function compose(browser, rawDir, platform, { file, headline, sub, chips, 
   console.log(`  [${platform.id}] ${file}`);
 }
 
-async function main() {
-  for (const platform of PLATFORMS) await mkdir(platform.outDir, { recursive: true });
-  console.log('Building…');
-  await build({ root, logLevel: 'warn' });
+/** iPhone 6.3" (1206x2622) from the 6.9" frames: same aspect to within a pixel, so cover-crop. */
+async function cropIphone63(browser, from, to, files) {
+  await mkdir(to, { recursive: true });
+  for (const f of await readdir(to)) if (f.endsWith('.png')) await unlink(path.join(to, f));
+  const page = await browser.newPage({ viewport: { width: 1206, height: 2622 }, deviceScaleFactor: 1 });
+  for (const file of files) {
+    const b64 = (await readFile(path.join(from, file))).toString('base64');
+    await page.setContent(`<body style="margin:0;background:#EDE7D4"><img src="data:image/png;base64,${b64}" style="display:block;width:1206px;height:2622px;object-fit:cover;object-position:center"></body>`);
+    await page.waitForFunction(() => document.images[0].complete);
+    await page.screenshot({ path: path.join(to, file) });
+    console.log(`  [ios-6.3] ${file}`);
+  }
+  await page.close();
+}
 
-  const server = await preview({ root, preview: { port: PORT, strictPort: true }, logLevel: 'warn' });
-  const url = server.resolvedUrls?.local?.[0] ?? `http://localhost:${PORT}/`;
+async function main() {
+  for (const platform of PLATFORMS) {
+    await mkdir(platform.outDir, { recursive: true });
+    // Retire the previous set so no stale frames sit next to the new ones.
+    for (const f of await readdir(platform.outDir)) if (f.endsWith('.png')) await unlink(path.join(platform.outDir, f));
+  }
+
+  const server = await createServer({ root, server: { port: PORT, strictPort: true }, logLevel: 'warn' });
+  await server.listen();
+  const url = `http://localhost:${PORT}/`;
   const browser = await chromium.launch();
   try {
+    // Warm the dev server: first load optimizes dependencies and can reload the page once.
+    const warm = await browser.newPage();
+    await warm.goto(url, { waitUntil: 'networkidle' });
+    await warm.waitForTimeout(1500);
+    await warm.goto(url, { waitUntil: 'networkidle' });
+    await warm.close();
+
     const now = Date.now();
     const base = await seedSave(now);
-    // Pinned clocks: a Friday inside the Valhalla weekly window, and a Wednesday inside Halloween.
-    const VALHALLA = Date.UTC(2026, 11, 4, 12); // weekly-2026-12-04, "The Feast of Valhalla"
-    const HALLOWEEN = Date.UTC(2026, 9, 28, 12); // halloween-2026, Haunted Records Annex
-    const weeklySave = {
+    const sets = await json('src/data/sets.json');
+    const cards = await json('src/data/cards.json');
+    // Collection Sets: the first set finished, the rest at different stages of progress.
+    const progress = [6, 3, 2, 4, 1, 2];
+    const setCards = { ...base.cards };
+    sets.forEach((set, i) => set.cards.slice(0, progress[i] ?? 1).forEach((id, k) => { setCards[id] = (k % 3) + 1; }));
+    const setsSave = { ...base, cards: setCards };
+    // Departments: every one open, Hell on duty, the Valhalla branch unlocked too.
+    const deptSave = {
       ...base,
-      lastSeenWallClock: VALHALLA,
-      event: { key: 'weekly-2026-12-04', points: '2.4e6', earned: '3.1e7', staff: { 'w-temp': 48, 'w-stapler': 21, 'w-imp': 7 }, claimed: [0, 1] },
+      activeDept: 'hell',
+      branchesUnlocked: ['valhalla'],
+      deptsUnlocked: [...base.deptsUnlocked, 'valhalla'],
+      staff: { ...base.staff, 'v-shieldmaiden': 30, 'v-skald': 14, 'v-quartermaster': 5 },
     };
+    // Pinned clock: a Wednesday inside Halloween.
+    const HALLOWEEN = Date.UTC(2026, 9, 28, 12); // halloween-2026, Haunted Records Annex
     const haunted = {
       ...base,
       lastSeenWallClock: HALLOWEEN,
       event: { key: 'halloween-2026', points: '4.2e5', earned: '6.8e6', staff: { 'hw-ghost': 52, 'hw-mummy': 24, 'hw-pumpkin': 9 }, claimed: [0] },
     };
-    const allShots = [
+    void cards;
+    const shots = [
       {
-        file: '01-intake.png',
+        file: '01-office.png',
         exec: { char: 'vassago', side: 'right', say: 'Stamp faster!' },
         save: base,
         waitFor: '.tabbar',
@@ -306,17 +402,39 @@ async function main() {
         chips: ['Tap to stamp', 'Staff earn while you tap', 'Pets welcome'],
       },
       {
-        file: '02-personnel.png',
-        exec: { char: 'bodhisattva', side: 'left', say: 'Hire weirder!' },
+        file: '02-stamp-rush.png',
+        exec: { char: 'keeper', side: 'right', say: 'Keep the combo!' },
         save: base,
-        tab: 'Personnel',
-        waitFor: '.tabbar',
-        headline: 'Hire the damned<br>and the blessed.',
-        sub: 'Collectible staff cards, each starring up to five stars.',
-        chips: ['30+ collectible cards', 'Star up with duplicates', 'Free daily pull'],
+        run: playRush,
+        waitFor: '.rush-doc',
+        headline: 'Stamp Rush.<br>40 seconds. No mercy.',
+        sub: 'Tap, hold and swipe the paperwork. Chain a combo for a bigger payout.',
+        chips: ['Tap, hold, swipe', 'Combo up to 3x', 'Pays in souls'],
       },
       {
-        file: '03-requisition.png',
+        file: '03-incidents.png',
+        exec: { char: 'greed-toad', side: 'right', say: 'The printer is jammed again!' },
+        save: base,
+        run: injectIncidents,
+        waitFor: '.oi-item',
+        headline: 'The office fights back.<br>Fix it. Get paid.',
+        sub: 'Jams, spills and lines pop up while you work. Tap them to clear the mess.',
+        chips: ['Live office incidents', 'Quick fixes pay a bonus', 'Five kinds of chaos'],
+      },
+      {
+        file: '04-sets.png',
+        exec: { char: 'bodhisattva', side: 'right', say: 'Complete the set!' },
+        save: setsSave,
+        tab: 'Personnel',
+        subTab: 'Sets',
+        waitFor: '.sets-panel',
+        scrollInto: { selector: '.personnel-tabs' },
+        headline: 'Collect sets.<br>Earn permanent bonuses.',
+        sub: 'Finish a staff set and its bonus switches on for good.',
+        chips: ['Collection sets', 'Permanent bonuses', 'Silhouettes to chase'],
+      },
+      {
+        file: '05-requisition.png',
         exec: { char: 'seraph-board', side: 'right', say: 'Pull for legends!' },
         save: { ...base, vouchers: 120 },
         tab: 'Personnel',
@@ -324,11 +442,20 @@ async function main() {
         waitFor: '[role="dialog"]',
         headline: 'Pull ten.<br>Reveal them all.',
         sub: 'A requisition never comes back empty-handed.',
-        chips: ['Gacha pulls', 'Pity timers included', 'Duplicates bank as shards'],
+        chips: ['Collectible staff cards', 'Pity timers included', 'Duplicates bank as shards'],
       },
       {
-        file: '04-ledger.png',
-        exec: { char: 'keeper', side: 'left', say: 'Grow the tree!' },
+        file: '06-departments.png',
+        exec: { char: 'allfather', side: 'left', say: 'Heaven or Hell?' },
+        save: deptSave,
+        waitFor: '.dept-chips',
+        headline: 'Heaven. Hell. Limbo.<br>Run every department.',
+        sub: 'Each wing has its own staff, queue, upgrades and bureaucracy.',
+        chips: ['Six departments', 'Unique staff in each', 'Unlock as you grow'],
+      },
+      {
+        file: '07-ledger.png',
+        exec: { char: 'keeper', side: 'right', say: 'Grow the tree!' },
         save: base,
         tab: 'Ledger',
         clickTestId: 'perk-branch-throughput',
@@ -339,33 +466,7 @@ async function main() {
         chips: ['40 permanent perks', 'Skill tree branches', 'Prestige by audit'],
       },
       {
-        file: '05-weekly-staff.png',
-        exec: { char: 'allfather', side: 'right', say: 'New theme every weekend!' },
-        save: weeklySave,
-        clock: VALHALLA,
-        openEvent: true,
-        eventTab: 'Staff',
-        waitFor: '.event-screen',
-        scrollInto: { selector: '.event-tabs' },
-        headline: 'A new theme<br>every weekend.',
-        sub: 'Limited-time staff, fresh art and prizes, Friday to Sunday.',
-        chips: ['Weekly events', 'New staff every week', 'Free rewards'],
-      },
-      {
-        file: '06-weekly-gacha.png',
-        exec: { char: 'greed-toad', side: 'left', say: 'Rare executives!' },
-        save: weeklySave,
-        clock: VALHALLA,
-        openEvent: true,
-        eventTab: 'Gacha',
-        waitFor: '.event-screen',
-        scrollInto: { selector: '.event-tabs' },
-        headline: 'Chase the featured<br>weekend executive.',
-        sub: 'Every theme has its own event-only banner.',
-        chips: ['Event-only banner', 'Featured executive', 'Limited time'],
-      },
-      {
-        file: '07-halloween.png',
+        file: '08-halloween.png',
         exec: { char: 'pumpkin-cfo', side: 'right', say: 'Spooky season!' },
         save: haunted,
         clock: HALLOWEEN,
@@ -374,10 +475,9 @@ async function main() {
         waitFor: '.event-screen',
         headline: 'Seasonal specials.<br>Halloween is haunted.',
         sub: 'Holiday rooms, holiday staff, holiday prizes.',
-        chips: ['Halloween', 'Christmas', 'Easter and more'],
+        chips: ['Halloween', 'Weekend events', 'Free rewards'],
       },
     ];
-    const shots = allShots.filter((sh) => !(SKIP_LEDGER && sh.file === '04-ledger.png'));
     for (const platform of PLATFORMS) {
       const rawDir = path.join(rawRoot, platform.id);
       await mkdir(rawDir, { recursive: true });
@@ -386,6 +486,8 @@ async function main() {
       console.log(`Composing [${platform.id}]…`);
       for (const shot of shots) await compose(browser, rawDir, platform, shot);
     }
+    console.log('Cropping [ios-6.3]…');
+    await cropIphone63(browser, PLATFORMS[0].outDir, ios63Dir, shots.map((sh) => sh.file));
   } finally {
     await browser.close();
     await server.close();
