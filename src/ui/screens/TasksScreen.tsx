@@ -12,6 +12,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { AdButton } from '../components/AdButton';
 import { InviteSheet } from '../overlays/InviteSheet';
 import { AllianceCard } from '../components/AllianceCard';
+import { CaseCard } from '../components/CaseCard';
 import { PrizePopup } from './EventScreen';
 import { LOGIN_REWARDS, loginClaimable } from '../../engine/login';
 import { BEGINNER_DAYS, beginnerActive, beginnerDay, beginnerProgress, beginnerClaimable, type BeginnerReward, type BeginnerView } from '../../engine/retention';
@@ -221,6 +222,7 @@ export function TasksScreen({ onSettings }: { onSettings?: () => void }) {
       <BeginnerWeek />
       <CheckIn />
       <PrizePopup title={t('login.prizeTitle')} />
+      <CaseCard />
       <div className="card" data-coach="tasks">
         <h3>{t('tasks.daily')}</h3>
         <p className="sub">{t('tasks.streak', { streak, best: bestStreak })}</p>

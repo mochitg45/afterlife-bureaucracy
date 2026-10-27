@@ -258,6 +258,21 @@ service cloud.firestore {
       }
     }
 
+    // ---- Case of the Day (src/platform/cases.ts) ----
+    // caseVotes/{day}/votes/{uid} = { verdict, at }: one vote per player per UTC day. The doc id is
+    // the uid, so create-only means one vote; updates and deletes are refused. Any signed-in player
+    // may list the votes, which is how the clients run per-verdict aggregate count queries.
+    // The parent caseVotes/{day} doc never exists; only the votes subcollection is used.
+    match /caseVotes/{day}/votes/{uid} {
+      allow get, list: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid
+        && day.matches('20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])')
+        && request.resource.data.keys().hasOnly(['verdict', 'at'])
+        && request.resource.data.verdict in ['heaven', 'hell', 'reincarnate']
+        && request.resource.data.at == request.time;
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

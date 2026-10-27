@@ -3,6 +3,7 @@ import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { loginClaimable } from '../../engine/login';
 import { BEGINNER_DAYS, beginnerClaimable } from '../../engine/retention';
+import { caseUnread } from '../../engine/cases';
 
 export type TabId = 'office' | 'personnel' | 'ledger' | 'tasks' | 'store';
 
@@ -15,8 +16,8 @@ const TABS: Array<{ id: TabId; label: string; icon: ReactElement }> = [
 ];
 
 export function TabBar({ active, onChange }: { active: TabId; onChange: (id: TabId) => void }) {
-  // A dot on Tasks while today's check-in is waiting.
-  const checkIn = useGame((s) => loginClaimable(s.state) || BEGINNER_DAYS.some((d) => beginnerClaimable(s.state, d)));
+  // A dot on Tasks while today's check-in or today's unopened case file is waiting.
+  const checkIn = useGame((s) => loginClaimable(s.state) || BEGINNER_DAYS.some((d) => beginnerClaimable(s.state, d)) || caseUnread(s.state, Date.now()));
   return (
     <nav className="tabbar" role="tablist" aria-label={t('tab.main')}>
       {TABS.map((tab) => (

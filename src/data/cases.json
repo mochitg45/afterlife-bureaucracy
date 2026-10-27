@@ -1,0 +1,242 @@
+[
+  {
+    "id": "c-barnaby",
+    "name": "Barnaby Quill, Retired Accountant",
+    "text": "Barnaby balanced the books at a button factory for forty-one years and never once rounded up. He volunteered at the library and returned every book early. He once found a penny error in 1987 and still talks about it.",
+    "desc": "Slipped on a rolled-up spreadsheet.",
+    "line": "\"I only ask that my afterlife be audited fairly. Also, someone is off by one cent.\"",
+    "hint": "Arrived carrying a receipt for his own funeral."
+  },
+  {
+    "id": "c-ines",
+    "name": "Inés Calderón, Pastry Chef",
+    "text": "Inés ran a tiny bakery where the line started before sunrise. She gave away unsold bread to anyone who looked hungry. Her croissants were said to cure bad moods.",
+    "desc": "Fell asleep in a very warm proofing oven (it was fine, mostly).",
+    "line": "\"Just send me wherever there is flour. I will handle the rest.\"",
+    "hint": "Her apron is still dusted with what she insists is \"holy flour\"."
+  },
+  {
+    "id": "c-gus",
+    "name": "Gus the Parking Enforcer",
+    "text": "Gus wrote tickets in the same neighborhood for thirty years. He was fair, punctual, and not loved. He always left a note that said \"Have a nice day\" under the wiper.",
+    "desc": "Tripped over a double-parked shopping cart.",
+    "line": "\"Heaven, please. I never once ticketed an ambulance. A delivery van, yes, but not an ambulance.\"",
+    "hint": "Has already put a parking ticket on the front desk."
+  },
+  {
+    "id": "c-mabel",
+    "name": "Mabel Okonkwo-Reyes, Choir Director",
+    "text": "Mabel led the church choir for decades and could hear a flat note through a brick wall. She was strict about rehearsal but baked for everyone afterward. Her soloists always cried a little.",
+    "desc": "Held a high note for too long during the final hymn.",
+    "line": "\"I would like a piano, a dozen volunteers, and absolutely no one named Trevor.\"",
+    "hint": "Hums a perfect B-flat whenever she is nervous."
+  },
+  {
+    "id": "c-dmitri",
+    "name": "Dmitri Volkov, Chess Hustler",
+    "text": "Dmitri played speed chess in the park for coins and then gave most of the coins to the pigeons. He claimed to have lost on purpose to children, forty times. The children say he was just bad.",
+    "desc": "Choked on a very dramatic sandwich after a checkmate.",
+    "line": "\"Rule quickly, please. I have a game going in the waiting room and I am up a bishop.\"",
+    "hint": "Moves the paperweight on your desk one square at a time."
+  },
+  {
+    "id": "c-winnie",
+    "name": "Winnie Abernathy, Lighthouse Keeper",
+    "text": "Winnie kept a lighthouse so remote that the mail came by seagull, mostly. She talked to the lamp, and the lamp, she says, listened. Not one ship ever crashed on her watch.",
+    "desc": "The lighthouse stairs. All 212 of them.",
+    "line": "\"I just want to know if somebody will keep watch over the harbor now.\"",
+    "hint": "Wrote forty years of weather reports in rhyme."
+  },
+  {
+    "id": "c-tobias",
+    "name": "Tobias Finch, Children's Magician",
+    "text": "Tobias performed at birthday parties and made exactly one coin disappear per show. He never did learn to bring them back. His rabbit retired before he did.",
+    "desc": "The saw-the-assistant-in-half trick. The assistant is fine. The saw was not.",
+    "line": "\"Ladies and gentlemen, I would like to make this decision vanish. Is that allowed?\"",
+    "hint": "Pulled three stamps out of your sleeve before you noticed."
+  },
+  {
+    "id": "c-priya",
+    "name": "Priya Nair, Night-Shift Nurse",
+    "text": "Priya worked nights at a busy hospital for twenty-two years and drank an unreasonable amount of tea. She held hands, found blankets, and never complained about the vending machine. Patients remember her laugh more than her name.",
+    "desc": "Exhaustion after a very long double shift.",
+    "line": "\"I would like a nap. A long one. With no pager.\"",
+    "hint": "Has a pager. It has not stopped beeping since arrival."
+  },
+  {
+    "id": "c-hank",
+    "name": "Hank \"Hammer\" Dolan, Wrestler",
+    "text": "Hank wrestled under a cape for twenty years and lost most of his matches on purpose, for the story. He signed autographs until the line ended, every time. Everybody in the arena called him the nicest villain in town.",
+    "desc": "A body slam that went slightly off script.",
+    "line": "\"I played the bad guy. Can I at least be a good bad guy in the afterlife?\"",
+    "hint": "Still wearing the cape. Refuses to take it off at security."
+  },
+  {
+    "id": "c-lucia",
+    "name": "Lucía Fernández, Taxi Driver",
+    "text": "Lucía drove a taxi through the same ten streets for thirty-five years and knew every shortcut and every secret. She never charged a nervous passenger extra. She talked about her grandkids at every red light.",
+    "desc": "Took a shortcut that was, regrettably, a canal.",
+    "line": "\"Where am I going? I can drive. Give me the address and I will find a faster way.\"",
+    "hint": "Offers a complimentary mint with every verdict."
+  },
+  {
+    "id": "c-percival",
+    "name": "Sir Percival Plumb, Amateur Knight",
+    "text": "Percival never took part in a real battle but owned excellent armor. He joined every medieval fair for fifty years and defended the honor of several snack stands. His horse was a very patient pony.",
+    "desc": "Rusted shut in the rain at a jousting festival.",
+    "line": "\"I ask for a quest. A small one. Maybe a delivery.\"",
+    "hint": "His armor squeaks, and nobody has the heart to tell him."
+  },
+  {
+    "id": "c-noor",
+    "name": "Noor Haddad, Librarian",
+    "text": "Noor ran a library for thirty years and shushed only the people who deserved it. She hid good books where curious kids would find them. Her overdue fines were mostly forgiven if you told her a joke.",
+    "desc": "Buried under a very tall shelf of encyclopedias.",
+    "line": "\"Is there a card catalog? I can fix it. I can fix everything, quietly.\"",
+    "hint": "Whispers all her pleas out of habit."
+  },
+  {
+    "id": "c-bjorn",
+    "name": "Björn Eklund, Ice Fisherman",
+    "text": "Björn sat on a frozen lake every winter and caught, by his own count, four fish and a boot. He called the boot \"the one that got away, then came back.\" He was famous for his thermos soup.",
+    "desc": "The ice was thinner than his optimism.",
+    "line": "\"Is there a lake? It doesn't need fish. I just want the quiet.\"",
+    "hint": "Brought the boot. It has been entered into evidence."
+  },
+  {
+    "id": "c-camille",
+    "name": "Camille Dubois, Street Mime",
+    "text": "Camille was a street mime who was trapped in an invisible box for a living. People paid her to stop. She was beloved anyway, mostly by pigeons.",
+    "desc": "Walked into a very real wall, which she insists was imaginary.",
+    "line": "(Mimes a long, heartfelt plea. Possibly a boat.)",
+    "hint": "Has not said a single word. The form is filled out in charades."
+  },
+  {
+    "id": "c-ravi",
+    "name": "Ravi Shankar Mehta, Software Tester",
+    "text": "Ravi spent his career finding the one button nobody should press and then pressing it. He wrote bug reports with pictures. His own funeral was delayed by a calendar glitch.",
+    "desc": "Pressed the one button nobody should press.",
+    "line": "\"I would like to file a report about the afterlife. I have forty-two screenshots.\"",
+    "hint": "Is already testing the elevator with unusual inputs."
+  },
+  {
+    "id": "c-agnes",
+    "name": "Agnes Whitlock, Tea Shop Owner",
+    "text": "Agnes owned a tea shop that closed at exactly four o'clock, no matter who was waiting. She remembered everyone's order and half of their secrets. Her biscuits were an unreasonably big deal.",
+    "desc": "Too much excitement over a very good scone.",
+    "line": "\"I'll take whatever sits closest to a kettle. And please keep the draft out.\"",
+    "hint": "Offers you a biscuit. It is a lovely biscuit. It might be a bribe."
+  },
+  {
+    "id": "c-kofi",
+    "name": "Kofi Mensah, Wedding DJ",
+    "text": "Kofi played the chicken dance at three hundred weddings and never once regretted it. He mended more family feuds with a good playlist than any counselor. He kept a spare cable for every emergency but his own.",
+    "desc": "Zapped by his own disco ball, in a purely celebratory way.",
+    "line": "\"Mic check, one two. I would like to ask the crowd for a favorable ruling.\"",
+    "hint": "Plays a soft fanfare every time he is mentioned."
+  },
+  {
+    "id": "c-helga",
+    "name": "Helga Brandt, Retired Referee",
+    "text": "Helga refereed amateur football for thirty years and gave out more cards than anyone in the league. Players hated her and also invited her to their weddings. She was right most of the time, and annoying about it.",
+    "desc": "Fell off a ladder while checking a replay on her own television.",
+    "line": "\"I would like to review the footage of my life. Slowly. From three angles.\"",
+    "hint": "Blows a whistle each time a form is stamped wrong."
+  },
+  {
+    "id": "c-mateo",
+    "name": "Mateo Silva, Street Musician",
+    "text": "Mateo played the accordion in a train station and only knew four songs. The commuters learned to love all four. He gave half his tips to a stray dog that did not appreciate it.",
+    "desc": "Caught in the closing doors during an enthusiastic encore.",
+    "line": "\"One more song? Then you can decide. It's the second one.\"",
+    "hint": "His accordion plays a single note whenever someone sighs."
+  },
+  {
+    "id": "c-ottoline",
+    "name": "Ottoline Marsh, Beekeeper",
+    "text": "Ottoline kept bees and kept secrets with the same quiet patience. She could tell a mood by the buzz. The honey tasted a little like gossip, and sold out every week.",
+    "desc": "An allergy she swore the bees would never give her.",
+    "line": "\"Please, can someone water the clover? My girls will wonder where I went.\"",
+    "hint": "A small, loyal swarm followed her in. Reception has questions."
+  },
+  {
+    "id": "c-felix",
+    "name": "Felix Armitage, Film Critic",
+    "text": "Felix gave every movie two and a half stars, including the ones he loved. He wrote reviews that were more fun than the films. He fell asleep in at least four premieres.",
+    "desc": "Dozed off in the front row. The popcorn won.",
+    "line": "\"I'd like to appeal. The review needs a second screening.\"",
+    "hint": "Has rated the waiting room. It is a solid two and a half."
+  },
+  {
+    "id": "c-sunny",
+    "name": "Sunny Park, Esports Coach",
+    "text": "Sunny coached a gaming team through eleven finals and lost nine. She cried after every defeat and made noodles for everyone after. Her players still say she was the best thing about the team.",
+    "desc": "Fell asleep at the keyboard mid-tournament, in good spirits.",
+    "line": "\"Do you have a rematch option? I've been working on my strategy.\"",
+    "hint": "Keeps shouting \"gg\" at passing clerks."
+  },
+  {
+    "id": "c-bartholomew",
+    "name": "Bartholomew Rook, Theme-Park Jester",
+    "text": "Bartholomew juggled at a theme-park castle and told jokes that the king, a man in a costume, did not understand. He wore bells everywhere and could never sneak up on anyone. He truly loved the job.",
+    "desc": "Tangled in his own bells during a particularly ambitious cartwheel.",
+    "line": "\"I will accept the ruling. I just need a serious audience for once.\"",
+    "hint": "Jingles with every step. Security is not amused."
+  },
+  {
+    "id": "c-yasmin",
+    "name": "Yasmin Qureshi, Marathon Runner",
+    "text": "Yasmin ran twenty-six marathons and finished every one, usually last, usually smiling. She stopped to pet dogs along the route. She said the finish line was a state of mind and also a banner.",
+    "desc": "Finally got a good night's rest and forgot to wake up.",
+    "line": "\"Is there a finish line? Because I think I'd like to cross it. Slowly.\"",
+    "hint": "Her shoes carry a sticker that reads \"personal best: eventually\"."
+  },
+  {
+    "id": "c-edmund",
+    "name": "Edmund Hargrove, Retired Butler",
+    "text": "Edmund served the same family for fifty years and kept every secret and every silver spoon. He could tell the mood of a household by the sound of a door. He had never once been seen to hurry.",
+    "desc": "Overly polite to a falling chandelier.",
+    "line": "\"If it pleases the court, I would like to hold the door for the next soul.\"",
+    "hint": "Straightens the desk lamp without being asked."
+  },
+  {
+    "id": "c-rosalind",
+    "name": "Rosalind Teague, Crossword Setter",
+    "text": "Rosalind wrote crosswords for a national paper and hid tiny jokes in every grid. Her readers wrote angry letters about her cleverness. She answered each one in verse, in pencil.",
+    "desc": "Seven across: a fatal pun.",
+    "line": "\"Please let there be a puzzle in the next place. Six letters, starts with H.\"",
+    "hint": "Left a clue on the form. Nobody has solved it yet."
+  },
+  {
+    "id": "c-jun",
+    "name": "Jun Watanabe, Sushi Apprentice",
+    "text": "Jun spent eleven years apprenticing under a master who only let him wash rice. He finally made one piece of sushi and the master said \"adequate.\" He cried happily for a week.",
+    "desc": "Slipped on a very fresh dab of wasabi.",
+    "line": "\"I would like to be assigned a master, a knife, and one more chance at that piece.\"",
+    "hint": "Rinses the rice in the water cooler. Silently."
+  },
+  {
+    "id": "c-zelda",
+    "name": "Zelda Moreau, Boardwalk Fortune Teller",
+    "text": "Zelda read fortunes at a seaside pier and was right about the weather, never the lottery. She predicted her own death on a napkin and then lost the napkin. Her crystal ball doubled as a fish bowl.",
+    "desc": "It was foretold. She forgot to read it.",
+    "line": "\"Don't tell me the verdict. I like surprises. Well, I know it. But I like pretending.\"",
+    "hint": "Her horoscope for today says \"paperwork\". It is accurate."
+  },
+  {
+    "id": "c-walter",
+    "name": "Walter \"Wally\" Pruitt, Mail Carrier",
+    "text": "Wally delivered mail in the same snowy town for thirty-eight years and knew every dog by name, mostly the angry ones. He never lost a single letter. He did lose a fair number of socks.",
+    "desc": "A very enthusiastic poodle. Everybody makes it sound worse.",
+    "line": "\"Where do I drop this letter? It says Heaven but the zip code is smudged.\"",
+    "hint": "Insists on hand-delivering the approved stamp himself."
+  },
+  {
+    "id": "c-odette",
+    "name": "Odette Blanchard, Retired Circus Clown",
+    "text": "Odette spent forty years in the circus with a squeaky nose and a heart of gold. She taught half the town to juggle and the other half to apologize. Her tiny car once held thirty-one people, as a record.",
+    "desc": "A custard pie in the wrong face at the wrong moment.",
+    "line": "\"Please, no balloons. I've seen enough balloons. A quiet chair would be lovely.\"",
+    "hint": "Honks softly when you say \"verdict\"."
+  }
+]

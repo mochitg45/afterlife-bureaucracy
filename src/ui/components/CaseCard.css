@@ -1,0 +1,42 @@
+/* Case of the Day: a manila folder with a rubber stamp. Flat, like the rest of the office. */
+.case-card { --manila: #E8CF94; --manila-dark: #C9AB66; padding-top: 0; overflow: hidden; }
+.case-tab { display: flex; align-items: center; gap: 8px; margin: 0 0 -1px 8px; }
+.case-tab-title {
+  font-family: var(--font-display); background: var(--manila); border: 1px solid var(--manila-dark); border-bottom: 0;
+  border-radius: 8px 8px 0 0; padding: 4px 12px; font-size: 14px; position: relative; top: 1px; margin-top: 8px;
+}
+.case-new { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: #fff; background: var(--red); border-radius: 999px; padding: 2px 8px; margin-top: 8px; }
+.case-folder {
+  position: relative; background: var(--manila); border: 1px solid var(--manila-dark); border-radius: 4px 10px 10px 10px;
+  padding: 12px; box-shadow: var(--shadow);
+}
+.case-name { font-size: 18px; }
+.case-story { margin: 6px 0 8px; }
+.case-facts { margin: 0; display: grid; gap: 2px; }
+.case-facts dt { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); margin-top: 6px; }
+.case-facts dd { margin: 0; }
+.case-plea { font-style: italic; }
+.case-reward { display: flex; align-items: center; gap: 6px; margin: 10px 0 6px; }
+.case-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.case-verdict { padding: 10px 4px; }
+.case-heaven { border-color: var(--teal); color: var(--teal); }
+.case-hell { border-color: var(--red); color: var(--red); }
+.case-reincarnate { border-color: var(--green); color: var(--green); }
+.case-paperwork { margin-top: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.case-joke { margin: 0; }
+.case-stamp {
+  position: absolute; right: 10px; bottom: 10px; transform: rotate(-12deg); pointer-events: none;
+  border: 3px solid var(--red); color: var(--red); border-radius: 6px; padding: 2px 10px; opacity: 0.85;
+  font-family: var(--font-display); font-size: 20px; text-transform: uppercase; letter-spacing: 0.08em;
+  animation: case-stamp-in 260ms var(--ease-out);
+}
+@keyframes case-stamp-in { from { transform: rotate(-12deg) scale(2); opacity: 0; } to { transform: rotate(-12deg) scale(1); opacity: 0.85; } }
+@media (prefers-reduced-motion: reduce) { .case-stamp { animation: none; } }
+.case-results { margin-top: 10px; display: grid; gap: 6px; }
+.case-results p { margin: 0; }
+.case-headline { font-weight: 600; }
+.case-share { display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; }
+.case-share.mine .case-share-label { font-weight: 600; }
+.case-archive-head { margin-top: 8px; }
+.case-archive { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; max-height: 260px; overflow-y: auto; }
+.case-archive li { display: grid; gap: 1px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }

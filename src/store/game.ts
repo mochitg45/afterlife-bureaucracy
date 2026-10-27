@@ -44,6 +44,8 @@ import { pickEventRanking, type EventRanking, type Standing } from '../platform/
 import { pickLifetimeBoard, type LifetimeBoard, type BoardView } from '../platform/lifetimeBoard';
 import { pickAlliance, type AllianceService, type AllianceView, type JoinOutcome } from '../platform/alliance';
 import { allianceWeek, claimAllianceTier as claimAllianceTierEngine, normalizeAllianceCode } from '../engine/alliance';
+import { pickCases, type CaseService } from '../platform/cases';
+import { caseDay, canRule as canRuleCase, markCaseSeen, ruleCase as ruleCaseEngine, majorityOf, type CaseTally, type Verdict } from '../engine/cases';
 import { nextSpawnDelay, canSpawn, makeIncident, incidentReward, incidentFactor, IGNORE_GRACE_MS, type Incident } from '../engine/incidents';
 import { content as defaultContent } from '../data';
 
@@ -445,6 +447,14 @@ export interface GameStore {
   loadAllianceMembers(): Promise<boolean>;
   allianceRankingView: BoardView | null;
   loadAllianceRanking(): Promise<boolean>;
+  /** Case of the Day: today's shares (null = needs a connection or not fetched yet) and whether a ruling is in flight. */
+  caseInfo: { available: boolean; day: string; tally: CaseTally | null; busy: boolean };
+  /** The player opened today's file (clears the unread dot; counts case_open once a day). */
+  openCase(): void;
+  /** Rules on today's case; pays the daily reward once. False if already ruled, busy or the clock is off. */
+  ruleCase(caseId: string, verdict: Verdict): Promise<boolean>;
+  /** Re-reads today's shares for a case ruled earlier (after a restart). */
+  loadCaseTally(): Promise<void>;
   markMemosSeen(): void;
   /** Onboarding only ever moves forward, so a replayed step cannot rewind it. */
   advanceTraining(step: number): void;
@@ -478,6 +488,7 @@ export interface StoreDeps {
   eventRanking?: EventRanking;
   lifetimeBoard?: LifetimeBoard;
   alliance?: AllianceService;
+  cases?: CaseService;
   sharer?: Sharer;
   audio?: Audio;
   /** Randomness for golden stamps (tests); defaults to Math.random. */
@@ -506,6 +517,7 @@ export function createGameStore(deps: StoreDeps) {
   const eventRanking = deps.eventRanking ?? pickEventRanking();
   const lifetimeBoard = deps.lifetimeBoard ?? pickLifetimeBoard();
   const alliance = deps.alliance ?? pickAlliance();
+  const caseService = deps.cases ?? pickCases();
   /** Stamps not yet sent to the alliance, capped so a long offline stretch cannot bank a burst. */
   let alliancePending = 0;
   let allianceFlushMono = 0;
@@ -1166,6 +1178,7 @@ export function createGameStore(deps: StoreDeps) {
       cloudNotice: null,
       referralInfo: { available: referral.available(), status: 'idle', code: null, joined: 0 },
       allianceInfo: { available: alliance.available(), status: 'idle', view: null, busy: false },
+      caseInfo: { available: caseService.available(), day: '', tally: null, busy: false },
       allianceMembersView: null,
       allianceRankingView: null,
       eventStanding: null,
@@ -2141,6 +2154,35 @@ export function createGameStore(deps: StoreDeps) {
         const v = await alliance.ranking();
         if (v) set({ allianceRankingView: v });
         return v !== null;
+      },
+      openCase() {
+        const s = get().state;
+        const next = markCaseSeen(s, clock.wall());
+        if (next === s) return;
+        set({ state: next });
+        track('case_open');
+        void get().save();
+      },
+      async ruleCase(caseId, verdict) {
+        const wall = clock.wall();
+        const day = caseDay(wall);
+        if (get().clockSuspect || get().caseInfo.busy || !canRuleCase(get().state, wall)) return false;
+        set((cur) => ({ caseInfo: { ...cur.caseInfo, busy: true } }));
+        // Offline, on web or on failure the tally is null: the ruling still counts and still pays.
+        const tally = caseService.available() ? await caseService.rule(day, verdict) : null;
+        const next = ruleCaseEngine(get().state, wall, caseId, verdict, majorityOf(tally));
+        apply(next, { caseInfo: { available: caseService.available(), day, tally, busy: false } });
+        track('case_ruled', { verdict });
+        sfx('achievement');
+        void get().save();
+        return true;
+      },
+      async loadCaseTally() {
+        const day = caseDay(clock.wall());
+        const info = get().caseInfo;
+        if (info.busy || info.tally || get().state.cases.lastDay !== day || !caseService.available()) return;
+        const tally = await caseService.tally(day);
+        if (tally) set((cur) => ({ caseInfo: { ...cur.caseInfo, day, tally } }));
       },
 
       markMemosSeen() {

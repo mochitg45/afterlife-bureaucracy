@@ -47,7 +47,7 @@ export const RANKING_SIZE = 20;
 /** `rank` = week * RANK_WEEK + weekStamps, so one descending query lists this week's leaders. */
 const RANK_WEEK = 1_000_000;
 
-function withTimeout<T>(p: Promise<T>): Promise<T> {
+export function withTimeout<T>(p: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
     p,
