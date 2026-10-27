@@ -29,9 +29,9 @@ export const POSTCARD_REWARD_SEC = 120;
 export const SOUL_CAP_FRAC = 0.01;
 /** Album sizes that pay a flat voucher bonus once, the first time the album reaches them. */
 export const ALBUM_MILESTONES: readonly { at: number; vouchers: number }[] = [
-  { at: 10, vouchers: 2 },
-  { at: 20, vouchers: 3 },
-  { at: 40, vouchers: 5 },
+  { at: 10, vouchers: 1 },
+  { at: 20, vouchers: 1 },
+  { at: 40, vouchers: 2 },
 ];
 export const POSTCARD_DEPT = 'reincarnation';
 
