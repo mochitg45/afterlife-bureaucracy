@@ -709,5 +709,22 @@
  "case.archiveEmpty": "Nenhuma decisão ainda. Seu primeiro processo está esperando.",
  "case.archiveMine": "Você: {verdict}",
  "case.archiveMajority": "Maioria: {verdict}",
- "case.archiveUnknown": "Maioria: desconhecida"
+ "case.archiveUnknown": "Maioria: desconhecida",
+ "postcard.title": "Cartões-postais de almas renascidas",
+ "postcard.mailbox": "Caixa de correio",
+ "postcard.mailboxWaiting": "Caixa de correio, {n} esperando",
+ "postcard.postmark": "RENASCIDO",
+ "postcard.from": "De: {name}",
+ "postcard.rarity.common": "Comum",
+ "postcard.rarity.uncommon": "Incomum",
+ "postcard.rarity.rare": "Rara",
+ "postcard.progress": "{have}/{total} coletados",
+ "postcard.nextReward": "Próxima recompensa com {n} cartões: {v} vales",
+ "postcard.open": "Abrir o próximo cartão ({n} esperando)",
+ "postcard.none": "Caixa vazia. As almas escrevem para casa a cada poucas horas.",
+ "postcard.gift": "+{souls} almas dentro do envelope.",
+ "postcard.milestone": "Marco do álbum! +{v} vales de requisição.",
+ "postcard.view": "Ver o cartão de {name}",
+ "postcard.hidden": "Ainda não recebido",
+ "postcard.close": "Fechar"
 }

@@ -709,5 +709,22 @@
  "case.archiveEmpty": "Noch keine Urteile. Deine erste Akte wartet.",
  "case.archiveMine": "Du: {verdict}",
  "case.archiveMajority": "Mehrheit: {verdict}",
- "case.archiveUnknown": "Mehrheit: unbekannt"
+ "case.archiveUnknown": "Mehrheit: unbekannt",
+ "postcard.title": "Postkarten von wiedergeborenen Seelen",
+ "postcard.mailbox": "Briefkasten",
+ "postcard.mailboxWaiting": "Briefkasten, {n} wartend",
+ "postcard.postmark": "NEU GEBOREN",
+ "postcard.from": "Von: {name}",
+ "postcard.rarity.common": "Gewöhnlich",
+ "postcard.rarity.uncommon": "Ungewöhnlich",
+ "postcard.rarity.rare": "Selten",
+ "postcard.progress": "{have}/{total} gesammelt",
+ "postcard.nextReward": "Nächste Belohnung bei {n} Karten: {v} Gutscheine",
+ "postcard.open": "Nächste Postkarte öffnen ({n} wartend)",
+ "postcard.none": "Briefkasten leer. Die Seelen schreiben alle paar Stunden nach Hause.",
+ "postcard.gift": "+{souls} Seelen im Umschlag.",
+ "postcard.milestone": "Album-Meilenstein! +{v} Anforderungsgutscheine.",
+ "postcard.view": "Postkarte von {name} ansehen",
+ "postcard.hidden": "Noch nicht erhalten",
+ "postcard.close": "Schließen"
 }

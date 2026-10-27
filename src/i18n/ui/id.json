@@ -709,5 +709,22 @@
  "case.archiveEmpty": "Belum ada putusan. Berkas pertama Anda sudah menunggu.",
  "case.archiveMine": "Anda: {verdict}",
  "case.archiveMajority": "Mayoritas: {verdict}",
- "case.archiveUnknown": "Mayoritas: belum diketahui"
+ "case.archiveUnknown": "Mayoritas: belum diketahui",
+ "postcard.title": "Kartu Pos dari Jiwa yang Terlahir Kembali",
+ "postcard.mailbox": "Kotak Surat",
+ "postcard.mailboxWaiting": "Kotak Surat, {n} menunggu",
+ "postcard.postmark": "LAHIR LAGI",
+ "postcard.from": "Dari: {name}",
+ "postcard.rarity.common": "Biasa",
+ "postcard.rarity.uncommon": "Tidak biasa",
+ "postcard.rarity.rare": "Langka",
+ "postcard.progress": "{have}/{total} terkumpul",
+ "postcard.nextReward": "Hadiah berikutnya di {n} kartu: {v} voucher",
+ "postcard.open": "Buka kartu pos berikutnya ({n} menunggu)",
+ "postcard.none": "Kotak surat kosong. Para jiwa mengirim kabar setiap beberapa jam.",
+ "postcard.gift": "+{souls} jiwa terselip di amplop.",
+ "postcard.milestone": "Pencapaian album! +{v} Voucher Permintaan.",
+ "postcard.view": "Lihat kartu pos dari {name}",
+ "postcard.hidden": "Belum diterima",
+ "postcard.close": "Tutup"
 }

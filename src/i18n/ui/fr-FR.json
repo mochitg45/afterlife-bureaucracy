@@ -709,5 +709,22 @@
  "case.archiveEmpty": "Aucun jugement pour l'instant. Votre premier dossier vous attend.",
  "case.archiveMine": "Vous : {verdict}",
  "case.archiveMajority": "Majorité : {verdict}",
- "case.archiveUnknown": "Majorité : inconnue"
+ "case.archiveUnknown": "Majorité : inconnue",
+ "postcard.title": "Cartes postales d’âmes réincarnées",
+ "postcard.mailbox": "Boîte aux lettres",
+ "postcard.mailboxWaiting": "Boîte aux lettres, {n} en attente",
+ "postcard.postmark": "RÉINCARNÉ",
+ "postcard.from": "De : {name}",
+ "postcard.rarity.common": "Commune",
+ "postcard.rarity.uncommon": "Peu commune",
+ "postcard.rarity.rare": "Rare",
+ "postcard.progress": "{have}/{total} collectées",
+ "postcard.nextReward": "Prochaine récompense à {n} cartes : {v} bons",
+ "postcard.open": "Ouvrir la prochaine carte ({n} en attente)",
+ "postcard.none": "Boîte vide. Les âmes écrivent à la maison toutes les quelques heures.",
+ "postcard.gift": "+{souls} âmes glissées dans l’enveloppe.",
+ "postcard.milestone": "Étape de l’album ! +{v} bons de réquisition.",
+ "postcard.view": "Voir la carte de {name}",
+ "postcard.hidden": "Pas encore reçue",
+ "postcard.close": "Fermer"
 }

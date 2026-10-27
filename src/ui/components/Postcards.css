@@ -1,0 +1,38 @@
+.pc-mailbox { position: relative; display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 5px 10px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 12px; }
+.pc-mailbox-label { font-weight: 600; }
+.pc-badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font: 700 11px/18px var(--font-mono); text-align: center; }
+
+.pc-album { max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.pc-progress { margin: 0; }
+.pc-gift { margin: 0; font-size: 13px; color: var(--green); font-weight: 600; }
+
+.postcard { position: relative; padding: 12px 74px 12px 12px; min-height: 150px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); font-family: var(--font-display); overflow: hidden; text-align: left; }
+.postcard::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: repeating-linear-gradient(135deg, var(--red) 0 8px, var(--surface) 8px 16px, var(--teal) 16px 24px, var(--surface) 24px 32px); opacity: 0.85; }
+.postcard p { margin: 0; }
+.pc-uncommon { border-color: var(--teal); }
+.pc-rare { border-color: var(--brass); box-shadow: 0 0 0 1px var(--brass), var(--shadow); }
+.pc-stamp { position: absolute; top: 14px; right: 10px; width: 52px; height: 62px; padding: 4px; background: var(--surface-2); border: 2px dashed var(--ink-muted); border-radius: 3px; transform: rotate(3deg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pc-stamp img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; }
+.pc-motif { width: 28px; height: 28px; border: 3px solid var(--brass); border-radius: 50%; box-shadow: inset 0 0 0 5px var(--surface-2), inset 0 0 0 8px var(--teal); }
+.pc-postmark { position: absolute; top: 56px; right: 30px; width: 58px; height: 58px; color: var(--red); opacity: 0.55; transform: rotate(-14deg); pointer-events: none; font-family: var(--font-mono); }
+.pc-from { margin-top: 6px !important; font-size: 12px; color: var(--ink-muted); }
+.pc-life { margin-top: 2px !important; font-size: 15px; line-height: 1.2; }
+.pc-msg { margin-top: 8px !important; font-size: 13px; line-height: 1.35; transform: rotate(-0.6deg); }
+.pc-rarity { position: absolute; left: 12px; bottom: 6px; font: 600 10px var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
+
+.pc-flip { perspective: 900px; }
+.pc-flip-inner { position: relative; transition: transform 650ms var(--ease-out); transform-style: preserve-3d; transform: rotateY(180deg); }
+.pc-flip.flipped .pc-flip-inner { transform: rotateY(0deg); }
+.pc-flip-back { backface-visibility: hidden; }
+.pc-flip-front { position: absolute; inset: 0; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--brass); }
+
+.pc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+.pc-cell { min-height: 54px; padding: 4px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 10px; line-height: 1.2; overflow: hidden; }
+.pc-cell-name { overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pc-cell.pc-uncommon { border-color: var(--teal); }
+.pc-cell.pc-rare { border-color: var(--brass); }
+.pc-locked { background: var(--surface-2); color: var(--ink-muted); opacity: 0.6; border-style: dashed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-flip-inner { transition: none; }
+}

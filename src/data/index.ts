@@ -18,6 +18,7 @@ import clauses from './cosmic.json';
 import onboarding from './onboarding.json';
 import sets from './sets.json';
 import cases from './cases.json';
+import postcardsJson from './postcards.json';
 
 /** Game-data text in the active language (English files are returned untouched). */
 const tr = <T,>(rel: string, json: T): T => {
@@ -42,3 +43,5 @@ export const content = loadContent(
 
 /** Case of the Day files (name, text = backstory, desc = cause of death, line = the plea, hint = joke detail). */
 export const caseFiles = tr('cases', cases);
+/** Postcards from Reborn Souls, in the active language (the schedule lives in engine/postcards.ts). */
+export const postcards = tr('postcards', postcardsJson) as Array<{ id: string; rarity: string; art?: string; name: string; title: string; text: string }>;
