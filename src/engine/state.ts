@@ -10,6 +10,7 @@ import { sanitizeAlliance } from './alliance';
 import { emptyCases, sanitizeCases, type CasesState } from './cases';
 import { premiumDef } from './premium';
 import { initialPostcards, sanitizePostcards, type PostcardsState } from './postcards';
+import { initialReputation, sanitizeReputation, type Reputation } from './reviews';
 
 export { SAVE_VERSION, RESET_EPOCH };
 
@@ -256,6 +257,8 @@ export interface GameState {
   cases: CasesState;
   /** Postcards from Reborn Souls: album, mailbox and the next-delivery deadline; see engine/postcards.ts. */
   postcards: PostcardsState;
+  /** Afterlife Reviews: smoothed 1-5 reputation and the recent feed; see engine/reviews.ts. */
+  reputation: Reputation;
 }
 
 export interface Now { wall: number; mono: number }
@@ -337,6 +340,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     alliance: { week: 0, claimed: [] },
     cases: emptyCases(),
     postcards: initialPostcards(),
+    reputation: initialReputation(),
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -794,6 +798,7 @@ export function deserialize(json: string, content: Content): GameState {
     alliance: sanitizeAlliance(raw.alliance),
     cases: sanitizeCases(raw.cases),
     postcards: sanitizePostcards(raw.postcards),
+    reputation: sanitizeReputation(raw.reputation),
     review: (() => {
       const r = raw.review && typeof raw.review === 'object' && !Array.isArray(raw.review) ? (raw.review as Record<string, unknown>) : {};
       return { asks: Math.max(0, Math.floor(num(r.asks, 0))), lastWall: Math.max(0, num(r.lastWall, 0)) };

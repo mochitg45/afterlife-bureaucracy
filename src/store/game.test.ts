@@ -209,6 +209,11 @@ describe('game store', () => {
   });
 });
 
+/** 3 stars pays no Afterlife Reviews bonus, so income tests see the plain rate. */
+function flatReputation(store: ReturnType<typeof createGameStore>) {
+  store.setState({ state: { ...store.getState().state, reputation: { score: 3, reviews: [] } } });
+}
+
 describe('game store lifecycle', () => {
   it('tick loop credits elapsed monotonic time', async () => {
     vi.useFakeTimers();
@@ -217,6 +222,7 @@ describe('game store lifecycle', () => {
     const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000_000, random: () => 1 });
     await store.getState().boot();
     hireDave(store);
+    flatReputation(store);
     clock.advance(100);
     vi.advanceTimersByTime(100);
     expect(store.getState().state.soulsRun.toNumber()).toBeCloseTo(20 + 0.05, 3);
@@ -231,6 +237,7 @@ describe('game store lifecycle', () => {
     const store = createGameStore({ content, storage, clock, tickMs: 100, autosaveMs: 1_000_000, random: () => 1 });
     await store.getState().boot();
     hireDave(store);
+    flatReputation(store);
     const before = store.getState().state.soulsRun.toNumber();
     clock.advance(60_000);        // the WebView was frozen for a minute
     vi.advanceTimersByTime(100);  // ... and the interval fires once

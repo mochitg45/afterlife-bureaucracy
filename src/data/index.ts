@@ -19,6 +19,8 @@ import onboarding from './onboarding.json';
 import sets from './sets.json';
 import cases from './cases.json';
 import postcardsJson from './postcards.json';
+import reviews from './reviews.json';
+import type { ReviewTemplate } from '../engine/reviews';
 
 /** Game-data text in the active language (English files are returned untouched). */
 const tr = <T,>(rel: string, json: T): T => {
@@ -45,3 +47,5 @@ export const content = loadContent(
 export const caseFiles = tr('cases', cases);
 /** Postcards from Reborn Souls, in the active language (the schedule lives in engine/postcards.ts). */
 export const postcards = tr('postcards', postcardsJson) as Array<{ id: string; rarity: string; art?: string; name: string; title: string; text: string }>;
+/** Afterlife Reviews templates (src/engine/reviews.ts) in the active language. */
+export const reviewTemplates = tr('reviews', reviews) as ReviewTemplate[];

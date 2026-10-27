@@ -1,0 +1,26 @@
+.rstars { position: relative; display: inline-block; line-height: 0; vertical-align: middle; }
+.rstars-row { display: flex; }
+.rstars-row svg { flex: none; stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.rstars-bg svg { fill: var(--surface-2); }
+.rstars-fg { position: absolute; left: 0; top: 0; overflow: hidden; width: var(--fill, 0%); }
+.rstars-fg svg { fill: var(--brass); }
+
+.rep-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; align-self: flex-start; }
+.rep-chip .rep-num { font-weight: 700; }
+
+.reviews-sheet .rep-meter { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
+.reviews-sheet .rep-score { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+.reviews-sheet .rep-bonus { margin: 4px 0; }
+.review-list { list-style: none; margin: 8px 0; padding: 0; max-height: 45vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.review { padding: 8px 10px; border-radius: 10px; background: var(--surface-2); }
+.review.complaint { border-left: 4px solid var(--red); }
+.review-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.review-text { margin: 4px 0 0; }
+.review-respond { margin-top: 6px; }
+.review-reply { margin: 6px 0 0; padding-left: 8px; border-left: 3px solid var(--teal); font-style: italic; }
+.reviews-close { width: 100%; margin-top: 4px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .review:first-child { animation: review-in 280ms var(--ease-out); }
+  @keyframes review-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+}

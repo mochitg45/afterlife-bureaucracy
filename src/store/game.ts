@@ -49,7 +49,8 @@ import { allianceWeek, claimAllianceTier as claimAllianceTierEngine, normalizeAl
 import { pickCases, type CaseService } from '../platform/cases';
 import { caseDay, canRule as canRuleCase, markCaseSeen, ruleCase as ruleCaseEngine, majorityOf, type CaseTally, type Verdict } from '../engine/cases';
 import { nextSpawnDelay, canSpawn, makeIncident, incidentReward, incidentFactor, IGNORE_GRACE_MS, type Incident } from '../engine/incidents';
-import { content as defaultContent } from '../data';
+import { content as defaultContent, reviewTemplates } from '../data';
+import { nextReviewDelay, reputationTarget, stepScore, reputationMult, pickReview, addReview, respondTo, tierOf, REPLY_COUNT } from '../engine/reviews';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
 export const FORCE_EVENT_KEY = 'afterlife.forceEvent';
@@ -365,6 +366,8 @@ export interface GameStore {
   incidents: Incident[];
   /** One tap on an incident; the last one fixes it and pays. Null for an unknown id. */
   tapIncident(id: number): { done: boolean; souls: Decimal } | null;
+  /** Answers a complaint review with a canned reply and nudges reputation up; false if it cannot be answered. */
+  respondComplaint(n: number): boolean;
   rotateMemo(): void;
   audit(): void;
   dismissAudit(): void;
@@ -541,6 +544,14 @@ export function createGameStore(deps: StoreDeps) {
   // Office Incidents (src/engine/incidents.ts): memory only, never saved.
   let incidentNext = 0;
   let incidentSeq = 0;
+  // Afterlife Reviews (src/engine/reviews.ts): the score and feed are saved; these timers and counters are memory only.
+  let reviewNext = 0;
+  let reviewSeq = 0;
+  let repClicks = 0;
+  let repDailies = 0;
+  let repFixed = 0;
+  let lastStampMono = 0;
+  let lastStampClicks = 0;
   let autosaves = 0;
   /** The cloud operation in flight, so a second one joins it or queues behind it. */
   let cloudOp: Promise<CloudSyncResult> | null = null;
@@ -894,18 +905,58 @@ export function createGameStore(deps: StoreDeps) {
       if (next !== cur) set({ incidents: next });
     };
 
+    /** Reports a whole-star crossing of the reputation. */
+    const trackTier = (before: number, after: number) => {
+      if (tierOf(before) !== tierOf(after)) track('reputation_tier', { tier: tierOf(after) });
+    };
+
+    /** Every minute or two: moves the reputation toward how the office is run and files a review. */
+    const runReviews = (now: number) => {
+      const s = get().state;
+      if (s.stats.clicks > lastStampClicks) lastStampMono = now;
+      lastStampClicks = s.stats.clicks;
+      if (now < reviewNext) return;
+      reviewNext = now + nextReviewDelay();
+      if (s.onboarding.trainingStep < TRAINING_DONE) return;
+      const rep = s.reputation;
+      const signals = {
+        stamps: Math.max(0, s.stats.clicks - repClicks),
+        dailiesClaimed: Math.max(0, s.stats.dailiesClaimed - repDailies),
+        incidentsFixed: repFixed,
+        incidentsIgnored: get().incidents.filter((i) => now - i.spawnedMono >= IGNORE_GRACE_MS).length,
+        idleMs: now - lastStampMono,
+      };
+      repClicks = s.stats.clicks;
+      repDailies = s.stats.dailiesClaimed;
+      repFixed = 0;
+      const score = stepScore(rep.score, reputationTarget(signals));
+      const review = pickReview(reviewTemplates, s.deptsUnlocked, score, rep.reviews, clock.wall(), ++reviewSeq);
+      const next = review ? addReview({ ...rep, score }, review) : { ...rep, score };
+      set({ state: { ...s, reputation: next } });
+      trackTier(rep.score, score);
+    };
+
     const startTimers = () => {
       get().stopLoop();
       lastMono = clock.mono();
       fires = 0;
       autosaves = 0;
       incidentNext = lastMono + nextSpawnDelay();
+      const rs = get().state;
+      reviewNext = lastMono + nextReviewDelay();
+      reviewSeq = Math.max(reviewSeq, ...rs.reputation.reviews.map((r) => r.n));
+      repClicks = rs.stats.clicks;
+      lastStampClicks = rs.stats.clicks;
+      repDailies = rs.stats.dailiesClaimed;
+      repFixed = 0;
+      lastStampMono = lastMono;
       tickTimer = setInterval(() => {
         const now = clock.mono();
         const dt = Math.min((now - lastMono) / 1000, maxTickSec);
         lastMono = now;
         runIncidents(now);
-        const r = tickWithRates(get().state, content, dt, clock.wall(), forceEvent, incidentFactor(get().incidents, now));
+        runReviews(now);
+        const r = tickWithRates(get().state, content, dt, clock.wall(), forceEvent, incidentFactor(get().incidents, now), reputationMult(get().state.reputation.score));
         fires++;
         if (fires % SETTLE_EVERY_FIRES === 0) {
           apply(r.state);
@@ -1621,7 +1672,17 @@ export function createGameStore(deps: StoreDeps) {
         const pay = incidentReward(rates.soulsPerSec, rates.kcPerSec, s.soulsLifetime);
         apply(unlockDepartments(addSouls(s, pay.souls, pay.kc), content), { incidents: get().incidents.filter((i) => i.id !== id) });
         track('incident_fixed', { kind: inc.kind, age_s: Math.round((clock.mono() - inc.spawnedMono) / 1000) });
+        repFixed++;
         return { done: true, souls: pay.souls };
+      },
+      respondComplaint(n) {
+        const s = get().state;
+        const next = respondTo(s.reputation, n, Math.floor(Math.random() * REPLY_COUNT));
+        if (next === s.reputation) return false;
+        apply({ ...s, reputation: next });
+        track('complaint_responded');
+        trackTier(s.reputation.score, next.score);
+        return true;
       },
       rotateQueue() {
         const dept = findDepartment(content, get().state.activeDept);
