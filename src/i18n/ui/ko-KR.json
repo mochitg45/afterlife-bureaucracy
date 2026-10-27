@@ -680,5 +680,22 @@
  "set.name.brimstone-crew": "유황 팀",
  "set.name.rebirth-desk": "환생 창구",
  "set.name.night-shift": "야간 근무",
- "set.name.old-guard": "올드 가드"
+ "set.name.old-guard": "올드 가드",
+ "postcard.title": "환생한 영혼들의 엽서",
+ "postcard.mailbox": "우편함",
+ "postcard.mailboxWaiting": "우편함, {n}장 대기 중",
+ "postcard.postmark": "환생",
+ "postcard.from": "보낸 사람: {name}",
+ "postcard.rarity.common": "일반",
+ "postcard.rarity.uncommon": "고급",
+ "postcard.rarity.rare": "희귀",
+ "postcard.progress": "{have}/{total} 수집",
+ "postcard.nextReward": "다음 보상은 {n}장: 바우처 {v}개",
+ "postcard.open": "다음 엽서 열기 ({n}장 대기 중)",
+ "postcard.none": "우편함이 비었어요. 영혼들은 몇 시간마다 소식을 보내요.",
+ "postcard.gift": "봉투 안에 영혼 +{souls}이 들어 있었어요.",
+ "postcard.milestone": "앨범 마일스톤! 신청 바우처 +{v}.",
+ "postcard.view": "{name}의 엽서 보기",
+ "postcard.hidden": "아직 받지 못했어요",
+ "postcard.close": "닫기"
 }

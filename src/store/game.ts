@@ -35,6 +35,8 @@ import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { requestReview, shouldAskForReview, reviewAllowed } from '../platform/review';
 import { useTestAds } from '../platform/adUnits';
 import { track } from '../platform/analytics';
+import { mailPostcards, mailPostcardAfterAudit, openPostcard as openPostcardEngine, postcardSouls } from '../engine/postcards';
+import { grantVouchersExact } from '../engine/vouchers';
 import { pickReferral, referralLink, type Referral } from '../platform/referral';
 import { t } from '../i18n';
 import { pickSharer, INVITE_PITCH, type Sharer } from '../platform/share';
@@ -343,6 +345,8 @@ export interface GameStore {
   claimEventTier(index: number): void;
   claimEventMission(id: EventMissionId): void;
   claimLogin(): void;
+  /** Opens the oldest waiting postcard, paying its souls and any album milestone; returns its id, or null when the mailbox is empty. */
+  openPostcard(): string | null;
   claimBeginner(day: number): void;
   /** A claimed voucher or seal tier, shown until dismissed (card tiers reuse `pendingPull`). */
   pendingPrize: Exclude<EventPrize, { kind: 'card' }> | null;
@@ -680,7 +684,8 @@ export function createGameStore(deps: StoreDeps) {
       // demand, so the rollover stays frozen until the clock looks honest again.
       const rolled = allow ? rollover(next, content, wall, { unionActive: member, adsReady: get().adsReady }) : next;
       // A membership claims finished paperwork for you; without one the player claims it.
-      const claimed = member ? autoClaimDailies(rolled) : rolled;
+      // Postcards ride the same trust gate as the rollover: a doubtful clock mints no mail.
+      const claimed = mailPostcards(member ? autoClaimDailies(rolled) : rolled, wall, allow);
       const a = checkAchievements(claimed, content);
       const st = checkStory(a.state, content);
       const rates = computeRates(st.state, content, clock.wall());
@@ -1516,6 +1521,22 @@ export function createGameStore(deps: StoreDeps) {
         sfx('achievement');
         void get().save();
       },
+      openPostcard() {
+        const s = get().state;
+        const r = openPostcardEngine(s.postcards);
+        if (!r) return null;
+        let next: GameState = { ...s, postcards: r.state };
+        next = addSouls(next, postcardSouls(get().rates.soulsPerSec, s.soulsLifetime), new Decimal(0));
+        for (const m of r.milestones) {
+          next = grantVouchersExact(next, m.vouchers);
+          track('album_milestone', { cards: m.at });
+        }
+        apply(next);
+        track('postcard_open', { card: r.id, is_new: r.isNew ? 1 : 0, album: r.state.collected.length });
+        sfx('achievement');
+        void get().save();
+        return r.id;
+      },
       claimBeginner(day) {
         const r = claimBeginnerEngine(get().state, content, day);
         if (!r.reward) return;
@@ -1605,7 +1626,7 @@ export function createGameStore(deps: StoreDeps) {
         // Through `apply`, like every other write: filing the audit is what satisfies the
         // "file N audits" achievement and the story beats keyed to the fiscal year, so they
         // have to unlock in this same call rather than waiting for the next tick to notice.
-        apply(r.state, {
+        apply(get().clockSuspect ? r.state : mailPostcardAfterAudit(r.state, clock.wall()), {
           lastAudit: { sealsGained: r.sealsGained, fiscalYear: r.fiscalYear },
           queueLine: pick(dept.queue, ''),
           memoLine: pick(memoPool(dept, r.state.fiscalYear, r.state.storySeen), ''),

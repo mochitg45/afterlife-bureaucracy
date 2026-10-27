@@ -1,0 +1,298 @@
+[
+ {
+  "id": "p-c01",
+  "rarity": "common",
+  "name": "Bartholomew Vance",
+  "title": "now a golden retriever in Ohio",
+  "text": "Appeal upheld. I have been called a good boy four times today. Please never audit this."
+ },
+ {
+  "id": "p-c02",
+  "rarity": "common",
+  "name": "Ines R.",
+  "title": "now a maple tree in Vermont",
+  "text": "Very quiet here. A woodpecker rents a room in me. I allowed it."
+ },
+ {
+  "id": "p-c03",
+  "rarity": "uncommon",
+  "name": "Captain Reyes",
+  "title": "now a harbor pilot in Lisbon",
+  "text": "Same crew, new ocean, zero icebergs. I check the water for ice anyway. Old habits."
+ },
+ {
+  "id": "p-c04",
+  "rarity": "common",
+  "name": "Soul #70070",
+  "title": "now living in a one-story bungalow",
+  "text": "Fewer stairs, as requested. Zero stairs, actually. I stood in the hallway and cried a little."
+ },
+ {
+  "id": "p-c05",
+  "rarity": "common",
+  "name": "Soul #24680",
+  "title": "now a baker’s apprentice in Lyon",
+  "text": "The bread is excellent. I may be the bread now. Hard to say, I am very warm."
+ },
+ {
+  "id": "p-c06",
+  "rarity": "uncommon",
+  "name": "Old Man Hutchins",
+  "title": "now a tortoise on a very slow island",
+  "text": "Still holding the grudge. Should be finished with it in about ninety years."
+ },
+ {
+  "id": "p-c07",
+  "rarity": "common",
+  "name": "Soul #33333",
+  "title": "now a cat in Osaka",
+  "text": "Received your welcome letter. Sat on it. Regards."
+ },
+ {
+  "id": "p-c08",
+  "rarity": "common",
+  "name": "Dr. Lindqvist",
+  "title": "now a lighthouse keeper in Maine",
+  "text": "Process reviewed. Reviewer Two was me. Reviewer Two was wrong."
+ },
+ {
+  "id": "p-c09",
+  "rarity": "common",
+  "name": "Priya M.",
+  "title": "now a librarian in Pune",
+  "text": "I got the quiet part again. Someone coughed. I forgave them. Growth."
+ },
+ {
+  "id": "p-c10",
+  "rarity": "uncommon",
+  "name": "Soul #45454",
+  "title": "now four years old, and in a hurry",
+  "text": "They say you cannot skip this part. I am watching a cartoon about trucks. I have notes."
+ },
+ {
+  "id": "p-c11",
+  "rarity": "common",
+  "name": "Soul #56565",
+  "title": "now a travel agent in Perth",
+  "text": "Karma did not carry over. My unused leave did. I am on a beach. Do not call."
+ },
+ {
+  "id": "p-c12",
+  "rarity": "rare",
+  "art": "grandma-liu",
+  "name": "Grandma Liu",
+  "title": "now the neighbor next door to her grandson",
+  "text": "I watch him from the porch. He eats well. He does not call. Please fix this."
+ },
+ {
+  "id": "p-c13",
+  "rarity": "common",
+  "name": "Soul #78787",
+  "title": "now a sommelier in Napa",
+  "text": "You surprised me! I listed forty conditions and you met thirty-nine. The last one was a view. Fair."
+ },
+ {
+  "id": "p-c14",
+  "rarity": "rare",
+  "name": "Marcus D.",
+  "title": "now a lake in Minnesota",
+  "text": "Less thinking, as ordered. Only ripples. Absolute bliss. Do not send follow-up questions."
+ },
+ {
+  "id": "p-c15",
+  "rarity": "common",
+  "name": "Soul #61234",
+  "title": "now a cactus farmer in Arizona",
+  "text": "No hoses. We use a bucket. The bucket and I have an understanding."
+ },
+ {
+  "id": "p-c16",
+  "rarity": "common",
+  "name": "Mr. Alderman",
+  "title": "now a tea-sandwich chef in Bath",
+  "text": "Small bites, as requested. Everyone is proud of me. The sandwiches are the size of a stamp."
+ },
+ {
+  "id": "p-c17",
+  "rarity": "common",
+  "name": "Soul #40871",
+  "title": "now a couch designer in Milan",
+  "text": "Better couches. Nothing lives behind them. The remote is in my hand, where it belongs."
+ },
+ {
+  "id": "p-c18",
+  "rarity": "rare",
+  "name": "Ms. Byakov",
+  "title": "now a shopping cart in Tulsa",
+  "text": "Wheel number three squeaks. I roll where I want. Nobody has told me otherwise."
+ },
+ {
+  "id": "p-c19",
+  "rarity": "common",
+  "name": "Soul #71029",
+  "title": "now a beekeeper in Slovenia",
+  "text": "Allergic to nothing. The bees have noticed. They respect it."
+ },
+ {
+  "id": "p-c20",
+  "rarity": "uncommon",
+  "name": "Mr. Calloway",
+  "title": "now a finished bookshelf in Malmö",
+  "text": "Arrived pre-assembled. A man keeps trying to take me apart. I said no."
+ },
+ {
+  "id": "p-c21",
+  "rarity": "common",
+  "name": "Soul #90234",
+  "title": "now a figure skater in Calgary",
+  "text": "Much better traction. I fell once. On purpose. The crowd loved it."
+ },
+ {
+  "id": "p-c22",
+  "rarity": "common",
+  "name": "Ms. Devries",
+  "title": "now a copy editor in Dublin",
+  "text": "I spell perfectly now. I have never been so angry about a comma."
+ },
+ {
+  "id": "p-c23",
+  "rarity": "uncommon",
+  "name": "Soul #55671",
+  "title": "now a sloth caretaker in Costa Rica",
+  "text": "A slower life, as requested. I am typing this postcard from last Tuesday."
+ },
+ {
+  "id": "p-c24",
+  "rarity": "common",
+  "name": "Mr. Godoy",
+  "title": "now a park ranger in Oregon",
+  "text": "Very cautious now. I test every hammock before anyone sits. I weigh nothing. The test is unclear."
+ },
+ {
+  "id": "p-c25",
+  "rarity": "common",
+  "name": "Soul #12456",
+  "title": "now a sneaker designer in Portland",
+  "text": "It is all Velcro. Rrrrip. Every morning. I have never been happier."
+ },
+ {
+  "id": "p-c26",
+  "rarity": "uncommon",
+  "name": "Ms. Halversen",
+  "title": "now the vending machine technician in Leeds",
+  "text": "I won this time. The machine knows. We do not speak of it. Snacks for everyone."
+ },
+ {
+  "id": "p-c27",
+  "rarity": "common",
+  "name": "Soul #78341",
+  "title": "now a very confident toddler in Austin",
+  "text": "Training wheels forever. I am the fastest person on my street. Do not tell the dog."
+ },
+ {
+  "id": "p-c28",
+  "rarity": "common",
+  "name": "Ms. Jarocki",
+  "title": "now a ground marshal at Warsaw airport",
+  "text": "Spatial sense: excellent. I park airplanes. Nobody has complained. Not yet."
+ },
+ {
+  "id": "p-c29",
+  "rarity": "common",
+  "name": "Soul #45671",
+  "title": "now a cashier in a store with no machines",
+  "text": "A human scanned my banana. We locked eyes. It was beautiful."
+ },
+ {
+  "id": "p-c30",
+  "rarity": "uncommon",
+  "name": "Mr. Kowalenko",
+  "title": "now a pastry chef in Krakow",
+  "text": "Two cakes, every day. I eat one. I admire the other. That is balance."
+ },
+ {
+  "id": "p-c31",
+  "rarity": "common",
+  "name": "Ms. Lindqvist",
+  "title": "now an architect in Helsinki",
+  "text": "A life without ladders. I design only ramps. The neighbors adore us."
+ },
+ {
+  "id": "p-c32",
+  "rarity": "uncommon",
+  "name": "Soul #33019",
+  "title": "now a cactus, a very loved cactus",
+  "text": "Someone waters me every other week. Perfect. I am thriving and slightly smug."
+ },
+ {
+  "id": "p-c33",
+  "rarity": "uncommon",
+  "name": "Midnight the black cat",
+  "title": "now a barn cat with nine lives, one already used",
+  "text": "Nine more lives, starting now. Used one already. I should not have tested the stove."
+ },
+ {
+  "id": "p-c34",
+  "rarity": "common",
+  "name": "Ollie the corgi",
+  "title": "now a corgi with longer legs, supposedly",
+  "text": "Caught the mail van. Now what? I do not know. Barking at it to be safe."
+ },
+ {
+  "id": "p-c35",
+  "rarity": "uncommon",
+  "name": "Sheldon the turtle",
+  "title": "now a hare in Wyoming",
+  "text": "Fast. So fast. I forgot I was famous for the other thing."
+ },
+ {
+  "id": "p-c36",
+  "rarity": "common",
+  "name": "Chorizo the dachshund",
+  "title": "now living in a shipping container in Rotterdam",
+  "text": "Bigger box, as requested. Considering a warehouse next. Do not rush me."
+ },
+ {
+  "id": "p-c37",
+  "rarity": "rare",
+  "name": "Coco the poodle",
+  "title": "now a throw pillow in Brooklyn",
+  "text": "I am the lap now. Someone naps on me every afternoon. A fair trade."
+ },
+ {
+  "id": "p-c38",
+  "rarity": "common",
+  "name": "Ziggy the ferret",
+  "title": "now a ferret with fewer socks and more naps",
+  "text": "I have a tiny hammock and a tiny pillow. I am doing extremely well."
+ },
+ {
+  "id": "p-c39",
+  "rarity": "rare",
+  "art": "bodhisattva",
+  "name": "The Bodhisattva",
+  "title": "now on a very long, very quiet vacation",
+  "text": "I left for the pension. Then I came back for the pension. The cycle continues. Please water the plant."
+ },
+ {
+  "id": "p-c40",
+  "rarity": "common",
+  "name": "Soul #19191",
+  "title": "now living the same life, with different numbers",
+  "text": "Same life, same ticket shop. The numbers lost again. Honestly? Charming."
+ },
+ {
+  "id": "p-c41",
+  "rarity": "common",
+  "name": "Soul #67676",
+  "title": "now six foot four, in Sacramento",
+  "text": "I am tall. Everything is on the top shelf, which is where I live now. Nobody asked me."
+ },
+ {
+  "id": "p-c42",
+  "rarity": "uncommon",
+  "name": "The Bodhisattva’s nephew",
+  "title": "now an intern in Zurich",
+  "text": "No discount applied. Uncle says hello. Uncle also says no."
+ }
+]

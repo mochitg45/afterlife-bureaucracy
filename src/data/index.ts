@@ -17,6 +17,7 @@ import story from './story.json';
 import clauses from './cosmic.json';
 import onboarding from './onboarding.json';
 import sets from './sets.json';
+import postcardsJson from './postcards.json';
 
 /** Game-data text in the active language (English files are returned untouched). */
 const tr = <T,>(rel: string, json: T): T => {
@@ -38,3 +39,6 @@ export const content = loadContent(
     sets,
   },
 );
+
+/** Postcards from Reborn Souls, in the active language (the schedule lives in engine/postcards.ts). */
+export const postcards = tr('postcards', postcardsJson) as Array<{ id: string; rarity: string; art?: string; name: string; title: string; text: string }>;

@@ -14,6 +14,7 @@ import { useWatchAd } from '../hooks/useWatchAd';
 import { fmtLeft } from '../format';
 import { EventBanner } from './EventScreen';
 import { StampRushEntry } from '../overlays/StampRush';
+import { MailboxEntry } from '../components/Postcards';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
 import { t } from '../../i18n';
 
@@ -110,6 +111,7 @@ export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?:
       <StampButton />
       <OvertimeBoost />
       <StampRushEntry />
+      <MailboxEntry />
       <div className="section-head">
         <h3>{t('office.staff')}</h3>
         <div className="mode-switch" role="group" aria-label={t('office.buyAmountAria')} data-coach="buy-mode">

@@ -680,5 +680,22 @@
  "set.name.brimstone-crew": "ทีมกำมะถัน",
  "set.name.rebirth-desk": "เคาน์เตอร์เกิดใหม่",
  "set.name.night-shift": "กะดึก",
- "set.name.old-guard": "ทีมเก๋า"
+ "set.name.old-guard": "ทีมเก๋า",
+ "postcard.title": "โปสการ์ดจากวิญญาณที่เกิดใหม่",
+ "postcard.mailbox": "ตู้จดหมาย",
+ "postcard.mailboxWaiting": "ตู้จดหมาย มี {n} ใบรออยู่",
+ "postcard.postmark": "เกิดใหม่",
+ "postcard.from": "จาก: {name}",
+ "postcard.rarity.common": "ทั่วไป",
+ "postcard.rarity.uncommon": "หายาก",
+ "postcard.rarity.rare": "หายากมาก",
+ "postcard.progress": "สะสมแล้ว {have}/{total}",
+ "postcard.nextReward": "รางวัลถัดไปที่ {n} ใบ: บัตรกำนัล {v} ใบ",
+ "postcard.open": "เปิดโปสการ์ดใบถัดไป (รออยู่ {n} ใบ)",
+ "postcard.none": "ตู้จดหมายว่าง วิญญาณเขียนส่งข่าวมาทุกไม่กี่ชั่วโมง",
+ "postcard.gift": "มีวิญญาณ +{souls} ซ่อนอยู่ในซอง",
+ "postcard.milestone": "ถึงเป้าหมายอัลบั้ม! บัตรกำนัลใบขอเบิก +{v}",
+ "postcard.view": "ดูโปสการ์ดจาก {name}",
+ "postcard.hidden": "ยังไม่ได้รับ",
+ "postcard.close": "ปิด"
 }

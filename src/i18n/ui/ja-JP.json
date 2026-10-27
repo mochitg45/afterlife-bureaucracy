@@ -680,5 +680,22 @@
  "set.name.brimstone-crew": "硫黄クルー",
  "set.name.rebirth-desk": "転生窓口",
  "set.name.night-shift": "夜勤",
- "set.name.old-guard": "古参組"
+ "set.name.old-guard": "古参組",
+ "postcard.title": "転生した魂からの絵はがき",
+ "postcard.mailbox": "郵便受け",
+ "postcard.mailboxWaiting": "郵便受け、{n}通が待機中",
+ "postcard.postmark": "転生",
+ "postcard.from": "差出人：{name}",
+ "postcard.rarity.common": "コモン",
+ "postcard.rarity.uncommon": "アンコモン",
+ "postcard.rarity.rare": "レア",
+ "postcard.progress": "{have}/{total} 収集済み",
+ "postcard.nextReward": "次の報酬は{n}枚で：バウチャー{v}枚",
+ "postcard.open": "次の絵はがきを開く（{n}通待機中）",
+ "postcard.none": "郵便受けは空です。魂たちは数時間おきに便りを送ります。",
+ "postcard.gift": "封筒に魂が+{souls}入っていました。",
+ "postcard.milestone": "アルバムの節目です！申請バウチャー+{v}。",
+ "postcard.view": "{name}からの絵はがきを見る",
+ "postcard.hidden": "まだ届いていません",
+ "postcard.close": "閉じる"
 }

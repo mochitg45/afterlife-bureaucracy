@@ -680,5 +680,22 @@
  "set.name.brimstone-crew": "Cuadrilla de Azufre",
  "set.name.rebirth-desk": "Ventanilla de Renacimiento",
  "set.name.night-shift": "Turno de Noche",
- "set.name.old-guard": "Vieja Guardia"
+ "set.name.old-guard": "Vieja Guardia",
+ "postcard.title": "Postales de almas renacidas",
+ "postcard.mailbox": "Buzón",
+ "postcard.mailboxWaiting": "Buzón, {n} esperando",
+ "postcard.postmark": "RENACIDO",
+ "postcard.from": "De: {name}",
+ "postcard.rarity.common": "Común",
+ "postcard.rarity.uncommon": "Poco común",
+ "postcard.rarity.rare": "Rara",
+ "postcard.progress": "{have}/{total} coleccionadas",
+ "postcard.nextReward": "Próxima recompensa con {n} tarjetas: {v} vales",
+ "postcard.open": "Abrir la siguiente postal ({n} esperando)",
+ "postcard.none": "Buzón vacío. Las almas escriben a casa cada pocas horas.",
+ "postcard.gift": "+{souls} almas dentro del sobre.",
+ "postcard.milestone": "¡Hito del álbum! +{v} vales de requisición.",
+ "postcard.view": "Ver la postal de {name}",
+ "postcard.hidden": "Aún no recibida",
+ "postcard.close": "Cerrar"
 }

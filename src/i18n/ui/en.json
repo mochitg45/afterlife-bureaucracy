@@ -680,5 +680,22 @@
  "set.name.brimstone-crew": "Brimstone Crew",
  "set.name.rebirth-desk": "Rebirth Desk",
  "set.name.night-shift": "Night Shift",
- "set.name.old-guard": "Old Guard"
+ "set.name.old-guard": "Old Guard",
+ "postcard.title": "Postcards from Reborn Souls",
+ "postcard.mailbox": "Mailbox",
+ "postcard.mailboxWaiting": "Mailbox, {n} waiting",
+ "postcard.postmark": "REBORN",
+ "postcard.from": "From: {name}",
+ "postcard.rarity.common": "Common",
+ "postcard.rarity.uncommon": "Uncommon",
+ "postcard.rarity.rare": "Rare",
+ "postcard.progress": "{have}/{total} collected",
+ "postcard.nextReward": "Next reward at {n} cards: {v} vouchers",
+ "postcard.open": "Open next postcard ({n} waiting)",
+ "postcard.none": "Mailbox empty. Souls write home every few hours.",
+ "postcard.gift": "+{souls} souls tucked in the envelope.",
+ "postcard.milestone": "Album milestone! +{v} Requisition Vouchers.",
+ "postcard.view": "View postcard from {name}",
+ "postcard.hidden": "Not yet received",
+ "postcard.close": "Close"
 }
