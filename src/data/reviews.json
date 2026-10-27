@@ -1,0 +1,546 @@
+[
+ {
+  "id": "rv-any-coffee",
+  "stars": 4,
+  "who": "Gordon M.",
+  "handle": "@decaf_ghost",
+  "dept": "any",
+  "text": "The coffee has no bottom. I respect that."
+ },
+ {
+  "id": "rv-any-form",
+  "stars": 2,
+  "who": "Priya N.",
+  "handle": "@form27b",
+  "dept": "any",
+  "text": "Needed Form 27-B to file for Form 27-B."
+ },
+ {
+  "id": "rv-any-music",
+  "stars": 3,
+  "who": "Walt R.",
+  "handle": "@hold_tune_walt",
+  "dept": "any",
+  "text": "Hold music is one flute, forever. Honestly a vibe."
+ },
+ {
+  "id": "rv-any-stamp",
+  "stars": 5,
+  "who": "Mabel T.",
+  "handle": "@stampfan1",
+  "dept": "any",
+  "text": "My soul was stamped so gently. Would be processed again."
+ },
+ {
+  "id": "rv-any-lights",
+  "stars": 2,
+  "who": "Dev K.",
+  "handle": "@flicker_dev",
+  "dept": "any",
+  "text": "Lights flicker whenever I think about my life choices."
+ },
+ {
+  "id": "rv-any-wait",
+  "stars": 1,
+  "who": "Stan O.",
+  "handle": "@still_waiting",
+  "dept": "any",
+  "text": "Waited so long my review is also late. Sorry."
+ },
+ {
+  "id": "rv-any-clip",
+  "stars": 4,
+  "who": "Rosa L.",
+  "handle": "@paperclip_rosa",
+  "dept": "any",
+  "text": "Staff gave me a free paperclip. Best day since the funeral."
+ },
+ {
+  "id": "rv-any-printer",
+  "stars": 1,
+  "who": "Ned B.",
+  "handle": "@printer_haunt",
+  "dept": "any",
+  "text": "The printer jammed on my own obituary. Rude."
+ },
+ {
+  "id": "rv-any-friendly",
+  "stars": 5,
+  "who": "Ingrid S.",
+  "handle": "@kindly_ingrid",
+  "dept": "any",
+  "text": "Everyone smiled. Nobody had a face, but they smiled."
+ },
+ {
+  "id": "rv-any-clipboard",
+  "stars": 3,
+  "who": "Chuck H.",
+  "handle": "@clip_chuck",
+  "dept": "any",
+  "text": "Clipboards everywhere. No pens. Classic."
+ },
+ {
+  "id": "rv-any-queue",
+  "stars": 2,
+  "who": "Lena F.",
+  "handle": "@line_lena",
+  "dept": "any",
+  "text": "The queue has a queue. I'm in the second one."
+ },
+ {
+  "id": "rv-any-plant",
+  "stars": 5,
+  "who": "Oswin P.",
+  "handle": "@fern_friend",
+  "dept": "any",
+  "text": "The office fern is thriving. Unlike me. Five stars."
+ },
+ {
+  "id": "rv-any-lost",
+  "stars": 3,
+  "who": "Tomas V.",
+  "handle": "@lost_tom",
+  "dept": "any",
+  "text": "Found my file. It was under 'Misc. Eternity'. Fine."
+ },
+ {
+  "id": "rv-any-bell",
+  "stars": 4,
+  "who": "June A.",
+  "handle": "@ding_june",
+  "dept": "any",
+  "text": "The little bell sound made my whole afterlife."
+ },
+ {
+  "id": "rv-any-reply",
+  "stars": 1,
+  "who": "Phil D.",
+  "handle": "@phil_not_dead",
+  "dept": "any",
+  "text": "I am not dead. Please advise. Also please stop stamping me."
+ },
+ {
+  "id": "rv-any-snack",
+  "stars": 4,
+  "who": "Bea C.",
+  "handle": "@vending_bea",
+  "dept": "any",
+  "text": "Snacks cost one memory each. Fair trade."
+ },
+ {
+  "id": "rv-any-chair",
+  "stars": 2,
+  "who": "Hank J.",
+  "handle": "@wobbly_hank",
+  "dept": "any",
+  "text": "Chair has been wobbling since 1974. So have I."
+ },
+ {
+  "id": "rv-any-memo",
+  "stars": 3,
+  "who": "Cleo W.",
+  "handle": "@memo_cleo",
+  "dept": "any",
+  "text": "Got four memos telling me to ignore the fifth memo."
+ },
+ {
+  "id": "rv-any-staff",
+  "stars": 5,
+  "who": "Arlo Q.",
+  "handle": "@ghost_arlo",
+  "dept": "any",
+  "text": "Staff were very professional, for the dead."
+ },
+ {
+  "id": "rv-any-fine",
+  "stars": 3,
+  "who": "Dot E.",
+  "handle": "@dot_ok",
+  "dept": "any",
+  "text": "It's fine. It's an office. It's forever."
+ },
+ {
+  "id": "rv-any-elevator",
+  "stars": 2,
+  "who": "Kit Z.",
+  "handle": "@lift_kit",
+  "dept": "any",
+  "text": "Elevator music only plays the middle of songs."
+ },
+ {
+  "id": "rv-any-sticky",
+  "stars": 4,
+  "who": "Nina G.",
+  "handle": "@sticky_nina",
+  "dept": "any",
+  "text": "Found a sticky note saying 'You did great.' Not sure who left it."
+ },
+ {
+  "id": "rv-intake-lobby",
+  "stars": 3,
+  "who": "Gus F.",
+  "handle": "@lobby_gus",
+  "dept": "intake",
+  "text": "Lobby chairs are excellent. Wish I had a body to sit in them."
+ },
+ {
+  "id": "rv-intake-number",
+  "stars": 2,
+  "who": "Marge P.",
+  "handle": "@now_serving",
+  "dept": "intake",
+  "text": "Now serving number 4. For the last nine years."
+ },
+ {
+  "id": "rv-intake-ticket",
+  "stars": 4,
+  "who": "Ravi S.",
+  "handle": "@ticket_ravi",
+  "dept": "intake",
+  "text": "Pulled a ticket. It said 'Congratulations.' Unclear why."
+ },
+ {
+  "id": "rv-intake-pen",
+  "stars": 1,
+  "who": "Olga Y.",
+  "handle": "@chained_pen",
+  "dept": "intake",
+  "text": "The pen is chained to the desk. So am I, apparently."
+ },
+ {
+  "id": "rv-intake-welcome",
+  "stars": 5,
+  "who": "Flora B.",
+  "handle": "@fresh_flora",
+  "dept": "intake",
+  "text": "Warm welcome, clear signs, one free biscuit. Dying was worth it."
+ },
+ {
+  "id": "rv-intake-forms",
+  "stars": 2,
+  "who": "Bart N.",
+  "handle": "@bart_boxes",
+  "dept": "intake",
+  "text": "Please tick one box: Alive, Dead, Unsure. I ticked Unsure."
+ },
+ {
+  "id": "rv-intake-greeter",
+  "stars": 4,
+  "who": "Yuki M.",
+  "handle": "@hello_yuki",
+  "dept": "intake",
+  "text": "The greeter said 'Welcome to the end!' with real energy."
+ },
+ {
+  "id": "rv-intake-photo",
+  "stars": 3,
+  "who": "Eli K.",
+  "handle": "@badge_eli",
+  "dept": "intake",
+  "text": "Badge photo made me look alive. Will not be sharing."
+ },
+ {
+  "id": "rv-heaven-harp",
+  "stars": 3,
+  "who": "Cora D.",
+  "handle": "@harp_cora",
+  "dept": "heaven",
+  "text": "Harp music nonstop. Lovely for an hour. It's been a century."
+ },
+ {
+  "id": "rv-heaven-cloud",
+  "stars": 5,
+  "who": "Walter I.",
+  "handle": "@cloud_walter",
+  "dept": "heaven",
+  "text": "Clouds are softer than advertised. Zero complaints."
+ },
+ {
+  "id": "rv-heaven-halo",
+  "stars": 2,
+  "who": "Pia R.",
+  "handle": "@halo_pia",
+  "dept": "heaven",
+  "text": "Halo sizing was a nightmare. Mine slides over one eye."
+ },
+ {
+  "id": "rv-heaven-gate",
+  "stars": 4,
+  "who": "Sol A.",
+  "handle": "@pearly_sol",
+  "dept": "heaven",
+  "text": "Gate is pearly, queue is orderly, clipboard is shiny."
+ },
+ {
+  "id": "rv-heaven-choir",
+  "stars": 1,
+  "who": "Marv T.",
+  "handle": "@offkey_marv",
+  "dept": "heaven",
+  "text": "The temp choir sang 'Happy Birthday' at my arrival. I died in March."
+ },
+ {
+  "id": "rv-heaven-wings",
+  "stars": 4,
+  "who": "Lila H.",
+  "handle": "@wing_lila",
+  "dept": "heaven",
+  "text": "Free wing fitting! Bit drafty but very chic."
+ },
+ {
+  "id": "rv-heaven-petra",
+  "stars": 3,
+  "who": "Dirk L.",
+  "handle": "@keys_dirk",
+  "dept": "heaven",
+  "text": "Petra has the keys but not the list. We waited together. We bonded."
+ },
+ {
+  "id": "rv-heaven-quiet",
+  "stars": 5,
+  "who": "Nora V.",
+  "handle": "@quiet_nora",
+  "dept": "heaven",
+  "text": "So peaceful I forgot what I was worried about. Five stars."
+ },
+ {
+  "id": "rv-hell-heat",
+  "stars": 2,
+  "who": "Jack O.",
+  "handle": "@sweaty_jack",
+  "dept": "hell",
+  "text": "It is a dry heat. Still a heat."
+ },
+ {
+  "id": "rv-hell-lava",
+  "stars": 3,
+  "who": "Rex U.",
+  "handle": "@lava_rex",
+  "dept": "hell",
+  "text": "Lava lamp in the lobby is a nice touch. Also real lava."
+ },
+ {
+  "id": "rv-hell-hr",
+  "stars": 1,
+  "who": "Beth Q.",
+  "handle": "@hr_beth",
+  "dept": "hell",
+  "text": "Their HR department is somehow worse than my last one."
+ },
+ {
+  "id": "rv-hell-pitchfork",
+  "stars": 4,
+  "who": "Mo Z.",
+  "handle": "@fork_mo",
+  "dept": "hell",
+  "text": "Pitchforks are ergonomic now. Management really listens."
+ },
+ {
+  "id": "rv-hell-paperwork",
+  "stars": 2,
+  "who": "Zed F.",
+  "handle": "@zed_forms",
+  "dept": "hell",
+  "text": "Infinite paperwork. At least the paper is warm."
+ },
+ {
+  "id": "rv-hell-demon",
+  "stars": 5,
+  "who": "Gwen S.",
+  "handle": "@demon_gwen",
+  "dept": "hell",
+  "text": "My caseworker was a demon named Brad. Very supportive."
+ },
+ {
+  "id": "rv-hell-ac",
+  "stars": 1,
+  "who": "Lou M.",
+  "handle": "@no_ac_lou",
+  "dept": "hell",
+  "text": "Asked about air conditioning. Everyone laughed. Then I laughed. Then we all sweated."
+ },
+ {
+  "id": "rv-hell-drill",
+  "stars": 3,
+  "who": "Ike P.",
+  "handle": "@drill_ike",
+  "dept": "hell",
+  "text": "Held a fire drill. Everyone just stood there. Reasonable."
+ },
+ {
+  "id": "rv-limbo-vending",
+  "stars": 2,
+  "who": "Ollie T.",
+  "handle": "@coin_ollie",
+  "dept": "limbo",
+  "text": "Waited 300 years in Limbo. The vending machine only takes souls."
+ },
+ {
+  "id": "rv-limbo-fog",
+  "stars": 3,
+  "who": "Fern K.",
+  "handle": "@foggy_fern",
+  "dept": "limbo",
+  "text": "Can't see the desk through the fog, but the fog is friendly."
+ },
+ {
+  "id": "rv-limbo-maybe",
+  "stars": 4,
+  "who": "Pete J.",
+  "handle": "@maybe_pete",
+  "dept": "limbo",
+  "text": "Told me 'maybe' and honestly that was more than I expected."
+ },
+ {
+  "id": "rv-limbo-sign",
+  "stars": 1,
+  "who": "Dana W.",
+  "handle": "@sign_dana",
+  "dept": "limbo",
+  "text": "Sign says 'Next window.' All the windows say 'Next window.'"
+ },
+ {
+  "id": "rv-limbo-clock",
+  "stars": 2,
+  "who": "Hugo X.",
+  "handle": "@clock_hugo",
+  "dept": "limbo",
+  "text": "The clocks all show different times. All of them are 'later'."
+ },
+ {
+  "id": "rv-limbo-bench",
+  "stars": 5,
+  "who": "Sue N.",
+  "handle": "@bench_sue",
+  "dept": "limbo",
+  "text": "Found a bench. Sat. Did nothing for ages. Perfect."
+ },
+ {
+  "id": "rv-limbo-door",
+  "stars": 3,
+  "who": "Abe L.",
+  "handle": "@door_abe",
+  "dept": "limbo",
+  "text": "Door opens inward, outward and sometimes sideways. Mixed feelings."
+ },
+ {
+  "id": "rv-limbo-echo",
+  "stars": 4,
+  "who": "Ivy B.",
+  "handle": "@echo_ivy",
+  "dept": "limbo",
+  "text": "Great acoustics. My complaint echoed back as a compliment."
+ },
+ {
+  "id": "rv-reincarnation-form",
+  "stars": 3,
+  "who": "Sam Y.",
+  "handle": "@rebirth_sam",
+  "dept": "reincarnation",
+  "text": "Asked to come back as a cat. Got 'a similar mammal.' Fine."
+ },
+ {
+  "id": "rv-reincarnation-wheel",
+  "stars": 2,
+  "who": "Tia Q.",
+  "handle": "@wheel_tia",
+  "dept": "reincarnation",
+  "text": "Wheel of rebirth stuck on 'pigeon' for 40 minutes."
+ },
+ {
+  "id": "rv-reincarnation-return",
+  "stars": 5,
+  "who": "Moe G.",
+  "handle": "@moe_again",
+  "dept": "reincarnation",
+  "text": "Returned as a golden retriever. Reviewing from the park. Perfect."
+ },
+ {
+  "id": "rv-reincarnation-debts",
+  "stars": 1,
+  "who": "Vic R.",
+  "handle": "@vic_again",
+  "dept": "reincarnation",
+  "text": "Got my old life back. Same debts. Same landlord."
+ },
+ {
+  "id": "rv-reincarnation-counter",
+  "stars": 4,
+  "who": "Hana B.",
+  "handle": "@hana_next",
+  "dept": "reincarnation",
+  "text": "Counter staff said 'See you next time!' and meant it literally."
+ },
+ {
+  "id": "rv-reincarnation-mixup",
+  "stars": 2,
+  "who": "Lars E.",
+  "handle": "@lars_oops",
+  "dept": "reincarnation",
+  "text": "They mixed up my paperwork. I'm told it's temporary. For a lifetime."
+ },
+ {
+  "id": "rv-reincarnation-juice",
+  "stars": 4,
+  "who": "Kai D.",
+  "handle": "@kai_cycle",
+  "dept": "reincarnation",
+  "text": "Free juice before reincarnation. Tasted like a past life."
+ },
+ {
+  "id": "rv-reincarnation-glow",
+  "stars": 5,
+  "who": "Elsa N.",
+  "handle": "@elsa_glow",
+  "dept": "reincarnation",
+  "text": "Left with a glow and a fresh start. Great service."
+ },
+ {
+  "id": "rv-valhalla-feast",
+  "stars": 5,
+  "who": "Bjorn A.",
+  "handle": "@feast_bjorn",
+  "dept": "valhalla",
+  "text": "The feast never ends. My belt, however, did. Five stars."
+ },
+ {
+  "id": "rv-valhalla-mead",
+  "stars": 4,
+  "who": "Sigrid O.",
+  "handle": "@mead_sigrid",
+  "dept": "valhalla",
+  "text": "Mead was fresh, the bench was wide, the shouting was heartfelt."
+ },
+ {
+  "id": "rv-valhalla-shield",
+  "stars": 3,
+  "who": "Rolf T.",
+  "handle": "@rolf_shield",
+  "dept": "valhalla",
+  "text": "Shield rack was full. Mine was the squeaky one."
+ },
+ {
+  "id": "rv-valhalla-horn",
+  "stars": 2,
+  "who": "Astrid K.",
+  "handle": "@horn_astrid",
+  "dept": "valhalla",
+  "text": "Too many horns blowing. Nobody agrees on what they mean."
+ },
+ {
+  "id": "rv-valhalla-valkyrie",
+  "stars": 5,
+  "who": "Eirik S.",
+  "handle": "@eirik_fly",
+  "dept": "valhalla",
+  "text": "Valkyrie gave me a lift and a clipboard. Class act."
+ },
+ {
+  "id": "rv-valhalla-queue",
+  "stars": 1,
+  "who": "Ulf M.",
+  "handle": "@ulf_wait",
+  "dept": "valhalla",
+  "text": "Wanted glorious battle. Got a glorious waiting list."
+ }
+]

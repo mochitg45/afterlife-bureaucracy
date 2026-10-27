@@ -17,6 +17,8 @@ import story from './story.json';
 import clauses from './cosmic.json';
 import onboarding from './onboarding.json';
 import sets from './sets.json';
+import reviews from './reviews.json';
+import type { ReviewTemplate } from '../engine/reviews';
 
 /** Game-data text in the active language (English files are returned untouched). */
 const tr = <T,>(rel: string, json: T): T => {
@@ -38,3 +40,6 @@ export const content = loadContent(
     sets,
   },
 );
+
+/** Afterlife Reviews templates (src/engine/reviews.ts) in the active language. */
+export const reviewTemplates = tr('reviews', reviews) as ReviewTemplate[];

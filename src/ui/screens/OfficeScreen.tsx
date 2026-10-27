@@ -14,6 +14,7 @@ import { useWatchAd } from '../hooks/useWatchAd';
 import { fmtLeft } from '../format';
 import { EventBanner } from './EventScreen';
 import { StampRushEntry } from '../overlays/StampRush';
+import { ReputationChip } from '../components/ReputationChip';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
 import { t } from '../../i18n';
 
@@ -106,6 +107,7 @@ export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?:
       <DeptChips />
       <h2 className="dept-title">{t('office.deptTitle', { name: dept.name })}</h2>
       <NextGoal onGoTo={onGoTo} />
+      <ReputationChip />
       <QueueCard />
       <StampButton />
       <OvertimeBoost />

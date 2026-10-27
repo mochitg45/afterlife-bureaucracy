@@ -34,8 +34,8 @@ export function unlockDepartments(state: GameState, content: Content): GameState
 
 export interface TickResult { state: GameState; rates: Rates }
 
-export function tickWithRates(state: GameState, content: Content, dtSec: number, nowWall: number, forceEvent?: string | null, officeFactor = 1): TickResult {
-  const rates = computeRates(state, content, nowWall, officeFactor);
+export function tickWithRates(state: GameState, content: Content, dtSec: number, nowWall: number, forceEvent?: string | null, officeFactor = 1, reputation = 1): TickResult {
+  const rates = computeRates(state, content, nowWall, officeFactor, reputation);
   if (!(dtSec > 0)) return { state: unlockDepartments(state, content), rates };
   // The event accrues even in an office with no staff: its own staff pay for it.
   const earned = rates.soulsPerSec.eq(0) ? state : addSouls(state, rates.soulsPerSec.mul(dtSec), rates.kcPerSec.mul(dtSec));

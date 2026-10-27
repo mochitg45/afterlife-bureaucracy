@@ -459,6 +459,7 @@ describe('exhaustive save round-trip', () => {
       review: { asks: 1, lastWall: 1_700_000_100_000 },
       offers: { seen: ['starter', 'pass:halloween-2026'], lastDate: '2026-10-15' },
       alliance: { week: 2963, claimed: [0, 2] },
+      reputation: { score: 4.2, reviews: [{ n: 7, id: 'rv-limbo-vending', wall: 1_700_000_300_000, complaint: true, reply: 2 }, { n: 6, id: 'rv-any-coffee', wall: 1_700_000_200_000 }] },
       rush: { rounds: 2, cooldownUntil: 1_700_001_200_000 },
       referral: { shareRewarded: true, claimedTiers: [3, 10], joinChecked: true, joined: true, qualified: true },
     };

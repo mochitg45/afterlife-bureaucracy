@@ -108,14 +108,15 @@ export function deptMult(state: GameState, content: Content, dept: DepartmentDef
   return mult.mul(perkDeptMult(state, content, dept.id)).mul(cardDeptMult(state, content, dept.id)).mul(setBonusMult(state, content, 'souls', dept.id));
 }
 
-/** `officeFactor` is the live Office Incident penalty (<= 1); only the store's tick passes it, so offline pay never sees it. */
-export function globalMult(state: GameState, content: Content, nowWall: number, officeFactor = 1): Decimal {
+/** `reputation` is the Afterlife Reviews bonus (>= 1, see reviews.ts); like `officeFactor` only the live tick passes it. `officeFactor` is the live Office Incident penalty (<= 1); only the store's tick passes it, so offline pay never sees it. */
+export function globalMult(state: GameState, content: Content, nowWall: number, officeFactor = 1, reputation = 1): Decimal {
   // Seals sunk into perk levels keep paying the bonus: upgrading must never cost output.
   const sealBonus = 1 + 0.02 * (state.seals + state.sealsInvested);
   const boost = state.boostUntilWall > nowWall ? 2 : 1;
   return new Decimal(sealBonus)
     .mul(boost)
     .mul(officeFactor)
+    .mul(reputation)
     .mul(perkGlobalMult(state, content))
     .mul(cardGlobalMult(state, content))
     .mul(achievementMult(state))
@@ -131,8 +132,8 @@ export interface Rates {
   byStaff: Record<string, Decimal>;
 }
 
-export function computeRates(state: GameState, content: Content, nowWall: number, officeFactor = 1): Rates {
-  const g = globalMult(state, content, nowWall, officeFactor);
+export function computeRates(state: GameState, content: Content, nowWall: number, officeFactor = 1, reputation = 1): Rates {
+  const g = globalMult(state, content, nowWall, officeFactor, reputation);
   let souls = new Decimal(0);
   const byStaff: Record<string, Decimal> = {};
   for (const dept of content.departments) {

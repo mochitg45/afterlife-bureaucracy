@@ -8,6 +8,7 @@ import type { CloudSyncResult } from './cloudSync';
 import { REFERRAL_TIERS } from './referral';
 import { sanitizeAlliance } from './alliance';
 import { premiumDef } from './premium';
+import { initialReputation, sanitizeReputation, type Reputation } from './reviews';
 
 export { SAVE_VERSION, RESET_EPOCH };
 
@@ -250,6 +251,8 @@ export interface GameState {
   offers: { seen: string[]; lastDate: string };
   /** Office Alliance tiers already paid (indexes into ALLIANCE_TIERS) for `week`; see engine/alliance.ts. */
   alliance: { week: number; claimed: number[] };
+  /** Afterlife Reviews: smoothed 1-5 reputation and the recent feed; see engine/reviews.ts. */
+  reputation: Reputation;
 }
 
 export interface Now { wall: number; mono: number }
@@ -329,6 +332,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     review: { asks: 0, lastWall: 0 },
     offers: { seen: [], lastDate: '' },
     alliance: { week: 0, claimed: [] },
+    reputation: initialReputation(),
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
 }
@@ -784,6 +788,7 @@ export function deserialize(json: string, content: Content): GameState {
     milestones: sanitizeMilestones(raw.milestones),
     offers: sanitizeOffers(raw.offers),
     alliance: sanitizeAlliance(raw.alliance),
+    reputation: sanitizeReputation(raw.reputation),
     review: (() => {
       const r = raw.review && typeof raw.review === 'object' && !Array.isArray(raw.review) ? (raw.review as Record<string, unknown>) : {};
       return { asks: Math.max(0, Math.floor(num(r.asks, 0))), lastWall: Math.max(0, num(r.lastWall, 0)) };

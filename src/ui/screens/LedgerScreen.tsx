@@ -12,6 +12,7 @@ import { PerkTree } from '../components/PerkTree';
 import { CosmicPanel } from '../components/CosmicPanel';
 import { BoardSheet } from '../components/BoardSheet';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { ReputationChip } from '../components/ReputationChip';
 import { t } from '../../i18n';
 
 /**
@@ -121,6 +122,7 @@ export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
         <div><div className="label">{t('ledger.fiscalYear')}</div><div className="mono value">{year}</div></div>
       </header>
       <LeaderboardButton />
+      <ReputationChip />
       <AuditCard />
       <div className="section-head"><h3>{t('ledger.perkLedger')}</h3><span className="sub">{t('ledger.perkHint')}</span></div>
       <PerkTree />
