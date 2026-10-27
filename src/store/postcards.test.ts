@@ -30,10 +30,10 @@ describe('openPostcard', () => {
     expect(store.getState().openPostcard()).toBe(ids[9]);
     const s = store.getState().state;
     expect(s.postcards.collected).toHaveLength(10);
-    expect(s.vouchers).toBe(v0 + 1);
+    expect(s.vouchers).toBe(v0 + 2);
     expect(s.soulsRun.sub(run0).toNumber()).toBeGreaterThanOrEqual(12_000);
     expect(store.getState().openPostcard()).toBe(ids[10]);
-    expect(store.getState().state.vouchers).toBe(v0 + 1);
+    expect(store.getState().state.vouchers).toBe(v0 + 2);
   });
 
   it('mints no mail while Reincarnation is closed; once open it schedules, then delivers one card', () => {
