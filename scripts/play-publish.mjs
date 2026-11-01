@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: "New: Case of the Day! Rule on one soul each day (Heaven, Hell or Reincarnation) and see how other players ruled. Reincarnated souls now mail you postcards from their new lives to collect. And the dead review your office: keep your stars high for a bonus and answer complaints with official bureaucracy." },
+  { language: 'en-US', text: "A fresh new look! Stamp Rush, Case of the Day, Postcards, the Ledger, Audit, Cosmic Restructuring and Personnel are all redesigned. Every case soul now has a portrait, and all 42 postcards have their own picture." },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
