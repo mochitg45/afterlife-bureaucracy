@@ -1,1 +1,135 @@
+/* Personnel: the HR corkboard room. Background art + soft wash so the paper stays readable. */
+.screen.personnel {
+  background:
+    linear-gradient(180deg, rgb(237 231 212 / .55), rgb(237 231 212 / .8) 45%, rgb(237 231 212 / .88)),
+    var(--personnel-bg) center top / cover no-repeat fixed;
+  overflow-x: hidden;
+}
+.personnel .screen-header h2 { text-shadow: 0 1px 0 rgb(255 255 255 / .6); }
 
+/* ---- Requisition Window: the big framed counter ---- */
+.req-window {
+  position: relative; margin: 6px 0 14px; padding: 30px 14px 14px; border-radius: 14px;
+  background: linear-gradient(180deg, var(--surface), var(--paper));
+  border: 4px solid var(--wood); box-shadow: 0 0 0 2px var(--cork-dark), 0 6px 0 rgb(42 38 32 / .25), inset 0 0 0 2px var(--line);
+}
+.req-sign {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%) rotate(-1.5deg); max-width: 88%;
+  padding: 3px 14px; background: #FBF6E6; color: var(--ink); border: 2px solid var(--ink); border-radius: 4px;
+  font-family: var(--font-display); font-size: 13px; letter-spacing: .06em; white-space: nowrap; box-shadow: 0 2px 0 rgb(42 38 32 / .3);
+}
+.req-sign::before { content: ''; position: absolute; top: -5px; left: 50%; width: 9px; height: 9px; margin-left: -5px; border-radius: 50%; background: var(--pin-0); border: 1.5px solid var(--ink); }
+.req-balance {
+  position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px auto 14px;
+  width: fit-content; min-width: 160px; padding: 8px 24px; font-size: 34px; font-weight: 700; color: var(--ink);
+}
+/* The balance is a ticket stack: a front ticket with two more peeking out behind it. */
+.req-balance::before, .req-balance::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; border: 2px solid var(--ink-muted); }
+.req-balance::before { background: var(--manila-dark); transform: translate(6px, 6px) rotate(2deg); box-shadow: -10px 3px 0 -1px #D9BF7A; }
+.req-balance::after { background: var(--manila); border-style: dashed; }
+.req-stack { display: none; }
+.req-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 12px; }
+.req-gauge p { margin: 0 0 3px; font-size: 11px; line-height: 1.25; }
+.req-meter { height: 9px; border-radius: 3px; background: var(--surface-2); border: 1.5px solid var(--ink); overflow: hidden; }
+.req-meter > span { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--teal) 0 6px, color-mix(in srgb, var(--teal) 70%, #fff) 6px 8px); }
+.req-meter.exec > span { background: repeating-linear-gradient(90deg, var(--red) 0 6px, color-mix(in srgb, var(--red) 70%, #fff) 6px 8px); }
+
+/* Pull buttons: official requisition forms with a rubber-stamp count. */
+.req-forms { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.req-form {
+  position: relative; min-height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 8px 6px; border: 2px solid var(--ink); border-radius: 6px; background: #FBF6E6;
+  background-image: repeating-linear-gradient(180deg, transparent 0 17px, rgb(62 156 147 / .22) 17px 18px);
+  box-shadow: 0 4px 0 var(--ink); transition: transform 80ms, box-shadow 80ms;
+}
+.req-form::before { content: ''; position: absolute; top: 6px; left: 6px; right: 6px; height: 0; border-top: 2px solid var(--ink-muted); opacity: .0; }
+.req-count {
+  font-size: 26px; font-weight: 700; line-height: 1; color: var(--red); padding: 1px 10px; border: 3px double var(--red); border-radius: 4px;
+  transform: rotate(-4deg); letter-spacing: .02em;
+}
+.req-cost { font-size: 15px; font-weight: 600; }
+.req-form-primary { background-color: #FFE9E1; border-color: var(--red); box-shadow: 0 4px 0 var(--red); }
+.req-form:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.req-form-primary:active:not(:disabled) { box-shadow: 0 1px 0 var(--red); }
+.req-form:disabled { filter: grayscale(.8); }
+.req-form:focus-visible, .personnel-tab:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.req-extras { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.req-extras .btn { min-height: 44px; }
+.req-extras .ad-button { flex-wrap: wrap; }
+.req-extras .ad-button .btn { background: var(--brass); border-color: var(--ink); color: #fff; }
+.req-extras .ad-button .btn:disabled { background: var(--surface-2); color: var(--ink); }
+.req-extras .btn-ghost { background: var(--surface); }
+
+/* ---- Manila folder tabs ---- */
+.personnel-tabs { display: flex; gap: 4px; margin: 4px 0 0; padding: 0 6px; background: none; border: 0; border-bottom: 2px solid var(--manila-dark); border-radius: 0; align-items: flex-end; }
+.personnel-tab {
+  flex: 1; min-height: 44px; padding: 8px 4px 6px; margin-bottom: -2px; border: 2px solid var(--manila-dark); border-bottom: 0;
+  border-radius: 12px 12px 0 0; background: var(--manila-dark); color: var(--ink); font-weight: 700; opacity: .85; position: relative;
+}
+.personnel-tab.active { background: var(--manila); opacity: 1; min-height: 50px; z-index: 1; box-shadow: 0 -2px 0 rgb(255 255 255 / .35) inset; }
+.personnel-tab.premium.active { background: #F3DC8E; }
+.personnel-tab.premium { color: var(--brass); }
+.personnel-tab.premium.active { color: var(--ink); }
+
+/* ---- Desk assignments + corkboard roster ---- */
+.personnel .section-head { margin: 14px 0 10px; }
+.nameplate {
+  display: inline-block; padding: 4px 14px; font-size: 15px; color: #FBF1D4; background: linear-gradient(180deg, #7a5238, var(--wood));
+  border: 2px solid #3a2418; border-radius: 4px; box-shadow: 0 2px 0 rgb(0 0 0 / .3); text-transform: uppercase; letter-spacing: .08em;
+}
+.desk-row { position: relative; padding: 10px 8px 16px; border-radius: 10px; background: linear-gradient(180deg, rgb(251 246 230 / .55), rgb(251 246 230 / .85)); border: 2px solid var(--wood); border-bottom-width: 8px; }
+.desk-empty { border: 2px dashed var(--ink-muted); background: rgb(255 255 255 / .35); border-radius: 6px; font-size: 12px; }
+.corkboard {
+  margin-bottom: 14px; padding: 18px 8px 8px; border-radius: 6px; border: 6px solid var(--wood);
+  background: radial-gradient(rgb(0 0 0 / .08) 1px, transparent 1.5px) 0 0 / 7px 7px, linear-gradient(180deg, #CC9660, var(--cork));
+  box-shadow: inset 0 0 18px rgb(60 30 10 / .45), 0 3px 0 rgb(0 0 0 / .25);
+}
+.corkboard .tile-grid, .desk-row.tile-grid { margin-bottom: 0; gap: 14px 8px; }
+
+/* ---- ID badges (roster + desk) ---- */
+.personnel .tile {
+  position: relative; min-width: 0; min-height: 112px; padding: 14px 4px 6px; background: #FBF6E6; border: 2px solid var(--line);
+  border-top: 10px solid var(--line); border-radius: 6px; box-shadow: 0 3px 0 rgb(42 38 32 / .3);
+  transform: rotate(var(--tilt, 0deg)); transform-origin: 50% 0;
+}
+.personnel .tile-name { max-width: 100%; overflow-wrap: anywhere; line-height: 1.15; }
+.personnel .tile::before { /* pushpin */
+  content: ''; position: absolute; top: -17px; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; z-index: 1;
+  background: radial-gradient(circle at 35% 30%, #fff8 0 15%, var(--pin, var(--pin-0)) 40%); border: 1.5px solid rgb(42 38 32 / .8); box-shadow: 1px 3px 2px rgb(0 0 0 / .35);
+}
+.personnel .tile.rarity-temp { border-color: #9AA1A6; border-top-color: #9AA1A6; }
+.personnel .tile.rarity-fulltime { border-color: var(--teal); border-top-color: var(--teal); }
+.personnel .tile.rarity-senior { border-color: var(--brass); border-top-color: var(--brass); }
+.personnel .tile.rarity-executive { border-color: var(--red); border-top-color: var(--red); background: linear-gradient(180deg, #FBF6E6, #FFE9E1); }
+.personnel .tile.locked { opacity: .72; filter: grayscale(1) brightness(.92); background: #DAD3C0; }
+.personnel .tile.locked::before { background: radial-gradient(circle at 35% 30%, #fff8 0 15%, #8a8a8a 40%); }
+.personnel .tile.locked .tile-name { color: var(--ink-muted); }
+.personnel .tile.equipped { box-shadow: 0 3px 0 rgb(42 38 32 / .3), 0 0 0 3px rgb(31 59 51 / .55); }
+.personnel .tile-eq {
+  position: absolute; top: 6px; right: 4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--green); color: #fff; font-size: 12px; font-weight: 700; border: 1.5px solid var(--ink);
+}
+.desk-row .tile { transform: none; }
+.desk-row .tile.empty { min-height: 96px; padding-top: 6px; border-top-width: 2px; }
+.desk-row .tile.empty::before { display: none; }
+.personnel .tile:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .personnel .tile { transition: transform 140ms var(--ease-out); }
+  .corkboard .tile:hover, .corkboard .tile:active { transform: rotate(0deg) scale(1.05); }
+}
+
+/* ---- Odds: a posted notice ---- */
+.personnel .odds { background: #FBF6E6; border: 2px dashed var(--ink-muted); position: relative; margin-top: 8px; }
+.personnel .odds h3 { margin-bottom: 6px; border-bottom: 2px solid var(--ink); display: inline-block; }
+
+@media (max-width: 380px) {
+  .req-balance { font-size: 30px; padding: 6px 16px; }
+  .req-count { font-size: 22px; }
+  .personnel-tab { font-size: 13px; }
+}
+
+/* The pull-result grid reuses CardTile but stays flat: no pin, tilt, lanyard or desk tick. */
+.personnel .reveal-cell .tile, .personnel .reveal-row .tile { transform: none; min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.personnel .reveal-cell .tile::before, .personnel .reveal-row .tile::before, .personnel .reveal-cell .tile-eq, .personnel .reveal-row .tile-eq { display: none; }
+.personnel .reveal-cell .tile.locked { filter: none; opacity: 1; }
+.personnel .reveal-cell .tile.equipped { box-shadow: 0 0 0 2px var(--green); }

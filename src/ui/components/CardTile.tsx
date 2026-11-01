@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { CardDef } from '../../engine/content';
 import { Character } from '../characters/Character';
 import { dupesForNextStar, MAX_STARS } from '../../engine/gacha';
@@ -17,6 +18,13 @@ export const RARITY_LABEL: Record<CardDef['rarity'], string> = {
   executive: t('card.rarity.executive'),
 };
 
+/** A small stable hash of the card id, so a badge always hangs at the same tilt and pin colour. */
+function idHash(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h;
+}
+
 export interface CardTileProps {
   card: CardDef;
   /** Star rank to display when owned; ignored otherwise. */
@@ -35,8 +43,12 @@ export interface CardTileProps {
 export function CardTile({ card, stars, owned, equipped = false, onClick, shards, size = 48 }: CardTileProps) {
   const classes = ['tile', `rarity-${card.rarity}`, owned ? 'owned' : 'locked'];
   if (equipped) classes.push('equipped');
+  const h = idHash(card.id);
+  // Badge pinned to the corkboard: tilt -3..+3 degrees and one of four pin colours, per card id.
+  const style = { '--tilt': `${((h % 7) - 3) * 0.9}deg`, '--pin': `var(--pin-${h % 4})` } as CSSProperties;
   return (
-    <button type="button" className={classes.join(' ')} onClick={onClick} aria-label={`${card.name}, ${card.title}`}>
+    <button type="button" className={classes.join(' ')} style={style} onClick={onClick} aria-label={`${card.name}, ${card.title}`}>
+      {equipped && <span className="tile-eq" aria-hidden="true">✓</span>}
       <Character id={owned ? card.character : 'soul'} art={owned ? card.id : undefined} mood="ok" size={size} />
       <span className="tile-name">{card.name}</span>
       <span className="tile-rarity sub">{RARITY_LABEL[card.rarity]}</span>
