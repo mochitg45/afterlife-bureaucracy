@@ -29,6 +29,13 @@ function Chibi({ seed }: { seed: string }) {
   );
 }
 
+/** The soul's painted portrait (art/cases/<id>.webp); the drawn chibi stands in if it is missing. */
+function CasePortrait({ id }: { id: string }) {
+  const [ok, setOk] = useState(true);
+  if (!ok) return <Chibi seed={id} />;
+  return <img className="case-portrait" src={`${import.meta.env.BASE_URL}art/cases/${id}.webp`} alt="" onError={() => setOk(false)} />;
+}
+
 /**
  * Case of the Day on the Tasks screen: a manila folder with one soul's file. The player rules
  * once (Heaven, Hell or Reincarnate), gets a small fee, and sees how everyone else ruled.
@@ -75,7 +82,7 @@ export function CaseCard() {
         {fresh && !ruled && <span className="case-new" role="status">{t('case.new')}</span>}
       </div>
       <div className={'case-folder' + (slammed && ruled ? ' thud' : '')} style={{ backgroundImage: `url(${art('case-folder')})` }}>
-        <div className="case-photo"><Chibi seed={file.id} /></div>
+        <div className="case-photo"><CasePortrait id={file.id} /></div>
         <h3 className="case-name">{file.name}</h3>
         {ruled && mine && (
           <div className="case-stamp" role="img" aria-label={t('case.yourVerdict', { verdict: verdictName(mine.verdict) })}>
