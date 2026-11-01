@@ -1,5 +1,6 @@
 /**
- * Apple store listing screenshots: serves the app with the Vite dev server (so scenes can reach the
+ * Store listing screenshots (Apple by default; `node scripts/screenshots.mjs play` makes only the
+ * Google Play phone set, 1080x1920, into `docs/store/screenshots/play/`). Apple: serves the app with the Vite dev server (so scenes can reach the
  * store via `import('/src/store/game.ts')`), seeds a save into localStorage and photographs each
  * scene for iPhone 6.9" (1320x2868) into `docs/store/screenshots/ios-6.9/`, iPad 13" (2064x2752)
  * into `docs/store/screenshots/ios-ipad-13/`, then cover-crops the iPhone set to 1206x2622 into
@@ -33,6 +34,10 @@ const PLATFORMS = [
   { id: 'ios-6.9', outDir: path.join(storeDir, 'ios-6.9'), width: 1320, height: 2868, raw: { width: 430, height: 932, dsf: 3 }, frame: 'phone' },
   { id: 'ios-ipad-13', outDir: path.join(storeDir, 'ios-ipad-13'), width: 2064, height: 2752, raw: { width: 768, height: 1024, dsf: 2 }, frame: 'tablet' },
 ];
+
+/** Google Play phone set: 9:16, 8 scenes. Only built with the `play` argument; Apple outputs stay untouched. */
+const PLAY_PLATFORM = { id: 'play', outDir: path.join(storeDir, 'play'), width: 1080, height: 1920, raw: { width: 412, height: 892, dsf: 3 }, frame: 'phone' };
+const PLAY_ONLY = process.argv.includes('play');
 
 /** Must match `src/platform/storage.ts`; the web build persists the save under this key. */
 const SAVE_KEY = 'afterlife.save.v1';
@@ -118,6 +123,9 @@ async function seedSave(now) {
     // Intro, training and every first-time tip are marked done: none of them belongs on a store frame.
     onboarding: { memosSeen: true, trainingStep: 3, tipsSeen: (await json('src/data/onboarding.json')).tips.map((t) => t.id) },
     login: { day: 3, lastDate: today },
+    offers: { seen: [], lastDate: today },
+    // Today's case already opened, so no unread dot on the Tasks tab (it is still unruled).
+    cases: { lastDay: '', seenDay: today, archive: [] },
     event: null,
   };
 }
@@ -241,6 +249,8 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, subTab, 
   await page.addStyleTag({ content: STILL_CSS });
   // STILL_CSS also freezes the splash, whose animationend never fires; a tap skips it.
   await page.getByTestId('splash').click({ timeout: 5000 }).catch(() => {});
+  // The notification prompt, if it ever shows, is dismissed the way a player would.
+  await page.getByRole('button', { name: 'Not now' }).click({ timeout: 500 }).catch(() => {});
   // Every cold boot opens on the title screen, so the office is one tap behind it.
   await page.getByRole('button', { name: 'Clock in' }).click();
   if (tab) await page.getByRole('tab', { name: tab }).click();
@@ -253,7 +263,7 @@ async function shoot(browser, url, rawDir, platform, { file, save, tab, subTab, 
   }
   if (run) await run(page);
   await page.waitForSelector(waitFor, { state: 'visible', timeout: 15000 });
-  if (scrollInto) await page.locator(scrollInto.selector).nth(scrollInto.index ?? 0).evaluate((el, block) => el.scrollIntoView({ block }), scrollInto.block ?? 'start');
+  if (scrollInto) await page.locator(scrollInto.selector).nth(scrollInto.index ?? 0).evaluate((el, o) => { if (o.margin != null) el.style.scrollMarginTop = `${o.margin}px`; el.scrollIntoView({ block: o.block }); }, { block: scrollInto.block ?? 'start', margin: scrollInto.margin });
   // The store's tick writes numbers a frame or two after mount; one settle beats a flaky race.
   // (Stamp Rush is live and must be photographed at once.)
   await page.waitForTimeout(file.includes('rush') ? 0 : 600);
@@ -347,8 +357,136 @@ async function cropIphone63(browser, from, to, files) {
   await page.close();
 }
 
+/**
+ * The 8 Google Play scenes, in listing order. Each starts from the shared seeded save and bends it
+ * for its scene. Ids come from `src/data`, never typed from memory (see seedSave).
+ */
+async function playScenes(base, now) {
+  const postcards = (await json('src/data/postcards.json')).map((c) => c.id);
+  const clauses = (await json('src/data/cosmic.json')).map((c) => c.id);
+  const cards = await json('src/data/cards.json');
+  const byRarity = (r) => cards.filter((c) => c.rarity === r).map((c) => c.id);
+  const HALLOWEEN = Date.UTC(2026, 9, 28, 12);
+  const roster = [...byRarity('temp').slice(0, 8), ...byRarity('fulltime').slice(0, 8), ...byRarity('senior').slice(0, 5), ...byRarity('executive').slice(0, 2)];
+  return [
+    {
+      file: '01-office.png',
+      exec: { char: 'pumpkin-cfo', side: 'right', say: 'Spooky season!' },
+      save: {
+        ...base,
+        lastSeenWallClock: HALLOWEEN,
+        event: { key: 'halloween-2026', points: '4.2e5', earned: '6.8e6', staff: { 'hw-ghost': 52, 'hw-mummy': 24, 'hw-pumpkin': 9 }, claimed: [0] },
+      },
+      clock: HALLOWEEN,
+      waitFor: '.event-banner',
+      headline: 'Stamp souls.<br>Meet quota.',
+      sub: 'Run the afterlife one form at a time, with a new event every season.',
+      chips: ['Tap to stamp', 'Halloween event', 'Staff earn while you tap'],
+    },
+    {
+      file: '02-stamp-rush.png',
+      exec: { char: 'keeper', side: 'right', say: 'Keep the combo!' },
+      save: base,
+      run: playRush,
+      waitFor: '.rush-doc',
+      headline: 'Stamp Rush.<br>40 seconds. No mercy.',
+      sub: 'Tap, hold and swipe the paperwork. Chain a combo for a bigger payout.',
+      chips: ['Tap, hold, swipe', 'Combo up to 3x', 'Pays in souls'],
+    },
+    {
+      file: '03-case-of-the-day.png',
+      exec: { char: 'vassago', side: 'right', say: 'Heaven or Hell?' },
+      save: base,
+      tab: 'Tasks',
+      run: async (page) => {
+        // Hide (not remove) the cards above the case so none of their text slides under the camera cut-out.
+        await page.evaluate(() => {
+          for (let e = document.querySelector('[data-testid="case-card"]').previousElementSibling; e; e = e.previousElementSibling) e.style.display = 'none';
+        });
+        await page.locator('.case-heaven').click();
+        await page.waitForSelector('.case-stamp', { timeout: 5000 });
+        // The web build has no tally service; hand the store the "how others ruled" numbers the phone gets.
+        await page.evaluate(async () => {
+          const { useGame } = await import('/src/store/game.ts');
+          const { caseDay } = await import('/src/engine/cases.ts');
+          useGame.setState((cur) => ({ caseInfo: { ...cur.caseInfo, day: caseDay(Date.now()), tally: { heaven: 6120, hell: 2210, reincarnate: 1670 } } }));
+        });
+      },
+      waitFor: '.case-stamp',
+      scrollInto: { selector: '.case-card', margin: 20 },
+      headline: 'Case of the Day.<br>You decide.',
+      sub: 'Read one soul\'s file, then slam the stamp: Heaven, Hell or Reincarnate.',
+      chips: ['A new soul every day', 'Earn free vouchers', 'See how others ruled'],
+    },
+    {
+      file: '04-postcards.png',
+      exec: { char: 'bodhisattva', side: 'right', say: 'Wish you were here!' },
+      save: { ...base, postcards: { collected: postcards.slice(0, 38), waiting: postcards.slice(40, 42), nextAtWall: now + 3 * 3600_000 } },
+      run: async (page) => {
+        await page.locator('.pc-mailbox').click();
+        await page.locator('.pc-album .btn-primary').click();
+      },
+      waitFor: '.pc-grid',
+      headline: 'Postcards from<br>reborn souls.',
+      sub: 'Souls you reincarnate write home. Collect all 42 pictures.',
+      chips: ['42 painted postcards', 'Album rewards', 'Arrive while you play'],
+    },
+    {
+      file: '05-personnel.png',
+      exec: { char: 'seraph-board', side: 'right', say: 'Pull for legends!' },
+      save: { ...base, vouchers: 120, cards: Object.fromEntries(roster.map((id, i) => [id, (i % 4) + 1])), equipped: roster.slice(0, 3) },
+      tab: 'Personnel',
+      waitFor: '.corkboard',
+      scrollInto: { selector: '.req-sign', margin: 24 },
+      headline: 'Hire legends.<br>Pin every badge.',
+      sub: 'Draw staff at the Requisition Window and build your corkboard of ID badges.',
+      chips: ['Collectible staff cards', 'Pity timers included', 'Pull ten at once'],
+    },
+    {
+      file: '06-ledger-audit.png',
+      exec: { char: 'keeper', side: 'right', say: 'Time for the Audit!' },
+      save: { ...base, soulsRun: '5e16', seals: 340, sealsInvested: 60, perks: [...base.perks] },
+      tab: 'Ledger',
+      waitFor: '.audit-card.ready',
+      headline: 'File the Audit.<br>Bang the gavel.',
+      sub: 'Close the fiscal year, bank Karma Seals and start stronger.',
+      chips: ['Prestige by audit', 'Permanent perks', 'Seals survive resets'],
+    },
+    {
+      file: '07-cosmic-clauses.png',
+      exec: { char: 'allfather', side: 'left', say: 'Rewrite the rules!' },
+      save: { ...base, seals: 6400, cosmicPoints: 3, cosmicClauses: clauses.slice(0, 4) },
+      tab: 'Ledger',
+      waitFor: '.clause-scroll',
+      scrollInto: { selector: '.cosmic-panel', margin: 14 },
+      headline: 'Cosmic Restructuring.<br>New clauses, new rules.',
+      sub: 'Reorganize the whole afterlife and enact Clauses on a parchment scroll.',
+      chips: ['Second prestige tier', 'Enact Clauses', 'Boosts every department'],
+    },
+    {
+      file: '08-departments.png',
+      exec: { char: 'greed-toad', side: 'right', say: 'The printer is jammed again!' },
+      save: {
+        ...base,
+        activeDept: 'heaven',
+        branchesUnlocked: ['valhalla'],
+        deptsUnlocked: [...base.deptsUnlocked, 'valhalla'],
+        staff: { ...base.staff, 'v-shieldmaiden': 30, 'v-skald': 14, 'v-quartermaster': 5 },
+      },
+      clock: Date.UTC(2026, 8, 2, 12), // a midweek day with no event, so the banner stays off the desk
+      run: injectIncidents,
+      waitFor: '.oi-item',
+      scrollInto: { selector: '.dept-chips', margin: 10 },
+      headline: 'Heaven. Hell. Limbo.<br>Run every department.',
+      sub: 'Each wing has its own staff, upgrades and chaos. Fix the jams, collect the bonus.',
+      chips: ['Six departments', 'Live office incidents', 'Unlock as you grow'],
+    },
+  ];
+}
+
 async function main() {
-  for (const platform of PLATFORMS) {
+  const targets = PLAY_ONLY ? [PLAY_PLATFORM] : PLATFORMS;
+  for (const platform of targets) {
     await mkdir(platform.outDir, { recursive: true });
     // Retire the previous set so no stale frames sit next to the new ones.
     for (const f of await readdir(platform.outDir)) if (f.endsWith('.png')) await unlink(path.join(platform.outDir, f));
@@ -478,16 +616,18 @@ async function main() {
         chips: ['Halloween', 'Weekend events', 'Free rewards'],
       },
     ];
-    for (const platform of PLATFORMS) {
+    const playShots = PLAY_ONLY ? await playScenes(base, now) : [];
+    for (const platform of targets) {
+      const list = PLAY_ONLY ? playShots : shots;
       const rawDir = path.join(rawRoot, platform.id);
       await mkdir(rawDir, { recursive: true });
       console.log(`Shooting [${platform.id}]…`);
-      for (const shot of shots) await shoot(browser, url, rawDir, platform, shot);
+      for (const shot of list) await shoot(browser, url, rawDir, platform, shot);
       console.log(`Composing [${platform.id}]…`);
-      for (const shot of shots) await compose(browser, rawDir, platform, shot);
+      for (const shot of list) await compose(browser, rawDir, platform, shot);
     }
-    console.log('Cropping [ios-6.3]…');
-    await cropIphone63(browser, PLATFORMS[0].outDir, ios63Dir, shots.map((sh) => sh.file));
+    if (!PLAY_ONLY) console.log('Cropping [ios-6.3]…');
+    if (!PLAY_ONLY) await cropIphone63(browser, PLATFORMS[0].outDir, ios63Dir, shots.map((sh) => sh.file));
   } finally {
     await browser.close();
     await server.close();
