@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react';
 
 /** Everything the browser would stop on with Tab; `[disabled]` is filtered out separately. */
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -22,6 +22,7 @@ export function Modal({
   header,
   className,
   backdropClassName,
+  backdropStyle,
   children,
   onClose,
 }: {
@@ -33,6 +34,8 @@ export function Modal({
   header?: ReactNode;
   className?: string;
   backdropClassName?: string;
+  /** Inline style for the backdrop, e.g. a CSS variable carrying a full-screen art URL. */
+  backdropStyle?: CSSProperties;
   children: ReactNode;
   onClose?: () => void;
 }) {
@@ -89,7 +92,7 @@ export function Modal({
 
   if (!open) return null;
   return (
-    <div className={'modal-backdrop' + (backdropClassName ? ' ' + backdropClassName : '')} onClick={onClose}>
+    <div className={'modal-backdrop' + (backdropClassName ? ' ' + backdropClassName : '')} onClick={onClose} style={backdropStyle}>
       <div
         ref={ref}
         className={'modal card' + (className ? ' ' + className : '')}

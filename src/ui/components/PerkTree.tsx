@@ -240,6 +240,9 @@ export function PerkTree() {
           </button>
         ))}
       </div>
+      <div className="pt-legend" aria-hidden="true">
+        {(['owned', 'available', 'unaffordable', 'locked'] as const).map((k) => <span key={k} className={'pt-key ' + k}>{STATE_WORD[k]}</span>)}
+      </div>
       {branch ? <BranchTree branch={branch.id} status={status} wallet={wallet} onPick={setPicked} /> : <Overview owned={owned} seals={seals} onPick={setView} />}
       <div className="pt-foot">
         <span>{branch ? t('perk.footBranch', { title: branch.title, count: count(branch.id), total: total(branch.id) }) : t('perk.footAll', { count: perks.length, total: content.perks.length })}</span>
