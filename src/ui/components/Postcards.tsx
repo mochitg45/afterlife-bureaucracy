@@ -9,13 +9,9 @@ import './Postcards.css';
 
 const byId = new Map(postcards.map((p) => [p.id, p]));
 const artUrl = (n: string) => `${import.meta.env.BASE_URL}art/ui/${n}.webp`;
-// postcard-1..6 show: goose, dog, cart, cat, pigeon, cactus. Pick by theme when the card says so, else by a hash of its id.
-const THEMES: [RegExp, number][] = [[/goose|lake/i, 1], [/retriever|corgi|dog/i, 2], [/cart/i, 3], [/cat/i, 4], [/pigeon/i, 5], [/cactus/i, 6]];
+/** Every card has its own painted front in art/postcards/<id>.webp. */
 export function pictureOf(p: { id: string; title: string }): string {
-  const hit = THEMES.find(([re]) => re.test(p.title));
-  let h = 0;
-  for (const c of p.id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return artUrl(`postcard-${hit ? hit[1] : (h % 6) + 1}`);
+  return `${import.meta.env.BASE_URL}art/postcards/${p.id}.webp`;
 }
 
 /** Hand-drawn-looking envelope; an icon, so no emoji. */
