@@ -1,0 +1,54 @@
+/* Audit and Cosmic ceremonies: full-screen art behind the existing one-button dialog. Light-only app, so these commit to their own palette like the Perk Ledger does. */
+.audit-ceremony, .cosmic-ceremony {
+  --gold: #E8C164;
+  background: var(--cer-bg) center / cover no-repeat, #2a1c0e;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.audit-ceremony > .modal, .cosmic-ceremony > .modal { max-height: 100%; overflow-y: auto; position: relative; }
+.cer-count { font-size: 30px; line-height: 1.1; margin: 2px 0 6px; overflow-wrap: anywhere; }
+
+/* ---- Audit: gavel slam, flash, shockwave, confetti, seal count ---- */
+.audit-ceremony { animation: cer-shake 420ms 380ms ease-out both; }
+.audit-ceremony::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(42, 28, 14, 0) 38%, rgba(42, 28, 14, 0.55) 100%); pointer-events: none; }
+.audit-ceremony::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 34%, #fff 0%, rgba(255, 244, 205, 0.7) 30%, rgba(255, 244, 205, 0) 70%); opacity: 0; pointer-events: none; animation: cer-flash 700ms 380ms ease-out both; }
+.audit-ceremony .modal { background: linear-gradient(#FBF6E6, #F1E8CD); border: 3px solid var(--brass); box-shadow: 0 0 0 3px #3A2616, 0 14px 30px rgba(0, 0, 0, 0.5); margin-bottom: 8px; }
+.audit-ceremony .modal-title { font-size: 24px; color: var(--ink); }
+.audit-ceremony .cer-count { color: #8C6420; text-shadow: 0 1px 0 #fff; }
+.audit-stamp { margin-bottom: 0; animation-delay: 380ms; }
+.cer-plaque { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 6px; padding: 3px 14px; border: 2px solid var(--brass); border-radius: 999px; background: #3A2616; color: var(--gold); font: 700 12px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.gavel-stage { position: fixed; left: 50%; top: 31%; width: 0; height: 0; pointer-events: none; }
+.gavel-hit { position: absolute; left: -42px; top: -64px; transform-origin: 85% 90%; animation: gavel-swing 380ms cubic-bezier(.5, 0, .9, .4) both; filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.45)); opacity: 0; }
+.impact { position: absolute; left: -60px; top: -20px; width: 120px; height: 120px; border-radius: 50%; border: 5px solid var(--gold); opacity: 0; animation: cer-ring 650ms 380ms ease-out both; }
+.confetti { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
+.confetti i { position: absolute; top: -16px; width: 9px; height: 14px; border-radius: 2px; opacity: 0; animation: cer-fall linear infinite; }
+@keyframes cer-fall { 0% { opacity: 0; translate: 0 0; } 8% { opacity: 1; } 100% { opacity: 1; translate: 24px 110vh; rotate: 540deg; } }
+@keyframes gavel-swing { 0% { opacity: 1; transform: rotate(-70deg) translateY(-18px); } 99% { opacity: 1; transform: rotate(8deg); } 100% { opacity: 0; transform: rotate(8deg); } }
+@keyframes cer-shake { 0%, 100% { transform: none; } 20% { transform: translate(-5px, 4px); } 45% { transform: translate(5px, -3px); } 70% { transform: translate(-3px, 2px); } }
+@keyframes cer-flash { 0% { opacity: 0; } 20% { opacity: 0.9; } 100% { opacity: 0; } }
+@keyframes cer-ring { 0% { opacity: 1; transform: scale(0.2); } 100% { opacity: 0; transform: scale(3.2); } }
+
+/* ---- Cosmic: gold on purple, slow twinkle ---- */
+.cosmic-ceremony { align-items: center; }
+.cosmic-ceremony::before, .twinkle { content: ''; position: absolute; inset: 0; pointer-events: none; background-image:
+  radial-gradient(2px 2px at 20% 30%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 70% 18%, #FFE9A8 50%, transparent 52%),
+  radial-gradient(2px 2px at 40% 72%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 85% 60%, #FFE9A8 50%, transparent 52%),
+  radial-gradient(1.5px 1.5px at 10% 85%, #fff 50%, transparent 52%), radial-gradient(2px 2px at 60% 48%, #FFE9A8 50%, transparent 52%);
+  background-size: 180px 220px; animation: cer-twinkle 3.2s ease-in-out infinite alternate, cer-drift 40s linear infinite; }
+.twinkle { position: fixed; background-size: 120px 150px; animation-duration: 2.3s, 70s; animation-delay: -1s, 0s; }
+.cosmic-ceremony .modal { background: linear-gradient(rgba(38, 24, 78, 0.9), rgba(18, 11, 44, 0.92)); border: 2px solid var(--gold); box-shadow: 0 0 0 2px rgba(232, 193, 100, 0.25), 0 0 34px rgba(150, 100, 255, 0.45); color: #F4ECD2; backdrop-filter: blur(3px); }
+.cosmic-ceremony .modal-title { font-size: 24px; background: linear-gradient(#FFF1B8, #E8C164 60%, #C99A3A); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; text-shadow: none; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.5)); }
+.cosmic-ceremony .sub { color: #C9BFE6; }
+.cosmic-ceremony .cer-count { color: var(--gold); text-shadow: 0 0 14px rgba(232, 193, 100, 0.6); }
+.cosmic-ceremony .btn-primary { background: linear-gradient(#F1CF7E, #C99A3A); border-color: #FFF1B8; color: #2B1A5A; box-shadow: 0 0 14px rgba(232, 193, 100, 0.5); }
+.cosmic-seal circle { filter: drop-shadow(0 0 6px rgba(232, 193, 100, 0.9)); }
+.cosmic-seal { position: relative; z-index: 1; }
+@keyframes cer-twinkle { from { opacity: 0.35; } to { opacity: 1; } }
+@keyframes cer-drift { to { background-position: 0 220px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-ceremony, .audit-ceremony::after, .gavel-hit, .impact, .cosmic-ceremony::before, .twinkle, .audit-stamp { animation: none; }
+  .audit-ceremony::after, .gavel-stage { display: none; }
+  .confetti { display: none; }
+  .cosmic-ceremony::before, .twinkle { opacity: 0.8; }
+}

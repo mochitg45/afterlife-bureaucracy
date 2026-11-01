@@ -1,9 +1,10 @@
-import { memo, useState } from 'react';
+import { memo, useState, type CSSProperties } from 'react';
 import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { canBuyClause, canCosmic, CLAUSE_COST, cosmicThreshold } from '../../engine/cosmic';
 import type { ClauseDef } from '../../engine/content';
+import '../screens/LedgerScreen.css';
 
 function clauseName(id: string): string {
   return content.clauses.find((c) => c.id === id)?.name ?? id;
@@ -13,22 +14,24 @@ function clauseName(id: string): string {
  * One Clause. Subscribed to the two cosmic fields alone: the Ledger sits next to a readout
  * that moves ten times a second and there is one of these per Clause.
  */
-const ClauseNode = memo(function ClauseNode({ clause }: { clause: ClauseDef }) {
+const ClauseNode = memo(function ClauseNode({ clause, num }: { clause: ClauseDef; num: number }) {
   const cosmicPoints = useGame((s) => s.state.cosmicPoints);
   const cosmicClauses = useGame((s) => s.state.cosmicClauses);
   const buyClause = useGame((s) => s.buyClause);
   const check = canBuyClause({ cosmicPoints, cosmicClauses }, content, clause.id);
   const status = check.ok ? 'available' : check.reason === 'owned' ? 'owned' : check.reason === 'locked' ? 'locked' : 'unaffordable';
   return (
-    <div className={`card clause ${status}`}>
+    <div className={`clause ${status}`}>
       <div className="perk-head">
+        <span className="clause-num mono" aria-hidden="true">§{num}</span>
         <span className="staff-name">{clause.name}</span>
         <span className="mono seal-cost">{status === 'owned' ? t('cosmic.enacted') : `${CLAUSE_COST} ✦`}</span>
       </div>
       <div className="sub">{clause.desc}</div>
       {status === 'locked' && <div className="sub">{t('cosmic.requires', { names: clause.requires.map(clauseName).join(', ') })}</div>}
+      {status === 'owned' && <span className="wax-seal" aria-hidden="true">✦</span>}
       <div className="modal-actions">
-        <button className="btn" disabled={!check.ok} aria-label={t('cosmic.enactAria', { name: clause.name })} onClick={() => buyClause(clause.id)}>
+        <button className="btn btn-sign" disabled={!check.ok} aria-label={t('cosmic.enactAria', { name: clause.name })} onClick={() => buyClause(clause.id)}>
           {t('cosmic.enact')}
         </button>
       </div>
@@ -63,7 +66,9 @@ export function CosmicPanel() {
   };
 
   return (
-    <section className="cosmic-panel">
+    <section className="cosmic-panel" style={{ '--cosmic-bg': `url(${import.meta.env.BASE_URL}art/ui/cosmic-bg.webp)`, '--scroll-bg': `url(${import.meta.env.BASE_URL}art/ui/clauses-scroll.webp)` } as CSSProperties}>
+      <div className="cosmic-stars" aria-hidden="true" />
+      <div className="cosmic-hero" aria-hidden="true" />
       <div className={'card cosmic-card' + (ready ? ' ready' : '')}>
         <h3>{t('cosmic.title')}</h3>
         {ready ? (
@@ -95,11 +100,14 @@ export function CosmicPanel() {
           </>
         )}
       </div>
-      <div className="section-head">
-        <h3>{t('cosmic.clauses')}</h3>
-        <span className="mono brass">{t('cosmic.points', { n: cosmicPoints })}</span>
+      <div className="clause-scroll">
+        <div className="section-head">
+          <h3>{t('cosmic.clauses')}</h3>
+          <span className="mono brass">{t('cosmic.points', { n: cosmicPoints })}</span>
+        </div>
+        {content.clauses.map((c, i) => <ClauseNode key={c.id} clause={c} num={i + 1} />)}
       </div>
-      {content.clauses.map((c) => <ClauseNode key={c.id} clause={c} />)}
+      <div className="cosmic-foot" aria-hidden="true" />
     </section>
   );
 }

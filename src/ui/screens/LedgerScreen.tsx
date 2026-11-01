@@ -1,4 +1,7 @@
 import { Capacitor } from '@capacitor/core';
+import type { CSSProperties } from 'react';
+import { Gavel } from '../components/Gavel';
+import './LedgerScreen.css';
 import { SealIcon } from '../icons/Currency';
 import { useEffect, useState } from 'react';
 import { useGame } from '../../store/game';
@@ -56,11 +59,13 @@ function AuditCard() {
     expedite();
   };
   return (
-    <div className="card audit-card" data-coach="audit">
+    <div className={'card audit-card' + (ready ? ' ready' : '')} data-coach="audit">
+      <svg className="env-flap" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L50 25 L100 0 Z" /></svg>
+      <span className="env-seal" aria-hidden="true"><Gavel size={30} /></span>
       <h3>{t('ledger.auditTitle')}</h3>
       <p className="sub">{t('ledger.auditDesc')}</p>
       {ready
-        ? <div className="mono">{waiting ? t('ledger.willPay') : t('ledger.payNow')} <strong>{t('ledger.plusSeals', { n: preview })}</strong></div>
+        ? <div className="mono audit-pay">{waiting ? t('ledger.willPay') : t('ledger.payNow')} <strong>{t('ledger.plusSeals', { n: preview })}</strong></div>
         : <div className="mono sub">{t('ledger.needSouls', { need: formatNumber(auditThreshold(year, cosmics)), have: formatNumber(soulsRun) })}</div>}
       {left > 0 && <div className="mono sub">{t('ledger.closesIn', { time: fmtLeft(left) })}</div>}
       <div className="modal-actions">
@@ -115,7 +120,7 @@ export function LedgerScreen({ onSettings }: { onSettings?: () => void }) {
   const seals = useGame((s) => s.state.seals);
   const year = useGame((s) => s.state.fiscalYear);
   return (
-    <section className="screen ledger">
+    <section className="screen ledger" style={{ '--ledger-bg': `url(${import.meta.env.BASE_URL}art/ui/ledger-bg.webp)` } as CSSProperties}>
       <ScreenHeader title={t('ledger.title')} onSettings={onSettings} />
       <header className="currency-bar card">
         <div><div className="label">{t('ledger.karmaSeals')}</div><div className="mono value brass">{seals} <SealIcon size={20} /><span className="visually-hidden"> {t('ledger.sealsWord')}</span></div></div>

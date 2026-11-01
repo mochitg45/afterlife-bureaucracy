@@ -1,0 +1,128 @@
+/*
+ * Ledger redesign: archive-room page, leather-bound currency bar, sealed-envelope audit call,
+ * a Cosmic section on the galaxy-office art and the Clauses as one legal scroll.
+ * The app is light-only, so like the Perk Ledger this commits to its own bespoke palette.
+ */
+.ledger {
+  --gold: #E8C164;
+  --leather: #3A2616;
+  --leather-2: #5A3A20;
+  --cream: #F6E7BC;
+  background:
+    linear-gradient(180deg, rgba(24, 14, 6, 0.5) 0%, rgba(24, 14, 6, 0.78) 55%, rgba(24, 14, 6, 0.9) 100%),
+    var(--ledger-bg) center top / cover no-repeat,
+    #2A1C0E;
+}
+.ledger .screen-header h2 { color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55); }
+.ledger .gear-btn { background: rgba(246, 231, 188, 0.92); border-color: #8A6A2C; }
+.ledger > .section-head h3 { color: var(--cream); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
+.ledger > .section-head .sub { color: #D8C79B; }
+
+/* Leather-bound currency bar */
+.ledger .currency-bar { background: linear-gradient(var(--leather-2), var(--leather)); border: 2px solid #8A6A2C; box-shadow: 0 3px 0 #1E120A, 0 8px 16px rgba(0, 0, 0, 0.45); }
+.ledger .currency-bar::after { content: ''; position: absolute; inset: 4px; border: 1px dashed rgba(232, 193, 100, 0.55); border-radius: 7px; pointer-events: none; }
+.ledger .currency-bar .label { color: #D8C79B; }
+.ledger .currency-bar .value { color: var(--gold); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
+.ledger .currency-bar .value svg { vertical-align: -3px; }
+
+/* Sealed-envelope audit call-to-action */
+.ledger .audit-card { position: relative; margin: 14px 0 16px; padding: 60px 14px 14px; text-align: center; background: linear-gradient(#FBF6E6, #EFE3C2); border: 2px solid #8A6A2C; border-radius: 6px 6px 12px 12px; box-shadow: 0 5px 0 var(--leather), 0 12px 20px rgba(0, 0, 0, 0.5); }
+.audit-card .env-flap { position: absolute; left: 0; top: 0; width: 100%; height: 40px; }
+.audit-card .env-flap path { fill: #E9D9AB; stroke: #8A6A2C; stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.audit-card .env-seal { position: absolute; left: 50%; top: 14px; width: 46px; height: 46px; margin-left: -23px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #D9654B, #A6402B 65%, #7A2A1B); border: 2px solid #7A2A1B; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), inset 0 0 0 3px rgba(255, 255, 255, 0.12); filter: grayscale(0.85) brightness(0.9); }
+.audit-card.ready .env-seal { filter: none; animation: env-pulse 2s ease-in-out infinite; }
+.audit-card h3 { font-size: 21px; color: var(--ink); }
+.audit-card .sub { margin: 2px 0 8px; }
+.audit-card .audit-pay { font-size: 12px; color: var(--ink-muted); }
+.audit-card .audit-pay strong { display: block; margin-top: 2px; font-size: 30px; line-height: 1.1; color: #8C6420; text-shadow: 0 1px 0 #fff; }
+.audit-card .modal-actions { margin-top: 12px; }
+.audit-card .modal-actions .btn { min-height: 46px; border-width: 2px; border-color: var(--leather); }
+.audit-card .modal-actions .btn:first-child:not(:disabled) { background: linear-gradient(#FFF1B8, #E8C164 55%, #C99A3A); color: var(--ink); box-shadow: 0 3px 0 var(--leather); font-family: var(--font-display); font-size: 15px; }
+.audit-card .modal-actions .btn-primary { background: var(--red); border-color: var(--leather); color: #fff; }
+.audit-card .modal-actions .btn:first-child:not(:disabled).btn-primary { background: var(--red); color: #fff; }
+.audit-card .modal-actions .btn-ghost { background: transparent; border-color: var(--line); }
+@keyframes env-pulse { 0%, 100% { box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(232, 193, 100, 0.7); } 50% { box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 0 0 9px rgba(232, 193, 100, 0); } }
+
+/* Perk Ledger as a bound book */
+.ledger .perk-tree { margin-bottom: 18px; border: 3px solid #8A6A2C; border-radius: 16px; overflow: hidden; background: var(--leather); box-shadow: 0 0 0 3px var(--leather), 0 12px 22px rgba(0, 0, 0, 0.5); }
+.ledger .pt-tabs { background: linear-gradient(var(--leather-2), var(--leather)); border-radius: 0; }
+.pt-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; padding: 5px 8px 7px; background: var(--leather); border-bottom: 1px solid rgba(232, 193, 100, 0.35); }
+.pt-key { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; color: #DDD4BE; }
+.pt-key::before { content: ''; width: 11px; height: 11px; border-radius: 50%; border: 2px solid transparent; flex: none; }
+.pt-key.owned::before { background: #3E9C93; border-color: #fff; }
+.pt-key.available::before { background: var(--leather); border-color: var(--gold); box-shadow: 0 0 5px var(--gold); }
+.pt-key.unaffordable::before { background: #5D574D; border-color: #8A8170; }
+.pt-key.locked::before { background: #2A2620; border-color: #6E675C; }
+.ledger .pt-foot { border-radius: 0; background: var(--leather); }
+
+/* Cosmic Restructuring on the galaxy-office art */
+.ledger .cosmic-panel {
+  --cosmic-fill: #0E0920;
+  position: relative; margin-top: 22px; padding: 0 10px; overflow: hidden;
+  border: 3px solid #C99A3A; border-radius: 16px;
+  box-shadow: 0 0 0 3px #1B1040, 0 0 26px rgba(150, 100, 255, 0.4), 0 12px 22px rgba(0, 0, 0, 0.5);
+  background:
+    linear-gradient(180deg, rgba(14, 9, 32, 0) 0, rgba(14, 9, 32, 0) 42%, var(--cosmic-fill) 100%) top / 100% 640px no-repeat,
+    var(--cosmic-bg) top / 100% auto no-repeat,
+    var(--cosmic-fill);
+}
+.cosmic-panel > * { position: relative; z-index: 1; }
+.cosmic-panel > .cosmic-stars, .cosmic-panel > .cosmic-hero { z-index: 0; }
+.cosmic-hero { height: 150px; }
+.cosmic-stars { position: absolute; inset: 0; pointer-events: none; }
+.cosmic-stars::before, .cosmic-stars::after { content: ''; position: absolute; inset: 0; }
+.cosmic-stars::before { background-image:
+  radial-gradient(2px 2px at 20% 30%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 70% 18%, #FFE9A8 50%, transparent 52%),
+  radial-gradient(2px 2px at 40% 72%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 85% 60%, #FFE9A8 50%, transparent 52%),
+  radial-gradient(1.5px 1.5px at 10% 85%, #fff 50%, transparent 52%);
+  background-size: 170px 210px; animation: cosmic-twinkle 3.4s ease-in-out infinite alternate, cosmic-drift 90s linear infinite; }
+.cosmic-stars::after { background-image:
+  radial-gradient(1.5px 1.5px at 30% 20%, #FFE9A8 50%, transparent 52%), radial-gradient(2px 2px at 78% 44%, #fff 50%, transparent 52%),
+  radial-gradient(1.5px 1.5px at 55% 85%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 8% 55%, #FFE9A8 50%, transparent 52%);
+  background-size: 110px 130px; animation: cosmic-twinkle 2.4s -1.2s ease-in-out infinite alternate, cosmic-drift 45s linear infinite; }
+@keyframes cosmic-twinkle { from { opacity: 0.25; } to { opacity: 0.95; } }
+@keyframes cosmic-drift { to { background-position: 0 210px; } }
+
+.cosmic-card { margin-top: 0; padding: 14px; text-align: center; background: linear-gradient(rgba(38, 24, 78, 0.82), rgba(18, 11, 44, 0.88)); border: 2px solid rgba(232, 193, 100, 0.7); box-shadow: 0 0 22px rgba(150, 100, 255, 0.35); backdrop-filter: blur(3px); color: #F4ECD2; opacity: 1; }
+.cosmic-card.ready { border-color: var(--gold); animation: cosmic-ready 2.4s ease-in-out infinite; }
+.cosmic-card h3 { margin-bottom: 6px; font-size: 24px; line-height: 1.15; background: linear-gradient(#FFFBE0, #FFE08A 60%, #F0B93E); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 0 #1B1040) drop-shadow(0 0 8px rgba(232, 193, 100, 0.5)); }
+.cosmic-card .sub { color: #D2C8EE; }
+.cosmic-card .warn { color: #FFB4A0; }
+.cosmic-card .bar { height: 9px; border-radius: 5px; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(232, 193, 100, 0.5); }
+.cosmic-card .bar-fill { background: linear-gradient(90deg, #C99A3A, #FFF1B8); }
+.cosmic-card .btn { min-height: 46px; background: rgba(247, 242, 228, 0.12); border-color: var(--gold); color: #F4ECD2; }
+.cosmic-card .btn:not(.btn-ghost) { background: linear-gradient(#F1CF7E, #C99A3A); border-color: #FFF1B8; color: #2B1A5A; font-family: var(--font-display); box-shadow: 0 0 14px rgba(232, 193, 100, 0.45); }
+.cosmic-card .btn-ghost { background: transparent; color: #D2C8EE; border-color: rgba(232, 193, 100, 0.5); }
+@keyframes cosmic-ready { 0%, 100% { box-shadow: 0 0 14px rgba(232, 193, 100, 0.4); } 50% { box-shadow: 0 0 30px rgba(232, 193, 100, 0.85); } }
+.cosmic-foot { height: 160px; margin: 0 -10px; background: var(--cosmic-bg) center 86% / 100% auto no-repeat; -webkit-mask-image: linear-gradient(transparent, #000 45%); mask-image: linear-gradient(transparent, #000 45%); }
+
+/* Clauses: one legal scroll, §-numbered sections */
+.clause-scroll {
+  margin: 14px 0 0; padding: 2px 10px 0 6px; color: #3A2616;
+  border-style: solid; border-width: 82px 28px 94px 28px;
+  border-image: var(--scroll-bg) 200 70 230 70 fill / 82px 28px 94px 28px stretch;
+}
+.clause-scroll .section-head { margin: 0 0 4px; gap: 8px; }
+.clause-scroll .section-head h3 { font-size: 20px; color: #3A2616; }
+.clause-scroll .section-head .brass { color: #8C5A14; font-weight: 600; font-size: 12px; text-align: right; }
+.clause { position: relative; margin: 0; padding: 9px 2px 10px; border-top: 1.5px dashed rgba(106, 74, 30, 0.55); }
+.clause .perk-head { align-items: baseline; gap: 6px; }
+.clause .staff-name { flex: 1; min-width: 0; font-weight: 700; font-size: 13.5px; line-height: 1.25; color: #2A1A0C; }
+.clause-num { flex: none; font-size: 15px; font-weight: 700; color: var(--red); }
+.clause .seal-cost { flex: none; font-size: 12px; color: #8C5A14; white-space: nowrap; }
+.clause .sub { margin-top: 3px; color: #5A4630; font-size: 12px; line-height: 1.35; }
+.clause .modal-actions { flex-direction: row; justify-content: flex-end; margin-top: 7px; }
+.btn-sign { min-height: 40px; padding: 6px 22px; background: linear-gradient(#FFF1B8, #E8C164 55%, #C99A3A); border: 2px solid #3A2616; border-radius: 8px; box-shadow: inset 0 0 0 2px #FFF6D0, 0 2px 0 #3A2616; color: #2A2620; font-family: var(--font-display); font-size: 15px; letter-spacing: 0.04em; }
+.clause.locked, .clause.unaffordable { opacity: 0.68; }
+.clause.locked .staff-name, .clause.locked .clause-num { color: #6E5A44; }
+.clause.owned { padding-right: 54px; }
+.clause.owned .staff-name { color: var(--green); }
+.clause.owned .seal-cost { color: var(--green); font-weight: 700; }
+.clause.owned .modal-actions { display: none; }
+.wax-seal { position: absolute; right: 2px; top: 50%; width: 44px; height: 44px; margin-top: -22px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #D9654B, #A6402B 65%, #7A2A1B); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), inset 0 0 0 3px rgba(255, 255, 255, 0.14), inset 0 0 0 5px rgba(122, 42, 27, 0.55); color: #F7E3B4; font-size: 19px; transform: rotate(-12deg); animation: wax-stamp 420ms cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes wax-stamp { 0% { transform: scale(2) rotate(-30deg); opacity: 0; } 100% { transform: rotate(-12deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-card.ready .env-seal, .cosmic-card.ready, .cosmic-stars::before, .cosmic-stars::after, .wax-seal { animation: none; }
+  .cosmic-stars::before, .cosmic-stars::after { opacity: 0.8; }
+}
