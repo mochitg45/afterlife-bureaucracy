@@ -1,5 +1,6 @@
-.event-banner { border-width: 2px; border-style: solid; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; margin-bottom: 10px; }
-.event-banner .event-art { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; grid-row: span 3; }
+.event-banner { border-width: 2px; border-style: solid; display: grid; grid-template-columns: 1fr; gap: 4px; align-items: center; margin-bottom: 10px; overflow: hidden; }
+/* The event painting runs edge to edge across the top of the card (cancelling the card's 12px padding). */
+.event-banner .event-art { width: calc(100% + 24px); max-width: none; margin: -12px -12px 6px; aspect-ratio: 16 / 9; height: auto; object-fit: cover; display: block; }
 .event-banner h3 { font-size: 16px; }
 .event-tag { font-size: 10px; letter-spacing: .08em; font-weight: 700; }
 .event-banner .btn { grid-column: 1 / -1; }
