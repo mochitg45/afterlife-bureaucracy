@@ -381,7 +381,7 @@ async function playScenes(base, now) {
       waitFor: '.event-banner',
       headline: 'Stamp souls.<br>Meet quota.',
       sub: 'Run the afterlife one form at a time, with a new event every season.',
-      chips: ['Tap to stamp', 'Halloween event', 'Staff earn while you tap'],
+      chips: ['Tap to stamp', 'Seasonal events', 'Staff earn while you tap'],
     },
     {
       file: '02-stamp-rush.png',
