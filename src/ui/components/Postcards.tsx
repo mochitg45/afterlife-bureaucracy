@@ -8,6 +8,15 @@ import { t } from '../../i18n';
 import './Postcards.css';
 
 const byId = new Map(postcards.map((p) => [p.id, p]));
+const artUrl = (n: string) => `${import.meta.env.BASE_URL}art/ui/${n}.webp`;
+// postcard-1..6 show: goose, dog, cart, cat, pigeon, cactus. Pick by theme when the card says so, else by a hash of its id.
+const THEMES: [RegExp, number][] = [[/goose|lake/i, 1], [/retriever|corgi|dog/i, 2], [/cart/i, 3], [/cat/i, 4], [/pigeon/i, 5], [/cactus/i, 6]];
+export function pictureOf(p: { id: string; title: string }): string {
+  const hit = THEMES.find(([re]) => re.test(p.title));
+  let h = 0;
+  for (const c of p.id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return artUrl(`postcard-${hit ? hit[1] : (h % 6) + 1}`);
+}
 
 /** Hand-drawn-looking envelope; an icon, so no emoji. */
 function Envelope({ size = 22 }: { size?: number }) {
@@ -36,6 +45,7 @@ export function PostcardView({ id }: { id: string }) {
       <p className="pc-from">{t('postcard.from', { name: p.name })}</p>
       <p className="pc-life">{p.title}</p>
       <p className="pc-msg">{p.text}</p>
+      <div className="pc-address" aria-hidden="true"><i /><i /><i /></div>
       <span className="pc-rarity">{t(`postcard.rarity.${p.rarity}`)}</span>
     </article>
   );
@@ -45,13 +55,14 @@ export function PostcardView({ id }: { id: string }) {
 function Flip({ id }: { id: string }) {
   const [flipped, setFlipped] = useState(false);
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setFlipped(true));
-    return () => cancelAnimationFrame(raf);
+    // the picture shows for a beat, then the card turns over to the message
+    const timer = setTimeout(() => setFlipped(true), 1100);
+    return () => clearTimeout(timer);
   }, [id]);
   return (
     <div className={'pc-flip' + (flipped ? ' flipped' : '')}>
       <div className="pc-flip-inner">
-        <div className="pc-flip-front"><Envelope size={64} /></div>
+        <div className="pc-flip-front"><img src={pictureOf(byId.get(id) ?? { id, title: '' })} alt="" draggable={false} /></div>
         <div className="pc-flip-back"><PostcardView id={id} /></div>
       </div>
     </div>
@@ -97,10 +108,12 @@ function Album({ onClose }: { onClose: () => void }) {
           const has = collected.includes(id);
           return has && p ? (
             <button key={id} type="button" className={`pc-cell pc-${p.rarity}`} onClick={() => setShown(id)} aria-label={t('postcard.view', { name: p.name })}>
+              <img className="pc-cell-pic" src={pictureOf(p)} alt="" draggable={false} />
               <span className="pc-cell-name">{p.name}</span>
             </button>
           ) : (
-            <div key={id} className="pc-cell pc-locked" aria-label={t('postcard.hidden')}>
+            <div key={id} className={`pc-cell pc-locked${p ? ' pc-' + p.rarity : ''}`} aria-label={t('postcard.hidden')}>
+              {p && <img className="pc-cell-pic" src={pictureOf(p)} alt="" draggable={false} />}
               <Envelope size={20} />
             </div>
           );
@@ -124,7 +137,7 @@ export function MailboxEntry() {
   return (
     <>
       <button type="button" className="pc-mailbox" onClick={() => setOpen(true)} aria-label={waiting > 0 ? t('postcard.mailboxWaiting', { n: waiting }) : t('postcard.mailbox')}>
-        <Envelope />
+        <img className="pc-mailbox-img" src={artUrl('mailbox')} alt="" draggable={false} />
         <span className="pc-mailbox-label">{t('postcard.mailbox')}</span>
         <span className="sub mono">{have}/{POSTCARD_IDS.length}</span>
         {waiting > 0 && <span className="pc-badge" aria-hidden="true">{waiting}</span>}

@@ -1,4 +1,4 @@
-/* Case of the Day: a manila folder with a rubber stamp. Flat, like the rest of the office. */
+/* Case of the Day: an open case folder with a typewriter file, three rubber stamps and an official tally sheet. */
 .case-card { --manila: #E8CF94; --manila-dark: #C9AB66; padding-top: 0; overflow: hidden; }
 .case-tab { display: flex; align-items: center; gap: 8px; margin: 0 0 -1px 8px; }
 .case-tab-title {
@@ -6,37 +6,67 @@
   border-radius: 8px 8px 0 0; padding: 4px 12px; font-size: 14px; position: relative; top: 1px; margin-top: 8px;
 }
 .case-new { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: #fff; background: var(--red); border-radius: 999px; padding: 2px 8px; margin-top: 8px; }
+
+/* The folder scales to the card width; every position is a percentage of the artwork (1600x1100). */
 .case-folder {
-  position: relative; background: var(--manila); border: 1px solid var(--manila-dark); border-radius: 4px 10px 10px 10px;
-  padding: 12px; box-shadow: var(--shadow);
+  position: relative; width: 100%; aspect-ratio: 1600 / 1100; background: var(--manila) center / 100% 100% no-repeat;
+  border-radius: 4px 10px 10px 10px; box-shadow: var(--shadow); container-type: inline-size; overflow: hidden; color: #2f2418;
 }
-.case-name { font-size: 18px; }
-.case-story { margin: 6px 0 8px; }
-.case-facts { margin: 0; display: grid; gap: 2px; }
-.case-facts dt { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); margin-top: 6px; }
+.case-folder.thud { animation: case-thud 420ms linear both; }
+.case-photo { position: absolute; left: 9.6%; top: 11.5%; width: 17%; height: 25%; transform: rotate(-4deg); display: grid; place-items: center; overflow: hidden; background: #eef3f2; }
+.case-chibi { width: 100%; height: 100%; display: block; }
+.case-name {
+  position: absolute; left: 9%; top: 50%; width: 37%; margin: 0; font-family: var(--font-display); font-size: max(12px, 3.9cqw); line-height: 1.15; color: #2f2418;
+}
+.case-page {
+  position: absolute; left: 54.5%; top: 15%; width: 37.5%; height: 76%; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px;
+  font-family: var(--font-display); font-size: max(11px, 2.55cqw); line-height: 1.32; scrollbar-width: thin; scrollbar-color: var(--manila-dark) transparent; touch-action: pan-y;
+}
+.case-story { margin: 0 0 4px; }
+.case-facts { margin: 0; display: grid; gap: 1px; }
+.case-facts dt { font-family: var(--font-mono); font-size: .85em; text-transform: uppercase; letter-spacing: 0.06em; color: #7a5a35; margin-top: 5px; }
 .case-facts dd { margin: 0; }
 .case-plea { font-style: italic; }
+
+/* The ruling: the stamp slams onto the left page. */
+.case-stamp { position: absolute; left: 11%; top: 65%; width: 31%; pointer-events: none; transform: rotate(-10deg); animation: case-slam 380ms cubic-bezier(.2, .8, .3, 1) both; filter: drop-shadow(0 1px 0 rgb(0 0 0 / .25)); }
+.case-stamp img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; opacity: .92; }
+@keyframes case-slam { 0% { transform: rotate(-10deg) scale(3.2); opacity: 0; } 55% { transform: rotate(-10deg) scale(.88); opacity: 1; } 75% { transform: rotate(-10deg) scale(1.06); } 100% { transform: rotate(-10deg) scale(1); opacity: 1; } }
+@keyframes case-thud { 0%, 50% { transform: none; } 58% { transform: translateY(3px) scale(.995); } 72% { transform: translateY(-1px); } 100% { transform: none; } }
+
 .case-reward { display: flex; align-items: center; gap: 6px; margin: 10px 0 6px; }
 .case-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.case-verdict { padding: 10px 4px; }
+.case-verdict { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px 6px; font-size: 12px; transition: transform 90ms; }
+.case-verdict:active:not(:disabled) { transform: scale(.94); }
+.case-verdict:disabled { opacity: .6; }
+.case-pad { display: block; width: 100%; padding: 6px 4px; background: #fbf6e6 repeating-linear-gradient(0deg, transparent 0 9px, rgb(201 171 102 / .25) 9px 10px); border: 1px solid var(--manila-dark); border-radius: 4px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .6); }
+.case-pad img { display: block; width: 100%; height: 36px; object-fit: contain; }
+.case-verdict-label { font-weight: 600; }
 .case-heaven { border-color: var(--teal); color: var(--teal); }
 .case-hell { border-color: var(--red); color: var(--red); }
 .case-reincarnate { border-color: var(--green); color: var(--green); }
 .case-paperwork { margin-top: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .case-joke { margin: 0; }
-.case-stamp {
-  position: absolute; right: 10px; bottom: 10px; transform: rotate(-12deg); pointer-events: none;
-  border: 3px solid var(--red); color: var(--red); border-radius: 6px; padding: 2px 10px; opacity: 0.85;
-  font-family: var(--font-display); font-size: 20px; text-transform: uppercase; letter-spacing: 0.08em;
-  animation: case-stamp-in 260ms var(--ease-out);
+
+/* Results: an official tally sheet. */
+.case-results {
+  margin-top: 10px; display: grid; gap: 6px; padding: 10px 12px; background: #fbf6e6 repeating-linear-gradient(0deg, transparent 0 21px, rgb(201 171 102 / .35) 21px 22px);
+  border: 1px solid var(--manila-dark); border-top: 5px double var(--ink-muted); border-radius: 2px; font-family: var(--font-display); color: #2f2418; box-shadow: var(--shadow);
 }
-@keyframes case-stamp-in { from { transform: rotate(-12deg) scale(2); opacity: 0; } to { transform: rotate(-12deg) scale(1); opacity: 0.85; } }
-@media (prefers-reduced-motion: reduce) { .case-stamp { animation: none; } }
-.case-results { margin-top: 10px; display: grid; gap: 6px; }
 .case-results p { margin: 0; }
-.case-headline { font-weight: 600; }
+.case-results .sub { color: #6b5638; }
+.case-headline { font-weight: 600; text-transform: uppercase; letter-spacing: .03em; font-size: 14px; }
 .case-share { display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; }
-.case-share.mine .case-share-label { font-weight: 600; }
+.case-share.mine .case-share-label { font-weight: 700; text-decoration: underline; }
+.case-ink { height: 14px; border: 2px solid #2f2418; background: #fff; }
+.case-ink i { display: block; height: 100%; background: repeating-linear-gradient(135deg, currentColor 0 4px, transparent 4px 7px); transition: width 500ms var(--ease-out); }
+.case-ink-heaven { color: var(--brass); }
+.case-ink-hell { color: var(--red); }
+.case-ink-reincarnate { color: var(--teal); }
 .case-archive-head { margin-top: 8px; }
 .case-archive { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; max-height: 260px; overflow-y: auto; }
 .case-archive li { display: grid; gap: 1px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  .case-stamp, .case-folder.thud { animation: none; }
+  .case-verdict, .case-ink i { transition: none; }
+}

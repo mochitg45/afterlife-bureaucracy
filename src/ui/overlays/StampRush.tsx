@@ -10,15 +10,24 @@ import * as haptics from '../../platform/haptics';
 import './StampRush.css';
 
 type Kind = 'normal' | 'flag' | 'special';
-interface Doc { id: number; kind: Kind; born: number; ttl: number }
-interface Msg { id: number; text: string; bad?: boolean }
+interface Doc { id: number; kind: Kind; born: number; ttl: number; slot: number }
+/** A form that was just dealt with: it plays its exit animation (visual only). */
+interface Gone { id: number; kind: Kind; slot: number; t: number }
+interface Msg { id: number; text: string; bad?: boolean; near?: boolean }
+interface Pop { id: number; n: number }
 
 const MAX_DOCS = 4;
+const GONE_MS = 650;
 const HOLD_MS = 400;
 const SWIPE_PX = 50;
 const NEAR_MISS = 0.8; // acting in the last 20% of a form's life is a near miss
 const BASE: Record<Kind, number> = { normal: 1, flag: 2, special: 3 };
 const lerp = (a: number, b: number, k: number) => a + (b - a) * Math.min(1, Math.max(0, k));
+const art = (n: string) => `${import.meta.env.BASE_URL}art/ui/${n}.webp`;
+const FORM_ART: Record<Kind, string> = { normal: art('rush-form-normal'), flag: art('rush-form-red'), special: art('rush-form-gold') };
+/** 0 plain, 1 warm, 2 hot, 3 on fire: the combo meter glows in tiers. */
+const tier = (combo: number) => (combo >= 20 ? 3 : combo >= 10 ? 2 : combo >= 5 ? 1 : 0);
+const tilt = (id: number) => ((id * 37) % 11) - 5; // stable slight tilt per form
 
 /** Which form comes next: the first few are easy taps, then red and gold forms join in. */
 function pickKind(n: number, sec: number): Kind {
@@ -57,19 +66,19 @@ export function StampRushEntry() {
   );
 }
 
-type View = { docs: (Doc & { hold: number; left: number })[]; combo: number; points: number; secLeft: number; msg: Msg | null; shake: number };
+type View = { docs: (Doc & { hold: number; left: number })[]; gone: Gone[]; combo: number; points: number; secLeft: number; msg: Msg | null; pop: Pop | null; shake: number };
 
 export function StampRush({ onClose }: { onClose: () => void }) {
   const startRush = useGame((s) => s.startRush);
   const finishRush = useGame((s) => s.finishRush);
   const rush = useGame((s) => s.state.rush);
   const [phase, setPhase] = useState<'intro' | 'play' | 'done'>('intro');
-  const [view, setView] = useState<View>({ docs: [], combo: 0, points: 0, secLeft: RUSH_SECONDS, msg: null, shake: 0 });
+  const [view, setView] = useState<View>({ docs: [], gone: [], combo: 0, points: 0, secLeft: RUSH_SECONDS, msg: null, pop: null, shake: 0 });
   const [reward, setReward] = useState<{ souls: Decimal; kc: Decimal; best: number; points: number } | null>(null);
-  const g = useRef({ docs: [] as Doc[], points: 0, combo: 0, best: 0, nextId: 1, spawned: 0, nextSpawn: 0, start: 0, msg: null as Msg | null, shake: 0, ended: false });
+  const g = useRef({ docs: [] as Doc[], gone: [] as Gone[], points: 0, combo: 0, best: 0, nextId: 1, spawned: 0, nextSpawn: 0, start: 0, msg: null as Msg | null, pop: null as Pop | null, shake: 0, ended: false });
   const press = useRef<{ id: number; x: number; t: number; done: boolean } | null>(null);
 
-  const say = (text: string, bad = false) => { g.current.msg = { id: g.current.nextId++, text, bad }; };
+  const say = (text: string, bad = false, near = false) => { g.current.msg = { id: g.current.nextId++, text, bad, near }; };
   const wrong = () => {
     const s = g.current;
     s.combo = 0; s.shake++;
@@ -79,10 +88,13 @@ export function StampRush({ onClose }: { onClose: () => void }) {
   const act = (doc: Doc, now: number) => {
     const s = g.current;
     const late = (now - doc.born) / doc.ttl >= NEAR_MISS;
-    s.points += BASE[doc.kind] * comboMult(s.combo) + (late ? 1 : 0);
+    const gain = BASE[doc.kind] * comboMult(s.combo) + (late ? 1 : 0);
+    s.points += gain;
+    s.pop = { id: s.nextId++, n: Math.round(gain) };
+    s.gone.push({ id: doc.id, kind: doc.kind, slot: doc.slot, t: now });
     s.combo++; s.best = Math.max(s.best, s.combo);
     s.docs = s.docs.filter((d) => d.id !== doc.id);
-    say(late ? t('rush.nearMiss') : t(doc.kind === 'normal' ? 'rush.approved' : doc.kind === 'flag' ? 'rush.rejected' : 'rush.filed'));
+    say(late ? t('rush.nearMiss') : t(doc.kind === 'normal' ? 'rush.approved' : doc.kind === 'flag' ? 'rush.rejected' : 'rush.filed'), false, late);
     if (doc.kind === 'normal') haptics.tap(); else haptics.heavy();
   };
 
@@ -100,7 +112,7 @@ export function StampRush({ onClose }: { onClose: () => void }) {
   const begin = () => {
     if (!startRush()) { onClose(); return; }
     const now = performance.now();
-    g.current = { docs: [], points: 0, combo: 0, best: 0, nextId: 1, spawned: 0, nextSpawn: now, start: now, msg: null, shake: 0, ended: false };
+    g.current = { docs: [], gone: [], points: 0, combo: 0, best: 0, nextId: 1, spawned: 0, nextSpawn: now, start: now, msg: null, pop: null, shake: 0, ended: false };
     press.current = null;
     track('rush_start');
     setPhase('play');
@@ -127,13 +139,16 @@ export function StampRush({ onClose }: { onClose: () => void }) {
         haptics.heavy();
       }
       if ((now >= s.nextSpawn && s.docs.length < MAX_DOCS) || s.docs.length === 0) {
-        s.docs.push({ id: s.nextId++, kind: pickKind(s.spawned++, sec), born: now, ttl: lerp(3800, 1800, k) });
+        const slot = [0, 1, 2, 3].find((i) => !s.docs.some((d) => d.slot === i)) ?? 0;
+        s.docs.push({ id: s.nextId++, kind: pickKind(s.spawned++, sec), born: now, ttl: lerp(3800, 1800, k), slot });
         s.nextSpawn = now + lerp(950, 420, k);
       }
       const hp = press.current;
+      s.gone = s.gone.filter((x) => now - x.t < GONE_MS);
       setView({
         docs: s.docs.map((d) => ({ ...d, hold: hp && hp.id === d.id && d.kind === 'flag' ? Math.min(1, (now - hp.t) / HOLD_MS) : 0, left: 1 - (now - d.born) / d.ttl })),
-        combo: s.combo, points: Math.round(s.points), secLeft: Math.ceil(RUSH_SECONDS - sec), msg: s.msg, shake: s.shake,
+        gone: [...s.gone],
+        combo: s.combo, points: Math.round(s.points), secLeft: Math.ceil(RUSH_SECONDS - sec), msg: s.msg, pop: s.pop, shake: s.shake,
       });
     }, 50);
     return () => clearInterval(timer);
@@ -161,14 +176,25 @@ export function StampRush({ onClose }: { onClose: () => void }) {
   const cooling = !rushAvailable(rush, Date.now());
   const roundsLeft = cooling ? 0 : RUSH_ROUNDS - rush.rounds;
   const quit = () => { if (phase === 'play') end(); else onClose(); };
+  const stampText = (k: Kind) => t(k === 'normal' ? 'rush.approved' : k === 'flag' ? 'rush.rejected' : 'rush.filed');
+  const secPct = Math.max(0, Math.min(100, (view.secLeft / RUSH_SECONDS) * 100));
   return (
-    <div className="rush" role="dialog" aria-modal="true" aria-label={t('rush.title')}>
+    <div
+      className={'rush' + (phase === 'play' && view.shake ? ' shake' + (view.shake % 2) : '')}
+      role="dialog" aria-modal="true" aria-label={t('rush.title')}
+      style={{ backgroundImage: `linear-gradient(rgb(20 14 8 / .2), rgb(20 14 8 / .2)), url(${art('rush-desk')})` }}
+    >
       <div className="rush-top">
-        <button className="btn btn-ghost" onClick={quit}>{phase === 'play' ? t('rush.skip') : t('rush.close')}</button>
-        {phase === 'play' && <div className="rush-stats mono">
-          <span aria-label={t('rush.timeAria')}>{view.secLeft}s</span>
-          <span>{t('rush.score', { n: view.points })}</span>
-        </div>}
+        <button className="btn rush-skip" onClick={quit}>{phase === 'play' ? t('rush.skip') : t('rush.close')}</button>
+        {phase === 'play' && <>
+          <div className={'rush-clock mono' + (view.secLeft <= 10 ? ' low' : '')} style={{ '--p': secPct } as React.CSSProperties} role="timer" aria-label={t('rush.timeAria')}>
+            <span>{view.secLeft}</span>
+          </div>
+          <div className="rush-score mono">
+            <span>{t('rush.score', { n: view.points })}</span>
+            {view.pop && <b className="rush-pop" key={view.pop.id}>+{view.pop.n}</b>}
+          </div>
+        </>}
       </div>
       {phase === 'intro' && (
         <div className="rush-card">
@@ -186,16 +212,23 @@ export function StampRush({ onClose }: { onClose: () => void }) {
       )}
       {phase === 'play' && (
         <>
-          <div className="rush-meter">
-            <div className="rush-bar"><i style={{ width: `${Math.min(100, (view.combo / 30) * 100)}%` }} /></div>
+          <div className={`rush-meter t${tier(view.combo)}`}>
+            <div className="rush-bar"><i style={{ width: `${Math.min(100, (view.combo / 30) * 100)}%` }} /><u /><u /></div>
             <span className={'mono rush-mult' + (mult >= 3 ? ' max' : '')}>{t('rush.combo', { n: view.combo })} · ×{mult.toFixed(1)}</span>
           </div>
-          <div className="rush-msg" key={view.msg?.id ?? 0}>{view.msg && <span className={view.msg.bad ? 'bad' : ''}>{view.msg.text}</span>}</div>
-          <div className={'rush-pile' + (view.shake ? ' shake' + (view.shake % 2) : '')}>
+          <div className="rush-msg" key={view.msg?.id ?? 0}>{view.msg && <span className={(view.msg.bad ? 'bad' : '') + (view.msg.near ? ' near' : '')}>{view.msg.text}</span>}</div>
+          <div className="rush-pile">
+            {view.gone.map((d) => (
+              <div key={'g' + d.id} className={`rush-doc gone ${d.kind} s${d.slot}`} style={{ '--rot': `${tilt(d.id)}deg` } as React.CSSProperties} aria-hidden="true">
+                <img src={FORM_ART[d.kind]} alt="" draggable={false} />
+                <span className="rush-imprint">{stampText(d.kind)}</span>
+              </div>
+            ))}
             {view.docs.map((d) => (
               <div
                 key={d.id}
-                className={`rush-doc ${d.kind}${d.left < 0.25 ? ' urgent' : ''}`}
+                className={`rush-doc ${d.kind} s${d.slot}${d.left < 0.25 ? ' urgent' : ''}`}
+                style={{ '--rot': `${tilt(d.id)}deg` } as React.CSSProperties}
                 onPointerDown={(e) => onDown(e, d)}
                 onPointerMove={(e) => onMove(e, d)}
                 onPointerUp={(e) => onUp(e, d)}
@@ -203,16 +236,15 @@ export function StampRush({ onClose }: { onClose: () => void }) {
                 role="button"
                 aria-label={t(d.kind === 'normal' ? 'rush.howTap' : d.kind === 'flag' ? 'rush.howHold' : 'rush.howSwipe')}
               >
-                <div className="rush-doc-head">
-                  <b>{d.kind === 'flag' ? t('rush.flagged') : d.kind === 'special' ? t('rush.gold') : t('rush.form', { n: d.id })}</b>
-                  <span>{d.kind === 'flag' ? t('rush.holdHint') : d.kind === 'special' ? t('rush.swipeHint') : t('rush.tapHint')}</span>
-                </div>
-                <div className="rush-lines"><i /><i /><i /></div>
+                <img src={FORM_ART[d.kind]} alt="" draggable={false} />
+                {d.kind === 'normal' && <b className="rush-tag">{t('rush.form', { n: d.id })}</b>}
+                <span className="rush-hint">{d.kind === 'flag' ? t('rush.holdHint') : d.kind === 'special' ? t('rush.swipeHint') : t('rush.tapHint')}</span>
                 {d.kind === 'flag' && <div className="rush-hold"><i style={{ width: `${d.hold * 100}%` }} /></div>}
                 <div className="rush-life"><i style={{ width: `${Math.max(0, d.left) * 100}%` }} /></div>
               </div>
             ))}
           </div>
+          <div className="rush-bin" aria-hidden="true"><i /></div>
         </>
       )}
       {phase === 'done' && reward && (

@@ -8,6 +8,26 @@ import * as haptics from '../../platform/haptics';
 import './CaseCard.css';
 
 const PAPERWORK_JOKES = 4;
+const art = (n: string) => `${import.meta.env.BASE_URL}art/ui/${n}.webp`;
+const HAIR = ['#3b2a20', '#8a5a2b', '#1f1f28', '#b5651d', '#6b6478', '#a6402b'];
+const SHIRT = ['#3E9C93', '#A8823C', '#6B6478', '#1F3B33', '#A6402B'];
+
+/** A little chibi silhouette for the photo slot; hair and shirt are picked from the case id. */
+function Chibi({ seed }: { seed: string }) {
+  let h = 0;
+  for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return (
+    <svg className="case-chibi" viewBox="0 0 64 64" aria-hidden="true">
+      <ellipse cx="32" cy="9" rx="9" ry="3" fill="none" stroke="var(--brass)" strokeWidth="2" />
+      <path d="M12 64 C12 46 20 42 32 42 C44 42 52 46 52 64 Z" fill={SHIRT[h % SHIRT.length]} stroke="var(--ink)" strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cx="32" cy="27" r="15" fill="#f2cfae" stroke="var(--ink)" strokeWidth="2.5" />
+      <path d="M17 26 C16 12 48 10 47 26 C42 20 24 20 17 26 Z" fill={HAIR[(h >> 3) % HAIR.length]} stroke="var(--ink)" strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cx="26" cy="30" r="1.8" fill="var(--ink)" />
+      <circle cx="38" cy="30" r="1.8" fill="var(--ink)" />
+      <path d="M28 35 Q32 38 36 35" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 /**
  * Case of the Day on the Tasks screen: a manila folder with one soul's file. The player rules
@@ -21,6 +41,7 @@ export function CaseCard() {
   const loadTally = useGame((s) => s.loadCaseTally);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [paperwork, setPaperwork] = useState(0);
+  const [slammed, setSlammed] = useState(false);
   // Read once on mount: opening the file clears the unread dot, but this visit still says NEW.
   const [fresh] = useState(() => caseUnread({ cases: saved }, Date.now()));
 
@@ -43,6 +64,7 @@ export function CaseCard() {
   const top = shares ? VERDICTS.reduce((a, v) => (shares[v] > shares[a] ? v : a)) : null;
   const rule = (v: Verdict) => {
     haptics.heavy();
+    setSlammed(true);
     void ruleCase(file.id, v);
   };
 
@@ -52,22 +74,25 @@ export function CaseCard() {
         <span className="case-tab-title">{t('case.title')}</span>
         {fresh && !ruled && <span className="case-new" role="status">{t('case.new')}</span>}
       </div>
-      <div className="case-folder">
+      <div className={'case-folder' + (slammed && ruled ? ' thud' : '')} style={{ backgroundImage: `url(${art('case-folder')})` }}>
+        <div className="case-photo"><Chibi seed={file.id} /></div>
         <h3 className="case-name">{file.name}</h3>
-        <p className="case-story">{file.text}</p>
-        <dl className="case-facts">
-          <dt>{t('case.cause')}</dt>
-          <dd>{file.desc}</dd>
-          <dt>{t('case.plea')}</dt>
-          <dd className="case-plea">{file.line}</dd>
-          <dt>{t('case.note')}</dt>
-          <dd>{file.hint}</dd>
-        </dl>
         {ruled && mine && (
           <div className="case-stamp" role="img" aria-label={t('case.yourVerdict', { verdict: verdictName(mine.verdict) })}>
-            <span className="case-stamp-inner">{verdictName(mine.verdict)}</span>
+            <img src={art(`stamp-${mine.verdict}`)} alt="" draggable={false} />
           </div>
         )}
+        <div className="case-page" tabIndex={0} role="region" aria-label={file.name}>
+          <p className="case-story">{file.text}</p>
+          <dl className="case-facts">
+            <dt>{t('case.cause')}</dt>
+            <dd>{file.desc}</dd>
+            <dt>{t('case.plea')}</dt>
+            <dd className="case-plea">{file.line}</dd>
+            <dt>{t('case.note')}</dt>
+            <dd>{file.hint}</dd>
+          </dl>
+        </div>
       </div>
 
       {!ruled ? (
@@ -78,7 +103,8 @@ export function CaseCard() {
           <div className="case-actions">
             {VERDICTS.map((v) => (
               <button key={v} className={`btn case-verdict case-${v}`} disabled={info.busy} onClick={() => rule(v)}>
-                {verdictName(v)}
+                <span className="case-pad"><img src={art(`stamp-${v}`)} alt="" draggable={false} /></span>
+                <span className="case-verdict-label">{verdictName(v)}</span>
               </button>
             ))}
           </div>
@@ -99,7 +125,7 @@ export function CaseCard() {
               {VERDICTS.map((v) => (
                 <div key={v} className={'case-share' + (mine?.verdict === v ? ' mine' : '')}>
                   <span className="case-share-label">{verdictName(v)}</span>
-                  <div className="bar"><div className="bar-fill" style={{ width: shares[v] + '%' }} /></div>
+                  <div className={`case-ink case-ink-${v}`}><i style={{ width: shares[v] + '%' }} /></div>
                   <span className="mono sub">{shares[v]}%</span>
                 </div>
               ))}

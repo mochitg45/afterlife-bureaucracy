@@ -1,12 +1,29 @@
-/* Stamp Rush: full-screen mini-game. Same layer as the other overlays, below ForceUpdate. */
+/* Stamp Rush: full-screen mini-game on a cluttered afterlife desk. Same layer as the other overlays, below ForceUpdate. */
 .rush-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .rush-entry .sub { font-size: 12px; }
 .rush {
-  position: fixed; inset: 0; z-index: 1500; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
-  background: var(--paper); touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden;
+  position: fixed; inset: 0; z-index: 1500; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px calc(10px + env(safe-area-inset-bottom));
+  background: #3a2a1c center / cover no-repeat; touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden;
 }
-.rush-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.rush-stats { display: flex; gap: 14px; font-size: 18px; font-weight: 700; color: var(--ink); }
+.rush > * { width: 100%; max-width: 460px; margin-left: auto; margin-right: auto; }
+.rush.shake0 { animation: rush-shake 300ms linear both; }
+.rush.shake1 { animation: rush-shake2 300ms linear both; }
+
+/* HUD: skip, big countdown, score */
+.rush-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.rush-skip { justify-self: start; background: var(--surface); }
+.rush-clock {
+  --p: 100; position: relative; width: 78px; height: 78px; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--teal) calc(var(--p) * 1%), rgb(42 38 32 / .55) 0); border: 3px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+}
+.rush-clock::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); }
+.rush-clock span { position: relative; font-size: 34px; font-weight: 700; color: var(--ink); line-height: 1; }
+.rush-clock.low { background: conic-gradient(var(--red) calc(var(--p) * 1%), rgb(42 38 32 / .55) 0); animation: rush-tick 1s ease-in-out infinite; }
+.rush-clock.low span { color: var(--red); }
+.rush-score { position: relative; justify-self: end; padding: 6px 10px; border: 2px solid var(--ink); border-radius: 8px; background: var(--surface); box-shadow: 0 3px 0 var(--ink); font-size: 15px; font-weight: 700; color: var(--ink); }
+.rush-pop { position: absolute; right: 6px; top: 100%; font-size: 22px; color: #fff; text-shadow: 0 2px 0 var(--green), 2px 0 0 var(--green), -2px 0 0 var(--green), 0 -2px 0 var(--green); animation: rush-pop-up 700ms var(--ease-out) both; pointer-events: none; }
+
+/* intro and result cards */
 .rush-card {
   margin: auto; width: min(340px, 100%); padding: 20px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;
   background: var(--surface); border: 3px solid var(--ink); border-radius: 12px; box-shadow: 6px 6px 0 var(--ink);
@@ -22,45 +39,79 @@
 .rush-result { display: flex; gap: 14px; font-size: 14px; }
 .rush-pay { font-size: 22px; font-weight: 700; color: var(--green); line-height: 1.4; }
 
-.rush-meter { display: flex; flex-direction: column; gap: 4px; }
-.rush-bar { height: 12px; border: 2px solid var(--ink); border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-.rush-bar i { display: block; height: 100%; background: var(--brass); transition: width 120ms linear; }
-.rush-mult { font-size: 14px; font-weight: 700; color: var(--ink); }
-.rush-mult.max { color: var(--red); }
-.rush-msg { height: 28px; text-align: center; font-family: var(--font-display); font-size: 20px; color: var(--green); }
-.rush-msg span { display: inline-block; animation: rush-pop 360ms var(--ease-out) both; }
-.rush-msg span.bad { color: var(--red); }
+/* combo meter: fills and glows in tiers (5, 10, 20) */
+.rush-meter { --glow: transparent; --fill: var(--brass); display: flex; flex-direction: column; gap: 3px; }
+.rush-meter.t1 { --fill: #d98b2b; --glow: rgb(217 139 43 / .6); }
+.rush-meter.t2 { --fill: #d2542b; --glow: rgb(255 120 60 / .8); }
+.rush-meter.t3 { --fill: #f4c430; --glow: rgb(255 214 70 / .95); }
+.rush-bar { position: relative; height: 16px; border: 3px solid var(--ink); border-radius: 999px; background: rgb(42 38 32 / .75); overflow: hidden; box-shadow: 0 0 0 0 var(--glow); transition: box-shadow 200ms; }
+.rush-meter:not(.t0) .rush-bar { box-shadow: 0 0 14px 3px var(--glow); }
+.rush-meter.t3 .rush-bar { animation: rush-glow 700ms ease-in-out infinite alternate; }
+.rush-bar i { display: block; height: 100%; background: var(--fill); transition: width 120ms linear; }
+.rush-bar u { position: absolute; top: 0; bottom: 0; width: 2px; background: rgb(247 242 228 / .6); }
+.rush-bar u:nth-of-type(1) { left: 33.3%; }
+.rush-bar u:nth-of-type(2) { left: 66.7%; }
+.rush-mult { align-self: flex-end; padding: 0 8px; border-radius: 6px; background: rgb(42 38 32 / .72); font-size: 13px; font-weight: 700; color: var(--surface); }
+.rush-mult.max { color: #ffd54a; }
 
-.rush-pile { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
-.rush-pile.shake0 { animation: rush-shake 280ms linear both; }
-.rush-pile.shake1 { animation: rush-shake2 280ms linear both; }
-.rush-doc {
-  position: relative; padding: 10px 12px 14px; background: var(--surface); border: 3px solid var(--ink); border-radius: 8px; box-shadow: 4px 4px 0 var(--ink);
-  min-height: 84px; display: flex; flex-direction: column; gap: 6px; animation: rush-in 200ms var(--ease-out) both; cursor: pointer;
-}
-.rush-doc-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 13px; }
-.rush-doc-head span { font-weight: 700; letter-spacing: .08em; }
-.rush-lines { display: flex; flex-direction: column; gap: 5px; }
-.rush-lines i { display: block; height: 4px; border-radius: 2px; background: var(--line); }
-.rush-lines i:nth-child(2) { width: 70%; }
-.rush-lines i:nth-child(3) { width: 45%; }
-.rush-doc.flag { background: #f6dcd5; border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
-.rush-doc.flag .rush-doc-head b { color: var(--red); }
-.rush-doc.special { background: linear-gradient(100deg, #fbe9a6, #f6dc8a); border-color: var(--brass); box-shadow: 4px 4px 0 var(--brass); }
-.rush-hold { height: 8px; border: 2px solid var(--red); border-radius: 999px; overflow: hidden; background: #fff; }
+/* big pops: APPROVED, CLOSE ONE!, WRONG! */
+.rush-msg { height: 40px; text-align: center; font-family: var(--font-display); font-size: 28px; line-height: 40px; color: #8be3a8; text-shadow: 0 3px 0 var(--ink), 2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 -2px 0 var(--ink); pointer-events: none; }
+.rush-msg span { display: inline-block; animation: rush-pop 360ms var(--ease-out) both; }
+.rush-msg span.bad { color: #ff8a73; }
+.rush-msg span.near { color: #ffd54a; font-size: 32px; }
+
+/* the pile of forms in the clear middle of the desk */
+.rush-pile { --fw: min(240px, calc(52vw - 16px), 24vh); --fh: calc(var(--fw) * 1.274); position: relative; flex: 1; min-height: 0; margin-top: 3vh; }
+.rush-doc { position: absolute; width: var(--fw); height: var(--fh); transform: rotate(var(--rot)); cursor: pointer; animation: rush-in 220ms var(--ease-out) both; filter: drop-shadow(0 5px 3px rgb(0 0 0 / .45)); }
+.rush-doc img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.rush-doc.s0 { left: 0; top: 0; --dy: calc(var(--fh) * 1.8); }
+.rush-doc.s1 { right: 0; top: calc(var(--fh) * .06); --dy: calc(var(--fh) * 1.8); }
+.rush-doc.s2 { left: 3%; top: calc(var(--fh) * .8); --dy: calc(var(--fh) * .9); }
+.rush-doc.s3 { right: 2%; top: calc(var(--fh) * .76); --dy: calc(var(--fh) * .9); }
+.rush-tag { position: absolute; left: 50%; top: 5%; transform: translateX(-50%); padding: 1px 8px; border-radius: 3px; background: var(--surface); border: 2px solid var(--ink); font: 700 12px var(--font-mono); letter-spacing: .06em; white-space: nowrap; color: var(--ink); }
+.rush-hint { position: absolute; left: 50%; bottom: 12%; transform: translateX(-50%) rotate(-3deg); padding: 2px 12px; border-radius: 4px; background: var(--ink); color: var(--surface); font: 700 15px var(--font-mono); letter-spacing: .12em; box-shadow: 0 2px 0 rgb(0 0 0 / .35); }
+.rush-doc.flag .rush-hint { background: var(--red); }
+.rush-doc.special .rush-hint { background: var(--brass); color: #fff; }
+.rush-hold { position: absolute; left: 14%; right: 14%; bottom: 5%; height: 10px; border: 2px solid var(--red); border-radius: 999px; overflow: hidden; background: #fff; }
 .rush-hold i { display: block; height: 100%; background: var(--red); }
-.rush-life { position: absolute; left: 8px; right: 8px; bottom: 4px; height: 4px; border-radius: 2px; background: rgb(42 38 32 / .12); overflow: hidden; }
+.rush-life { position: absolute; left: 10%; right: 10%; top: 1%; height: 6px; border-radius: 3px; background: rgb(42 38 32 / .35); overflow: hidden; }
 .rush-life i { display: block; height: 100%; background: var(--teal); }
 /* near miss: the form is about to expire */
 .rush-doc.urgent .rush-life i { background: var(--red); }
 .rush-doc.urgent { animation: rush-jitter 120ms linear infinite; }
 
-@keyframes rush-in { from { transform: translateY(14px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes rush-shake2 { 0% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 100% { transform: none; } }
-@keyframes rush-pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
-@keyframes rush-shake { 0% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 100% { transform: none; } }
-@keyframes rush-jitter { 0% { transform: translateX(-1.5px); } 50% { transform: translateX(1.5px); } 100% { transform: translateX(-1.5px); } }
+/* forms that were dealt with: imprint first, then fly off */
+.rush-doc.gone { pointer-events: none; animation-duration: 650ms; animation-timing-function: ease-in; animation-fill-mode: both; }
+.rush-doc.gone.normal { animation-name: rush-away-right; }
+.rush-doc.gone.flag { animation-name: rush-away-bin; }
+.rush-doc.gone.special { animation-name: rush-away-up; }
+.rush-imprint {
+  position: absolute; left: 50%; top: 42%; translate: -50% -50%; padding: 2px 8px; border: 4px solid; border-radius: 6px; font-family: var(--font-display); font-size: 22px;
+  letter-spacing: .06em; white-space: nowrap; rotate: -14deg; background: rgb(247 242 228 / .9); animation: rush-imprint 180ms var(--ease-out) both;
+}
+.rush-doc.normal .rush-imprint { color: #1f7a45; border-color: #1f7a45; }
+.rush-doc.flag .rush-imprint { color: var(--red); border-color: var(--red); }
+.rush-doc.special .rush-imprint { color: var(--brass); border-color: var(--brass); }
+
+/* the reject bin, CSS-drawn */
+.rush-bin { flex: 0 0 auto; height: 44px; position: relative; }
+.rush-bin i { position: absolute; left: 50%; bottom: 0; width: 84px; height: 40px; translate: -50% 0; background: repeating-linear-gradient(90deg, #5d6670 0 8px, #4a525b 8px 16px); border: 3px solid var(--ink); border-radius: 2px 2px 8px 8px; clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%); }
+.rush-bin i::before { content: ''; position: absolute; left: -6px; right: -6px; top: -2px; height: 7px; background: #7b858f; border: 2px solid var(--ink); border-radius: 3px; }
+
+@keyframes rush-in { from { transform: translateY(14px) scale(.9) rotate(var(--rot)); opacity: 0; } to { transform: rotate(var(--rot)); opacity: 1; } }
+@keyframes rush-away-right { 0%, 25% { transform: rotate(var(--rot)); opacity: 1; } 100% { transform: translateX(130%) rotate(28deg); opacity: 0; } }
+@keyframes rush-away-bin { 0%, 25% { transform: rotate(var(--rot)); opacity: 1; } 100% { transform: translate(-10%, var(--dy)) scale(.25) rotate(-40deg); opacity: 0; } }
+@keyframes rush-away-up { 0%, 25% { transform: rotate(var(--rot)); opacity: 1; } 100% { transform: translateY(-140%) scale(.8) rotate(8deg); opacity: 0; } }
+@keyframes rush-imprint { from { transform: scale(2.6); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes rush-pop { 0% { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes rush-pop-up { from { transform: translateY(0) scale(.7); opacity: 0; } 20% { opacity: 1; transform: translateY(-4px) scale(1.15); } to { transform: translateY(-26px); opacity: 0; } }
+@keyframes rush-glow { from { box-shadow: 0 0 10px 2px var(--glow); } to { box-shadow: 0 0 22px 7px var(--glow); } }
+@keyframes rush-tick { 50% { transform: scale(1.07); } }
+@keyframes rush-shake { 0% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-4px); } 100% { transform: none; } }
+@keyframes rush-shake2 { 0% { transform: translateX(0); } 20% { transform: translateX(8px); } 40% { transform: translateX(-7px); } 60% { transform: translateX(4px); } 100% { transform: none; } }
+@keyframes rush-jitter { 0% { transform: translateX(-1.5px) rotate(var(--rot)); } 50% { transform: translateX(1.5px) rotate(var(--rot)); } 100% { transform: translateX(-1.5px) rotate(var(--rot)); } }
 @media (prefers-reduced-motion: reduce) {
-  .rush-doc, .rush-doc.urgent, .rush-msg span, .rush-pile.shake0, .rush-pile.shake1 { animation: none; }
+  .rush, .rush.shake0, .rush.shake1, .rush-doc, .rush-doc.urgent, .rush-clock.low, .rush-meter.t3 .rush-bar, .rush-msg span, .rush-pop, .rush-imprint { animation: none; }
+  .rush-doc.gone { display: none; }
   .rush-bar i { transition: none; }
 }
