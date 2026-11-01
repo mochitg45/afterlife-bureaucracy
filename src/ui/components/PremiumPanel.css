@@ -12,8 +12,19 @@
 .premium-slot { display: flex; align-items: center; gap: 10px; min-height: 64px; border: 2px dashed var(--brass); }
 .premium-slot img { width: 56px; height: 56px; object-fit: contain; }
 
-.personnel-tabs { display: flex; gap: 6px; margin: 4px 0 10px; padding: 4px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--line); }
-.personnel-tab { flex: 1; padding: 8px 4px; border: 0; border-radius: 999px; background: none; font: inherit; font-weight: 700; color: inherit; opacity: .65; cursor: pointer; }
-.personnel-tab.active { background: var(--red, #a6402b); color: #fff; opacity: 1; }
-.personnel-tab.premium.active { background: var(--brass); }
-.personnel-tab:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+/* Personnel: premium hires are gold-trimmed staff files pinned to the board; the slots are desk plates. */
+.personnel .premium-panel { display: flex; flex-direction: column; gap: 14px; padding-top: 6px; }
+.personnel .premium-panel .section-head { margin: 8px 0 0; }
+.personnel .premium-panel > .sub { margin: 0; padding: 8px 10px; background: rgb(251 246 230 / .92); border: 1.5px dashed var(--ink-muted); border-radius: 6px; font-size: 13px; }
+.personnel .premium-slot { background: rgb(251 246 230 / .95); border: 3px solid var(--wood); border-bottom-width: 7px; border-radius: 8px; }
+.personnel .premium-offer { border-radius: 6px; border-width: 2px; border-top: 10px solid var(--brass); box-shadow: 0 3px 0 rgb(42 38 32 / .3); padding-top: 16px; }
+.personnel .premium-offer::before { content: ''; position: absolute; top: -18px; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8 0 15%, var(--pin-0) 40%); border: 1.5px solid rgb(42 38 32 / .8); box-shadow: 1px 3px 2px rgb(0 0 0 / .35); }
+.personnel .premium-offer.on-duty { box-shadow: 0 3px 0 rgb(42 38 32 / .3), 0 0 0 3px var(--brass), 0 0 16px rgb(232 193 100 / .6); }
+.personnel .premium-ribbon { top: -4px; right: 8px; border-radius: 3px; border: 1.5px solid var(--ink); }
+.personnel .premium-actions .btn { min-height: 44px; }
+.personnel .premium-text { min-width: 0; overflow-wrap: anywhere; }
+.personnel .premium-panel .section-head h3 {
+  display: inline-block; padding: 4px 14px; font-size: 15px; color: #FBF1D4; background: linear-gradient(180deg, #7a5238, var(--wood));
+  border: 2px solid #3a2418; border-radius: 4px; box-shadow: 0 2px 0 rgb(0 0 0 / .3); text-transform: uppercase; letter-spacing: .08em;
+}

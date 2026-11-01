@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { useGame } from '../../store/game';
 import { content } from '../../data';
@@ -12,6 +13,7 @@ import { PremiumPanel } from '../components/PremiumPanel';
 import { SetsPanel } from '../components/SetsPanel';
 import { VoucherIcon } from '../icons/Currency';
 import { t } from '../../i18n';
+import './PersonnelScreen.css';
 
 const RARITY_ORDER: Rarity[] = ['temp', 'fulltime', 'senior', 'executive'];
 
@@ -87,22 +89,35 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
   const onCollectionClick = useCallback((cardId: string) => setSheetCardId(cardId), []);
 
   return (
-    <section className="screen personnel">
+    <section className="screen personnel" style={{ '--personnel-bg': `url(${import.meta.env.BASE_URL}art/ui/personnel-bg.webp)` } as CSSProperties}>
       <ScreenHeader title={t('personnel.title')} onSettings={onSettings} />
-      <header className="card">
-        <div className="label">{t('personnel.vouchers')}</div>
-        <div className="mono value brass amt" role="img" aria-label={t('personnel.vouchersAria', { n: vouchers })}>
-          {vouchers} <VoucherIcon size={22} />
+      <header className="req-window">
+        <div className="req-sign label">{t('personnel.vouchers')}</div>
+        <div className="req-balance mono amt" role="img" aria-label={t('personnel.vouchersAria', { n: vouchers })}>
+          <span className="req-stack" aria-hidden="true" />
+          {vouchers} <VoucherIcon size={24} />
         </div>
-        <p className="sub">{t('personnel.seniorIn', { n: PITY_SENIOR - pity.senior })}</p>
-        <p className="sub">{t('personnel.execIn', { n: PITY_EXECUTIVE - pity.executive })}</p>
-        <div className="modal-actions" data-coach="pull">
-          <button className="btn" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label={t('personnel.drawOne', { cost: PULL_COST })}>
-            <span className="amt">{PULL_COST} <VoucherIcon /></span>
+        <div className="req-gauges">
+          <div className="req-gauge">
+            <p className="sub">{t('personnel.seniorIn', { n: PITY_SENIOR - pity.senior })}</p>
+            <div className="req-meter" aria-hidden="true"><span style={{ width: `${Math.min(100, (pity.senior / PITY_SENIOR) * 100)}%` }} /></div>
+          </div>
+          <div className="req-gauge">
+            <p className="sub">{t('personnel.execIn', { n: PITY_EXECUTIVE - pity.executive })}</p>
+            <div className="req-meter exec" aria-hidden="true"><span style={{ width: `${Math.min(100, (pity.executive / PITY_EXECUTIVE) * 100)}%` }} /></div>
+          </div>
+        </div>
+        <div className="req-forms" data-coach="pull">
+          <button className="req-form" disabled={vouchers < PULL_COST} onClick={() => pull(1)} aria-label={t('personnel.drawOne', { cost: PULL_COST })}>
+            <span className="req-count mono" aria-hidden="true">×1</span>
+            <span className="amt req-cost">{PULL_COST} <VoucherIcon /></span>
           </button>
-          <button className="btn btn-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label={t('personnel.drawTen', { cost: TEN_PULL_COST })}>
-            <span className="amt">{TEN_PULL_COST} <VoucherIcon /></span>
+          <button className="req-form req-form-primary" disabled={vouchers < TEN_PULL_COST} onClick={() => pull(10)} aria-label={t('personnel.drawTen', { cost: TEN_PULL_COST })}>
+            <span className="req-count mono" aria-hidden="true">×10</span>
+            <span className="amt req-cost">{TEN_PULL_COST} <VoucherIcon /></span>
           </button>
+        </div>
+        <div className="req-extras">
           <AdButton placement="free-pull" label={t('personnel.freePull')} />
           <button
             className="btn btn-ghost"
@@ -121,8 +136,8 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
       </div>
 
       {tab === 'premium' ? <PremiumPanel /> : tab === 'sets' ? <SetsPanel /> : <>
-      <div className="section-head"><h3>{t('personnel.equipped')}</h3></div>
-      <div className="tile-grid" data-coach="equipped">
+      <div className="section-head"><h3 className="nameplate">{t('personnel.equipped')}</h3></div>
+      <div className="tile-grid desk-row" data-coach="equipped">
         {Array.from({ length: slots }, (_, i) => equipped[i]).map((cardId, i) =>
           cardId ? (
             <CardTile
@@ -135,15 +150,17 @@ export function PersonnelScreen({ onSettings }: { onSettings?: () => void }) {
               shards={cardShards[cardId] ?? 0}
             />
           ) : (
-            <div key={`empty-${i}`} className="tile empty sub">{t('personnel.emptySlot')}</div>
+            <div key={`empty-${i}`} className="tile empty sub desk-empty">{t('personnel.emptySlot')}</div>
           ),
         )}
       </div>
 
       <div className="section-head">
-        <h3>{t('personnel.collection')}</h3>
+        <h3 className="nameplate">{t('personnel.collection')}</h3>
       </div>
-      <Collection list={roster} cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
+      <div className="corkboard">
+        <Collection list={roster} cards={cards} cardShards={cardShards} equipped={equipped} onCardClick={onCollectionClick} />
+      </div>
 
       </>}
 

@@ -23,6 +23,13 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --shadow: 0 1px 0 rgba(42, 38, 32, 0.12), 0 2px 6px rgba(42, 38, 32, 0.08);
   --tabbar-h: 64px;
+  /* Corkboard / HR office palette (Personnel page). */
+  --cork: #C28A55;
+  --cork-dark: #8A5A34;
+  --wood: #5B3A29;
+  --manila: #E9D29A;
+  --manila-dark: #C9AB62;
+  --pin-0: #D6453A; --pin-1: #3E7BC4; --pin-2: #E3B33C; --pin-3: #3E9C93;
   /* Light only, by owner decision: no dark palette, no system switch. */
   color-scheme: light;
 }
