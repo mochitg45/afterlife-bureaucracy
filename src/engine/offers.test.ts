@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialState, type GameState } from './state';
 import { content } from '../data';
-import { markOfferShown, nextOffer, snoozeOffers, OFFER_REVIEW_GAP_MS } from './offers';
+import { markOfferShown, nextOffer, snoozeOffers, OFFER_REVIEW_GAP_MS, FIRST_OFFER_AFTER_MS } from './offers';
 import { grantPremium } from './premium';
 
 const DAY = 86_400_000;
 const T0 = 1_800_000_000_000;
+const OPEN = T0 + FIRST_OFFER_AFTER_MS; // the first moment an offer may show
 const LATER = T0 + 4 * DAY; // past the Starter Pack's 3-day window
 
 /** A player past the tutorial, on a known day, who joined at T0. */
@@ -17,11 +18,15 @@ function player(patch: Partial<GameState> = {}): GameState {
 describe('store offer pop-up', () => {
   it('never shows during the tutorial', () => {
     const s = player();
-    expect(nextOffer({ ...s, onboarding: { ...s.onboarding, trainingStep: 2 } }, T0)).toBeNull();
+    expect(nextOffer({ ...s, onboarding: { ...s.onboarding, trainingStep: 2 } }, OPEN)).toBeNull();
+  });
+  it("stays away for a new player's first hour", () => {
+    expect(nextOffer(player(), OPEN - 1)).toBeNull();
+    expect(nextOffer(player(), OPEN)).not.toBeNull();
   });
   it('leads with the limited Halloween pet while Halloween runs, then the Starter Pack', () => {
-    expect(nextOffer(player(), T0, 'halloween')?.product).toBe('pumpkat_bundle');
-    expect(nextOffer(player(), T0, null)?.product).toBe('starter_pack');
+    expect(nextOffer(player(), OPEN, 'halloween')?.product).toBe('pumpkat_bundle');
+    expect(nextOffer(player(), OPEN, null)?.product).toBe('starter_pack');
     expect(nextOffer(player(), LATER, null)?.product).toBe('cerberus_bundle');
   });
   it('never offers the pet outside Halloween or once owned', () => {

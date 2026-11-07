@@ -6,8 +6,8 @@ import { eventPool } from './events';
 
 /**
  * The store offer pop-up shown when the app opens (like most mobile games), never a paywall:
- * once per app open, only after the tutorial, never within 30 min of a rating prompt, and not
- * at all on a day the player ticked "Don't show again today". Offers rotate: each open shows
+ * once per app open, only after the tutorial, never in a player's first hour, never within
+ * 30 min of a rating prompt, and not at all on a day the player ticked "Don't show again today". Offers rotate: each open shows
  * the one shown longest ago, with time-limited ones (a limited pet, the Starter Pack, an
  * event's pass) first in line.
  *
@@ -18,6 +18,9 @@ export interface Offer { id: string; product: ProductId }
 
 /** A rating prompt and a sales pitch back to back reads as nagging. */
 export const OFFER_REVIEW_GAP_MS = 30 * 60_000;
+
+/** A new player's first session stays free of sales pitches, so the first offer waits for a later open. */
+export const FIRST_OFFER_AFTER_MS = 3_600_000;
 
 /** Every offer the player could take right now, most time-limited first. */
 export function offerCandidates(state: GameState, nowWall: number, runningEventId: string | null): Offer[] {
@@ -35,6 +38,7 @@ export function offerCandidates(state: GameState, nowWall: number, runningEventI
 export function nextOffer(state: GameState, nowWall: number, runningEventId: string | null = null): Offer | null {
   const { offers, dailies } = state;
   if (state.onboarding.trainingStep < 3 || !dailies.date || offers.lastDate === dailies.date) return null;
+  if (nowWall - state.firstSeenWallClock < FIRST_OFFER_AFTER_MS) return null;
   if (nowWall - state.review.lastWall < OFFER_REVIEW_GAP_MS) return null;
   const list = offerCandidates(state, nowWall, runningEventId);
   if (!list.length) return null;
