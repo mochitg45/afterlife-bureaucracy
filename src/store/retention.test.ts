@@ -108,30 +108,20 @@ describe('retention store', () => {
     expect(store.getState().state.settings.notifOptIn).toBe('yes');
     staffUp();
     await store.getState().pause();
-    expect(calls).toContain('schedule:1,2,4,5');
+    expect(calls).toContain('schedule:2,4,5');
     await store.getState().resume();
     expect(calls.filter((c) => c === 'cancel').length).toBeGreaterThan(0);
     store.getState().stopLoop();
   });
-  it('spends the in-tray notification budget once a day, however many times the app pauses', async () => {
-    const { store, calls, clock, staffUp } = await make();
+  it('plans the same one-a-day reminders however many times the app pauses', async () => {
+    const { store, calls, staffUp } = await make();
     await store.getState().setNotifOptIn('yes');
     staffUp();
     await store.getState().pause();
     await store.getState().resume();
     staffUp();
     await store.getState().pause();
-    const scheduled = calls.filter((c) => c.startsWith('schedule:'));
-    expect(scheduled).toEqual(['schedule:1,2,4,5', 'schedule:2,4,5']);
-    expect(store.getState().state.settings.notifsSent).toBe(1);
-    // A new local day refills the budget.
-    await store.getState().resume();
-    clock.advance(24 * 3600 * 1000);
-    staffUp();
-    await store.getState().pause();
-    const afterMidnight = calls.filter((c) => c.startsWith('schedule:'));
-    expect(afterMidnight[afterMidnight.length - 1]).toBe('schedule:1,2,4,5');
-    expect(store.getState().state.settings.notifsSent).toBe(1);
+    expect(calls.filter((c) => c.startsWith('schedule:'))).toEqual(['schedule:2,4,5', 'schedule:2,4,5']);
     store.getState().stopLoop();
   });
   it('skips the in-tray notification when the office produces nothing', async () => {
@@ -142,10 +132,10 @@ describe('retention store', () => {
     expect(store.getState().state.settings.notifsSent).toBe(0);
     store.getState().stopLoop();
   });
-  it('asks for notifications only after two days', async () => {
+  it('asks for notifications only after half an hour', async () => {
     const { store, clock } = await make();
     expect(store.getState().shouldAskNotifications()).toBe(false);
-    clock.advance(2 * 86_400_000 + 1);
+    clock.advance(1_800_000 + 1);
     expect(store.getState().shouldAskNotifications()).toBe(true);
     store.getState().stopLoop();
   });

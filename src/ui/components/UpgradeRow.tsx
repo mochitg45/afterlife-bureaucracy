@@ -10,10 +10,12 @@ export function UpgradeRow({ upgrade, first = false }: { upgrade: UpgradeDef; fi
   const level = useGame((s) => s.state.upgrades[upgrade.id] ?? 0);
   const kc = useGame((s) => s.state.kc);
   const buy = useGame((s) => s.upgrade);
+  const firstBuy = useGame((s) => first && s.state.stats.upgradesBought === 0);
   const maxed = level >= upgrade.maxLevel;
   const cost = upgradeCost(upgrade, level);
+  const ready = !maxed && canAfford(cost, kc);
   return (
-    <button className="card upgrade-row" disabled={maxed || !canAfford(cost, kc)} onClick={() => buy(upgrade.id)} aria-label={upgrade.name} data-goal={`upgrade-${upgrade.id}`} {...(first ? { 'data-coach': 'upgrade' } : {})}>
+    <button className={'card upgrade-row' + (firstBuy && ready ? ' first-buy' : '')} disabled={!ready} onClick={() => buy(upgrade.id)} aria-label={upgrade.name} data-goal={`upgrade-${upgrade.id}`} {...(first ? { 'data-coach': 'upgrade' } : {})}>
       <div>
         <div className="staff-name">{upgrade.name} <span className="mono owned">{level}/{upgrade.maxLevel}</span></div>
         <div className="sub">{upgrade.desc}</div>

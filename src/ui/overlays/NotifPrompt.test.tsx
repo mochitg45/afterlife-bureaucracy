@@ -5,7 +5,7 @@ import { createInitialState } from '../../engine/state';
 import { computeRates } from '../../engine/economy';
 import { content } from '../../data';
 
-const TWO_DAYS_MS = 2 * 86_400_000;
+const ASK_AFTER_MS = 1_800_000;
 
 function seed(daysAgo: number) {
   const state = createInitialState({ wall: 0, mono: 0 }, content);
@@ -22,27 +22,27 @@ function seed(daysAgo: number) {
 }
 
 describe('NotifPrompt', () => {
-  it('is absent before two days have passed', () => {
-    seed(TWO_DAYS_MS - 60_000);
+  it('is absent before half an hour has passed', () => {
+    seed(ASK_AFTER_MS - 60_000);
     const { container } = render(<NotifPrompt />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('appears once two days have passed and no other overlay is pending', () => {
-    seed(TWO_DAYS_MS + 60_000);
+    seed(ASK_AFTER_MS + 60_000);
     render(<NotifPrompt />);
     expect(screen.getByRole('dialog', { name: /reminders/i })).toBeInTheDocument();
   });
 
   it('stays hidden when another overlay is pending', () => {
-    seed(TWO_DAYS_MS + 60_000);
+    seed(ASK_AFTER_MS + 60_000);
     useGame.setState({ lastAudit: { sealsGained: 1, fiscalYear: 2 } });
     const { container } = render(<NotifPrompt />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('disappears after a choice is made', () => {
-    seed(TWO_DAYS_MS + 60_000);
+    seed(ASK_AFTER_MS + 60_000);
     const setNotifOptIn = vi.fn(async (v: 'yes' | 'no') => {
       useGame.setState((s) => ({ state: { ...s.state, settings: { ...s.state.settings, notifOptIn: v } } }));
     });

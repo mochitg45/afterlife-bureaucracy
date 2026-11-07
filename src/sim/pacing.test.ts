@@ -8,6 +8,11 @@ const checkIn = { sessionsPerDay: 5, sessionSec: 180, clicksPerSec: 3, days: 30 
 const DAY_14_SEC = 14 * checkIn.sessionsPerDay * checkIn.sessionSec;
 
 describe('pacing targets (spec §4)', () => {
+  it('puts the first hire and first upgrade inside two minutes at one tap a second', () => {
+    const intake = content.departments[0];
+    expect(intake.staff[0].baseCost + intake.upgrades[0].baseCost).toBeLessThanOrEqual(120);
+  });
+
   const r = simulate(checkIn, content);
 
   it('unlocks Heaven within 15 minutes of play', () => {

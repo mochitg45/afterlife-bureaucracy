@@ -10,7 +10,7 @@ import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/
 import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
-import { pickNotifications, NOTIF_INTRAY, NOTIF_DAILY, NOTIF_EVENT, NOTIF_AWAY3, NOTIF_AWAY7, type Notifications } from '../platform/notifications';
+import { pickNotifications, planReminders, NOTIF_DAILY, NOTIF_EVENT, NOTIF_AWAY3, NOTIF_AWAY7, type Notifications } from '../platform/notifications';
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { rushAvailable, startRound, rushPayout } from '../engine/rush';
@@ -34,7 +34,7 @@ import { decodeSave, encodeSave } from '../platform/saveCode';
 import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { requestReview, shouldAskForReview, reviewAllowed } from '../platform/review';
 import { useTestAds } from '../platform/adUnits';
-import { track } from '../platform/analytics';
+import { track, trackSession, noteAway } from '../platform/analytics';
 import { mailPostcards, mailPostcardAfterAudit, openPostcard as openPostcardEngine, postcardSouls } from '../engine/postcards';
 import { grantVouchersExact } from '../engine/vouchers';
 import { pickReferral, referralLink, type Referral } from '../platform/referral';
@@ -104,17 +104,11 @@ const CLOUD_SYNC_EVERY_AUTOSAVES = 5;
 /** A gap this long (12h) leaves the player "cooked" on return, regardless of the offline cap. */
 const COOKED_THRESHOLD_SEC = 43_200;
 
-/** How long after a notification opt-in ask goes unasked before we ask again. */
-const ASK_NOTIF_AFTER_MS = 2 * 86_400_000;
+/** How long after first launch the reminders opt-in is offered: past the tutorial, but still inside day one. */
+const ASK_NOTIF_AFTER_MS = 1_800_000;
 
-/** Minutes-in-ms past local midnight the daily-reset notification fires, so the rollover has landed. */
-const DAILY_NOTIF_DELAY_MS = 300_000;
-
-/**
- * In-tray nudges allowed per local day. With the always-scheduled daily-reset reminder that
- * caps the tray at two notifications a day, however often the app is backgrounded.
- */
-const MAX_DISCRETIONARY_NOTIFS_PER_DAY = 1;
+/** Tomorrow's reminder fires this long past local midnight (or once the in-tray is full, if later). */
+const DAILY_NOTIF_DELAY_MS = 10 * 3_600_000;
 
 /** Tomorrow's Beginner Week day, as the daily-reset notification, while there is one to come. */
 function beginnerNotification(s: GameState): { title: string; body: string } | null {
@@ -1339,6 +1333,7 @@ export function createGameStore(deps: StoreDeps) {
             }
           }
           state = { ...state, processId };
+          trackSession();
           const r = settle(state, allowRollover);
           const dept = findDepartment(content, r.state.activeDept);
           set((cur) => ({
@@ -1425,44 +1420,29 @@ export function createGameStore(deps: StoreDeps) {
         submitLifetimeScore(s.soulsLifetime);
         submitEventScore();
         void get().flushAlliance();
-        if (s.settings.notifOptIn !== 'yes') {
-          await get().save();
-          void get().syncCloud('pause').catch(() => {});
-          return;
-        }
-        const wall = clock.wall();
-        const today = dayKey(wall);
-        // The budget is per local day, so a player who backgrounds the app a dozen times
-        // still gets at most the in-tray nudge plus the daily-reset one.
-        const sentToday = s.settings.notifDate === today ? s.settings.notifsSent : 0;
-        // An office with no staff produces nothing, so an "in-tray full" nudge would be a lie.
-        const intray = sentToday < MAX_DISCRETIONARY_NOTIFS_PER_DAY && get().rates.soulsPerSec.gt(0);
-        set({ state: { ...s, settings: { ...s.settings, notifDate: today, notifsSent: sentToday + (intray ? 1 : 0) } } });
+        noteAway();
         await get().save();
         void get().syncCloud('pause').catch(() => {});
+        if (s.settings.notifOptIn !== 'yes') return;
+        const wall = clock.wall();
+        // Boot and resume cancel what is pending, so each pause plans the reminders afresh.
         const items = [];
-        if (intray) {
-          items.push({
-            id: NOTIF_INTRAY,
-            atWall: wall + offlineCapSeconds(s, content) * 1000,
-            title: t('notif.intrayTitle'),
-            body: t('notif.intrayBody'),
-          });
-        }
-        // Always re-scheduled, never counted: it reuses one id, so it replaces itself rather
-        // than stacking up another notification per pause.
-        items.push({
-          id: NOTIF_DAILY,
-          atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
-          ...beginnerNotification(s) ?? { title: t('notif.dailyTitle'), body: t('notif.dailyBody') },
-        });
         const ev = eventNotification(s, content, wall);
         if (ev) items.push({ id: NOTIF_EVENT, ...ev });
+        // An office with no staff produces nothing, so an "in-tray full" nudge would be a lie.
+        const working = get().rates.soulsPerSec.gt(0);
+        items.push({
+          id: NOTIF_DAILY,
+          atWall: Math.max(nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS, wall + offlineCapSeconds(s, content) * 1000),
+          ...beginnerNotification(s) ?? (working
+            ? { title: t('notif.intrayTitle'), body: t('notif.intrayBody') }
+            : { title: t('notif.dailyTitle'), body: t('notif.dailyBody') }),
+        });
         // Lapsed-player nudges: each pause pushes them back, so they only fire after real absence.
         items.push({ id: NOTIF_AWAY3, atWall: wall + 3 * 86_400_000, title: t('notif.away3Title'), body: t('notif.away3Body') });
         items.push({ id: NOTIF_AWAY7, atWall: wall + 7 * 86_400_000, title: t('notif.away7Title'), body: t('notif.away7Body') });
         try {
-          await notifications.schedule(items);
+          await notifications.schedule(planReminders(items, wall));
         } catch {
           /* native scheduling is best-effort */
         }
@@ -1473,6 +1453,7 @@ export function createGameStore(deps: StoreDeps) {
         if (resuming) return resuming;
         resuming = (async () => {
           try {
+            trackSession();
             const { state, pendingOffline, elapsedSec, assessment } = creditOffline(get().state);
             // A resume can only raise suspicion; only a boot clears it. The rollover gate
             // follows the same one-way rule, under its own name.
@@ -1644,7 +1625,11 @@ export function createGameStore(deps: StoreDeps) {
         const dept = findDepartment(content, deptId);
         set({ state: { ...s, activeDept: deptId }, queueLine: pick(dept.queue, ''), memoLine: pick(memoPool(dept, s.fiscalYear, s.storySeen), '') });
       },
-      dismissOffline() { set({ pendingOffline: null }); },
+      dismissOffline() {
+        const p = get().pendingOffline;
+        if (p) track('offline_reward_claimed', { doubled: 0, minutes: Math.round(p.creditedSec / 60) });
+        set({ pendingOffline: null });
+      },
       async save() {
         // Stamped here, once, immediately before the bytes are written: `savedAtWall` is what
         // the cloud winner rule reads to break a tie, so it has to mean "when this exact
@@ -1849,6 +1834,7 @@ export function createGameStore(deps: StoreDeps) {
         } finally {
           set({ adPending: null });
         }
+        track('reward_ad', { placement, result });
         if (result !== 'rewarded') return result;
 
         // An ad is thirty seconds the device clock could be nudged through, and a placement's
@@ -1875,6 +1861,7 @@ export function createGameStore(deps: StoreDeps) {
             if (p) {
               next = unlockDepartments(addSouls(next, p.souls, p.kc), content);
               extra = { pendingOffline: null };
+              track('offline_reward_claimed', { doubled: 1, minutes: Math.round(p.creditedSec / 60) });
             }
             break;
           }
@@ -2357,6 +2344,8 @@ export const useGame = createGameStore({ content: defaultContent, storage: pickS
 // catches every path once instead of threading track() through each of them.
 useGame.subscribe((cur, prev) => {
   if (!prev.ready) return;
+  if (cur.state.onboarding.trainingStep > prev.state.onboarding.trainingStep) track('tutorial_step', { step: cur.state.onboarding.trainingStep });
+  if (prev.state.stats.upgradesBought === 0 && cur.state.stats.upgradesBought > 0) track('first_upgrade', { seconds: Math.round((Date.now() - cur.state.firstSeenWallClock) / 1000) });
   for (const d of cur.state.deptsUnlocked) if (!prev.state.deptsUnlocked.includes(d)) track('dept_unlocked', { dept: d });
   if (cur.recentAchievements !== prev.recentAchievements) {
     const seen = new Set(prev.recentAchievements.map((a) => a.id));

@@ -117,7 +117,7 @@ describe('App onboarding', () => {
     render(<App />);
     await clockIn();
     expect(await screen.findByRole('dialog', { name: 'Introduction' })).toBeInTheDocument();
-    // Two days of play would otherwise satisfy shouldAskNotifications; the unseen intro wins.
+    // Two days of play would also satisfy shouldAskNotifications; the unseen intro wins.
     const state = useGame.getState().state;
     useGame.setState({ state: { ...state, settings: { ...state.settings, notifOptIn: 'unasked' }, firstSeenWallClock: Date.now() - 3 * 86_400_000 } });
     expect(screen.queryByRole('dialog', { name: 'Reminders' })).not.toBeInTheDocument();

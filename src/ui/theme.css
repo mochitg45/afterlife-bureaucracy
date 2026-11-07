@@ -214,6 +214,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 @keyframes speed-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .hire { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 84px; padding: 6px 8px; }
 .upgrade-row { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin-bottom: 8px; }
+/* A new player's first affordable upgrade calls for the tap until one is bought. */
+.upgrade-row.first-buy { border-color: var(--brass); animation: first-buy 1.2s ease-in-out infinite; }
+@keyframes first-buy { 50% { box-shadow: 0 0 0 4px rgb(232 193 100 / .55); } }
+@media (prefers-reduced-motion: reduce) { .upgrade-row.first-buy { animation: none; box-shadow: 0 0 0 3px rgb(232 193 100 / .55); } }
 .memo-ticker { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); z-index: 40; background: var(--green); color: var(--paper); font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; white-space: nowrap; overflow: hidden; }
 .memo-text { display: inline-block; animation: ticker 18s linear infinite; }
 @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }

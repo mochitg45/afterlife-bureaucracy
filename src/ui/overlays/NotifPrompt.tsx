@@ -2,7 +2,7 @@ import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { Modal } from '../components/Modal';
 
-/** Asks to opt in to reminders once the player has stuck around two days, and only when nothing else is on screen. */
+/** Asks to opt in to reminders once the player has had half an hour with the game, and only when nothing else is on screen. */
 export function NotifPrompt() {
   const shouldAsk = useGame((s) => s.shouldAskNotifications());
   const pendingOffline = useGame((s) => s.pendingOffline);
