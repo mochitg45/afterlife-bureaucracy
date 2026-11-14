@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: "A smoother first day: your first upgrade now lights up, so you always know what to buy. Gentler reminders: at most one a day, in the daytime only, and never on a day you already played." },
+  { language: 'en-US', text: "New: a More games button on the title screen shows our other games. A calmer start: no shop offers pop up during your first hour." },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
