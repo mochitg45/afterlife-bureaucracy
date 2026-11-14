@@ -744,5 +744,21 @@
  "reviews.reply.3": "申し訳ございません。お詫びのクリップを発送いたしました。",
  "reviews.reply.4": "承りました！苦情はスタンプ済み、署名済み、そして紛失済みです。",
  "reviews.reply.5": "当オフィスはご意見を真剣に、そして気楽に受け止めております。",
- "reviews.close": "閉じる"
+ "reviews.close": "閉じる",
+ "moreGames.button": "ほかのゲーム",
+ "moreGames.title": "Inata Sun Softのほかのゲーム",
+ "moreGames.get": "入手",
+ "moreGames.getAria": "Google Playで{name}を入手",
+ "moreGames.close": "閉じる",
+ "moreGames.pitch.cloverhop": "のんびりウサギの放置ゲーム。",
+ "moreGames.pitch.groupsnap": "動物みんなを写真に収めよう。",
+ "moreGames.pitch.peekapop": "ぎょろ目フルーツのパズル。",
+ "moreGames.pitch.tidedocks": "水位を上げて船を港へ。",
+ "moreGames.pitch.sunpane": "ステンドグラスで色を混ぜよう。",
+ "moreGames.pitch.decant": "一杯ずつ色を仕分けよう。",
+ "moreGames.pitch.topplejam": "連鎖するドミノパズル。",
+ "moreGames.pitch.echodeep": "クジラになって深海へ。",
+ "moreGames.pitch.sandmanco": "夢をめぐる放置RPG。",
+ "moreGames.pitch.cuco": "旅の予算と通貨換算。",
+ "moreGames.pitch.smile": "気分、テスト、リラックス。"
 }

@@ -744,5 +744,21 @@
  "reviews.reply.3": "Nous sommes désolés. Un trombone gratuit est en route.",
  "reviews.reply.4": "C'est noté ! Votre réclamation a été tamponnée, signée et égarée.",
  "reviews.reply.5": "Le bureau prend votre avis au sérieux, et aussi à la légère.",
- "reviews.close": "Fermer"
+ "reviews.close": "Fermer",
+ "moreGames.button": "Plus de jeux",
+ "moreGames.title": "Plus de jeux d’Inata Sun Soft",
+ "moreGames.get": "Obtenir",
+ "moreGames.getAria": "Obtenir {name} sur Google Play",
+ "moreGames.close": "Fermer",
+ "moreGames.pitch.cloverhop": "Un jeu idle relaxant avec des lapins.",
+ "moreGames.pitch.groupsnap": "Fais tenir tous les animaux sur la photo.",
+ "moreGames.pitch.peekapop": "Des puzzles de fruits aux yeux globuleux.",
+ "moreGames.pitch.tidedocks": "Monte l’eau, amarre les bateaux.",
+ "moreGames.pitch.sunpane": "Mélange les couleurs du vitrail.",
+ "moreGames.pitch.decant": "Trie les couleurs, versement après versement.",
+ "moreGames.pitch.topplejam": "Des puzzles de dominos en réaction en chaîne.",
+ "moreGames.pitch.echodeep": "Plonge au fond comme une baleine.",
+ "moreGames.pitch.sandmanco": "Un RPG idle douillet au pays des rêves.",
+ "moreGames.pitch.cuco": "Budget de voyage et devises.",
+ "moreGames.pitch.smile": "Humeur, tests et calme."
 }

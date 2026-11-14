@@ -744,5 +744,21 @@
  "reviews.reply.3": "We are sorry. A complimentary paperclip is on its way.",
  "reviews.reply.4": "Noted! Your complaint has been stamped, signed and misplaced.",
  "reviews.reply.5": "The office takes your review seriously, and also lightly.",
- "reviews.close": "Close"
+ "reviews.close": "Close",
+ "moreGames.button": "More games",
+ "moreGames.title": "More games from Inata Sun Soft",
+ "moreGames.get": "Get",
+ "moreGames.getAria": "Get {name} on Google Play",
+ "moreGames.close": "Close",
+ "moreGames.pitch.cloverhop": "A relaxing bunny idle game.",
+ "moreGames.pitch.groupsnap": "Fit every animal in the photo.",
+ "moreGames.pitch.peekapop": "Pop googly-eyed fruit puzzles.",
+ "moreGames.pitch.tidedocks": "Raise the water, dock the boats.",
+ "moreGames.pitch.sunpane": "Mix colors in stained glass.",
+ "moreGames.pitch.decant": "Sort the colors, pour by pour.",
+ "moreGames.pitch.topplejam": "Chain-reaction domino puzzles.",
+ "moreGames.pitch.echodeep": "Dive deep as a whale.",
+ "moreGames.pitch.sandmanco": "A cozy idle RPG of dreams.",
+ "moreGames.pitch.cuco": "Travel budget and currency.",
+ "moreGames.pitch.smile": "Mood, tests and calm."
 }

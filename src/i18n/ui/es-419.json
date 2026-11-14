@@ -744,5 +744,21 @@
  "reviews.reply.3": "Lo sentimos. Un clip de cortesía va en camino.",
  "reviews.reply.4": "¡Anotado! Su queja fue sellada, firmada y extraviada.",
  "reviews.reply.5": "La oficina toma en serio su reseña, y también a la ligera.",
- "reviews.close": "Cerrar"
+ "reviews.close": "Cerrar",
+ "moreGames.button": "Más juegos",
+ "moreGames.title": "Más juegos de Inata Sun Soft",
+ "moreGames.get": "Obtener",
+ "moreGames.getAria": "Obtener {name} en Google Play",
+ "moreGames.close": "Cerrar",
+ "moreGames.pitch.cloverhop": "Un juego idle relajante de conejos.",
+ "moreGames.pitch.groupsnap": "Haz que todos los animales quepan en la foto.",
+ "moreGames.pitch.peekapop": "Rompecabezas de frutas con ojos saltones.",
+ "moreGames.pitch.tidedocks": "Sube el agua y atraca los barcos.",
+ "moreGames.pitch.sunpane": "Mezcla colores en vitrales.",
+ "moreGames.pitch.decant": "Ordena los colores, vertido a vertido.",
+ "moreGames.pitch.topplejam": "Rompecabezas de dominó en cadena.",
+ "moreGames.pitch.echodeep": "Sumérgete como una ballena.",
+ "moreGames.pitch.sandmanco": "Un RPG idle acogedor de sueños.",
+ "moreGames.pitch.cuco": "Presupuesto de viaje y divisas.",
+ "moreGames.pitch.smile": "Ánimo, tests y calma."
 }

@@ -744,5 +744,21 @@
  "reviews.reply.3": "죄송합니다. 사과의 뜻으로 클립 하나를 보내 드립니다.",
  "reviews.reply.4": "접수했습니다! 불만 사항은 도장도 찍고 서명도 했고 어딘가에 두었습니다.",
  "reviews.reply.5": "사무실은 고객님의 후기를 진지하게, 그리고 가볍게도 받아들입니다.",
- "reviews.close": "닫기"
+ "reviews.close": "닫기",
+ "moreGames.button": "다른 게임",
+ "moreGames.title": "Inata Sun Soft의 다른 게임",
+ "moreGames.get": "받기",
+ "moreGames.getAria": "Google Play에서 {name} 받기",
+ "moreGames.close": "닫기",
+ "moreGames.pitch.cloverhop": "느긋한 토끼 방치형 게임.",
+ "moreGames.pitch.groupsnap": "모든 동물을 사진에 담아요.",
+ "moreGames.pitch.peekapop": "눈알 과일 팡 퍼즐.",
+ "moreGames.pitch.tidedocks": "물을 올려 배를 정박해요.",
+ "moreGames.pitch.sunpane": "스테인드글라스로 색을 섞어요.",
+ "moreGames.pitch.decant": "한 번씩 부어 색을 정리해요.",
+ "moreGames.pitch.topplejam": "연쇄 도미노 퍼즐.",
+ "moreGames.pitch.echodeep": "고래가 되어 깊이 잠수해요.",
+ "moreGames.pitch.sandmanco": "꿈을 다루는 아늑한 방치형 RPG.",
+ "moreGames.pitch.cuco": "여행 예산과 환율.",
+ "moreGames.pitch.smile": "기분, 테스트, 그리고 평온."
 }

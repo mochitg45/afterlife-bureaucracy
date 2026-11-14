@@ -5,6 +5,8 @@ import { APP_VERSION, PRIVACY_URL } from '../../version';
 import { t } from '../../i18n';
 import { track } from '../../platform/analytics';
 import { LanguagePicker } from '../components/LanguagePicker';
+import { Capacitor } from '@capacitor/core';
+import { MoreGamesSheet } from '../overlays/MoreGamesSheet';
 
 /**
  * The front door, shown on every cold boot. One tap gets a player to their desk; the
@@ -41,6 +43,7 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
   const signInCloud = useGame((s) => s.signInCloud);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
+  const [moreGames, setMoreGames] = useState(false);
   const showSignIn = available && !signedIn;
 
   const onSignIn = async () => {
@@ -89,7 +92,14 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
           <button className={'btn' + (showSignIn ? '' : ' btn-primary')} onClick={() => { track('onboarding_step', { step: showSignIn ? 'title_guest' : 'title_clock_in' }); onEnter(); }}>
             {showSignIn ? t('title.guest') : t('title.clockIn')}
           </button>
+          {/* Our other Play apps; hidden on iOS (most are not on the App Store). */}
+          {Capacitor.getPlatform() !== 'ios' && (
+            <button className="btn btn-ghost" onClick={() => { track('more_games_open', {}); setMoreGames(true); }}>
+              {t('moreGames.button')}
+            </button>
+          )}
         </div>
+        {moreGames && <MoreGamesSheet onClose={() => setMoreGames(false)} />}
         <div className="sub title-footer">
           <span className="mono">v{APP_VERSION}</span>
           <label className="title-lang">

@@ -1,0 +1,6 @@
+.more-games-list { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
+.more-game { display: flex; align-items: center; gap: 10px; }
+.more-game img { width: 48px; height: 48px; border-radius: 12px; flex: none; }
+.more-game-text { display: flex; flex-direction: column; min-width: 0; flex: 1; text-align: left; }
+.more-game-text .sub { font-size: 12px; }
+.more-game-get { flex: none; padding: 6px 14px; text-decoration: none; }

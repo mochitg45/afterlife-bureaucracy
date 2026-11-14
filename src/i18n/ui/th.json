@@ -744,5 +744,21 @@
  "reviews.reply.3": "ขออภัยด้วย คลิปหนีบกระดาษแถมฟรีกำลังเดินทางไปหาคุณ",
  "reviews.reply.4": "รับทราบ! คำร้องเรียนของคุณถูกประทับตรา ลงนาม และวางหายเรียบร้อย",
  "reviews.reply.5": "ออฟฟิศถือว่ารีวิวของคุณเป็นเรื่องจริงจัง และก็เบาสบายด้วย",
- "reviews.close": "ปิด"
+ "reviews.close": "ปิด",
+ "moreGames.button": "เกมอื่น ๆ",
+ "moreGames.title": "เกมอื่นจาก Inata Sun Soft",
+ "moreGames.get": "รับ",
+ "moreGames.getAria": "รับ {name} บน Google Play",
+ "moreGames.close": "ปิด",
+ "moreGames.pitch.cloverhop": "เกม idle กระต่ายแสนผ่อนคลาย",
+ "moreGames.pitch.groupsnap": "จัดสัตว์ทุกตัวให้อยู่ในรูป",
+ "moreGames.pitch.peekapop": "ปริศนาผลไม้ตาโต",
+ "moreGames.pitch.tidedocks": "เติมน้ำ แล้วพาเรือเข้าท่า",
+ "moreGames.pitch.sunpane": "ผสมสีบนกระจกสี",
+ "moreGames.pitch.decant": "แยกสีทีละการเท",
+ "moreGames.pitch.topplejam": "ปริศนาโดมิโนล้มต่อกัน",
+ "moreGames.pitch.echodeep": "ดำดิ่งลึกในฐานะวาฬ",
+ "moreGames.pitch.sandmanco": "เกม RPG idle แสนอบอุ่นแห่งความฝัน",
+ "moreGames.pitch.cuco": "งบเดินทางและอัตราแลกเปลี่ยน",
+ "moreGames.pitch.smile": "อารมณ์ แบบทดสอบ และความสงบ"
 }
