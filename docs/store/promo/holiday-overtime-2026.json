@@ -1,0 +1,44 @@
+{
+  "event": "Holiday Overtime (in-game special 'christmas'), Play promotional content: Time-limited events / Competition, challenge",
+  "window": "2026-12-18 00:00 UTC to 2026-12-29 00:00 UTC, all 177 available countries, preview 3 days before",
+  "image": "holiday-overtime-2026-1920x1080.jpg (Gemini, refs: public/art/events/christmas.webp + chars/xm-*.webp)",
+  "texts": {
+    "en-US": {
+      "tagline": "Help the North Pole recount its naughty-or-nice list in a holiday competition",
+      "description": "Holiday Overtime is here! The North Pole outsourced its naughty-or-nice list to the afterlife office, and every soul wants a recount. Open North Pole Processing, hire seasonal staff like the Elf Temp, Snowman Clerk, Reindeer Courier, Krampus and Saint Nick, and earn Gift Tags to climb the event ranking. When the event ends, top places and top-percent brackets win Vouchers and Seals, and the reward track unlocks the Gingerbread Intern, Caroling Cherub and Nutcracker Guard cards."
+    },
+    "de-DE": {
+      "tagline": "Hilf dem Nordpol, die Brav-oder-Unartig-Liste im Festwettbewerb neu zu zählen",
+      "description": "Weihnachts-Überstunden sind da! Der Nordpol hat seine Brav-oder-Unartig-Liste ans Jenseits-Büro ausgelagert, und jede Seele will eine Neuauszählung. Eröffne die Nordpol-Abfertigung, stelle Saisonkräfte wie Elfen-Aushilfe, Rentier-Kurier, Krampus und Sankt Nikolaus ein und sammle Geschenkanhänger, um in der Event-Rangliste aufzusteigen. Am Ende gewinnen die besten Plätze und Prozentränge Gutscheine und Amtssiegel, und die Belohnungsleiste schaltet drei Weihnachtskarten frei."
+    },
+    "es-419": {
+      "tagline": "Ayuda al Polo Norte a recontar su lista de traviesos y buenos en una competencia",
+      "description": "¡Llegaron las Horas Extra Navideñas! El Polo Norte subcontrató su lista de traviesos y buenos a la oficina del más allá, y cada alma quiere un recuento. Abre Procesamiento del Polo Norte, contrata personal de temporada como el Elfo Temporal, el Reno Mensajero, Krampus y San Nicolás, y gana Etiquetas de Regalo para subir en el ranking del evento. Al final, los primeros puestos y los mejores porcentajes ganan Vales y Sellos, y la ruta de premios desbloquea tres cartas navideñas."
+    },
+    "fr-FR": {
+      "tagline": "Aidez le pôle Nord à recompter sa liste des enfants sages et vilains",
+      "description": "Les Heures Sup des Fêtes arrivent ! Le pôle Nord a confié sa liste sage ou vilain au bureau de l'au-delà, et chaque âme exige un recomptage. Ouvrez le Traitement du Pôle Nord, recrutez des saisonniers comme l'Elfe Intérimaire, le Coursier Renne, Krampus et le Père Noël, et gagnez des Étiquettes Cadeau pour grimper au classement. À la fin, les meilleures places et les meilleurs pourcentages gagnent des Bons et des Sceaux, et le parcours de récompenses débloque trois cartes de Noël."
+    },
+    "id": {
+      "tagline": "Bantu Kutub Utara menghitung ulang daftar nakal atau baik di kompetisi liburan",
+      "description": "Lembur Natal telah tiba! Kutub Utara menyerahkan daftar nakal atau baik ke kantor alam baka, dan setiap jiwa minta dihitung ulang. Buka Pemrosesan Kutub Utara, rekrut staf musiman seperti Honorer Elf, Kurir Rusa, Krampus, dan Sinterklas, lalu kumpulkan Label Hadiah untuk naik di peringkat event. Saat event berakhir, peringkat teratas dan persentase terbaik memenangkan Voucher dan Segel, dan jalur hadiah membuka tiga kartu Natal: Magang Roti Jahe, Kerub Pengamen Natal, dan Penjaga Nutcracker."
+    },
+    "ja-JP": {
+      "tagline": "北極の「悪い子か良い子か」リストを数え直すホリデーコンペティション",
+      "description": "ホリデー残業がやってきた!北極が「悪い子か良い子か」リストをあの世のオフィスに外注し、すべての魂が数え直しを求めています。北極処理部を開いて、エルフ臨時、雪だるま係、トナカイ配達員、Krampus、サンタ監査官などの季節スタッフを雇い、ギフトタグを集めてイベントランキングを駆け上がろう。イベント終了時には上位入賞者と上位パーセント帯にバウチャーと印章を贈呈。報酬トラックではジンジャーブレッドのインターン、キャロル天使、くるみ割り警備員のカードが手に入ります。"
+    },
+    "ko-KR": {
+      "tagline": "북극의 나쁜 아이 착한 아이 명단을 다시 세는 연말 경쟁 이벤트",
+      "description": "연말 야근이 시작됩니다! 북극이 나쁜 아이 착한 아이 명단을 저승 사무소에 외주로 맡겼고, 모든 영혼이 재검표를 원합니다. 북극 처리부를 열고 요정 임시직, 눈사람 사무원, 순록 배달원, Krampus, 산타 할아버지 등 시즌 직원을 고용해 선물 태그를 모으고 이벤트 순위를 올리세요. 이벤트가 끝나면 상위 순위와 상위 퍼센트 구간에 상품권과 직인을 드리며, 보상 트랙에서는 진저브레드 인턴, 캐럴 케루빔, 호두까기 경비병 카드를 얻습니다."
+    },
+    "pt-BR": {
+      "tagline": "Ajude o Polo Norte a recontar a lista de bonzinhos e malcriados numa competição",
+      "description": "Chegou a Hora Extra de Fim de Ano! O Polo Norte terceirizou sua lista de bonzinhos e malcriados para o escritório do além, e toda alma quer uma recontagem. Abra o Processamento do Polo Norte, contrate temporários como o Temporário Elfo, a Rena Mensageira, Krampus e Papai Noel, e ganhe Etiquetas de Presente para subir no ranking do evento. No fim, as melhores posições e porcentagens ganham Vales e Selos, e a trilha de prêmios libera três cartas de Natal."
+    },
+    "th": {
+      "tagline": "ช่วยขั้วโลกเหนือนับรายชื่อเด็กดื้อหรือเด็กดีใหม่ในการแข่งขันช่วงเทศกาล",
+      "description": "โอทีวันหยุดมาแล้ว! ขั้วโลกเหนือจ้างสำนักงานโลกหลังความตายให้ดูแลรายชื่อเด็กดื้อหรือเด็กดี และทุกวิญญาณต่างขอให้นับใหม่ เปิดสำนักงานขั้วโลกเหนือ จ้างพนักงานตามฤดูกาลอย่างเอลฟ์ชั่วคราว เสมียนมนุษย์หิมะ กวางส่งของ Krampus และเซนต์นิค แล้วสะสมป้ายของขวัญเพื่อไต่อันดับในอีเวนต์ เมื่ออีเวนต์จบ อันดับต้นๆ และกลุ่มเปอร์เซ็นต์สูงสุดจะได้รับบัตรกำนัลและตราประทับ และเส้นทางรางวัลจะปลดล็อกการ์ดเด็กฝึกงานขนมปังขิง เชรูบร้องเพลงคริสต์มาส และยามนัตแครกเกอร์"
+    }
+  },
+  "limits": "Latin/Thai 80/500; Korean and Japanese 40/250 in the Console"
+}
