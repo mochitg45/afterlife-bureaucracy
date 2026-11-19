@@ -1,7 +1,7 @@
 import type { GameState } from './state';
 import type { ProductId } from '../platform/billing';
 import { starterPackEligible } from './entitlements';
-import { ownsPremium, onSale, premiumDef } from './premium';
+import { PREMIUM_STAFF, ownsPremium, onSale } from './premium';
 import { eventPool } from './events';
 
 /**
@@ -25,8 +25,10 @@ export const FIRST_OFFER_AFTER_MS = 3_600_000;
 /** Every offer the player could take right now, most time-limited first. */
 export function offerCandidates(state: GameState, nowWall: number, runningEventId: string | null): Offer[] {
   const out: Offer[] = [];
-  const pumpkat = premiumDef('pumpkat');
-  if (pumpkat && onSale(pumpkat, runningEventId) && !ownsPremium(state, 'pumpkat')) out.push({ id: 'pumpkat', product: 'pumpkat_bundle' });
+  // Limited items (Pumpkat at Halloween, Jinglepup and Snowfawn at Christmas) lead while their event runs.
+  for (const def of PREMIUM_STAFF) {
+    if (def.saleEvent && onSale(def, runningEventId) && !ownsPremium(state, def.id)) out.push({ id: def.id, product: def.product });
+  }
   if (starterPackEligible(state, nowWall)) out.push({ id: 'starter', product: 'starter_pack' });
   const ev = state.event;
   if (ev && !ev.pass) out.push({ id: 'pass', product: eventPool(ev.key) === 'special' ? 'holiday_pass' : 'weekly_pass' });

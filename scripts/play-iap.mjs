@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { createSign } from 'node:crypto';
 
-const [keyFile, pkg] = process.argv.slice(2);
+const [keyFile, pkg, only] = process.argv.slice(2); // optional 3rd arg: one SKU to create, leaving the rest untouched
 const key = JSON.parse(readFileSync(keyFile, 'utf8'));
 const b64 = (o) => Buffer.from(typeof o === 'string' ? o : JSON.stringify(o)).toString('base64url');
 const now = Math.floor(Date.now() / 1000);
@@ -20,12 +20,14 @@ const products = [
   ['holiday_vouchers_1200', 9.99, '1,200 Holiday Event Vouchers', '1,200 vouchers for the holiday event gacha. Leftovers carry over to the next holiday event.'],
   ['holiday_bundle', 5.99, 'Holiday Event Bundle', '700 Holiday Event Vouchers plus 200 Requisition Vouchers.'],
   ['weekly_pass', 1.99, 'Weekly Event Pass', 'Every reward on the running weekly event track pays 3x, including tiers already claimed.'],
+  ['jinglepup_bundle', 2.99, 'Jinglepup (Holiday Pet)', 'A limited holiday pet: +15% souls forever and x2 event currency in every event. Yours to keep.'],
+  ['snowfawn_bundle', 2.99, 'Snowfawn (Holiday Pet)', 'A limited holiday pet: +15% souls forever and x2 event currency in every event. Yours to keep.'],
   ['holiday_pass', 3.99, 'Holiday Event Pass', 'Every reward on the running holiday event track pays 3x, including tiers already claimed.'],
 ];
 
 const base2 = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${pkg}`;
 const money = (usd) => ({ currencyCode: 'USD', units: String(Math.floor(usd)), nanos: Math.round((usd % 1) * 1e9) });
-for (const [sku, usd, title, description] of products) {
+for (const [sku, usd, title, description] of products.filter(([s]) => !only || s === only)) {
   const conv = await (await fetch(`${base2}/pricing:convertRegionPrices`, { method: 'POST', headers: auth, body: JSON.stringify({ price: money(usd) }) })).json();
   if (!conv.convertedRegionPrices) { console.log(sku, 'convert failed', JSON.stringify(conv).slice(0, 300)); continue; }
   const configs = Object.values(conv.convertedRegionPrices).map((r) => ({ regionCode: r.regionCode, price: r.price, availability: 'AVAILABLE' }));

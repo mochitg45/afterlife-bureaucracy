@@ -3,6 +3,7 @@ import { t } from '../../i18n';
 import { useGame } from '../../store/game';
 import { nextOffer, markOfferShown, snoozeOffers, type Offer } from '../../engine/offers';
 import { track } from '../../platform/analytics';
+import { premiumDef } from '../../engine/premium';
 import { StoreArt } from '../components/StoreArt';
 import './OfferPopup.css';
 
@@ -67,12 +68,12 @@ export function OfferPopup() {
   return (
     <div className="offer" role="dialog" aria-modal="true" aria-labelledby="offer-title" onClick={close}>
       <div className="offer-card" onClick={(e) => e.stopPropagation()}>
-        <span className="offer-tag">{t(k === 'pumpkat' ? 'premium.limited' : 'offer.tag')}</span>
+        <span className="offer-tag">{t(premiumDef(k)?.saleEvent ? 'premium.limited' : 'offer.tag')}</span>
         {posterOk ? (
           <img className="offer-poster" src={`art/offers/${k}.webp`} alt="" onError={() => setPosterOk(false)} />
         ) : (
           <div className="offer-art">
-            {k === 'cerberus' || k === 'pumpkat' ? <img src={`art/chars/${k}.webp`} alt="" /> : <StoreArt productId={offer.product} />}
+            {premiumDef(k) ? <img src={`art/chars/${k}.webp`} alt="" /> : <StoreArt productId={offer.product} />}
           </div>
         )}
         <h2 id="offer-title" className="offer-title">{t(`offer.${k}.title`)}</h2>

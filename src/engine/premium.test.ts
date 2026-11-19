@@ -41,6 +41,25 @@ describe('premium staff', () => {
     expect(onSale(pet, null)).toBe(false);
     expect(onSale(premiumDef('cerberus')!, null)).toBe(true);
   });
+  it('the Christmas pet is on sale only during Holiday Overtime and shares the one pet slot', () => {
+    const pup = premiumDef('jinglepup')!;
+    expect(pup.slot).toBe('pet');
+    expect(onSale(pup, 'christmas')).toBe(true);
+    expect(onSale(pup, 'halloween')).toBe(false);
+    expect(onSale(pup, null)).toBe(false);
+    const both = grantPremium(grantPremium(fresh(), ['pumpkat']), ['jinglepup']);
+    // The pet already on duty stays; the new one waits in the collection until swapped in.
+    expect(petOnDuty(both)?.id).toBe('pumpkat');
+    expect(petOnDuty(equipPremium(both, 'jinglepup', 'pet'))?.id).toBe('jinglepup');
+    expect(premiumEventMult(equipPremium(both, 'jinglepup', 'pet'))).toBe(2);
+  });
+  it('the reindeer is the second Christmas pet, also on sale only during Holiday Overtime', () => {
+    const fawn = premiumDef('snowfawn')!;
+    expect(fawn.slot).toBe('pet');
+    expect(onSale(fawn, 'christmas')).toBe(true);
+    expect(onSale(fawn, 'halloween')).toBe(false);
+    expect(petOnDuty(grantPremium(fresh(), ['snowfawn']))?.id).toBe('snowfawn');
+  });
   it('cannot put on duty a premium staff the player does not own', () => {
     const s = fresh();
     expect(equipPremium(s, 'cerberus')).toBe(s);

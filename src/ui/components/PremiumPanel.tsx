@@ -41,7 +41,7 @@ export function PremiumOffer({ def, buyOnly, onResult }: { def: PremiumStaffDef;
         <p className="sub">{t(`premium.${def.id}.title`)}</p>
         <Bonus def={def} />
         {!owned && def.vouchers > 0 && <p className="sub amt">{t('premium.bundleIncludes', { vouchers: def.vouchers })} <VoucherIcon size={14} /></p>}
-        {!owned && def.saleEvent && <p className="sub">{t('premium.limitedNote')}</p>}
+        {!owned && def.saleEvent && <p className="sub">{t(`premium.${def.id}.limitedNote`)}</p>}
       </div>
       <div className="modal-actions premium-actions">
         {!owned && (

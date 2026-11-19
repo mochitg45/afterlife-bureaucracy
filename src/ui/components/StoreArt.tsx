@@ -39,6 +39,8 @@ const ART: Record<ProductId, ReactElement> = {
   holiday_bundle: <><Ticket x={24} y={36} rotate={-10} fill={HD} /><Ticket x={40} y={30} rotate={8} /></>,
   cerberus_bundle: <image href="art/chars/cerberus.webp" x={0} y={0} width={64} height={64} />,
   pumpkat_bundle: <image href="art/chars/pumpkat.webp" x={0} y={0} width={64} height={64} />,
+  jinglepup_bundle: <image href="art/chars/jinglepup.webp" x={0} y={0} width={64} height={64} />,
+  snowfawn_bundle: <image href="art/chars/snowfawn.webp" x={0} y={0} width={64} height={64} />,
   weekly_pass: <PassArt fill={WK} />,
   holiday_pass: <PassArt fill={HD} />,
   vouchers_10: <Ticket x={32} y={32} />,

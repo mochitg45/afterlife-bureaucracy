@@ -34,6 +34,16 @@ describe('store offer pop-up', () => {
     expect(nextOffer(owned, LATER, 'halloween')?.product).not.toBe('pumpkat_bundle');
     expect(nextOffer(player(), LATER, 'weekly-2026-10-16')?.product).not.toBe('pumpkat_bundle');
   });
+  it('leads with the Christmas pet during Holiday Overtime, never at Halloween, never once owned', () => {
+    expect(nextOffer(player(), OPEN, 'christmas')?.product).toBe('jinglepup_bundle');
+    expect(nextOffer(player(), OPEN, 'halloween')?.product).not.toBe('jinglepup_bundle');
+    expect(nextOffer(grantPremium(player(), ['jinglepup']), LATER, 'christmas')?.product).not.toBe('jinglepup_bundle');
+  });
+  it('offers both Christmas pets during Holiday Overtime, the one shown longest ago first', () => {
+    const first = nextOffer(player(), OPEN, 'christmas')!;
+    expect(first.product).toBe('jinglepup_bundle');
+    expect(nextOffer(markOfferShown(player(), first.id), OPEN, 'christmas')?.product).toBe('snowfawn_bundle');
+  });
   it('rotates to the offer shown longest ago on each app open', () => {
     let s = player();
     const first = nextOffer(s, LATER)!;
