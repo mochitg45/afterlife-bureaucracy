@@ -1,5 +1,5 @@
 import { act, render, screen, fireEvent } from '@testing-library/react';
-import { TitleScreen } from './TitleScreen';
+import { TitleScreen, isChristmasSeason } from './TitleScreen';
 import { useGame } from '../../store/game';
 import type { SignInResult } from '../../platform/cloudSave';
 import { APP_VERSION, PRIVACY_URL } from '../../version';
@@ -91,5 +91,15 @@ describe('TitleScreen', () => {
     expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', PRIVACY_URL);
     fireEvent.click(screen.getByRole('button', { name: 'Odds' }));
     expect(onGoToOdds).toHaveBeenCalled();
+  });
+});
+
+describe('isChristmasSeason', () => {
+  it('shows the Christmas title from Dec 1 to Jan 6, or while the Christmas event runs', () => {
+    expect(isChristmasSeason(new Date(2026, 11, 1))).toBe(true);
+    expect(isChristmasSeason(new Date(2027, 0, 6))).toBe(true);
+    expect(isChristmasSeason(new Date(2027, 0, 7))).toBe(false);
+    expect(isChristmasSeason(new Date(2026, 10, 30))).toBe(false);
+    expect(isChristmasSeason(new Date(2026, 10, 20), 'christmas')).toBe(true);
   });
 });

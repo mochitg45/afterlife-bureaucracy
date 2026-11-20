@@ -30,6 +30,10 @@ function GoogleG() {
 
 /** Full-bleed key art: heaven left, hell right, the Intake desk and the cast in between. */
 const TITLE_ART = `${import.meta.env.BASE_URL}art/title.webp`;
+/** The Christmas edition (snow, Santa hats, a tree by the desk): Dec 1 to Jan 6, or while the Christmas event runs. */
+const TITLE_ART_XMAS = `${import.meta.env.BASE_URL}art/title-christmas.webp`;
+export const isChristmasSeason = (d: Date, eventId?: string | null): boolean =>
+  eventId === 'christmas' || d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6);
 
 /** Hell-side embers: [left %, delay s, duration s], fixed so renders stay stable. */
 const EMBERS: [number, number, number][] = [
@@ -45,6 +49,8 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
   const [busy, setBusy] = useState(false);
   const [moreGames, setMoreGames] = useState(false);
   const showSignIn = available && !signedIn;
+  const eventId = useGame((s) => s.activeEvent()?.id);
+  const art = isChristmasSeason(new Date(), eventId) ? TITLE_ART_XMAS : TITLE_ART;
 
   const onSignIn = async () => {
     setStatus('');
@@ -63,8 +69,8 @@ export function TitleScreen({ onEnter, onGoToOdds }: { onEnter: () => void; onGo
   };
 
   return (
-    <section className="screen title-paper" style={{ '--title-art': `url(${TITLE_ART})` } as CSSProperties}>
-      <div className="title-art" style={{ backgroundImage: `url(${TITLE_ART})` }} aria-hidden="true">
+    <section className="screen title-paper" style={{ '--title-art': `url(${art})` } as CSSProperties}>
+      <div className="title-art" style={{ backgroundImage: `url(${art})` }} aria-hidden="true">
         <div className="fx-rays" />
         <div className="fx-cloud fx-cloud-a" />
         <div className="fx-cloud fx-cloud-b" />

@@ -26,7 +26,17 @@ import sharp from 'sharp';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const at = (...p) => path.join(root, ...p);
 const font = pathToFileURL(at('node_modules/@fontsource/special-elite/files/special-elite-latin-400-normal.woff2')).href;
-const dave = pathToFileURL(at('docs/art/icon-v3/dave-cutout.png')).href;
+// `--christmas`: the seasonal variant (Dave in a Santa hat on green rays with snow). Android only;
+// iOS outputs are left alone. Run plain `npm run icon` after the holidays to restore the normal icon.
+const XMAS = process.argv.includes('--christmas');
+const dave = pathToFileURL(at(XMAS ? 'docs/art/icon-christmas/dave-cutout.png' : 'docs/art/icon-v3/dave-cutout.png')).href;
+const rays = XMAS ? ['#2FA25A', '#238A4A', 'rgba(255,250,220,.9)', 'rgba(20,70,40,.6)'] : ['#FFC93A', '#FFB41F', 'rgba(255,247,200,.9)', 'rgba(214,104,14,.55)'];
+// Snow: scattered soft white dots over the rays (background layer only).
+const snow = XMAS ? Array.from({ length: 46 }, (_, i) => {
+  const x = (i * 211) % 1000 + 12, y = (i * 137 + (i % 7) * 53) % 1000 + 12, r = 6 + (i % 4) * 3;
+  return `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,.85) 0 ${r}px, transparent ${r + 1}px)`;
+}).join(',') + ',' : '';
+const daveBox = XMAS ? 'left: 62px; top: 30px; width: 900px;' : 'left: 20px; top: 64px; width: 984px;';
 
 /**
  * The art is ~900x912; at ~1.09x the hood spans ~82% of the canvas and the robe runs off the bottom
@@ -38,11 +48,12 @@ const html = (layers) => `<!doctype html><style>
   html, body { margin: 0; } body { width: 1024px; height: 1024px; position: relative; overflow: hidden; background: transparent; }
   .bg { position: absolute; inset: 0; display: ${layers.bg ? 'block' : 'none'};
     background:
-      radial-gradient(circle at 50% 46%, rgba(255,247,200,.9) 0, rgba(255,222,110,0) 52%),
-      repeating-conic-gradient(from 0deg at 50% 46%, #FFC93A 0 7.5deg, #FFB41F 7.5deg 15deg);
+      ${snow}
+      radial-gradient(circle at 50% 46%, ${rays[2]} 0, rgba(255,222,110,0) 52%),
+      repeating-conic-gradient(from 0deg at 50% 46%, ${rays[0]} 0 7.5deg, ${rays[1]} 7.5deg 15deg);
   }
-  .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 46%, transparent 45%, rgba(214,104,14,.55) 100%); }
-  .dave { position: absolute; left: 20px; top: 64px; width: 984px; height: auto; display: ${layers.fg ? 'block' : 'none'};
+  .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 46%, transparent 45%, ${rays[3]} 100%); }
+  .dave { position: absolute; ${daveBox} height: auto; display: ${layers.fg ? 'block' : 'none'};
     filter: drop-shadow(0 14px 0 rgba(120,50,10,.28)); }
   .stamp { position: absolute; left: 512px; top: 892px; width: 640px; height: 150px; box-sizing: border-box; transform: translate(-50%, -50%) rotate(-8deg);
     display: ${layers.fg ? 'flex' : 'none'}; align-items: center; justify-content: center;
@@ -71,8 +82,9 @@ try {
 }
 
 const png = (buf) => sharp(buf).png({ compressionLevel: 9 });
-await mkdir(at('docs/art/icon-v3'), { recursive: true });
-await png(full).removeAlpha().toFile(at('docs/art/icon-v3/icon.png'));
+const master = XMAS ? 'docs/art/icon-christmas' : 'docs/art/icon-v3';
+await mkdir(at(master), { recursive: true });
+await png(full).removeAlpha().toFile(at(master, 'icon.png'));
 await png(full).removeAlpha().toFile(at('assets/icon.png'));
 await png(fg).toFile(at('assets/icon-foreground.png'));
 await png(bg).removeAlpha().toFile(at('assets/icon-background.png'));
@@ -80,7 +92,7 @@ await png(bg).removeAlpha().toFile(at('assets/icon-background.png'));
 // Play Store: 512x512, 32-bit (RGBA) PNG. Fully opaque; Play applies its own corner mask.
 await sharp(full).resize(512, 512, { kernel: 'lanczos3' }).ensureAlpha().png({ compressionLevel: 9 }).toFile(at('docs/store/icon-512.png'));
 // iOS: 1024, RGB, no alpha channel (App Store rejects icons with transparency).
-for (const f of ['docs/store/ios/app-store-icon-1024.png', 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png']) {
+for (const f of XMAS ? [] : ['docs/store/ios/app-store-icon-1024.png', 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png']) {
   await png(full).removeAlpha().toFile(at(f));
 }
 
