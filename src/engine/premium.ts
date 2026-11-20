@@ -26,8 +26,9 @@ export interface PremiumStaffDef {
 export const PREMIUM_STAFF: readonly PremiumStaffDef[] = [
   { id: 'cerberus', product: 'cerberus_bundle', slot: 'premium', globalMult: 0.25, vouchers: 300 },
   { id: 'pumpkat', product: 'pumpkat_bundle', slot: 'pet', globalMult: 0.15, eventMult: 2, vouchers: 0, saleEvent: 'halloween' },
-  { id: 'jinglepup', product: 'jinglepup_bundle', slot: 'pet', globalMult: 0.15, eventMult: 2, vouchers: 0, saleEvent: 'christmas' },
-  { id: 'snowfawn', product: 'snowfawn_bundle', slot: 'pet', globalMult: 0.15, eventMult: 2, vouchers: 0, saleEvent: 'christmas' },
+  // The two Christmas pets split Pumpkat's mix: Jinglepup is the souls pet, Snowfawn the event pet.
+  { id: 'jinglepup', product: 'jinglepup_bundle', slot: 'pet', globalMult: 0.2, vouchers: 0, saleEvent: 'christmas' },
+  { id: 'snowfawn', product: 'snowfawn_bundle', slot: 'pet', globalMult: 0.05, eventMult: 3, vouchers: 0, saleEvent: 'christmas' },
 ];
 
 export const premiumDef = (id: string | undefined): PremiumStaffDef | undefined => PREMIUM_STAFF.find((p) => p.id === id);
