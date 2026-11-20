@@ -56,4 +56,8 @@
 
     <!-- Advertising ID, required by AdMob on Android 13+ and declared in Play Data safety. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
+    <!-- The activity locks to portrait, which implies a required portrait screen; Play blocks
+         review for that (tablets, desktop, Play Games on PC, XR). Optional keeps them eligible. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
 </manifest>
