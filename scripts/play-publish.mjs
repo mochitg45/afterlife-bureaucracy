@@ -37,7 +37,7 @@ const up = await call('POST', `https://androidpublisher.googleapis.com/upload/an
 console.log('uploaded versionCode', up.versionCode);
 if (String(up.versionCode) !== String(versionCode)) { console.error('unexpected versionCode'); process.exit(1); }
 const notes = [
-  { language: 'en-US', text: "New: a More games button on the title screen shows our other games. A calmer start: no shop offers pop up during your first hour." },
+  { language: 'en-US', text: "Christmas is coming to the afterlife office: a snowy holiday title screen and app icon, plus two limited holiday pets, Jinglepup (+20% souls) and Snowfawn (x3 event currency), on sale only during Holiday Overtime, Dec 18-29." },
 ];
 await call('PUT', `${base}/edits/${edit.id}/tracks/production`, JSON.stringify({
   track: 'production', releases: [{ name: `${versionName} (${versionCode})`, versionCodes: [String(versionCode)], status: 'completed', releaseNotes: notes }],
