@@ -15,6 +15,7 @@ import { fmtLeft } from '../format';
 import { EventBanner } from './EventScreen';
 import { StampRushEntry } from '../overlays/StampRush';
 import { MailboxEntry } from '../components/Postcards';
+import { BreakRoom } from '../components/BreakRoom';
 import { ReputationChip } from '../components/ReputationChip';
 import { nextGoal, type GoalWhere } from '../../engine/goal';
 import { t } from '../../i18n';
@@ -113,6 +114,7 @@ export function OfficeScreen({ onSettings, onGoTo, onOpenEvent }: { onSettings?:
       <StampButton />
       <OvertimeBoost />
       <StampRushEntry />
+      <BreakRoom />
       <MailboxEntry />
       <div className="section-head">
         <h3>{t('office.staff')}</h3>

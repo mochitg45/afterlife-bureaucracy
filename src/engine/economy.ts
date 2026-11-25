@@ -8,6 +8,8 @@ import { clauseGlobalMult } from './cosmic';
 import { unionGlobalMult } from './entitlements';
 import { premiumGlobalMult } from './premium';
 import { setBonusMult } from './sets';
+import { petCareMult } from './petcare';
+import { deskMult } from './desks';
 
 export const COST_GROWTH = 1.15;
 export const PASSIVE_KC_FRACTION = 0.4;
@@ -122,7 +124,9 @@ export function globalMult(state: GameState, content: Content, nowWall: number, 
     .mul(achievementMult(state))
     .mul(clauseGlobalMult(state, content))
     .mul(unionGlobalMult(state, nowWall))
-    .mul(premiumGlobalMult(state));
+    .mul(premiumGlobalMult(state))
+    .mul(petCareMult(state))
+    .mul(deskMult(state, content));
 }
 
 export interface Rates {

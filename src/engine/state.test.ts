@@ -462,6 +462,9 @@ describe('exhaustive save round-trip', () => {
       cases: { lastDay: '2026-10-26', seenDay: '2026-10-26', archive: [{ day: '2026-10-26', caseId: 'c-gus', verdict: 'hell', majority: 'heaven' }] },
       postcards: { collected: ['p-c01', 'p-c07'], waiting: ['p-c12'], nextAtWall: 1_700_000_777_000 },
       reputation: { score: 4.2, reviews: [{ n: 7, id: 'rv-limbo-vending', wall: 1_700_000_300_000, complaint: true, reply: 2 }, { n: 6, id: 'rv-any-coffee', wall: 1_700_000_200_000 }] },
+      missions: { active: [{ slot: 1, place: 'hell', cards: ['c-imp-qa'], endsWall: 1_700_000_900_000 }], runs: [4, 2, 1] },
+      pets: { treats: 5, care: { folio: { xp: 30, feed: 1_700_000_100_000, brush: 0, walk: 1_700_000_200_000 } } },
+      seats: ['c-dave-overtime', '', '', '', '', '', '', ''],
       rush: { rounds: 2, cooldownUntil: 1_700_001_200_000 },
       referral: { shareRewarded: true, claimedTiers: [3, 10], joinChecked: true, joined: true, qualified: true },
     };

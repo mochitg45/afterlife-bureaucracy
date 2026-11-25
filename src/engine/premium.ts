@@ -23,6 +23,12 @@ export interface PremiumStaffDef {
   saleEvent?: string;
 }
 
+/** What every hire has, paid or free. */
+export type PremiumDef = Omit<PremiumStaffDef, 'product'>;
+
+/** Folio, the pet anyone can adopt in Pet Care. Never sold, so it is not in PREMIUM_STAFF. */
+export const FREE_PET: PremiumDef = { id: 'folio', slot: 'pet', globalMult: 0.02, vouchers: 0 };
+
 export const PREMIUM_STAFF: readonly PremiumStaffDef[] = [
   { id: 'cerberus', product: 'cerberus_bundle', slot: 'premium', globalMult: 0.25, vouchers: 300 },
   { id: 'pumpkat', product: 'pumpkat_bundle', slot: 'pet', globalMult: 0.15, eventMult: 2, vouchers: 0, saleEvent: 'halloween' },
@@ -31,7 +37,7 @@ export const PREMIUM_STAFF: readonly PremiumStaffDef[] = [
   { id: 'snowfawn', product: 'snowfawn_bundle', slot: 'pet', globalMult: 0.05, eventMult: 3, vouchers: 0, saleEvent: 'christmas' },
 ];
 
-export const premiumDef = (id: string | undefined): PremiumStaffDef | undefined => PREMIUM_STAFF.find((p) => p.id === id);
+export const premiumDef = (id: string | undefined): PremiumDef | undefined => (id === FREE_PET.id ? FREE_PET : PREMIUM_STAFF.find((p) => p.id === id));
 export const premiumForProduct = (id: ProductId): PremiumStaffDef | undefined => PREMIUM_STAFF.find((p) => p.product === id);
 
 type Holder = Pick<GameState, 'entitlements'>;
@@ -41,13 +47,13 @@ const slotKey = (slot: PremiumSlot): 'petOn' | 'premiumOn' => (slot === 'pet' ? 
 export const ownsPremium = (s: Holder, id: string): boolean => (s.entitlements.premium ?? []).includes(id);
 
 /** Who is in a slot right now (premium staff by default, or the pet). */
-export function onDutyIn(s: Holder, slot: PremiumSlot): PremiumStaffDef | undefined {
+export function onDutyIn(s: Holder, slot: PremiumSlot): PremiumDef | undefined {
   const id = s.entitlements[slotKey(slot)];
   const def = id && ownsPremium(s, id) ? premiumDef(id) : undefined;
   return def?.slot === slot ? def : undefined;
 }
-export const premiumOnDuty = (s: Holder): PremiumStaffDef | undefined => onDutyIn(s, 'premium');
-export const petOnDuty = (s: Holder): PremiumStaffDef | undefined => onDutyIn(s, 'pet');
+export const premiumOnDuty = (s: Holder): PremiumDef | undefined => onDutyIn(s, 'premium');
+export const petOnDuty = (s: Holder): PremiumDef | undefined => onDutyIn(s, 'pet');
 
 /** Everyone on duty across both slots's slice of the global multiplier; 1 with both empty. */
 export const premiumGlobalMult = (s: Holder): number =>
@@ -58,7 +64,7 @@ export const premiumEventMult = (s: Holder): number =>
   (premiumOnDuty(s)?.eventMult ?? 1) * (petOnDuty(s)?.eventMult ?? 1);
 
 /** A limited item is on sale only while its event runs; everything else always is. */
-export const onSale = (def: PremiumStaffDef, runningEventId: string | null | undefined): boolean =>
+export const onSale = (def: PremiumDef, runningEventId: string | null | undefined): boolean =>
   !def.saleEvent || def.saleEvent === runningEventId;
 
 /** Adds premium staff to what the player owns; the first one owned for an empty slot goes straight on duty. */

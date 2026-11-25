@@ -35,6 +35,9 @@ import { pickAudio, type Audio, type SfxName } from '../platform/audio';
 import { requestReview, shouldAskForReview, reviewAllowed } from '../platform/review';
 import { useTestAds } from '../platform/adUnits';
 import { track, trackSession, noteAway } from '../platform/analytics';
+import { collectMission as collectMissionEngine, recallMission as recallMissionEngine, startMission as startMissionEngine, type MissionReward } from '../engine/missions';
+import { adoptPet as adoptPetEngine, givePetCare, petLevel, type CareKind } from '../engine/petcare';
+import { initialSeats, seatCard as seatCardEngine } from '../engine/desks';
 import { mailPostcards, mailPostcardAfterAudit, openPostcard as openPostcardEngine, postcardSouls } from '../engine/postcards';
 import { grantVouchersExact } from '../engine/vouchers';
 import { pickReferral, referralLink, type Referral } from '../platform/referral';
@@ -344,6 +347,17 @@ export interface GameStore {
   claimLogin(): void;
   /** Opens the oldest waiting postcard, paying its souls and any album milestone; returns its id, or null when the mailbox is empty. */
   openPostcard(): string | null;
+  /** Sends a Field Mission team; false if it could not leave. */
+  startMission(slot: number, cards: string[]): boolean;
+  /** Collects a finished Field Mission; null while it runs or while the clock is suspect. */
+  collectMission(slot: number): MissionReward | null;
+  recallMission(slot: number): void;
+  adoptPet(): void;
+  /** Feeds, brushes or walks a pet; true when the care counted. */
+  carePet(id: string, kind: CareKind): boolean;
+  /** Desk Planner: seats an equipped card, or stands it up with null. */
+  seatCard(cardId: string, desk: number | null): void;
+  clearDesks(): void;
   claimBeginner(day: number): void;
   /** A claimed voucher or seal tier, shown until dismissed (card tiers reuse `pendingPull`). */
   pendingPrize: Exclude<EventPrize, { kind: 'card' }> | null;
@@ -1581,6 +1595,68 @@ export function createGameStore(deps: StoreDeps) {
         sfx('achievement');
         void get().save();
         return r.id;
+      },
+      startMission(slot, cards) {
+        const s = get().state;
+        if (get().clockSuspect) return false;
+        const next = startMissionEngine(s, content, slot, cards, clock.wall());
+        if (next === s) return false;
+        apply(next);
+        track('mission_start', { slot, team: cards.length });
+        sfx('equip');
+        void get().save();
+        return true;
+      },
+      collectMission(slot) {
+        if (get().clockSuspect) return null;
+        const r = collectMissionEngine(get().state, content, slot, clock.wall(), get().rates.soulsPerSec);
+        if (!r) return null;
+        let next = addSouls(r.state, r.reward.souls, new Decimal(0));
+        if (r.reward.vouchers) next = grantVouchersExact(next, r.reward.vouchers);
+        apply(next);
+        track('mission_collect', { slot, vouchers: r.reward.vouchers });
+        sfx('achievement');
+        void get().save();
+        return r.reward;
+      },
+      recallMission(slot) {
+        const next = recallMissionEngine(get().state, slot);
+        if (next === get().state) return;
+        apply(next);
+        track('mission_recall', { slot });
+        void get().save();
+      },
+      adoptPet() {
+        const next = adoptPetEngine(get().state);
+        if (next === get().state) return;
+        apply(next);
+        track('pet_adopt', {});
+        sfx('achievement');
+        void get().save();
+      },
+      carePet(id, kind) {
+        const s = get().state;
+        if (get().clockSuspect) return false;
+        const next = givePetCare(s, id, kind, clock.wall());
+        if (next === s) return false;
+        const level = petLevel(next, id).level;
+        const up = level > petLevel(s, id).level;
+        apply(next);
+        track('pet_care', { pet: id, kind, level });
+        sfx(up ? 'achievement' : 'equip');
+        void get().save();
+        return true;
+      },
+      seatCard(cardId, desk) {
+        const next = seatCardEngine(get().state, cardId, desk);
+        if (next === get().state) return;
+        apply(next);
+        sfx('equip');
+        void get().save();
+      },
+      clearDesks() {
+        apply({ ...get().state, seats: initialSeats() });
+        void get().save();
       },
       claimBeginner(day) {
         const r = claimBeginnerEngine(get().state, content, day);

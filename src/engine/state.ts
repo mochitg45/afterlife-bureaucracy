@@ -10,6 +10,9 @@ import { sanitizeAlliance } from './alliance';
 import { emptyCases, sanitizeCases, type CasesState } from './cases';
 import { premiumDef } from './premium';
 import { initialPostcards, sanitizePostcards, type PostcardsState } from './postcards';
+import { initialMissions, sanitizeMissions, type MissionsState } from './missions';
+import { initialPets, sanitizePets, type PetsState } from './petcare';
+import { initialSeats, sanitizeSeats } from './desks';
 import { initialReputation, sanitizeReputation, type Reputation } from './reviews';
 
 export { SAVE_VERSION, RESET_EPOCH };
@@ -257,6 +260,12 @@ export interface GameState {
   cases: CasesState;
   /** Postcards from Reborn Souls: album, mailbox and the next-delivery deadline; see engine/postcards.ts. */
   postcards: PostcardsState;
+  /** Field Missions: teams out and trips finished; see engine/missions.ts. */
+  missions: MissionsState;
+  /** Pet Care: treats and each pet's XP and timers; see engine/petcare.ts. */
+  pets: PetsState;
+  /** Desk Planner: the card at each of the 8 desks, '' when empty; see engine/desks.ts. */
+  seats: string[];
   /** Afterlife Reviews: smoothed 1-5 reputation and the recent feed; see engine/reviews.ts. */
   reputation: Reputation;
 }
@@ -340,6 +349,9 @@ export function createInitialState(now: Now, content: Content): GameState {
     alliance: { week: 0, claimed: [] },
     cases: emptyCases(),
     postcards: initialPostcards(),
+    missions: initialMissions(),
+    pets: initialPets(),
+    seats: initialSeats(),
     reputation: initialReputation(),
     referral: { shareRewarded: false, claimedTiers: [], joinChecked: false, joined: false, qualified: false },
   };
@@ -798,6 +810,9 @@ export function deserialize(json: string, content: Content): GameState {
     alliance: sanitizeAlliance(raw.alliance),
     cases: sanitizeCases(raw.cases),
     postcards: sanitizePostcards(raw.postcards),
+    missions: sanitizeMissions(raw.missions),
+    pets: sanitizePets(raw.pets),
+    seats: sanitizeSeats(raw.seats),
     reputation: sanitizeReputation(raw.reputation),
     review: (() => {
       const r = raw.review && typeof raw.review === 'object' && !Array.isArray(raw.review) ? (raw.review as Record<string, unknown>) : {};

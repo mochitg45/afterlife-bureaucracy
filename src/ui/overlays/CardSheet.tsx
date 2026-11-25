@@ -4,6 +4,7 @@ import { useGame } from '../../store/game';
 import { content } from '../../data';
 import { findCard } from '../../engine/content';
 import { dupesForNextStar, MAX_STARS, equipSlots, keptCard, EXCHANGE_COST, EXCHANGE_CHANCE, type ExchangeResult } from '../../engine/gacha';
+import { onMission } from '../../engine/missions';
 import { formatNumber } from '../../engine/format';
 import { KarmaIcon } from '../icons/Currency';
 import { RARITY_LABEL } from '../components/CardTile';
@@ -54,6 +55,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
   const isEquipped = equipped.includes(cardId);
   const slots = equipSlots({ perks }, content);
   const full = !isEquipped && equipped.length >= slots;
+  const away = useGame((s) => onMission(s.state, cardId));
   const shards = useGame((s) => s.state.cardShards[cardId] ?? 0);
   const spares = useGame((s) => s.state.cardSpares[cardId] ?? 0);
   const canExchange = stars >= MAX_STARS && card.rarity !== 'executive' && spares >= EXCHANGE_COST;
@@ -77,7 +79,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
       {!keptCard(card) ? <p className="sub brass">{t('card.eventActive')}</p> : <div className="modal-actions">
         <button
           className="btn btn-primary"
-          disabled={full}
+          disabled={full || away}
           onClick={() => {
             if (isEquipped) unequip(cardId); else equip(cardId);
             onClose();
@@ -85,7 +87,7 @@ export function CardSheet({ cardId, onClose }: { cardId: string; onClose: () => 
         >
           {isEquipped ? t('card.unequip') : t('card.equip')}
         </button>
-        {full && <span className="sub warn">{t('card.noLanyard')}</span>}
+        {away ? <span className="sub warn">{t('missions.away')}</span> : full && <span className="sub warn">{t('card.noLanyard')}</span>}
       </div>}
       {canExchange && (
         <div className="modal-actions">

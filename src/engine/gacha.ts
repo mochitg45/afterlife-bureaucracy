@@ -4,6 +4,7 @@ import type { Content, CardDef, Rarity } from './content';
 import { nextFloat } from './rng';
 import { perkSum } from './perks';
 import type { EventOccurrence } from './events';
+import { onMission } from './missions';
 
 export const PULL_COST = 10;
 export const TEN_PULL_COST = 90;
@@ -323,6 +324,8 @@ export function clampEquipped(state: GameState, content: Content): GameState {
 /** Equips an owned card into a free slot. Refuses (same state) if not owned, already equipped, or no free slot. */
 export function equipCard(state: GameState, content: Content, cardId: string): GameState {
   if (!(cardId in state.cards) || state.equipped.includes(cardId)) return state;
+  // Out on a Field Mission: it can take a desk when it is back.
+  if (onMission(state, cardId)) return state;
   // Event cards never take a lanyard: every one you own works during its event (see cardEventMult).
   // Event executives are the exception: kept for good and equipped like any regular card.
   const def = content.cards.find((c) => c.id === cardId);
