@@ -33,6 +33,7 @@ export function SettingsSheet({
   const notifOptIn = useGame((s) => s.state.settings.notifOptIn);
   const sfx = useGame((s) => s.state.settings.sfx);
   const music = useGame((s) => s.state.settings.music);
+  const vibrate = useGame((s) => s.state.settings.vibrate);
   const setSound = useGame((s) => s.setSound);
   const replayTips = useGame((s) => s.replayTips);
   const saveVersion = useGame((s) => s.state.saveVersion);
@@ -122,6 +123,10 @@ export function SettingsSheet({
       <label className="settings-row">
         <span>{t('settings.music')}</span>
         <input type="checkbox" aria-label={t('settings.music')} checked={music} onChange={(e) => setSound({ music: e.target.checked })} />
+      </label>
+      <label className="settings-row">
+        <span>{t('settings.vibrate')}</span>
+        <input type="checkbox" aria-label={t('settings.vibrate')} checked={vibrate} onChange={(e) => setSound({ vibrate: e.target.checked })} />
       </label>
       <label className="settings-row">
         <span>{t('settings.language')}</span>

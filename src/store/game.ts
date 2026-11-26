@@ -54,6 +54,7 @@ import { caseDay, canRule as canRuleCase, markCaseSeen, ruleCase as ruleCaseEngi
 import { nextSpawnDelay, canSpawn, makeIncident, incidentReward, incidentFactor, IGNORE_GRACE_MS, type Incident } from '../engine/incidents';
 import { content as defaultContent, reviewTemplates } from '../data';
 import { nextReviewDelay, reputationTarget, stepScore, reputationMult, pickReview, addReview, respondTo, tierOf, REPLY_COUNT } from '../engine/reviews';
+import { setHapticsEnabled } from '../platform/haptics';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
 export const FORCE_EVENT_KEY = 'afterlife.forceEvent';
@@ -400,7 +401,7 @@ export interface GameStore {
   clearAchievementToast(): void;
   setNotifOptIn(v: 'yes' | 'no'): Promise<void>;
   audio: Audio;
-  setSound(flags: Partial<{ sfx: boolean; music: boolean }>): void;
+  setSound(flags: Partial<{ sfx: boolean; music: boolean; vibrate: boolean }>): void;
   shouldAskNotifications(): boolean;
   watchAd(placement: AdPlacement, taskId?: string): Promise<AdResult>;
   canWatch(placement: AdPlacement): boolean;
@@ -770,7 +771,10 @@ export function createGameStore(deps: StoreDeps) {
       await qualifyReferral();
     };
 
-    const applySoundSettings =(s: GameState) => audio.setEnabled({ sfx: s.settings.sfx, music: s.settings.music });
+    const applySoundSettings = (s: GameState) => {
+      audio.setEnabled({ sfx: s.settings.sfx, music: s.settings.music });
+      setHapticsEnabled(s.settings.vibrate);
+    };
 
     const withClocks = (s: GameState): GameState => ({ ...s, lastSeenWallClock: clock.wall(), uptimeAtSave: clock.mono() });
 

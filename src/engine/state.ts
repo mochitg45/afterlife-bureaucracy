@@ -101,6 +101,8 @@ export interface Settings {
   /** Sound effects and the office ambience loop; both travel with the save like the theme. */
   sfx: boolean;
   music: boolean;
+  /** Vibration on stamps and taps; on by default. */
+  vibrate: boolean;
 }
 
 /** First-launch onboarding progress. trainingStep: 0 = stamp, 1 = hire, 2 = recap, 3 = done. */
@@ -327,7 +329,7 @@ export function createInitialState(now: Now, content: Content): GameState {
     },
     achievements: [],
     storySeen: [],
-    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light', sfx: true, music: true },
+    settings: { notifOptIn: 'unasked', notifDate: '', notifsSent: 0, theme: 'light', sfx: true, music: true, vibrate: true },
     rush: initialRush(),
     firstSeenWallClock: now.wall,
     entitlements: { removeAds: false, unionUntilWall: 0, starterPackBought: false, firstBuyUsed: {} },
@@ -582,6 +584,7 @@ function sanitizeSettings(v: unknown): Settings {
     theme,
     sfx: flag(raw.sfx),
     music: flag(raw.music),
+    vibrate: flag(raw.vibrate),
   };
 }
 
