@@ -825,5 +825,11 @@
  "desks.rule.rival": "Cielo junto a Infierno: {pct}",
  "desks.clear": "Vaciar escritorios",
  "premium.folio.name": "Folio",
- "premium.folio.title": "Mascota de oficina · Formulario sin archivar"
+ "premium.folio.title": "Mascota de oficina · Formulario sin archivar",
+ "notif.missionTitle": "¡Tu equipo volvió!",
+ "notif.missionBody": "{place}: ven a recoger las almas que encontraron.",
+ "notif.petTitle": "{name} quiere atención",
+ "notif.petBody": "Aliméntalo, cepíllalo o sácalo a pasear para subirlo de nivel.",
+ "notif.postcardTitle": "Llegó una postal",
+ "notif.postcardBody": "Un alma renacida te escribió. ¡Abre el buzón!"
 }

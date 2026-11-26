@@ -825,5 +825,11 @@
  "desks.rule.rival": "Céu ao lado do Inferno: {pct}",
  "desks.clear": "Esvaziar mesas",
  "premium.folio.name": "Folio",
- "premium.folio.title": "Pet do escritório · Formulário não arquivado"
+ "premium.folio.title": "Pet do escritório · Formulário não arquivado",
+ "notif.missionTitle": "Sua equipe voltou!",
+ "notif.missionBody": "{place}: venha coletar as almas que encontraram.",
+ "notif.petTitle": "{name} quer atenção",
+ "notif.petBody": "Alimente, escove ou passeie com seu pet para subir de nível.",
+ "notif.postcardTitle": "Chegou um cartão-postal",
+ "notif.postcardBody": "Uma alma renascida escreveu para você. Abra a caixa de correio!"
 }

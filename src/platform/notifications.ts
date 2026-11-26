@@ -12,6 +12,14 @@ export const NOTIF_DAILY = 2;
 export const NOTIF_EVENT = 3;
 export const NOTIF_AWAY3 = 4;
 export const NOTIF_AWAY7 = 5;
+export const NOTIF_MISSION = 6;
+export const NOTIF_PET = 7;
+export const NOTIF_INTRAY = 8;
+export const NOTIF_POSTCARD = 9;
+
+/** Reminders per local day, and the least time between two of them. */
+export const REMINDERS_PER_DAY = 3;
+export const REMINDER_GAP_MS = 3 * 3_600_000;
 
 /** Local hours reminders may fire in; anything outside moves to the nearest edge of the same day. */
 export const REMINDER_FROM_HOUR = 9;
@@ -25,20 +33,21 @@ function inWakingHours(atWall: number): number {
 }
 
 /**
- * At most one reminder a local day, and none today: the player is here today, and any reminder
- * that fires tomorrow is replaced on their next visit. `items` are in priority order.
+ * Up to REMINDERS_PER_DAY a local day, at least REMINDER_GAP_MS apart and never in the past; each
+ * visit replaces whatever is still pending. `items` are in priority order: a reminder that does
+ * not fit is dropped, never moved.
  */
 export function planReminders(items: NotificationItem[], wall: number): NotificationItem[] {
-  const used = new Set([dayKey(wall)]);
   const kept: NotificationItem[] = [];
   for (const item of items) {
     const atWall = inWakingHours(item.atWall);
+    if (atWall <= wall) continue;
     const day = dayKey(atWall);
-    if (used.has(day)) continue;
-    used.add(day);
+    if (kept.filter((k) => dayKey(k.atWall) === day).length >= REMINDERS_PER_DAY) continue;
+    if (kept.some((k) => Math.abs(k.atWall - atWall) < REMINDER_GAP_MS)) continue;
     kept.push({ ...item, atWall });
   }
-  return kept;
+  return kept.sort((a, b) => a.atWall - b.atWall);
 }
 
 export const noopNotifications: Notifications = {

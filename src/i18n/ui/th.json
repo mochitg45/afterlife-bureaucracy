@@ -825,5 +825,11 @@
  "desks.rule.rival": "สวรรค์นั่งข้างนรก: {pct}",
  "desks.clear": "เคลียร์โต๊ะ",
  "premium.folio.name": "โฟลิโอ",
- "premium.folio.title": "สัตว์เลี้ยงออฟฟิศ · แบบฟอร์มที่ยังไม่จัดเก็บ"
+ "premium.folio.title": "สัตว์เลี้ยงออฟฟิศ · แบบฟอร์มที่ยังไม่จัดเก็บ",
+ "notif.missionTitle": "ทีมของคุณกลับมาแล้ว!",
+ "notif.missionBody": "{place}: มารับวิญญาณที่ทีมหาเจอ",
+ "notif.petTitle": "{name} อยากให้คุณมาดูแล",
+ "notif.petBody": "ให้อาหาร แปรงขน หรือพาเดินเล่น เพื่อเพิ่มเลเวลสัตว์เลี้ยง",
+ "notif.postcardTitle": "มีโปสการ์ดมาถึง",
+ "notif.postcardBody": "วิญญาณที่เกิดใหม่เขียนถึงคุณ เปิดตู้จดหมายเลย!"
 }

@@ -825,5 +825,11 @@
  "desks.rule.rival": "Surga di sebelah Neraka: {pct}",
  "desks.clear": "Kosongkan meja",
  "premium.folio.name": "Folio",
- "premium.folio.title": "Hewan Kantor · Formulir Belum Diarsip"
+ "premium.folio.title": "Hewan Kantor · Formulir Belum Diarsip",
+ "notif.missionTitle": "Timmu sudah kembali!",
+ "notif.missionBody": "{place}: ambil jiwa yang mereka temukan.",
+ "notif.petTitle": "{name} ingin diperhatikan",
+ "notif.petBody": "Beri makan, sikat, atau ajak jalan-jalan agar levelnya naik.",
+ "notif.postcardTitle": "Ada kartu pos datang",
+ "notif.postcardBody": "Jiwa yang terlahir kembali menulis untukmu. Buka kotak suratnya!"
 }

@@ -10,7 +10,7 @@ import { applyOffline, offlineCapSeconds, MIN_OFFLINE_SECONDS } from '../engine/
 import { assessGap, type GapAssessment } from '../engine/integrity';
 import { realClock, type Clock } from '../engine/time';
 import { pickStorage, SAVE_KEY, type Storage } from '../platform/storage';
-import { pickNotifications, planReminders, NOTIF_DAILY, NOTIF_EVENT, NOTIF_AWAY3, NOTIF_AWAY7, type Notifications } from '../platform/notifications';
+import { pickNotifications, planReminders, NOTIF_DAILY, NOTIF_EVENT, NOTIF_AWAY3, NOTIF_AWAY7, NOTIF_MISSION, NOTIF_PET, NOTIF_INTRAY, NOTIF_POSTCARD, type Notifications } from '../platform/notifications';
 import { rollover, claimDaily as claimDailyEngine, skipDaily as skipDailyEngine, skipDailyFree, upgradeLevelsLeft, isDone, progressOf, pickTasks, nextLocalMidnight, dayKey } from '../engine/dailies';
 import { checkAchievements } from '../engine/achievements';
 import { rushAvailable, startRound, rushPayout } from '../engine/rush';
@@ -36,7 +36,8 @@ import { requestReview, shouldAskForReview, reviewAllowed } from '../platform/re
 import { useTestAds } from '../platform/adUnits';
 import { track, trackSession, noteAway } from '../platform/analytics';
 import { collectMission as collectMissionEngine, recallMission as recallMissionEngine, startMission as startMissionEngine, type MissionReward } from '../engine/missions';
-import { adoptPet as adoptPetEngine, givePetCare, petLevel, type CareKind } from '../engine/petcare';
+import { CARE_KINDS, CARE_MS, adoptPet as adoptPetEngine, givePetCare, petCare, petLevel, type CareKind } from '../engine/petcare';
+import { petOnDuty } from '../engine/premium';
 import { initialSeats, seatCard as seatCardEngine } from '../engine/desks';
 import { mailPostcards, mailPostcardAfterAudit, openPostcard as openPostcardEngine, postcardSouls } from '../engine/postcards';
 import { grantVouchersExact } from '../engine/vouchers';
@@ -1449,13 +1450,23 @@ export function createGameStore(deps: StoreDeps) {
         if (ev) items.push({ id: NOTIF_EVENT, ...ev });
         // An office with no staff produces nothing, so an "in-tray full" nudge would be a lie.
         const working = get().rates.soulsPerSec.gt(0);
+        // A team coming home: the first one back.
+        const back = [...s.missions.active].sort((a, b) => a.endsWall - b.endsWall)[0];
+        if (back) items.push({ id: NOTIF_MISSION, atWall: back.endsWall, title: t('notif.missionTitle'), body: t('notif.missionBody', { place: t(`missions.place.${back.place}`) }) });
+        // The pet on duty, once any care is ready again (feeding only counts with a treat in hand).
+        const pet = petOnDuty(s);
+        if (pet) {
+          const c = petCare(s, pet.id);
+          const ready = Math.min(...CARE_KINDS.filter((k) => k !== 'feed' || s.pets.treats > 0).map((k) => Math.max(wall, c[k] + CARE_MS)));
+          items.push({ id: NOTIF_PET, atWall: ready + 60_000, title: t('notif.petTitle', { name: t(`premium.${pet.id}.name`) }), body: t('notif.petBody') });
+        }
+        if (working) items.push({ id: NOTIF_INTRAY, atWall: wall + offlineCapSeconds(s, content) * 1000, title: t('notif.intrayTitle'), body: t('notif.intrayBody') });
         items.push({
           id: NOTIF_DAILY,
-          atWall: Math.max(nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS, wall + offlineCapSeconds(s, content) * 1000),
-          ...beginnerNotification(s) ?? (working
-            ? { title: t('notif.intrayTitle'), body: t('notif.intrayBody') }
-            : { title: t('notif.dailyTitle'), body: t('notif.dailyBody') }),
+          atWall: nextLocalMidnight(wall) + DAILY_NOTIF_DELAY_MS,
+          ...beginnerNotification(s) ?? { title: t('notif.dailyTitle'), body: t('notif.dailyBody') },
         });
+        if (s.postcards.nextAtWall > wall) items.push({ id: NOTIF_POSTCARD, atWall: s.postcards.nextAtWall, title: t('notif.postcardTitle'), body: t('notif.postcardBody') });
         // Lapsed-player nudges: each pause pushes them back, so they only fire after real absence.
         items.push({ id: NOTIF_AWAY3, atWall: wall + 3 * 86_400_000, title: t('notif.away3Title'), body: t('notif.away3Body') });
         items.push({ id: NOTIF_AWAY7, atWall: wall + 7 * 86_400_000, title: t('notif.away7Title'), body: t('notif.away7Body') });

@@ -825,5 +825,11 @@
  "desks.rule.rival": "天国と地獄が隣どうし：{pct}",
  "desks.clear": "デスクを空ける",
  "premium.folio.name": "フォリオ",
- "premium.folio.title": "オフィスペット・未整理の書類"
+ "premium.folio.title": "オフィスペット・未整理の書類",
+ "notif.missionTitle": "チームが帰ってきた！",
+ "notif.missionBody": "{place}：見つけた魂を受け取ろう。",
+ "notif.petTitle": "{name}がかまってほしそう",
+ "notif.petBody": "ごはん・ブラシ・散歩でペットのレベルを上げよう。",
+ "notif.postcardTitle": "ポストカードが届きました",
+ "notif.postcardBody": "生まれ変わった魂からお便りです。郵便受けを開けよう！"
 }

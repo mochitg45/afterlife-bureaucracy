@@ -108,12 +108,12 @@ describe('retention store', () => {
     expect(store.getState().state.settings.notifOptIn).toBe('yes');
     staffUp();
     await store.getState().pause();
-    expect(calls).toContain('schedule:2,4,5');
+    expect(calls).toContain('schedule:8,2,4,5');
     await store.getState().resume();
     expect(calls.filter((c) => c === 'cancel').length).toBeGreaterThan(0);
     store.getState().stopLoop();
   });
-  it('plans the same one-a-day reminders however many times the app pauses', async () => {
+  it('plans the same reminders however many times the app pauses', async () => {
     const { store, calls, staffUp } = await make();
     await store.getState().setNotifOptIn('yes');
     staffUp();
@@ -121,7 +121,7 @@ describe('retention store', () => {
     await store.getState().resume();
     staffUp();
     await store.getState().pause();
-    expect(calls.filter((c) => c.startsWith('schedule:'))).toEqual(['schedule:2,4,5', 'schedule:2,4,5']);
+    expect(calls.filter((c) => c.startsWith('schedule:'))).toEqual(['schedule:8,2,4,5', 'schedule:8,2,4,5']);
     store.getState().stopLoop();
   });
   it('skips the in-tray notification when the office produces nothing', async () => {

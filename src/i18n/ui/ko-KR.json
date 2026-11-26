@@ -825,5 +825,11 @@
  "desks.rule.rival": "천국과 지옥이 이웃: {pct}",
  "desks.clear": "책상 비우기",
  "premium.folio.name": "폴리오",
- "premium.folio.title": "사무실 펫 · 정리 안 된 서류"
+ "premium.folio.title": "사무실 펫 · 정리 안 된 서류",
+ "notif.missionTitle": "팀이 돌아왔어요!",
+ "notif.missionBody": "{place}: 찾아온 영혼을 받아 가세요.",
+ "notif.petTitle": "{name}이(가) 관심을 원해요",
+ "notif.petBody": "먹이 주기, 빗질, 산책으로 펫 레벨을 올리세요.",
+ "notif.postcardTitle": "엽서가 도착했어요",
+ "notif.postcardBody": "환생한 영혼이 편지를 보냈어요. 우편함을 열어 보세요!"
 }

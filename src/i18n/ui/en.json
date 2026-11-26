@@ -825,5 +825,11 @@
  "desks.rule.rival": "Heaven next to Hell: {pct}",
  "desks.clear": "Clear desks",
  "premium.folio.name": "Folio",
- "premium.folio.title": "Office Pet · Unfiled Form"
+ "premium.folio.title": "Office Pet · Unfiled Form",
+ "notif.missionTitle": "Your team is back!",
+ "notif.missionBody": "{place}: come collect the souls they found.",
+ "notif.petTitle": "{name} wants some attention",
+ "notif.petBody": "Feed, brush or walk your pet to level it up.",
+ "notif.postcardTitle": "A postcard arrived",
+ "notif.postcardBody": "A reborn soul wrote to you. Open the mailbox!"
 }

@@ -6,12 +6,14 @@ const item = (id: number, atWall: number): NotificationItem => ({ id, atWall, ti
 describe('planReminders', () => {
   const wall = at(7, 12);
 
-  it('never fires today', () => {
-    expect(planReminders([item(1, at(7, 18))], wall)).toEqual([]);
+  it('may fire later today, never in the past', () => {
+    expect(planReminders([item(1, at(7, 18)), item(2, at(7, 11))], wall).map((i) => i.id)).toEqual([1]);
   });
 
-  it('keeps one a day, the first listed winning', () => {
-    expect(planReminders([item(3, at(8, 15)), item(2, at(8, 10)), item(4, at(10, 12))], wall).map((i) => i.id)).toEqual([3, 4]);
+  it('keeps up to three a day, three hours apart, the first listed winning, in time order', () => {
+    const day8 = [item(5, at(8, 9)), item(6, at(8, 13)), item(7, at(8, 17)), item(8, at(8, 20))];
+    expect(planReminders(day8, wall).map((i) => i.id)).toEqual([5, 6, 7]);
+    expect(planReminders([item(3, at(8, 15)), item(2, at(8, 14)), item(4, at(8, 10))], wall).map((i) => i.id)).toEqual([4, 3]);
   });
 
   it('moves night-time reminders into waking hours', () => {

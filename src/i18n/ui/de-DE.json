@@ -825,5 +825,11 @@
  "desks.rule.rival": "Himmel neben Hölle: {pct}",
  "desks.clear": "Tische räumen",
  "premium.folio.name": "Folio",
- "premium.folio.title": "Bürotier · Unabgelegtes Formular"
+ "premium.folio.title": "Bürotier · Unabgelegtes Formular",
+ "notif.missionTitle": "Dein Team ist zurück!",
+ "notif.missionBody": "{place}: Hol dir die Seelen, die sie gefunden haben.",
+ "notif.petTitle": "{name} will Aufmerksamkeit",
+ "notif.petBody": "Füttern, bürsten oder Gassi gehen bringt dein Haustier eine Stufe weiter.",
+ "notif.postcardTitle": "Eine Postkarte ist da",
+ "notif.postcardBody": "Eine wiedergeborene Seele hat dir geschrieben. Öffne den Briefkasten!"
 }

@@ -825,5 +825,11 @@
  "desks.rule.rival": "Paradis à côté de l’Enfer : {pct}",
  "desks.clear": "Vider les bureaux",
  "premium.folio.name": "Folio",
- "premium.folio.title": "Animal de bureau · Formulaire non classé"
+ "premium.folio.title": "Animal de bureau · Formulaire non classé",
+ "notif.missionTitle": "Votre équipe est de retour !",
+ "notif.missionBody": "{place} : venez récupérer les âmes trouvées.",
+ "notif.petTitle": "{name} réclame de l’attention",
+ "notif.petBody": "Nourrissez, brossez ou promenez votre animal pour le faire monter de niveau.",
+ "notif.postcardTitle": "Une carte postale est arrivée",
+ "notif.postcardBody": "Une âme réincarnée vous a écrit. Ouvrez la boîte aux lettres !"
 }
