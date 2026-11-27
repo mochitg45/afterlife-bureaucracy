@@ -14,6 +14,8 @@ export const MORE_GAMES = [
   { id: 'topplejam', name: 'Topple Jam', pkg: 'com.inatasunsoft.topplejam' },
   { id: 'echodeep', name: 'Echo Deep', pkg: 'com.inatasunsoft.echodeep' },
   { id: 'sandmanco', name: 'Sandman & Co.', pkg: 'com.inatasunsoft.sandmanco' },
+  { id: 'burrowbakery', name: 'Burrow Bakery', pkg: 'com.inatasunsoft.burrowbakery' },
+  { id: 'dustbunny', name: 'Dust Bunny Empire', pkg: 'com.inatasunsoft.dustbunnyempire' },
   { id: 'cuco', name: 'CUCO', pkg: 'com.cuco.converter' },
   { id: 'smile', name: 'Smile', pkg: 'com.smileapp.mentalhealth' },
 ] as const;
