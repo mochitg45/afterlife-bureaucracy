@@ -55,6 +55,7 @@ import { caseDay, canRule as canRuleCase, markCaseSeen, ruleCase as ruleCaseEngi
 import { nextSpawnDelay, canSpawn, makeIncident, incidentReward, incidentFactor, IGNORE_GRACE_MS, type Incident } from '../engine/incidents';
 import { content as defaultContent, reviewTemplates } from '../data';
 import { nextReviewDelay, reputationTarget, stepScore, reputationMult, pickReview, addReview, respondTo, tierOf, REPLY_COUNT } from '../engine/reviews';
+import { openEverything } from '../engine/testUnlocks';
 import { setHapticsEnabled } from '../platform/haptics';
 
 /** localStorage key (and `?event=` URL param) that runs an event now; see `readForceEvent`. */
@@ -1351,6 +1352,8 @@ export function createGameStore(deps: StoreDeps) {
               allowRollover = credited.assessment.allowRollover;
             }
           }
+          // Phone test builds only (.env.testads): every feature open, plenty of currency.
+          if (import.meta.env.VITE_TEST_UNLOCKS === '1') state = openEverything(state, content);
           state = { ...state, processId };
           trackSession();
           const r = settle(state, allowRollover);
